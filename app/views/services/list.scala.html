@@ -1,0 +1,112 @@
+@(currentPage: Page[(Service, Option[Environment])], currentOrderBy: Int, currentFilter: String)(implicit flash: play.api.mvc.Flash)
+
+@****************************************
+* Helper generating navigation links    *
+****************************************@
+@link(newPage: Int, newOrderBy: Option[Int] = None) = @{
+    routes.Services.list(newPage, newOrderBy.map { orderBy =>
+        if(orderBy == scala.math.abs(currentOrderBy)) -currentOrderBy else orderBy
+    }.getOrElse(currentOrderBy), currentFilter)
+    
+}
+
+
+@**********************************
+* Helper generating table headers *
+***********************************@
+@header(orderBy: Int, title: String) = {
+    <th class="col@orderBy header @if(scala.math.abs(currentOrderBy) == orderBy) @{if(currentOrderBy < 0) "headerSortDown" else "headerSortUp"}">
+        <a href="@link(0, Some(orderBy))">@title</a>
+    </th>
+}
+
+@main {
+
+    <h1>@Messages("services.list.title", currentPage.total)</h1>
+
+    @flash.get("success").map { message =>
+        <div class="alert-message warning">
+            <strong>Done!</strong> @message
+        </div>
+    }
+
+    <div id="actions">
+        
+        @helper.form(action=routes.Services.list()) {
+            <input type="search" id="searchbox" name="f" value="@currentFilter" placeholder="Filter by service Soap Action...">
+            <input type="submit" id="searchsubmit" value="Filter by soapAction" class="btn primary">
+        }
+        
+        <a class="btn success" id="add" href="@routes.Services.create()">Add a new service</a>
+        
+    </div>
+    
+    @Option(currentPage.items).filterNot(_.isEmpty).map { services =>
+        
+        <table class="services zebra-striped">
+            <thead>
+                <tr>
+                    @header(2, "Soap Action")
+                    @header(3, "Locat Target")
+                    @header(4, "Remote Target")
+                </tr>
+            </thead>
+            <tbody>
+
+                @services.map { 
+                    case (service, environment) => {
+                        <tr>
+                            <td><a href="@routes.Services.edit(service.id.get)">@service.soapAction</a></td>
+                            <td>
+                                @service.localTarget
+                            </td>
+                            <td>
+                                @service.remoteTarget
+                            </td>
+                            <td>
+                                @environment.map(_.name).getOrElse { <em>-</em> }
+                            </td>
+                        </tr>
+                    }
+                }
+
+            </tbody>
+        </table>
+
+        <div id="pagination" class="pagination">
+            <ul>
+                @currentPage.prev.map { page =>
+                    <li class="prev">
+                        <a href="@link(page)">&larr; Previous</a>
+                    </li> 
+                }.getOrElse {
+                    <li class="prev disabled">
+                        <a>&larr; Previous</a>
+                    </li>
+                }
+                <li class="current">
+                    <a>Displaying @(currentPage.offset + 1) to @(currentPage.offset + services.size) of @currentPage.total</a>
+                </li>
+                @currentPage.next.map { page =>
+                    <li class="next">
+                        <a href="@link(page)">Next &rarr;</a>
+                    </li> 
+                }.getOrElse {
+                    <li class="next disabled">
+                        <a>Next &rarr;</a>
+                    </li>
+                }
+            </ul>
+        </div>
+        
+    }.getOrElse {
+        
+        <div class="well">
+            <em>Nothing to display</em>
+        </div>
+        
+    }
+        
+}
+
+            
