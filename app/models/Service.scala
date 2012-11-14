@@ -85,6 +85,42 @@ object Service {
     }
   }
 
+
+  /**
+   * Update a service.
+   *
+   * @param id The service id
+   * @param service The service values.
+   */
+  def update(id: Long, service: Service) = {
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
+          update service
+          set soapAction = {soapAction}, localTarget = {localTarget}, remoteTarget = {remoteTarget}, environment_id = {environment_id} 
+          where id = {id}
+        """
+      ).on(
+        'id -> id,
+        'soapAction -> service.soapAction,
+        'localTarget -> service.localTarget,
+        'remoteTarget -> service.remoteTarget,
+        'environment_id -> service.environmentId
+      ).executeUpdate()
+    }
+  }
+
+  /**
+   * Delete a service.
+   *
+   * @param id Id of the service to delete.
+   */
+  def delete(id: Long) = {
+    DB.withConnection { implicit connection =>
+      SQL("delete from service where id = {id}").on('id -> id).executeUpdate()
+    }
+  }
+
   /**
    * Parse a (Service,Environment) from a ResultSet
    */

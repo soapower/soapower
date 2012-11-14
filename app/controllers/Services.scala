@@ -55,11 +55,9 @@ object Services extends Controller {
    * @param id Id of the service to edit
    */
   def edit(id: Long) = Action {
-    /*Service.findById(id).map { service =>
+    Service.findById(id).map { service =>
       Ok(views.html.services.editForm(id, serviceForm.fill(service), Environment.options))
     }.getOrElse(NotFound)
-    */
-    BadRequest
   }
   
   /**
@@ -68,15 +66,13 @@ object Services extends Controller {
    * @param id Id of the service to edit
    */
   def update(id: Long) = Action { implicit request =>
-    /*serviceForm.bindFromRequest.fold(
+    serviceForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.services.editForm(id, formWithErrors, Environment.options)),
       service => {
         Service.update(id, service)
         Home.flashing("success" -> "Service %s has been updated".format(service.soapAction))
       }
     )
-    */
-    BadRequest
   }
   
   /**
@@ -103,9 +99,7 @@ object Services extends Controller {
    * Handle service deletion.
    */
   def delete(id: Long) = Action {
-    /*Service.delete(id)
+    Service.delete(id)
     Home.flashing("success" -> "Service has been deleted")
-    */
-    BadRequest
   }
 }

@@ -1,36 +1,39 @@
-@(serviceForm: Form[Service], environments: Seq[(String, String)])
+@(id: Long, serviceForm: Form[Service], environments : Seq[(String, String)])
 
 @import helper._
 
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) } 
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
 
 @main {
     
-    <h1>Add a service</h1>
+    <h1>Edit service</h1>
     
-    @form(routes.Services.save()) {
+    @form(routes.Services.update(id)) {
         
         <fieldset>
         
             @inputText(serviceForm("soapAction"), '_label -> "Service Soap Action")
             @inputText(serviceForm("localTarget"), '_label -> "local Target")
             @inputText(serviceForm("remoteTarget"), '_label -> "remote Target")
-
+            
             @select(
                 serviceForm("environment"), 
                 environments, 
                 '_label -> "Environment", '_default -> "-- Choose a environment --",
                 '_showConstraints -> false
             )
-            
-
+        
         </fieldset>
         
         <div class="actions">
-            <input type="submit" value="Create this service" class="btn primary"> or 
+            <input type="submit" value="Save this service" class="btn btn-primary"> or 
             <a href="@routes.Services.list()" class="btn">Cancel</a> 
         </div>
         
+    }
+    
+    @form(routes.Services.delete(id), 'class -> "topRight") {
+        <input type="submit" value="Delete this service" class="btn btn-danger">
     }
     
 }
