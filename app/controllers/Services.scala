@@ -24,7 +24,7 @@ object Services extends Controller {
   val serviceForm = Form(
     mapping(
       "id" -> ignored(NotAssigned:Pk[Long]),
-      "soapAction" -> nonEmptyText,
+      "description" -> nonEmptyText,
       "localTarget" -> nonEmptyText,
       "remoteTarget" -> nonEmptyText,
       "environment" -> optional(longNumber)
@@ -70,7 +70,7 @@ object Services extends Controller {
       formWithErrors => BadRequest(views.html.services.editForm(id, formWithErrors, Environment.options)),
       service => {
         Service.update(id, service)
-        Home.flashing("success" -> "Service %s has been updated".format(service.soapAction))
+        Home.flashing("success" -> "Service %s has been updated".format(service.description))
       }
     )
   }
@@ -90,7 +90,7 @@ object Services extends Controller {
       formWithErrors => BadRequest(views.html.services.createForm(formWithErrors, Environment.options)),
       service => {
         Service.insert(service)
-        Home.flashing("success" -> "Service %s has been created".format(service.soapAction))
+        Home.flashing("success" -> "Service %s has been created".format(service.description))
       }
     )
   }

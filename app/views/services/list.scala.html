@@ -34,7 +34,7 @@
         
         @helper.form(action=routes.Services.list()) {
             <input type="search" id="searchbox" name="f" value="@currentFilter" placeholder="Filter by service Soap Action...">
-            <input type="submit" id="searchsubmit" value="Filter by soapAction" class="btn btn-primary">
+            <input type="submit" id="searchsubmit" value="Filter by description" class="btn btn-primary">
         }
         
         <a class="btn btn-success" id="add" href="@routes.Services.create()">Add a new service</a>
@@ -56,7 +56,7 @@
                 @services.map { 
                     case (service, environment) => {
                         <tr>
-                            <td><a href="@routes.Services.edit(service.id.get)">@service.soapAction</a></td>
+                            <td><a href="@routes.Services.edit(service.id.get)">@service.description</a></td>
                             <td>
                                 @service.localTarget
                             </td>

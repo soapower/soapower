@@ -1,4 +1,4 @@
-@(serviceForm: Form[Service], environments: Seq[(String, String)])
+@(serviceForm: Form[Service], companies: Seq[(String, String)])
 
 @import helper._
 
@@ -12,13 +12,13 @@
         
         <fieldset>
         
-            @inputText(serviceForm("soapAction"), '_label -> "Service Soap Action")
+            @inputText(serviceForm("description"), '_label -> "Service Description")
             @inputText(serviceForm("localTarget"), '_label -> "local Target")
             @inputText(serviceForm("remoteTarget"), '_label -> "remote Target")
 
             @select(
                 serviceForm("environment"), 
-                environments, 
+                companies, 
                 '_label -> "Environment", '_default -> "-- Choose a environment --",
                 '_showConstraints -> false
             )

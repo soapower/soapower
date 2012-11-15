@@ -4,11 +4,18 @@
 
 # Home page
 GET     /                           controllers.Application.index
-GET     /soap/*url                  controllers.Soap.index(url)
-POST    /soap/*url                  controllers.Soap.index(url)
+
+# Test
+GET     /soap/test                  controllers.Soap.test
+POST    /soap/testlog               controllers.Soap.testLog
+
+# Soap 
+GET     /soap/:environment/*localTarget    controllers.Soap.index(environment, localTarget)
+POST    /soap/:environment/*localTarget    controllers.Soap.index(environment, localTarget)
 
 # Services list (look at the default values for pagination parameters)
 GET     /services                  controllers.Services.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
+POST    /services                  controllers.Services.index
 
 # Add service
 GET     /services/new              controllers.Services.create
@@ -20,7 +27,6 @@ POST    /services/:id              controllers.Services.update(id:Long)
 
 # Delete a service
 POST    /services/:id/delete       controllers.Services.delete(id:Long)
-
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

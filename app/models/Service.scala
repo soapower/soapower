@@ -8,7 +8,7 @@ import anorm.SqlParser._
 
 case class Service (
     id: Pk[Long], 
-    soapAction: String,
+    description: String,
     localTarget: String, 
     remoteTarget: String,
     environmentId: Option[Long]
@@ -30,11 +30,11 @@ object Service {
    */
   val simple = {
     get[Pk[Long]]("service.id") ~
-    get[String]("service.soapAction") ~
+    get[String]("service.description") ~
     get[String]("service.localTarget") ~
     get[String]("service.remoteTarget") ~
     get[Option[Long]]("service.environment_id") map {
-      case id~soapAction~localTarget~remoteTarget~environmentId => Service(id, soapAction, localTarget, remoteTarget, environmentId)
+      case id~description~localTarget~remoteTarget~environmentId => Service(id, description, localTarget, remoteTarget, environmentId)
     }
   }
   
@@ -54,10 +54,17 @@ object Service {
   /**
    * Retrieve a Service from localTarget.
    */
-  def findByLocalTarget(localTarget: String): Option[Service] = {
+  def findByLocalTargetAndEnvironmentName(localTarget: String, environmentName: String): Option[Service] = {
     DB.withConnection { implicit connection =>
-      SQL("select * from service where localTarget like {localTarget}").on(
-        'localTarget -> localTarget
+      SQL(
+        """
+        select * from service
+          left join environment on service.environment_id = environment.id
+          where service.localTarget like {localTarget}
+          and environment.name like {environmentName}
+        """).on(
+        'localTarget -> localTarget,
+        'environmentName -> environmentName
       ).as(Service.simple.singleOpt)
     }
   }
@@ -73,11 +80,11 @@ object Service {
         """
           insert into service values (
             (select next value for service_seq), 
-            {soapAction}, {localTarget}, {remoteTarget}, {environment_id}
+            {description}, {localTarget}, {remoteTarget}, {environment_id}
           )
         """
       ).on(
-        'soapAction -> service.soapAction,
+        'description -> service.description,
         'localTarget -> service.localTarget,
         'remoteTarget -> service.remoteTarget,
         'environment_id -> service.environmentId
@@ -97,12 +104,12 @@ object Service {
       SQL(
         """
           update service
-          set soapAction = {soapAction}, localTarget = {localTarget}, remoteTarget = {remoteTarget}, environment_id = {environment_id} 
+          set description = {description}, localTarget = {localTarget}, remoteTarget = {remoteTarget}, environment_id = {environment_id} 
           where id = {id}
         """
       ).on(
         'id -> id,
-        'soapAction -> service.soapAction,
+        'description -> service.description,
         'localTarget -> service.localTarget,
         'remoteTarget -> service.remoteTarget,
         'environment_id -> service.environmentId
@@ -146,7 +153,7 @@ object Service {
         """
           select * from service
           left join environment on service.environment_id = environment.id
-          where service.soapAction like {filter}
+          where service.description like {filter}
           order by {orderBy} nulls last
           limit {pageSize} offset {offset}
         """
@@ -161,7 +168,7 @@ object Service {
         """
           select count(*) from service 
           left join environment on service.environment_id = environment.id
-          where service.soapAction like {filter}
+          where service.description like {filter}
         """
       ).on(
         'filter -> filter
