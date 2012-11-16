@@ -10,7 +10,6 @@ import anorm._
 import views._
 import models._
 
-
 object Services extends Controller {
 
 /**

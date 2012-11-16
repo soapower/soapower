@@ -27,4 +27,111 @@ object Environment {
     SQL("select * from environment order by name").as(Environment.simple *).map(c => c.id.toString -> c.name)
   }
 
+ /**
+   * Retrieve an Environment from id.
+   */
+  def findById(id: Long): Option[Environment] = {
+    DB.withConnection { implicit connection =>
+      SQL("select * from environment where id = {id}").on(
+        'id -> id
+      ).as(Environment.simple.singleOpt)
+    }
+  } 
+
+  /**
+   * Insert a new environment.
+   *
+   * @param environment The environment values.
+   */
+  def insert(environment: Environment) = {
+    
+      DB.withConnection { implicit connection =>
+        SQL(
+          """
+            insert into environment values (
+              (select next value for environment_seq), 
+              {name}
+            )
+          """
+        ).on(
+          'name -> environment.name
+        ).executeUpdate()
+      }
+  }
+
+
+  /**
+   * Update a environment.
+   *
+   * @param id The environment id
+   * @param environment The environment values.
+   */
+  def update(id: Long, environment: Environment) = {
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
+          update environment
+          set name = {name}
+          where id = {id}
+        """
+      ).on(
+        'id -> id,
+        'name -> environment.name
+      ).executeUpdate()
+    }
+  }
+
+  /**
+   * Delete a environment.
+   *
+   * @param id Id of the environment to delete.
+   */
+  def delete(id: Long) = {
+    DB.withConnection { implicit connection =>
+      SQL("delete from environment where id = {id}").on('id -> id).executeUpdate()
+    }
+  }
+
+   /**
+   * Return a page of (Environment).
+   *
+   * @param page Page to display
+   * @param pageSize Number of environments per page
+   * @param orderBy Environment property used for sorting
+   * @param filter Filter applied on the name column
+   */
+  def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(Environment)] = {
+    
+    val offest = pageSize * page
+    
+    DB.withConnection { implicit connection =>
+      
+      val environments = SQL(
+        """
+          select * from environment
+          where environment.name like {filter}
+          order by {orderBy} nulls last
+          limit {pageSize} offset {offset}
+        """
+      ).on(
+        'pageSize -> pageSize, 
+        'offset -> offest,
+        'filter -> filter,
+        'orderBy -> orderBy
+      ).as(Environment.simple *)
+
+      val totalRows = SQL(
+        """
+          select count(*) from environment
+          where environment.name like {filter}
+        """
+      ).on(
+        'filter -> filter
+      ).as(scalar[Long].single)
+
+      Page(environments, page, offest, totalRows)
+      
+    }
+    
+  }
 }

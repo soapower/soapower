@@ -15,7 +15,7 @@ POST    /soap/:environment/*localTarget    controllers.Soap.index(environment, l
 
 # Services list (look at the default values for pagination parameters)
 GET     /services                  controllers.Services.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
-POST    /services                  controllers.Services.index
+GET     /services                  controllers.Services.index
 
 # Add service
 GET     /services/new              controllers.Services.create
@@ -28,5 +28,20 @@ POST    /services/:id              controllers.Services.update(id:Long)
 # Delete a service
 POST    /services/:id/delete       controllers.Services.delete(id:Long)
 
+# Environments list (look at the default values for pagination parameters)
+GET     /environments              controllers.Environments.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
+GET     /environments              controllers.Environments.index
+
+# Add environment
+GET     /environments/new          controllers.Environments.create
+POST    /environments              controllers.Environments.save
+
+# Edit existing environment
+GET     /environments/:id          controllers.Environments.edit(id:Long)
+POST    /environments/:id          controllers.Environments.update(id:Long)
+
+# Delete a environment
+POST    /environments/:id/delete   controllers.Environments.delete(id:Long)
+
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /assets/*file              controllers.Assets.at(path="/public", file)

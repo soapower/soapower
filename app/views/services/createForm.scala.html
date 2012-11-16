@@ -1,4 +1,4 @@
-@(serviceForm: Form[Service], companies: Seq[(String, String)])
+@(serviceForm: Form[Service], environments: Seq[(String, String)])
 
 @import helper._
 
@@ -18,12 +18,11 @@
 
             @select(
                 serviceForm("environment"), 
-                companies, 
+                environments, 
                 '_label -> "Environment", '_default -> "-- Choose a environment --",
                 '_showConstraints -> false
             )
             
-
         </fieldset>
         
         <div class="actions">

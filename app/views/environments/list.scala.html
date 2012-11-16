@@ -1,0 +1,104 @@
+@(currentPage: Page[(Environment)], currentOrderBy: Int, currentFilter: String)(implicit flash: play.api.mvc.Flash)
+
+@****************************************
+* Helper generating navigation links    *
+****************************************@
+@link(newPage: Int, newOrderBy: Option[Int] = None) = @{
+    routes.Environments.list(newPage, newOrderBy.map { orderBy =>
+        if(orderBy == scala.math.abs(currentOrderBy)) -currentOrderBy else orderBy
+    }.getOrElse(currentOrderBy), currentFilter)
+    
+}
+
+
+@**********************************
+* Helper generating table headers *
+***********************************@
+@header(orderBy: Int, title: String) = {
+    <th class="col@orderBy header @if(scala.math.abs(currentOrderBy) == orderBy) @{if(currentOrderBy < 0) "headerSortDown" else "headerSortUp"}">
+        <a href="@link(0, Some(orderBy))">@title</a>
+    </th>
+}
+
+@main {
+
+    <h1>@Messages("environments.list.title", currentPage.total)</h1>
+
+    @flash.get("success").map { message =>
+        <div class="alert-message warning">
+            <strong>Done!</strong> @message
+        </div>
+    }
+
+    <div id="actions">
+        
+        @helper.form(action=routes.Environments.list()) {
+            <input type="search" id="searchbox" name="f" value="@currentFilter" placeholder="Filter by environment Soap Action...">
+            <input type="submit" id="searchsubmit" value="Filter by name" class="btn btn-primary">
+        }
+        
+        <a class="btn btn-success" id="add" href="@routes.Environments.create()">Add a new environment</a>
+        
+    </div>
+    
+    @Option(currentPage.items).filterNot(_.isEmpty).map { environments =>
+        
+        <table class="environments zebra-striped">
+            <thead>
+                <tr>
+                    @header(2, "Soap Action")
+                    @header(3, "Locat Target")
+                    @header(4, "Remote Target")
+                </tr>
+            </thead>
+            <tbody>
+
+                @environments.map { 
+                    case (environment) => {
+                        <tr>
+                            <td><a href="@routes.Environments.edit(environment.id.get)">@environment.name</a></td>
+                            
+                        </tr>
+                    }
+                }
+
+            </tbody>
+        </table>
+
+        <div id="pagination" class="pagination">
+            <ul>
+                @currentPage.prev.map { page =>
+                    <li class="prev">
+                        <a href="@link(page)">&larr; Previous</a>
+                    </li> 
+                }.getOrElse {
+                    <li class="prev disabled">
+                        <a>&larr; Previous</a>
+                    </li>
+                }
+                <li class="current">
+                    <a>Displaying @(currentPage.offset + 1) to @(currentPage.offset + environments.size) of @currentPage.total</a>
+                </li>
+                @currentPage.next.map { page =>
+                    <li class="next">
+                        <a href="@link(page)">Next &rarr;</a>
+                    </li> 
+                }.getOrElse {
+                    <li class="next disabled">
+                        <a>Next &rarr;</a>
+                    </li>
+                }
+            </ul>
+        </div>
+        
+    }.getOrElse {
+        
+        <div class="well">
+            <em>Nothing to display</em>
+        </div>
+        
+    }
+        
+}
+
+            

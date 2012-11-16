@@ -14,14 +14,6 @@ case class Service (
     environmentId: Option[Long]
 )
 
-/**
- * Helper for pagination.
- */
-case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
-  lazy val prev = Option(page - 1).filter(_ >= 0)
-  lazy val next = Option(page + 1).filter(_ => (offset + items.size) < total)
-}
-
 object Service {
   // -- Parsers
   
@@ -75,20 +67,26 @@ object Service {
    * @param service The service values.
    */
   def insert(service: Service) = {
-    DB.withConnection { implicit connection =>
-      SQL(
-        """
-          insert into service values (
-            (select next value for service_seq), 
-            {description}, {localTarget}, {remoteTarget}, {environment_id}
-          )
-        """
-      ).on(
-        'description -> service.description,
-        'localTarget -> service.localTarget,
-        'remoteTarget -> service.remoteTarget,
-        'environment_id -> service.environmentId
-      ).executeUpdate()
+    try {
+      DB.withConnection { implicit connection =>
+        SQL(
+          """
+            insert into service values (
+              (select next value for service_seq), 
+              {description}, {localTarget}, {remoteTarget}, {environment_id}
+            )
+          """
+        ).on(
+          'description -> service.description,
+          'localTarget -> service.localTarget,
+          'remoteTarget -> service.remoteTarget,
+          'environment_id -> service.environmentId
+        ).executeUpdate()
+      }
+    } catch {
+      //case e:SQLException => println("Database error")
+      //case e:MalformedURLException => println("Bad URL")
+      case _ => println("Caught an exception!")
     }
   }
 
