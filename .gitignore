@@ -11,6 +11,5 @@ tmp
 db
 out
 conf/mail.conf
-conf/evolutions
 documentation/
 
