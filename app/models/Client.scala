@@ -14,23 +14,13 @@ import play.api._
 
 class Client {
 
-  def wrap(xml: Elem): String = {
-    val wrapper = <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
-                <SOAP-ENV:Body>
-                  {xml}
-                </SOAP-ENV:Body>
-              </SOAP-ENV:Envelope>
-    wrapper.toString
-  }
-
-  
-  def send(host: String, port: Int, path: String, req: String, headers: Map[String, String]) = {
-    val clientService: com.twitter.finagle.Service[HttpRequest, HttpResponse] = ClientBuilder()
-                                        .codec(Http())
-                                        .hosts(new InetSocketAddress(host, port))
-                                        //.tls(host)
-                                        .hostConnectionLimit(1)
-                                        .build()
+    def send(host: String, port: Int, path: String, req: String, headers: Map[String, String]) = {
+    val clientService: com.twitter.finagle.Service[HttpRequest, HttpResponse] = 
+      ClientBuilder().codec(Http())
+                     .hosts(new InetSocketAddress(host, port))
+                     //.tls(host)
+                     .hostConnectionLimit(1)
+                     .build()
 
     val payload = req.getBytes("UTF-8")
     val request: HttpRequest = RequestBuilder().url(new URL("http", host, port, path))
@@ -42,7 +32,7 @@ class Client {
 
     val client = clientService(request) 
     val response = client.get() 
-    Logger.debug("Response: " + response)
+    Logger.debug("Response form server: " + response)
   }
 
 }
