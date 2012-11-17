@@ -34,6 +34,7 @@ table.services .col3, table.services .col4 {
 table.services .col5 {
     width: 30%;
     min-width: 300px;
+    text-align: center;
 }
 
 table.services .header a {

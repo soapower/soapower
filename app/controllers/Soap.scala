@@ -10,12 +10,23 @@ object Soap extends Controller {
   def index(environment : String, localTarget: String) = Action { implicit request => 
     
     //printrequest
-    Logger.info("request:" + request.body)
+    val target = if (!localTarget.startsWith("/"))  "/" + localTarget else localTarget
 
-    Service.findByLocalTargetAndEnvironmentName(localTarget, environment).map { service =>
-      Ok("environment:" + environment + " localTarget:" + localTarget + " headers" + request.headers)  
-    }
-    BadRequest("environment and localTarget unknown")
+    Logger.info("request:" + request.body)
+    Logger.info("environment:" + environment)
+    Logger.info("localTarget: " + target)
+
+
+    Service.findByLocalTargetAndEnvironmentName(target, environment).map { service =>
+      val cli = new Client 
+      Ok(cli.send(service.remoteTarget, request.body.toString, request.headers.toSimpleMap).toString)
+      //Ok("processing")
+    }.getOrElse(BadRequest("environment and localTarget unknown"))
+
+  }
+
+  def process(service: Service) = {
+
   }
 
   def printrequest(implicit r: play.api.mvc.RequestHeader) = {
@@ -46,7 +57,9 @@ object Soap extends Controller {
     val req = "content of request"
     val cli = new Client 
     Logger.info("##### Test send: request:" + req) 
-    cli.send(host, port, path, req, r.headers.toSimpleMap) 
+    //cli.send(host, port, path, req, r.headers.toSimpleMap) 
+    val remoteTarget = "http://localhost:9000/soap/testlog"
+    cli.send(remoteTarget, req, r.headers.toSimpleMap) 
   } 
 
 }

@@ -4,6 +4,7 @@
 
 # Home page
 GET     /                           controllers.Application.index
+POST    /                           controllers.Application.index
 
 # Test
 GET     /soap/test                  controllers.Soap.test

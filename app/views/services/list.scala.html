@@ -33,7 +33,7 @@
     <div id="actions">
         
         @helper.form(action=routes.Services.list()) {
-            <input type="search" id="searchbox" name="f" value="@currentFilter" placeholder="Filter by service Soap Action...">
+            <input type="search" id="searchbox" name="f" value="@currentFilter" placeholder="Filter by service description...">
             <input type="submit" id="searchsubmit" value="Filter by description" class="btn btn-primary">
         }
         
@@ -46,9 +46,10 @@
         <table class="services zebra-striped">
             <thead>
                 <tr>
-                    @header(2, "Soap Action")
+                    @header(2, "Description")
                     @header(3, "Locat Target")
                     @header(4, "Remote Target")
+                    @header(5, "Environment")
                 </tr>
             </thead>
             <tbody>
@@ -63,7 +64,7 @@
                             <td>
                                 @service.remoteTarget
                             </td>
-                            <td>
+                            <td class="col5">
                                 @environment.map(_.name).getOrElse { <em>-</em> }
                             </td>
                         </tr>
