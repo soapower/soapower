@@ -6,10 +6,6 @@
 GET     /                           controllers.Application.index
 POST    /                           controllers.Application.index
 
-# Test
-GET     /soap/test                  controllers.Soap.test
-POST    /soap/testlog               controllers.Soap.testLog
-
 # Soap 
 GET     /soap/:environment/*localTarget    controllers.Soap.index(environment, localTarget)
 POST    /soap/:environment/*localTarget    controllers.Soap.index(environment, localTarget)

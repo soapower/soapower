@@ -9,13 +9,16 @@ import com.twitter.finagle.http.{Http, RequestBuilder};
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.buffer.ChannelBuffers.wrappedBuffer
 import java.net.URL
+import com.twitter.util.{Duration}
+import java.util.concurrent.TimeUnit
+import java.util.HashMap
+import scala.collection.JavaConversions._
 
+import play.Logger
 import play.api._
 
-class Client {
+class Client(remoteTarget: String, req: String, headersOut: Map[String, String]) {
     
-  def send(remoteTarget: String, req: String, headers: Map[String, String]) = {
-
     val url = new URL(remoteTarget);
     val host = url.getHost
     val port = if (url.getPort < 0) 80 else url.getPort
@@ -24,33 +27,40 @@ class Client {
     Logger.debug("RemoteTarget " + remoteTarget + " detail:" + host +":" + port + ""+ path)
     Logger.debug("Content " + req)
 
-    val client: com.twitter.finagle.Service[HttpRequest, HttpResponse] = 
+    val service : com.twitter.finagle.Service[HttpRequest, HttpResponse] = 
     ClientBuilder().codec(Http())
                    .hosts(new InetSocketAddress(host, port))
                    //.tls(host)
+                   //.hostConnectionLimit(Integer.MAX_VALUE)
+                   .tcpConnectTimeout(Duration(10, TimeUnit.SECONDS))
                    .hostConnectionLimit(1)
                    .build()
 
     val payload = req.getBytes("UTF-8")
     val request: HttpRequest = RequestBuilder().url(url)
-        .addHeaders(headers)
+        .addHeaders(headersOut)
         .buildPost(wrappedBuffer(payload))
 
-    val f = client(request) 
+
+    val f = service(request) 
     // Handle the response:
     f onSuccess { res =>
-      Logger.info("got response" + res)
+      Logger.debug("got response" + res)
+      Logger.debug("got response headers:" + f.get().getHeaders())
     } onFailure { exc =>
-      Logger.info("failed :-(" + exc)
+      Logger.error("failed :-(" + exc)
     }
-    Logger.info("got response headers:" + f.get().getHeaders())
-    Logger.info("got response content:" + f.get().getContent().toString())
-    f.get()
 
+    var headers:Map[String, String] = Map()
+    var lst = f.get().getHeaders().toList
+    lst.foreach{e => 
+      headers += (e.getKey -> e.getValue)
+    }
 
-    //val response = client.get() 
-    //client.get()
-    //Logger.debug("Response form server: " + response)
-  }
+    var response = ""
+    for(r <- f) {
+      response = r.getContent.toString("UTF-8")
+    }
+    Logger.debug("got response content:" + response)
 
 }

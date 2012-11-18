@@ -43,7 +43,7 @@
     
     @Option(currentPage.items).filterNot(_.isEmpty).map { environments =>
         
-        <table class="environments zebra-striped">
+        <table class="table table-striped table-bordered" >
             <thead>
                 <tr>
                     @header(2, "Soap Action")

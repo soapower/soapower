@@ -30,7 +30,7 @@
         </div>
     }
 
-    <div id="actions">
+    <div class="row-fluid">
         
         @helper.form(action=routes.Services.list()) {
             <input type="search" id="searchbox" name="f" value="@currentFilter" placeholder="Filter by service description...">
@@ -43,7 +43,7 @@
     
     @Option(currentPage.items).filterNot(_.isEmpty).map { services =>
         
-        <table class="services zebra-striped">
+        <table class="table table-striped table-bordered" >
             <thead>
                 <tr>
                     @header(2, "Description")
