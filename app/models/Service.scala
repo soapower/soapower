@@ -2,6 +2,7 @@ package models
 
 import play.api.db._
 import play.api.Play.current
+import play.api._
 
 import anorm._
 import anorm.SqlParser._
@@ -11,6 +12,7 @@ case class Service (
     description: String,
     localTarget: String, 
     remoteTarget: String,
+    timeoutms: Long,
     environmentId: Option[Long]
 )
 
@@ -25,8 +27,10 @@ object Service {
     get[String]("service.description") ~
     get[String]("service.localTarget") ~
     get[String]("service.remoteTarget") ~
+    get[Long]("service.timeoutms") ~
     get[Option[Long]]("service.environment_id") map {
-      case id~description~localTarget~remoteTarget~environmentId => Service(id, description, localTarget, remoteTarget, environmentId)
+      case id~description~localTarget~remoteTarget~timeoutms~environmentId => 
+        Service(id, description, localTarget, remoteTarget, timeoutms, environmentId)
     }
   }
   
@@ -67,26 +71,28 @@ object Service {
    * @param service The service values.
    */
   def insert(service: Service) = {
+    println("HOPHOPHOP")
     try {
       DB.withConnection { implicit connection =>
         SQL(
           """
             insert into service values (
               (select next value for service_seq), 
-              {description}, {localTarget}, {remoteTarget}, {environment_id}
+              {description}, {localTarget}, {remoteTarget}, {timeoutms}, {environment_id}
             )
           """
         ).on(
           'description -> service.description,
           'localTarget -> service.localTarget,
           'remoteTarget -> service.remoteTarget,
+          'timeoutms -> service.timeoutms,
           'environment_id -> service.environmentId
         ).executeUpdate()
       }
     } catch {
-      //case e:SQLException => println("Database error")
-      //case e:MalformedURLException => println("Bad URL")
-      case _ => println("Caught an exception!")
+      //case e:SQLException => Logger.error("Database error")
+      //case e:MalformedURLException => Logger.error("Bad URL")
+      case e:Exception => Logger.error("Caught an exception!" + e.printStackTrace())
     }
   }
 
@@ -102,7 +108,11 @@ object Service {
       SQL(
         """
           update service
-          set description = {description}, localTarget = {localTarget}, remoteTarget = {remoteTarget}, environment_id = {environment_id} 
+          set description = {description}, 
+          localTarget = {localTarget}, 
+          remoteTarget = {remoteTarget}, 
+          timeoutms = {timeoutms}, 
+          environment_id = {environment_id} 
           where id = {id}
         """
       ).on(
@@ -110,6 +120,7 @@ object Service {
         'description -> service.description,
         'localTarget -> service.localTarget,
         'remoteTarget -> service.remoteTarget,
+        'timeoutms -> service.timeoutms,
         'environment_id -> service.environmentId
       ).executeUpdate()
     }

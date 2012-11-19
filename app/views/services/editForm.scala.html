@@ -13,8 +13,9 @@
         <fieldset>
         
             @inputText(serviceForm("description"), '_label -> "Service Description")
-            @inputText(serviceForm("localTarget"), '_label -> "local Target")
-            @inputText(serviceForm("remoteTarget"), '_label -> "remote Target")
+            @inputText(serviceForm("localTarget"), '_label -> "Local Target")
+            @inputText(serviceForm("remoteTarget"), '_label -> "Remote Target")
+            @inputText(serviceForm("timeoutms"), '_label -> "Timeout ms")
             
             @select(
                 serviceForm("environment"), 
