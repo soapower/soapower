@@ -27,48 +27,65 @@ class Client(remoteTarget: String, timeoutms: Long, req: String, headersOut: Map
 
     var headers:Map[String, String] = Map()
     var response = ""
-
-    Logger.debug("RemoteTarget " + remoteTarget + " detail:" + host +":" + port + ""+ path + " content :" + req)
-
-    val service : com.twitter.finagle.Service[HttpRequest, HttpResponse]  = 
-    ClientBuilder().codec(Http())
-                   .hosts(new InetSocketAddress(host, port))
-                   //.tls(host)
-                   //.hostConnectionLimit(Integer.MAX_VALUE)
-                   .tcpConnectTimeout(Duration(1000, TimeUnit.MILLISECONDS))
-                   .timeout(Duration(timeoutms, TimeUnit.MILLISECONDS))
-                   .hostConnectionLimit(1)
-                   .build()
-
-    val request: HttpRequest = RequestBuilder().url(url)
-        .addHeaders(headersOut)
-        .buildPost(wrappedBuffer(req.getBytes("UTF-8")))
-
-    val f = service(request) 
-
-    // Handle the response:
-    f onSuccess { res =>
-      Logger.debug("got response" + res)
-    } onFailure { e =>
-      e match {
-        case e:GlobalRequestTimeoutException => Logger.error("Timeout exception : " + e.getMessage)
-        case _ => Logger.error("Exception !")
-      }
-    }
     
-    try {
-      var lst = f.get().getHeaders().toList
-      lst.foreach{e => 
-          headers += (e.getKey -> e.getValue)
+    init()
+
+    private def init () {
+      Logger.debug("RemoteTarget " + remoteTarget + " detail:" + host +":" + port + ""+ path + " content :" + req)
+
+      val service : com.twitter.finagle.Service[HttpRequest, HttpResponse]  = 
+      ClientBuilder().codec(Http())
+                     .hosts(new InetSocketAddress(host, port))
+                     .tcpConnectTimeout(Duration(1000, TimeUnit.MILLISECONDS))
+                     .timeout(Duration(timeoutms, TimeUnit.MILLISECONDS))
+                     .hostConnectionLimit(1)
+                     .build()
+
+      val request: HttpRequest = RequestBuilder().url(url)
+          .addHeaders(headersOut)
+          .buildPost(wrappedBuffer(req.getBytes("UTF-8")))
+
+
+      val f = service(request) 
+      storeRequest(request)
+
+      // Handle the response:
+      f onSuccess { res =>
+        storeResponse(res)
+      } onFailure { e =>
+        storeFailure(e)
       }
-    } catch {
-      // already done
-      case _ => Logger.debug("Exception caught. See onFailure!")
+      
+      try {
+        var lst = f.get().getHeaders().toList
+        lst.foreach{e => 
+            headers += (e.getKey -> e.getValue)
+        }
+      } catch {
+        // already done
+        case _ => Logger.debug("Exception caught. See onFailure!")
+      }
+
+      for(r <- f) response = r.getContent.toString("UTF-8") 
+      Logger.debug("got response content:" + response)
     }
 
-    for(r <- f) {
-      response = r.getContent.toString("UTF-8")
+    private def storeResponse(response : HttpResponse) {
+      //TODO
+      Logger.debug("got response" + response)
+
     }
-    Logger.debug("got response content:" + response)
-  
+
+    private def storeRequest(request : HttpRequest) {
+      //TODO
+      // store timeoutms, request body, headers
+    }
+
+    private def storeFailure(e: Throwable) {
+      //TODO
+      e match {
+          case e:GlobalRequestTimeoutException => Logger.error("Timeout exception : " + e.getMessage)
+          case _ => Logger.error("Exception !")
+      }
+    }
 }
