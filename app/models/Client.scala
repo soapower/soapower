@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit
 import java.util.HashMap
 import scala.collection.JavaConversions._
 import com.twitter.finagle._
+import java.nio.charset.Charset
 
 import play.Logger
 import play.api._
@@ -24,6 +25,7 @@ class Client(remoteTarget: String, timeoutms: Long, req: String, headersOut: Map
     val host = url.getHost
     val port = if (url.getPort < 0) 80 else url.getPort
     val path = url.getPath
+    private val charset = Charset.forName("UTF-8");
 
     var headers:Map[String, String] = Map()
     var response = ""
@@ -63,10 +65,10 @@ class Client(remoteTarget: String, timeoutms: Long, req: String, headersOut: Map
         }
       } catch {
         // already done
-        case _ => Logger.debug("Exception caught. See onFailure!")
+        case _ : Throwable => Logger.debug("Exception caught. See onFailure!")
       }
 
-      for(r <- f) response = r.getContent.toString("UTF-8") 
+      for(r <- f) response = r.getContent.toString(charset)
       Logger.debug("got response content:" + response)
     }
 

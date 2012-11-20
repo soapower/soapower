@@ -4,7 +4,6 @@
 
 # Home page
 GET     /                           controllers.Application.index
-POST    /                           controllers.Application.index
 
 # Soap 
 GET     /soap/:environment/*localTarget    controllers.Soap.index(environment, localTarget)
