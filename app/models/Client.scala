@@ -80,11 +80,11 @@ class Client(remoteTarget: String, timeoutms: Long, req: String, headersOut: Map
 
     private def storeRequest(request : HttpRequest) {
       //TODO
-      // store timeoutms, request body, headers
+      // store timeoutms, request body, headers, use models.Data
     }
 
     private def storeFailure(e: Throwable) {
-      //TODO
+      //TODO, use models.Data
       e match {
           case e:GlobalRequestTimeoutException => Logger.error("Timeout exception : " + e.getMessage)
           case _ => Logger.error("Exception !")
