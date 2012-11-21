@@ -8,7 +8,7 @@ import anorm._
 import anorm.SqlParser._
 
 
-case class Service (
+case class Data (
     id: Pk[Long], 
     localUrl: String,
     remoteUrl: String,
