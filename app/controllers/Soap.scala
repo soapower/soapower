@@ -17,7 +17,7 @@ object Soap extends Controller {
     Logger.debug("request:" + request.body.toString)
 
     Service.findByLocalTargetAndEnvironmentName(target, environment).map { service =>
-      val cli = new Client (service.remoteTarget, service.timeoutms, request.body.toString, request.headers.toSimpleMap)
+      val cli = new Client (service, request.body.toString, request.headers.toSimpleMap)
       SimpleResult(
         header = ResponseHeader(200, cli.headers), 
         body = Enumerator(cli.response)

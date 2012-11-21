@@ -15,13 +15,15 @@ import java.util.HashMap
 import scala.collection.JavaConversions._
 import com.twitter.finagle._
 import java.nio.charset.Charset
+import play.api.cache.Cache
+import play.api.Play.current
 
 import play.Logger
 import play.api._
 
-class Client(remoteTarget: String, timeoutms: Long, req: String, headersOut: Map[String, String]) {
+class Client(service: Service, content: String, headersOut: Map[String, String]) {
     
-    val url = new URL(remoteTarget);
+    val url = new URL(service.remoteTarget);
     val host = url.getHost
     val port = if (url.getPort < 0) 80 else url.getPort
     val path = url.getPath
@@ -29,27 +31,28 @@ class Client(remoteTarget: String, timeoutms: Long, req: String, headersOut: Map
 
     var headers:Map[String, String] = Map()
     var response = ""
+    var data: Data = new Data(service.localTarget, service.remoteTarget, content);
     
     init()
 
     private def init () {
-      Logger.debug("RemoteTarget " + remoteTarget + " detail:" + host +":" + port + ""+ path + " content :" + req)
+      Logger.debug("RemoteTarget " + service.remoteTarget + " detail:" + host +":" + port + ""+ path + " content :" + content)
 
-      val service : com.twitter.finagle.Service[HttpRequest, HttpResponse]  = 
+      val serviceFinagle : com.twitter.finagle.Service[HttpRequest, HttpResponse]  = 
       ClientBuilder().codec(Http())
                      .hosts(new InetSocketAddress(host, port))
                      .tcpConnectTimeout(Duration(1000, TimeUnit.MILLISECONDS))
-                     .timeout(Duration(timeoutms, TimeUnit.MILLISECONDS))
+                     .timeout(Duration(service.timeoutms, TimeUnit.MILLISECONDS))
                      .hostConnectionLimit(1)
                      .build()
 
       val request: HttpRequest = RequestBuilder().url(url)
           .addHeaders(headersOut)
-          .buildPost(wrappedBuffer(req.getBytes("UTF-8")))
+          .buildPost(wrappedBuffer(content.getBytes("UTF-8")))
 
 
-      val f = service(request) 
-      storeRequest(request)
+      storeData
+      val f = serviceFinagle(request) 
 
       // Handle the response:
       f onSuccess { res =>
@@ -78,7 +81,9 @@ class Client(remoteTarget: String, timeoutms: Long, req: String, headersOut: Map
 
     }
 
-    private def storeRequest(request : HttpRequest) {
+    private def storeData() {
+      Cache.set("item.key", data)
+      //data = new Data(anorm.NotAssigned, service.localTarget, service.remoteTarget, content, "", "", "");
       //TODO
       // store timeoutms, request body, headers, use models.Data
     }
