@@ -5,6 +5,12 @@
 # Home page
 GET     /                           controllers.Application.index
 
+# Live page
+GET     /live                       controllers.Live.index
+
+# Search page
+GET     /search                     controllers.Search.index
+
 # Soap 
 GET     /soap/:environment/*localTarget    controllers.Soap.index(environment, localTarget)
 POST    /soap/:environment/*localTarget    controllers.Soap.index(environment, localTarget)
