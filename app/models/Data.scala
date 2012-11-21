@@ -14,12 +14,12 @@ case class Data (
     localTarget: String,
     remoteTarget: String,
     request: String,
-    reponse: String, 
-    timems: String,
-    state: String
+    var response: String, 
+    var timems: String,
+    var state: String
 ) {
     def this(localTarget : String, remoteTarget : String, request : String) = 
-        this(NotAssigned, localTarget, remoteTarget, request, "", "", "")
+        this(NotAssigned, localTarget, remoteTarget, request, "", "", "");
 }
 
 object Data {

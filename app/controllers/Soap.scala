@@ -9,7 +9,7 @@ import models._
 
 object Soap extends Controller {
 
-  def index(environment : String, localTarget: String) = Action(parse.xml) { implicit request => 
+  def index(environment : String, localTarget: String) = Action { implicit request => 
     
     val target = if (!localTarget.startsWith("/"))  "/" + localTarget else localTarget
 
