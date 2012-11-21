@@ -71,7 +71,6 @@ object Service {
    * @param service The service values.
    */
   def insert(service: Service) = {
-    println("HOPHOPHOP")
     try {
       DB.withConnection { implicit connection =>
         SQL(
