@@ -23,26 +23,24 @@ class Client(service: Service, content: String, headersOut: Map[String, String])
     
 
     var headers:Map[String, String] = Map()
-    var response = ""
-    var data: Data = new Data(service.localTarget, service.remoteTarget, content);
-    
+    var response:String  = ""
+
     init()
 
     private def init () {
       Logger.debug("RemoteTarget " + service.remoteTarget + " content :" + content)
 
-      implicit val timeout = Timeout(5 seconds) // needed for `?` below
-
       //TODO add headers
-      val future = WS.url(service.remoteTarget).post(content);
+      val future = WS.url(service.remoteTarget)
+                      .withHeaders(("Content-Type", "text/xml;charset=utf-8"))
+                      .post(content)
       
       try {
-        val result = Await.result(future, 5 seconds)
-        data.response = result.body
-        Logger.debug("reponse:" + data.response)
+        val result = Await.result(future, service.timeoutms milliseconds)
+        response = result.body
+        Logger.debug("reponse:" + response)
       } catch {
         case e:Throwable => Logger.error("Timeout: " + e.getMessage)
-        data.state = "timeout"
       }
 
       Logger.debug("client ended")
