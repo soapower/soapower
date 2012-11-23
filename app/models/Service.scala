@@ -6,6 +6,7 @@ import play.api._
 
 import anorm._
 import anorm.SqlParser._
+import scala.collection.mutable.{Map, HashMap}
 
 case class Service (
     id: Pk[Long], 
@@ -18,6 +19,8 @@ case class Service (
 
 object Service {
   // -- Parsers
+  
+  private val servicesByTargetAndEnvironment = new HashMap[(String,String),Option[Service]]
   
   /**
    * Parse a Service from a ResultSet
@@ -51,7 +54,17 @@ object Service {
    * Retrieve a Service from localTarget.
    */
   def findByLocalTargetAndEnvironmentName(localTarget: String, environmentName: String): Option[Service] = {
-    DB.withConnection { implicit connection =>
+    val serviceKey = (localTarget, environmentName)
+    val serviceInCache = servicesByTargetAndEnvironment.get(serviceKey)
+    serviceInCache match {
+      case Some(x) => {
+        Logger.debug("Service for " + environmentName + localTarget + " found in cache : " + x)
+        return x
+      }
+      case None => Logger.debug("Service for " + environmentName + localTarget + " not found in cache")
+    }
+    
+    var serviceinDb = DB.withConnection { implicit connection =>
       SQL(
         """
         select * from service
@@ -63,6 +76,8 @@ object Service {
         'environmentName -> environmentName
       ).as(Service.simple.singleOpt)
     }
+    servicesByTargetAndEnvironment.put(serviceKey, serviceinDb)
+    return serviceinDb
   }
 
   /**
@@ -91,7 +106,7 @@ object Service {
     } catch {
       //case e:SQLException => Logger.error("Database error")
       //case e:MalformedURLException => Logger.error("Bad URL")
-      case e:Exception => Logger.error("Caught an exception!" + e.printStackTrace())
+      case e:Exception => Logger.error("Caught an exception! ", e)
     }
   }
 
