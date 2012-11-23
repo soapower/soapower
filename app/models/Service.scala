@@ -1,6 +1,7 @@
 package models
 
 import play.api.db._
+import play.api.cache._
 import play.api.Play.current
 import play.api._
 
@@ -19,8 +20,6 @@ case class Service (
 
 object Service {
   // -- Parsers
-  
-  private val servicesByTargetAndEnvironment = new HashMap[(String,String), Option[Service]]
   
   /**
    * Parse a Service from a ResultSet
@@ -54,30 +53,26 @@ object Service {
    * Retrieve a Service from localTarget.
    */
   def findByLocalTargetAndEnvironmentName(localTarget: String, environmentName: String): Option[Service] = {
-    val serviceKey = (localTarget, environmentName)
-    val serviceInCache = servicesByTargetAndEnvironment.get(serviceKey)
-    serviceInCache match {
-      case Some(x) => {
-        Logger.debug("Service for " + environmentName + localTarget + " found in cache : " + x)
-        return x
+    val serviceKey = localTarget + environmentName
+    val service = Cache.getOrElse[Option[Service]](serviceKey) {
+      Logger.debug("Service for " + environmentName + localTarget + " not found in cache: loading from db")
+    
+      var serviceInDb = DB.withConnection { implicit connection =>
+        SQL(
+          """
+          select * from service
+            left join environment on service.environment_id = environment.id
+            where service.localTarget like {localTarget}
+            and environment.name like {environmentName}
+          """).on(
+          'localTarget -> localTarget,
+          'environmentName -> environmentName
+        ).as(Service.simple.singleOpt)
       }
-      case None => Logger.debug("Service for " + environmentName + localTarget + " not found in cache")
+      serviceInDb
     }
     
-    var serviceinDb = DB.withConnection { implicit connection =>
-      SQL(
-        """
-        select * from service
-          left join environment on service.environment_id = environment.id
-          where service.localTarget like {localTarget}
-          and environment.name like {environmentName}
-        """).on(
-        'localTarget -> localTarget,
-        'environmentName -> environmentName
-      ).as(Service.simple.singleOpt)
-    }
-    servicesByTargetAndEnvironment.put(serviceKey, serviceinDb)
-    return serviceinDb
+    return service
   }
 
   /**
