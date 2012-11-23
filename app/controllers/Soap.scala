@@ -19,12 +19,12 @@ object Soap extends Controller {
     Logger.debug("request:" + request.body.asText)
 
     Service.findByLocalTargetAndEnvironmentName(target, environment).map { service =>
-      val cli = new Client (service, request.body.asXml.get.toString, request.headers.toSimpleMap)
+      val client = new Client (service, request.body.asXml.get.toString, request.headers.toSimpleMap)
       SimpleResult(    
         //TODO Headers
-        //header = ResponseHeader(cli.data.result.status, cli.data.result.headers), 
+        //header = ResponseHeader(client.data.result.status, client.data.result.headers), 
         header = ResponseHeader(200,  Map(CONTENT_TYPE -> "text/xml")), 
-        body = Enumerator(cli.response)
+        body = Enumerator(client.response)
       )
     }.getOrElse{
       val err = "environment " + environment + " with localTarget " + localTarget + " unknown"
