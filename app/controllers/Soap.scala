@@ -20,7 +20,9 @@ object Soap extends Controller {
 
     Service.findByLocalTargetAndEnvironmentName(target, environment).map { service =>
       val client = new Client (service, request.body.asXml.get.toString, request.headers.toSimpleMap)
-      SimpleResult(    
+      client.sendRequest
+      client.waitForResponse
+      SimpleResult(
         //TODO Headers
         //header = ResponseHeader(client.data.result.status, client.data.result.headers), 
         header = ResponseHeader(200,  Map(CONTENT_TYPE -> "text/xml")), 
