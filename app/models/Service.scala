@@ -20,7 +20,7 @@ case class Service (
 object Service {
   // -- Parsers
   
-  private val servicesByTargetAndEnvironment = new HashMap[(String,String),Option[Service]]
+  private val servicesByTargetAndEnvironment = new HashMap[(String,String), Option[Service]]
   
   /**
    * Parse a Service from a ResultSet
@@ -92,7 +92,7 @@ object Service {
           """
             insert into service values (
               (select next value for service_seq), 
-              {description}, {localTarget}, {remoteTarget}, {timeoutms}, {environment_id}
+              {description}, {localTarget}, {remoteTarget}, {environment_id}, {timeoutms}
             )
           """
         ).on(
