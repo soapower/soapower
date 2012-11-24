@@ -40,6 +40,16 @@ object Service {
     }
   }
   
+  /**
+   * 2 Caches : 
+   *   - one with key "environmentName + localTarget" and value : service
+   *     -> fill in findByLocalTargetAndEnvironmentName
+   *     -> clear in update and delete
+   *   - a other with key cacheKey + service.id and value : environmentName + localTarget
+   *     -> used to update and delete from first cache
+   */
+  private val cacheKey = "servicekey-"
+
   // -- Queries
     
   /**
@@ -71,7 +81,12 @@ object Service {
           """).on(
           'localTarget -> localTarget,
           'environmentName -> environmentName
-        ).as(Service.simple.singleOpt)
+        ).as(Service.simple.singleOpt
+        )
+      }
+      if (serviceInDb isDefined) {
+        Cache.set(cacheKey + serviceInDb.get.id, serviceKey)
+        Logger.debug("Service for " + environmentName + localTarget + " put in cache")
       }
       serviceInDb
     }
@@ -105,6 +120,7 @@ object Service {
           'environment_id -> service.environmentId
         ).executeUpdate()
       }
+
     } catch {
       //case e:SQLException => Logger.error("Database error")
       //case e:MalformedURLException => Logger.error("Bad URL")
@@ -120,6 +136,7 @@ object Service {
    * @param service The service values.
    */
   def update(id: Long, service: Service) = {
+    deleteFromCache(id)
     DB.withConnection { implicit connection =>
       SQL(
         """
@@ -146,12 +163,22 @@ object Service {
     }
   }
 
+  private def deleteFromCache(id: Long) {
+    val serviceKey = Cache.get(cacheKey + id);
+    if (serviceKey isDefined) {
+      Logger.debug("remove " + serviceKey.get.toString + " from cache")
+      Cache.remove(serviceKey.get.toString)
+      Cache.remove(cacheKey + id)
+    }
+  }
+
   /**
    * Delete a service.
    *
    * @param id Id of the service to delete.
    */
   def delete(id: Long) = {
+    deleteFromCache(id)
     DB.withConnection { implicit connection =>
       SQL("delete from service where id = {id}").on('id -> id).executeUpdate()
     }

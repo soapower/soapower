@@ -13,7 +13,6 @@ object Soap extends Controller {
   def index(environment : String, localTarget: String) = Action { implicit request => 
     
     val target = if (!localTarget.startsWith("/"))  "/" + localTarget else localTarget
-    //private val charset = Charset.forName("UTF-8");
 
     Logger.info("Request on environment:" + environment + " localTarget:" + localTarget)
     Logger.debug("request:" + request.body.asText)

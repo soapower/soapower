@@ -2,6 +2,8 @@ package models
 
 import play.api.db._
 import play.api.Play.current
+import play.api.cache._
+import play.api._
 
 import anorm._
 import anorm.SqlParser._
@@ -9,7 +11,9 @@ import anorm.SqlParser._
 case class Environment(id: Pk[Long], name: String)
 
 object Environment {
-    
+
+  val keyCacheAll = "environment-options"
+
  /**
    * Parse a Environment from a ResultSet
    */
@@ -23,8 +27,11 @@ object Environment {
   /**
    * Construct the Map[String,String] needed to fill a select options set.
    */
-  def options: Seq[(String,String)] = DB.withConnection { implicit connection =>
-    SQL("select * from environment order by name").as(Environment.simple *).map(c => c.id.toString -> c.name)
+  def options: Seq[(String, String)] = DB.withConnection { implicit connection =>
+    Cache.getOrElse[Seq[(String,String)]](keyCacheAll) {
+      Logger.debug("Environments not found in cache: loading from db")
+      SQL("select * from environment order by name").as(Environment.simple *).map(c => c.id.toString -> c.name)
+    }
   }
 
  /**
@@ -44,7 +51,7 @@ object Environment {
    * @param environment The environment values.
    */
   def insert(environment: Environment) = {
-    
+      Cache.remove(keyCacheAll)
       DB.withConnection { implicit connection =>
         SQL(
           """
@@ -67,6 +74,7 @@ object Environment {
    * @param environment The environment values.
    */
   def update(id: Long, environment: Environment) = {
+    Cache.remove(keyCacheAll)
     DB.withConnection { implicit connection =>
       SQL(
         """
@@ -87,6 +95,7 @@ object Environment {
    * @param id Id of the environment to delete.
    */
   def delete(id: Long) = {
+    Cache.remove(keyCacheAll)
     DB.withConnection { implicit connection =>
       SQL("delete from environment where id = {id}").on('id -> id).executeUpdate()
     }
