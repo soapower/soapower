@@ -37,13 +37,15 @@ class Client(service: Service, content: String, headersOut: Map[String, String])
         Logger.debug("RemoteTarget " + service.remoteTarget)
       }
 
-      //TODO add headers
       requestTimeInMillis = System.currentTimeMillis
-      future = WS.url(service.remoteTarget)
-                      .withHeaders(("Content-Type", "text/xml;charset=utf-8"))
-                      .withAuth("bios", "bios", AuthScheme.BASIC)
-                      .withTimeout(service.timeoutms.toInt)
-                      .post(content)
+      var wsRequestHolder = WS.url(service.remoteTarget).withTimeout(service.timeoutms.toInt)
+      val headers = for((key, value) <- headersOut) wsRequestHolder.withHeaders((key, value))
+      
+      if (service.user.isDefined && service.password.isDefined) {
+        wsRequestHolder.withAuth(service.user.get, service.password.get, AuthScheme.BASIC)
+      }
+
+      future =  wsRequestHolder.post(content)
     }
 
     def waitForResponse () {
