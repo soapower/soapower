@@ -12,7 +12,6 @@ GET     /live                       controllers.Live.index
 GET     /search                     controllers.Search.index
 
 # Soap 
-GET     /soap/:environment/*localTarget    controllers.Soap.index(environment, localTarget)
 POST    /soap/:environment/*localTarget    controllers.Soap.index(environment, localTarget)
 
 # Services list (look at the default values for pagination parameters)

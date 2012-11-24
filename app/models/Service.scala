@@ -15,6 +15,8 @@ case class Service (
     localTarget: String, 
     remoteTarget: String,
     timeoutms: Long,
+    user: Option[String],
+    password: Option[String], 
     environmentId: Option[Long]
 )
 
@@ -30,9 +32,11 @@ object Service {
     get[String]("service.localTarget") ~
     get[String]("service.remoteTarget") ~
     get[Long]("service.timeoutms") ~
+    get[Option[String]]("service.user") ~
+    get[Option[String]]("service.password") ~
     get[Option[Long]]("service.environment_id") map {
-      case id~description~localTarget~remoteTarget~timeoutms~environmentId => 
-        Service(id, description, localTarget, remoteTarget, timeoutms, environmentId)
+      case id~description~localTarget~remoteTarget~timeoutms~user~password~environmentId => 
+        Service(id, description, localTarget, remoteTarget, timeoutms, user, password, environmentId)
     }
   }
   
@@ -85,9 +89,10 @@ object Service {
       DB.withConnection { implicit connection =>
         SQL(
           """
-            insert into service values (
+            insert into service 
+              (id, description, localTarget, remoteTarget, timeoutms, user, password, environment_id) values (
               (select next value for service_seq), 
-              {description}, {localTarget}, {remoteTarget}, {environment_id}, {timeoutms}
+              {description}, {localTarget}, {remoteTarget}, {timeoutms}, {user}, {password}, {environment_id}
             )
           """
         ).on(
@@ -95,6 +100,8 @@ object Service {
           'localTarget -> service.localTarget,
           'remoteTarget -> service.remoteTarget,
           'timeoutms -> service.timeoutms,
+          'user -> service.user,
+          'password -> service.password,
           'environment_id -> service.environmentId
         ).executeUpdate()
       }
@@ -121,6 +128,8 @@ object Service {
           localTarget = {localTarget}, 
           remoteTarget = {remoteTarget}, 
           timeoutms = {timeoutms}, 
+          user = {user}, 
+          password = {password}, 
           environment_id = {environment_id} 
           where id = {id}
         """
@@ -130,6 +139,8 @@ object Service {
         'localTarget -> service.localTarget,
         'remoteTarget -> service.remoteTarget,
         'timeoutms -> service.timeoutms,
+        'user -> service.user,
+        'password -> service.password,
         'environment_id -> service.environmentId
       ).executeUpdate()
     }
@@ -150,7 +161,7 @@ object Service {
    * Parse a (Service,Environment) from a ResultSet
    */
   val withEnvironment = Service.simple ~ (Environment.simple ?) map {
-    case service~environment => (service,environment)
+    case service~environment => (service, environment)
   }
 
    /**
