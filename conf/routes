@@ -44,5 +44,11 @@ POST    /environments/:id          controllers.Environments.update(id:Long)
 # Delete a environment
 POST    /environments/:id/delete   controllers.Environments.delete(id:Long)
 
+# Monitoring
+GET     /monitor                    controllers.Monitor.index
+GET     /load                       controllers.Monitor.load
+GET     /monitoring                 controllers.Monitor.monitoring
+POST    /gc!                        controllers.Monitor.gc
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file              controllers.Assets.at(path="/public", file)
