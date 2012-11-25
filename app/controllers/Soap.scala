@@ -11,13 +11,11 @@ import models._
 object Soap extends Controller {
 
   def index(environment : String, localTarget: String) = Action { implicit request => 
-    
-    val target = if (!localTarget.startsWith("/"))  "/" + localTarget else localTarget
 
     Logger.info("Request on environment:" + environment + " localTarget:" + localTarget)
     Logger.debug("request:" + request.body.asText)
 
-    Service.findByLocalTargetAndEnvironmentName(target, environment).map { service =>
+    Service.findByLocalTargetAndEnvironmentName(localTarget, environment).map { service =>
       val client = new Client (service, request.body.asXml.get.toString, request.headers.toSimpleMap)
       client.sendRequest
       client.waitForResponse
@@ -25,7 +23,7 @@ object Soap extends Controller {
       SimpleResult(
         header = ResponseHeader(client.response.status, client.response.headers),
         body = Enumerator(client.response.body)
-      ).withHeaders(("via" -> "soapower"))
+      ).withHeaders(("ProxyVia" -> "soapower"))
 
     }.getOrElse{
       val err = "environment " + environment + " with localTarget " + localTarget + " unknown"

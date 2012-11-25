@@ -30,7 +30,7 @@ class Client(service: Service, content: String, headersOut: Map[String, String])
     private val port = if (url.getPort < 0) 80 else url.getPort    
     private var future:Future[Response] = null
     private var requestTimeInMillis:Long = -1
-    
+
     def sendRequest () {
       if (Logger.isDebugEnabled) {
         //Logger.debug("RemoteTarget " + service.remoteTarget + " content=" + Utility.trim(XML.loadString(content)))

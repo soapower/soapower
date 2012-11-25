@@ -112,7 +112,7 @@ object Service {
           """
         ).on(
           'description -> service.description,
-          'localTarget -> service.localTarget,
+          'localTarget -> checkLocalTarget(service.localTarget),
           'remoteTarget -> service.remoteTarget,
           'timeoutms -> service.timeoutms,
           'user -> service.user,
@@ -153,7 +153,7 @@ object Service {
       ).on(
         'id -> id,
         'description -> service.description,
-        'localTarget -> service.localTarget,
+        'localTarget -> checkLocalTarget(service.localTarget),
         'remoteTarget -> service.remoteTarget,
         'timeoutms -> service.timeoutms,
         'user -> service.user,
@@ -235,5 +235,13 @@ object Service {
     }
     
   }
+
+  /**
+  * Remove first / in localTarget
+  */
+  private def checkLocalTarget(localTarget: String) = {
+    if (localTarget.startsWith("/")) localTarget.substring(1) else localTarget
+  }
+
 
 }
