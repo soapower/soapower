@@ -21,12 +21,12 @@ object Soap extends Controller {
       val client = new Client (service, request.body.asXml.get.toString, request.headers.toSimpleMap)
       client.sendRequest
       client.waitForResponse
+
       SimpleResult(
-        //TODO Headers
-        //header = ResponseHeader(client.data.result.status, client.data.result.headers), 
-        header = ResponseHeader(200,  Map(CONTENT_TYPE -> "text/xml")), 
-        body = Enumerator(client.response)
-      )
+        header = ResponseHeader(client.response.status, client.response.headers),
+        body = Enumerator(client.response.body)
+      ).withHeaders(("via" -> "soapower"))
+
     }.getOrElse{
       val err = "environment " + environment + " with localTarget " + localTarget + " unknown"
       Logger.error(err)
