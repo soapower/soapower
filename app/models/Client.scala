@@ -2,27 +2,24 @@ package models
 
 import com.ning.http.client.Realm.AuthScheme
 import com.ning.http.client.FluentCaseInsensitiveStringsMap
-
 import java.net.InetSocketAddress
 import java.net.URL
-
 import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.xml._
 import akka.util.Timeout
-
 import play.api._
 import play.api.libs.ws._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.core.utils.CaseInsensitiveOrdered
 import play.Logger
-
 import collection.immutable.TreeMap
 
 class Client(service: Service, content: String, headersOut: Map[String, String]) {
 
   var response: ClientResponse = null
+  val requestData = new RequestData(service.localTarget, service.remoteTarget, content)
 
   private val url = new URL(service.remoteTarget);
   private val host = url.getHost
@@ -60,6 +57,12 @@ class Client(service: Service, content: String, headersOut: Map[String, String])
       val wsResponse: Response = Await.result(future, service.timeoutms.millis * 1000000)
       response = new ClientResponse(wsResponse, (System.currentTimeMillis - requestTimeInMillis))
 
+      requestData.timeInMillis = response.responseTimeInMillis
+      requestData.response = response.body
+      requestData.status = response.status
+
+      RequestData.insert(requestData)
+      
       if (Logger.isDebugEnabled) {
         //Logger.debug("Reponse in " + (responseTimeInMillis - requestTimeInMillis) + " ms, content=" + Utility.trim(wsresponse.xml))
         Logger.debug("Reponse in " + response.responseTimeInMillis + " ms")
