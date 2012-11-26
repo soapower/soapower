@@ -10,6 +10,7 @@ GET     /live                       controllers.Live.index
 
 # Search page
 GET     /search                     controllers.Search.index
+GET     /search/listDatatable       controllers.Search.listDatatable(sSearch:String = "", iDisplayStart: Int = 1, iDisplayLength: Int = 10)
 
 # Soap 
 POST    /soap/:environment/*localTarget    controllers.Soap.index(environment, localTarget)
