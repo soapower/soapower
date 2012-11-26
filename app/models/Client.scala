@@ -37,13 +37,21 @@ class Client(service: Service, content: String, headersOut: Map[String, String])
     }
 
     requestTimeInMillis = System.currentTimeMillis
-    var wsRequestHolder = WS.url(service.remoteTarget).withTimeout(service.timeoutms.toInt)
-    val headers = for ((key, value) <- headersOut) wsRequestHolder.withHeaders((key, value))
 
-    if (service.user.isDefined && service.password.isDefined) {
-      wsRequestHolder.withAuth(service.user.get, service.password.get, AuthScheme.BASIC)
+    // prepare request
+    var wsRequestHolder = WS.url(service.remoteTarget).withTimeout(service.timeoutms.toInt)
+
+    // add headers
+    for ((key, value) <- headersOut) {
+      wsRequestHolder = wsRequestHolder.withHeaders((key, value))
     }
 
+    // handle authentication
+    if (service.user.isDefined && service.password.isDefined) {
+      wsRequestHolder = wsRequestHolder.withAuth(service.user.get, service.password.get, AuthScheme.BASIC)
+    }
+
+    // perform request
     future = wsRequestHolder.post(content)
   }
 
@@ -62,6 +70,7 @@ class Client(service: Service, content: String, headersOut: Map[String, String])
   }
 
   class ClientResponse(wsResponse: Response, val responseTimeInMillis: Long) {
+
     val body: String = wsResponse.body
     val status: Int = wsResponse.status;
 
