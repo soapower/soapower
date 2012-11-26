@@ -12,6 +12,7 @@ import akka.util.Timeout
 import play.api._
 import play.api.libs.ws._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.concurrent._
 import play.core.utils.CaseInsensitiveOrdered
 import play.Logger
 import collection.immutable.TreeMap
@@ -55,13 +56,19 @@ class Client(service: Service, content: String, headersOut: Map[String, String])
   def waitForResponse() {
     try {
       val wsResponse: Response = Await.result(future, service.timeoutms.millis * 1000000)
+      
       response = new ClientResponse(wsResponse, (System.currentTimeMillis - requestTimeInMillis))
 
       requestData.timeInMillis = response.responseTimeInMillis
       requestData.response = response.body
       requestData.status = response.status
 
-      RequestData.insert(requestData)
+      val writeStartTime = System.currentTimeMillis()
+      import play.api.Play.current
+      Akka.future { RequestData.insert(requestData) }.map { result =>
+        Logger.debug(result.toString)
+        Logger.debug("Request Data written to DB in " + (System.currentTimeMillis() - writeStartTime) + " ms")
+      }
       
       if (Logger.isDebugEnabled) {
         //Logger.debug("Reponse in " + (responseTimeInMillis - requestTimeInMillis) + " ms, content=" + Utility.trim(wsresponse.xml))
@@ -72,25 +79,25 @@ class Client(service: Service, content: String, headersOut: Map[String, String])
     }
   }
 
-  class ClientResponse(wsResponse: Response, val responseTimeInMillis: Long) {
+}
 
-    val body: String = wsResponse.body
-    val status: Int = wsResponse.status;
+class ClientResponse(wsResponse: Response, val responseTimeInMillis: Long) {
 
-    private val headersNing: Map[String, Seq[String]] = ningHeadersToMap(wsResponse.getAHCResponse.getHeaders())
+  val body: String = wsResponse.body
+  val status: Int = wsResponse.status;
 
-    var headers: Map[String, String] = Map()
-    headersNing.foreach(header =>
-      if (header._1 != "Transfer-Encoding")
-        headers += header._1 -> header._2.last // if more than one value for one header, take the last only
-        )
+  private val headersNing: Map[String, Seq[String]] = ningHeadersToMap(wsResponse.getAHCResponse.getHeaders())
 
-    private def ningHeadersToMap(headersNing: FluentCaseInsensitiveStringsMap) = {
-      import scala.collection.JavaConverters._
-      val res = mapAsScalaMapConverter(headersNing).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
-      TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
-    }
+  var headers: Map[String, String] = Map()
+  headersNing.foreach(header =>
+    if (header._1 != "Transfer-Encoding")
+      headers += header._1 -> header._2.last // if more than one value for one header, take the last only
+      )
 
+  private def ningHeadersToMap(headersNing: FluentCaseInsensitiveStringsMap) = {
+    import scala.collection.JavaConverters._
+    val res = mapAsScalaMapConverter(headersNing).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+    TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
   }
 
 }
