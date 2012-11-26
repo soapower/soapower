@@ -6,7 +6,7 @@ import play.api.libs._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent.Promise
 import java.util.concurrent.TimeUnit
-import play.api.libs.concurrent.Execution.Implicits._ 
+import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.stm._
 
 /*
@@ -20,15 +20,15 @@ object Monitor extends Controller {
   }
 
   def index = Action {
-    Ok(views.html.monitor.index(Runtime.getRuntime().totalMemory()/(1024*1024)))
+    Ok(views.html.monitor.index(Runtime.getRuntime().totalMemory() / (1024 * 1024)))
   }
 
   def monitoring = Action {
-   Ok.stream(
-     Streams.getRequestsPerSecond >-
-     Streams.getCPU >-
-     Streams.getHeap &>
-     Comet( callback = "parent.message"))
+    Ok.stream(
+      Streams.getRequestsPerSecond >-
+        Streams.getCPU >-
+        Streams.getHeap &>
+        Comet(callback = "parent.message"))
   }
 
   def gc = Action {
@@ -41,24 +41,25 @@ object Streams {
 
   val timeRefreshMillis = 500
 
-  val getRequestsPerSecond = Enumerator.fromCallback{ () =>
-    Promise.timeout( {
+  val getRequestsPerSecond = Enumerator.fromCallback { () =>
+    Promise.timeout({
       val currentMillis = java.lang.System.currentTimeMillis()
-      Some(SpeedOMeter.getSpeed +":rps") },
-      timeRefreshMillis, TimeUnit.MILLISECONDS )
-    }
+      Some(SpeedOMeter.getSpeed + ":rps")
+    },
+      timeRefreshMillis, TimeUnit.MILLISECONDS)
+  }
 
-  val getHeap = Enumerator.fromCallback{ () =>
+  val getHeap = Enumerator.fromCallback { () =>
     Promise.timeout(
-      Some((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024*1024) + ":memory"),
+      Some((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024) + ":memory"),
       timeRefreshMillis, TimeUnit.MILLISECONDS)
   }
 
   val cpu = new models.CPU()
 
-  val getCPU = Enumerator.fromCallback{ () =>
+  val getCPU = Enumerator.fromCallback { () =>
     Promise.timeout(
-      Some((cpu.getCpuUsage()*1000).round / 10.0 + ":cpu"),
+      Some((cpu.getCpuUsage() * 1000).round / 10.0 + ":cpu"),
       timeRefreshMillis, TimeUnit.MILLISECONDS)
   }
 
@@ -68,22 +69,22 @@ object SpeedOMeter {
 
   val unit = 100
 
-  private val counter = Ref((0,(0,java.lang.System.currentTimeMillis())))
+  private val counter = Ref((0, (0, java.lang.System.currentTimeMillis())))
 
   def countRequest() = {
     val current = java.lang.System.currentTimeMillis()
     counter.single.transform {
-      case (precedent,(count,millis)) if current > millis + unit => (0, (1,current))
-      case (precedent,(count,millis)) if current > millis + (unit/2) => (count, (1, current))
-      case (precedent,(count,millis))  => (precedent,(count + 1, millis))
+      case (precedent, (count, millis)) if current > millis + unit => (0, (1, current))
+      case (precedent, (count, millis)) if current > millis + (unit / 2) => (count, (1, current))
+      case (precedent, (count, millis)) => (precedent, (count + 1, millis))
     }
   }
 
   def getSpeed = {
     val current = java.lang.System.currentTimeMillis()
-    val (precedent,(count,millis)) = counter.single()
-    val since = current-millis
-    if(since <= unit) ((count + precedent) * 1000) / (since + unit/2)
+    val (precedent, (count, millis)) = counter.single()
+    val since = current - millis
+    if (since <= unit) ((count + precedent) * 1000) / (since + unit / 2)
     else 0
   }
 

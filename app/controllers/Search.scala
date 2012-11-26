@@ -7,7 +7,7 @@ import play.api.data._
 
 object Search extends Controller {
 
-    def index = Action {
+  def index = Action {
     Ok(views.html.search.index())
   }
 

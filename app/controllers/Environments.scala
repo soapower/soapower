@@ -12,22 +12,20 @@ import models._
 
 object Environments extends Controller {
 
-/**
+  /**
    * This result directly redirect to the application home.
    */
   val Home = Redirect(routes.Environments.list(0, 2, ""))
 
   /**
    * Describe the environment form (used in both edit and create screens).
-   */ 
+   */
   val environmentForm = Form(
     mapping(
-      "id" -> ignored(NotAssigned:Pk[Long]),
-      "name" -> nonEmptyText
-    )(Environment.apply)(Environment.unapply)
-  )
+      "id" -> ignored(NotAssigned: Pk[Long]),
+      "name" -> nonEmptyText)(Environment.apply)(Environment.unapply))
 
-  def index = Action { 
+  def index = Action {
     Ok("Index Environments")
   }
 
@@ -40,11 +38,10 @@ object Environments extends Controller {
    */
   def list(page: Int, orderBy: Int, filter: String) = Action { implicit request =>
     Ok(views.html.environments.list(
-      Environment.list(page = page, orderBy = orderBy, filter = ("%"+filter+"%")),
-      orderBy, filter
-    ))
+      Environment.list(page = page, orderBy = orderBy, filter = ("%" + filter + "%")),
+      orderBy, filter))
   }
- 
+
   /**
    * Display the 'edit form' of a existing Environment.
    *
@@ -55,9 +52,9 @@ object Environments extends Controller {
       Ok(views.html.environments.editForm(id, environmentForm.fill(environment)))
     }.getOrElse(NotFound)
   }
-  
+
   /**
-   * Handle the 'edit form' submission 
+   * Handle the 'edit form' submission
    *
    * @param id Id of the environment to edit
    */
@@ -67,17 +64,16 @@ object Environments extends Controller {
       environment => {
         Environment.update(id, environment)
         Home.flashing("success" -> "Environment %s has been updated".format(environment.name))
-      }
-    )
+      })
   }
-  
+
   /**
    * Display the 'new environment form'.
    */
   def create = Action {
-    Ok(views.html.environments.createForm(environmentForm)) 
+    Ok(views.html.environments.createForm(environmentForm))
   }
-  
+
   /**
    * Handle the 'new environment form' submission.
    */
@@ -87,10 +83,9 @@ object Environments extends Controller {
       environment => {
         Environment.insert(environment)
         Home.flashing("success" -> "Environment %s has been created".format(environment.name))
-      }
-    )
+      })
   }
-  
+
   /**
    * Handle environment deletion.
    */
@@ -98,4 +93,5 @@ object Environments extends Controller {
     Environment.delete(id)
     Home.flashing("success" -> "Environment has been deleted")
   }
+
 }

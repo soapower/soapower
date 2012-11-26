@@ -10,27 +10,26 @@ import models._
 
 object Soap extends Controller {
 
-  def index(environment : String, localTarget: String) = Action { implicit request => 
+  def index(environment: String, localTarget: String) = Action { implicit request =>
 
     Logger.info("Request on environment:" + environment + " localTarget:" + localTarget)
     Logger.debug("request:" + request.body.asText)
 
     Service.findByLocalTargetAndEnvironmentName(localTarget, environment).map { service =>
-      val client = new Client (service, request.body.asXml.get.toString, request.headers.toSimpleMap)
+      val client = new Client(service, request.body.asXml.get.toString, request.headers.toSimpleMap)
       client.sendRequest
       client.waitForResponse
 
       SimpleResult(
         header = ResponseHeader(client.response.status, client.response.headers),
-        body = Enumerator(client.response.body)
-      ).withHeaders(("ProxyVia" -> "soapower"))
+        body = Enumerator(client.response.body)).withHeaders(("ProxyVia" -> "soapower"))
 
-    }.getOrElse{
+    }.getOrElse {
       val err = "environment " + environment + " with localTarget " + localTarget + " unknown"
       Logger.error(err)
       BadRequest(err)
     }
-  
+
   }
 
   def printrequest(implicit r: play.api.mvc.RequestHeader) = {

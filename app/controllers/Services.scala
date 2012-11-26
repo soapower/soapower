@@ -12,28 +12,26 @@ import models._
 
 object Services extends Controller {
 
-/**
+  /**
    * This result directly redirect to the application home.
    */
   val Home = Redirect(routes.Services.list(0, 2, ""))
 
   /**
    * Describe the service form (used in both edit and create screens).
-   */ 
+   */
   val serviceForm = Form(
     mapping(
-      "id" -> ignored(NotAssigned:Pk[Long]),
+      "id" -> ignored(NotAssigned: Pk[Long]),
       "description" -> nonEmptyText,
       "localTarget" -> nonEmptyText,
       "remoteTarget" -> nonEmptyText,
       "timeoutms" -> longNumber,
       "user" -> optional(text),
       "password" -> optional(text),
-      "environment" -> optional(longNumber)
-    )(Service.apply)(Service.unapply)
-  )
+      "environment" -> optional(longNumber))(Service.apply)(Service.unapply))
 
-  def index = Action { 
+  def index = Action {
     Ok("Index Services")
   }
 
@@ -46,11 +44,10 @@ object Services extends Controller {
    */
   def list(page: Int, orderBy: Int, filter: String) = Action { implicit request =>
     Ok(views.html.services.list(
-      Service.list(page = page, orderBy = orderBy, filter = ("%"+filter+"%")),
-      orderBy, filter
-    ))
+      Service.list(page = page, orderBy = orderBy, filter = ("%" + filter + "%")),
+      orderBy, filter))
   }
- 
+
   /**
    * Display the 'edit form' of a existing Service.
    *
@@ -61,9 +58,9 @@ object Services extends Controller {
       Ok(views.html.services.editForm(id, serviceForm.fill(service), Environment.options))
     }.getOrElse(NotFound)
   }
-  
+
   /**
-   * Handle the 'edit form' submission 
+   * Handle the 'edit form' submission
    *
    * @param id Id of the service to edit
    */
@@ -73,17 +70,16 @@ object Services extends Controller {
       service => {
         Service.update(id, service)
         Home.flashing("success" -> "Service %s has been updated".format(service.description))
-      }
-    )
+      })
   }
-  
+
   /**
    * Display the 'new service form'.
    */
   def create = Action {
-    Ok(views.html.services.createForm(serviceForm, Environment.options)) 
+    Ok(views.html.services.createForm(serviceForm, Environment.options))
   }
-  
+
   /**
    * Handle the 'new service form' submission.
    */
@@ -93,10 +89,9 @@ object Services extends Controller {
       service => {
         Service.insert(service)
         Home.flashing("success" -> "Service %s has been created".format(service.description))
-      }
-    )
+      })
   }
-  
+
   /**
    * Handle service deletion.
    */
@@ -104,4 +99,5 @@ object Services extends Controller {
     Service.delete(id)
     Home.flashing("success" -> "Service has been deleted")
   }
+
 }
