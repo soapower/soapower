@@ -18,10 +18,15 @@ object Search extends Controller {
 
   def listDatatable(sSearch:String, iDisplayStart: Int, iDisplayLength: Int) = Action { 
   	// TODO add RequestData.findSearchAllOrder(sSearch, iDisplayStart, iDisplayLength)
+
+    Logger.debug("iDisplayStart, iDisplayLength" + iDisplayStart + ", " + iDisplayLength)
+
+    val page : Page[(RequestData)] = RequestData.list(iDisplayStart - 1, iDisplayLength, sSearch)
+
     Ok(Json.toJson( Map(
-      "iTotalRecords" -> Json.toJson(100),
-      "iTotalDisplayRecords" -> Json.toJson(10),
-      "aaData" -> Json.toJson(RequestData.all)
+      "iTotalRecords" -> Json.toJson(iDisplayLength),
+      "iTotalDisplayRecords" -> Json.toJson(page.total),
+      "aaData" -> Json.toJson(page.items)
     ))).as(JSON)
 	}
 

@@ -41,6 +41,8 @@ class Client(service: Service, content: String, headersOut: Map[String, String])
 
     // add headers
     for ((key, value) <- headersOut) {
+      // FIXME : accept gzip body
+      if (key != "Accept-Encoding")
       wsRequestHolder = wsRequestHolder.withHeaders((key, value))
     }
 

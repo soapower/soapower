@@ -31,17 +31,17 @@ object RequestData {
    * Parse a RequestData from a ResultSet
    */
   val simple = {
-  	get[Pk[Long]]("request_data.id") ~
-    get[String]("request_data.localTarget") ~
-    get[String]("request_data.remoteTarget") ~
-    get[String]("request_data.request") ~
-    get[Date]("request_data.startTime") ~
-    get[String]("request_data.response") ~
-    get[Long]("request_data.timeInMillis") ~
-    get[Int]("request_data.status") map {
-        case id ~ localTarget ~ remoteTarget ~ request ~ startTime ~ response ~ timeInMillis ~ status => 
-        	RequestData(id, localTarget, remoteTarget, request, startTime, response, timeInMillis, status)
-    }
+    get[Pk[Long]]("request_data.id") ~
+      get[String]("request_data.localTarget") ~
+      get[String]("request_data.remoteTarget") ~
+      get[String]("request_data.request") ~
+      get[Date]("request_data.startTime") ~
+      get[String]("request_data.response") ~
+      get[Long]("request_data.timeInMillis") ~
+      get[Int]("request_data.status") map {
+        case id ~ localTarget ~ remoteTarget ~ request ~ startTime ~ response ~ timeInMillis ~ status =>
+          RequestData(id, localTarget, remoteTarget, request, startTime, response, timeInMillis, status)
+      }
   }
 
   /**
@@ -78,24 +78,61 @@ object RequestData {
   * Get All RequestData, used for testing only
   *
   */
-	def all(): List[RequestData] = DB.withConnection { implicit c =>
-	  SQL("select * from request_data").as(RequestData.simple *)
-	}
+  def findAll(): List[RequestData] = DB.withConnection { implicit c =>
+    SQL("select * from request_data").as(RequestData.simple *)
+  }
 
-	// use by Json : from scala to json
-	implicit object RequestDataWrites extends Writes[RequestData] {
+  /**
+   * Return a page of (RequestData).
+   *
+   * @param page Page to display
+   * @param pageSize Number of requestData per page
+   * @param orderBy RequestData property used for sorting
+   * @param filter Filter applied on the name column
+   */
+  def list(page: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
 
-		def writes(o: RequestData): JsValue = JsObject(
-		  List("0" -> JsString(o.id.toString),
-		  	"1" -> JsString(o.localTarget),
-		    "2" -> JsString(o.remoteTarget),
-		    "3" -> JsString("request file"),
-		    "4" -> JsString(o.startTime.toString),
-		    "5" -> JsString("reponse file"),
-		    "6" -> JsString(o.timeInMillis.toString),
-		    "7" -> JsString(o.status.toString)
-		  )   
-		)   
-	}
+    val offset = pageSize * page
+
+    var filter = filterIn
+    if (filterIn == "") filter = "%"
+
+    DB.withConnection { implicit connection =>
+
+      val requests = SQL(
+        """
+          select * from request_data
+          where request_data.remoteTarget like {filter}
+          order by request_data.id desc
+          limit {pageSize} offset {offset}
+        """).on(
+          'pageSize -> pageSize,
+          'offset -> offset,
+          'filter -> filter).as(RequestData.simple *)
+      val totalRows = SQL(
+        """
+          select count(*) from request_data 
+          where request_data.remoteTarget like {filter}
+        """).on(
+          'filter -> filter).as(scalar[Long].single)
+      Page(requests, page, offset, totalRows)
+
+    }
+
+  }
+
+  // use by Json : from scala to json
+  implicit object RequestDataWrites extends Writes[RequestData] {
+
+    def writes(o: RequestData): JsValue = JsObject(
+      List("0" -> JsString(o.id.toString),
+        "1" -> JsString(o.localTarget),
+        "2" -> JsString(o.remoteTarget),
+        "3" -> JsString("request file"),
+        "4" -> JsString(o.startTime.toString),
+        "5" -> JsString("reponse file"),
+        "6" -> JsString(o.timeInMillis.toString),
+        "7" -> JsString(o.status.toString)))
+  }
 
 }
