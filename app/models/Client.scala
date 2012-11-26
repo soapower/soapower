@@ -82,5 +82,4 @@ class Client(service: Service, content: String, headersOut: Map[String, String])
       
     }
 
-
 }
