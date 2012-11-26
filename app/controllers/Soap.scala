@@ -5,7 +5,6 @@ import play.api._
 import play.api.mvc._
 import play.api.libs.iteratee._
 import java.nio.charset.Charset
-
 import models._
 
 object Soap extends Controller {
@@ -15,14 +14,17 @@ object Soap extends Controller {
     Logger.info("Request on environment:" + environment + " localTarget:" + localTarget)
     Logger.debug("request:" + request.body.asText)
 
-    Service.findByLocalTargetAndEnvironmentName(localTarget, environment).map { service =>
+    val service = Service.findByLocalTargetAndEnvironmentName(localTarget, environment)
+    service.map { service =>
+      // forward the request to the actual destination
       val client = new Client(service, request.body.asXml.get.toString, request.headers.toSimpleMap)
       client.sendRequest
       client.waitForResponse
 
+      // forward the response to the client
       SimpleResult(
         header = ResponseHeader(client.response.status, client.response.headers),
-        body = Enumerator(client.response.body)).withHeaders(("ProxyVia" -> "soapower"))
+        body = Enumerator(client.response.body)).withHeaders("ProxyVia" -> "soapower")
 
     }.getOrElse {
       val err = "environment " + environment + " with localTarget " + localTarget + " unknown"
@@ -32,7 +34,7 @@ object Soap extends Controller {
 
   }
 
-  def printrequest(implicit r: play.api.mvc.RequestHeader) = {
+  def printRequest(implicit r: play.api.mvc.RequestHeader) = {
     Logger.info("method:" + r)
     Logger.info("headers:" + r.headers)
     //Logger.info("SoapAction:" + r.headers("SOAPACTION"))

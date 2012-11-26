@@ -52,9 +52,7 @@ object RequestData {
       }
 
     } catch {
-      //case e:SQLException => Logger.error("Database error")
-      //case e:MalformedURLException => Logger.error("Bad URL")
-      case e: Exception => Logger.error("Caught an exception! ", e)
+      case e: Exception => Logger.error("Error during insertion of RequestData ", e)
     }
   }
 
