@@ -74,10 +74,15 @@ object RequestData {
     }
   }
 
+  /*
+  * Get All RequestData, used for testing only
+  *
+  */
 	def all(): List[RequestData] = DB.withConnection { implicit c =>
 	  SQL("select * from request_data").as(RequestData.simple *)
 	}
 
+	// use by Json : from scala to json
 	implicit object RequestDataWrites extends Writes[RequestData] {
 
 		def writes(o: RequestData): JsValue = JsObject(
