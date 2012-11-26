@@ -90,9 +90,8 @@ object RequestData {
    */
   def list(offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
 
-    var filter = filterIn
-    if (filterIn == "") filter = "%"
-
+    var filter = "%" + filterIn + "%"
+    
     DB.withConnection { implicit connection =>
 
       val requests = SQL(
