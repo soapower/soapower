@@ -81,10 +81,14 @@ object RequestData {
 	implicit object RequestDataWrites extends Writes[RequestData] {
 
 		def writes(o: RequestData): JsValue = JsObject(
-		  List("id" -> JsString(o.id.toString),
-		  	"localTarget" -> JsString(o.localTarget),
-		    "remoteTarget" -> JsString(o.remoteTarget),
-		    "startTime" -> JsString(o.startTime.toString)
+		  List("0" -> JsString(o.id.toString),
+		  	"1" -> JsString(o.localTarget),
+		    "2" -> JsString(o.remoteTarget),
+		    "3" -> JsString("request file"),
+		    "4" -> JsString(o.startTime.toString),
+		    "5" -> JsString("reponse file"),
+		    "6" -> JsString(o.timeInMillis.toString),
+		    "7" -> JsString(o.status.toString)
 		  )   
 		)   
 	}
