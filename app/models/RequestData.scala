@@ -34,13 +34,11 @@ object RequestData {
     get[Pk[Long]]("request_data.id") ~
       get[String]("request_data.localTarget") ~
       get[String]("request_data.remoteTarget") ~
-      get[String]("request_data.request") ~
       get[Date]("request_data.startTime") ~
-      get[String]("request_data.response") ~
       get[Long]("request_data.timeInMillis") ~
       get[Int]("request_data.status") map {
-        case id ~ localTarget ~ remoteTarget ~ request ~ startTime ~ response ~ timeInMillis ~ status =>
-          RequestData(id, localTarget, remoteTarget, request, startTime, response, timeInMillis, status)
+        case id ~ localTarget ~ remoteTarget ~ startTime ~ timeInMillis ~ status =>
+          RequestData(id, localTarget, remoteTarget, null, startTime, null, timeInMillis, status)
       }
   }
 
@@ -90,9 +88,7 @@ object RequestData {
    * @param orderBy RequestData property used for sorting
    * @param filter Filter applied on the name column
    */
-  def list(page: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
-
-    val offset = pageSize * page
+  def list(offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
 
     var filter = filterIn
     if (filterIn == "") filter = "%"
@@ -101,7 +97,7 @@ object RequestData {
 
       val requests = SQL(
         """
-          select * from request_data
+          select id, localTarget, remoteTarget, startTime, timeInMillis, status from request_data
           where request_data.remoteTarget like {filter}
           order by request_data.id desc
           limit {pageSize} offset {offset}
@@ -111,14 +107,12 @@ object RequestData {
           'filter -> filter).as(RequestData.simple *)
       val totalRows = SQL(
         """
-          select count(*) from request_data 
+          select count(id) from request_data 
           where request_data.remoteTarget like {filter}
         """).on(
           'filter -> filter).as(scalar[Long].single)
-      Page(requests, page, offset, totalRows)
-
+      Page(requests, -1, offset, totalRows)
     }
-
   }
 
   // use by Json : from scala to json

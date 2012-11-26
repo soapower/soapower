@@ -21,7 +21,7 @@ object Search extends Controller {
 
     Logger.debug("iDisplayStart, iDisplayLength" + iDisplayStart + ", " + iDisplayLength)
 
-    val page : Page[(RequestData)] = RequestData.list(iDisplayStart - 1, iDisplayLength, sSearch)
+    val page : Page[(RequestData)] = RequestData.list(iDisplayStart, iDisplayLength, sSearch)
 
     Ok(Json.toJson( Map(
       "iTotalRecords" -> Json.toJson(iDisplayLength),
