@@ -1,0 +1,37 @@
+@(environment: String, soapAction: String, environments : Seq[(String, String)], soapActions:Seq[(String, String)])
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+@main {
+                       truc
+    @simpleSelect(
+        "Environment : ",
+        "environmentSelect",
+        "environmentSelect",
+        environment,
+        environments,
+        '_label -> "Environment",
+        '_default -> "all"
+    )
+
+    @simpleSelect(
+        "SoapAction : ",
+        "soapActionSelect",
+        "soapActionSelect",
+        soapAction,
+        soapActions,
+        '_label -> "SoapAction",
+        '_default -> "all"
+    )
+
+  <div id="container">
+
+
+  </div>
+
+  <script src="@routes.Assets.at("javascripts/highcharts/highcharts.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.at("javascripts/analysis/analysis.js")" type="text/javascript"></script>
+
+}

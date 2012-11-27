@@ -12,11 +12,12 @@ GET     /live                       controllers.Live.index
 GET     /search/:environment/:soapAction/  								controllers.Search.index(environment, soapAction)
 GET     /search/:environment/:soapAction/listDatatable    controllers.Search.listDatatable(environment, soapAction, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
-# Graph page
-GET     /graph/:environment/:soapAction    controllers.Graph.plot(environment, soapAction)
+# Analysis page
+GET     /analysis/:environment/:soapAction/load/     controllers.Analysis.load(environment, soapAction)
+GET     /analysis/:environment/:soapAction/     controllers.Analysis.index(environment, soapAction)
 
 # Soap 
-POST    /soap/:environment/*localTarget    controllers.Soap.index(environment, localTarget)
+POST    /soap/:environment/*localTarget         controllers.Soap.index(environment, localTarget)
 
 # Services list (look at the default values for pagination parameters)
 GET     /services                  controllers.Services.list(p:Int ?= 0, s:Int ?= 2, f ?= "")

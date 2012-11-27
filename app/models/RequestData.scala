@@ -162,8 +162,14 @@ object RequestData {
   /**
    * Load reponse times for given parameters
    */
-  def findResponseTimes(environment: String, soapAction: String): List[(Date, Long)] = {
-    val environmentId = Environment.options.find(t => t._2 == environment).get._1
+  def findResponseTimes(environmentIn: String, soapActionIn: String): List[(Date, Long)] = {
+
+    var environment = ""
+    if (environmentIn != "all" && Environment.options.exists(t => t._2 == environmentIn))
+      environment = "and request_data.environmentId = " + Environment.options.find(t => t._2 == environmentIn).get._1
+
+    var soapAction = "%" + soapActionIn + "%"
+    if (soapActionIn == "all") soapAction = "%"
 
     DB.withConnection {
       implicit connection =>
@@ -171,11 +177,12 @@ object RequestData {
           """
             select environmentId, soapAction, startTime, timeInMillis from request_data
             where soapAction like {soapAction}
-            and environmentId = {environmentId}
+          """
+             + environment +
+            """
             order by request_data.id desc
           """).on(
-          'soapAction -> soapAction,
-          'environmentId -> environmentId).as(get[Date]("startTime") ~ get[Long]("timeInMillis") *)
+          'soapAction -> soapAction).as(get[Date]("startTime") ~ get[Long]("timeInMillis") *)
           .map(flatten)
     }
   }
