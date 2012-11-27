@@ -12,12 +12,12 @@ import java.util.{ Date }
 
 object Search extends Controller {
 
-  def index = Action {
+  def index(environment: String, soapAction: String) = Action {
     Ok(views.html.search.index())
   }
 
-  def listDatatable(sSearch:String, iDisplayStart: Int, iDisplayLength: Int) = Action { 
-    val page : Page[(RequestData)] = RequestData.list(iDisplayStart, iDisplayLength, sSearch)
+  def listDatatable(environment: String, soapAction: String, sSearch:String, iDisplayStart: Int, iDisplayLength: Int) = Action { 
+    val page : Page[(RequestData)] = RequestData.list(environment, soapAction, iDisplayStart, iDisplayLength, sSearch)
     Ok(Json.toJson( Map(
       "iTotalRecords" -> Json.toJson(iDisplayLength),
       "iTotalDisplayRecords" -> Json.toJson(page.total),

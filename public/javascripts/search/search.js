@@ -15,11 +15,11 @@ function createTable() {
     "bAutoWidth": false,
     "bLengthChange": true,
     "iDisplayLength": 10,
-    "oLanguage": {"sSearch": "<span class='label'>Search in RemoteTarget</span>"},
+    "oLanguage": {"sSearch": "<span class='label'>Search in soapAction</span>"},
     "bProcessing": true,
     "bServerSide": true,
     "bDeferRender": true,
-    "sAjaxSource": "/search/listDatatable"
+    "sAjaxSource": "listDatatable"
   } );
 }
 

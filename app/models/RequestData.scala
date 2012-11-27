@@ -97,28 +97,47 @@ object RequestData {
    * @param orderBy RequestData property used for sorting
    * @param filter Filter applied on the name column
    */
-  def list(offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
+  def list(environmentIn: String, soapActionIn: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
 
     var filter = "%" + filterIn + "%"
+
+    var environmentId = ""
+    if (environmentIn == "all")  {
+      Environment.options.foreach(e => environmentId += e._1 + ",")
+      environmentId = environmentId.substring(0, environmentId.length - 1)
+    } else environmentId = Environment.options.find(t => t._2 == environmentIn).get._1
+    
+    Logger.debug("environmentId:" +environmentId)
+
+    var soapAction = "%" + soapActionIn + "%"
+    if (soapActionIn == "all") soapAction = "%"
 
     DB.withConnection { implicit connection =>
 
       val requests = SQL(
         """
           select id, sender, soapAction, environmentId, localTarget, remoteTarget, startTime, timeInMillis, status from request_data
-          where request_data.remoteTarget like {filter}
+          where request_data.soapAction like {filter}
+          and request_data.soapAction like {soapAction}
+          and request_data.environmentId in ({environmentId})
           order by request_data.id desc
           limit {pageSize} offset {offset}
         """).on(
           'pageSize -> pageSize,
           'offset -> offset,
+          'soapAction -> soapAction,
+          'environmentId -> environmentId,
           'filter -> filter).as(RequestData.simple *)
 
       val totalRows = SQL(
         """
           select count(id) from request_data 
-          where request_data.remoteTarget like {filter}
+          where request_data.soapAction like {filter}
+          and request_data.soapAction like {soapAction}
+          and request_data.environmentId = {environmentId}
         """).on(
+          'soapAction -> soapAction,
+          'environmentId -> environmentId,
           'filter -> filter).as(scalar[Long].single)
       Page(requests, -1, offset, totalRows)
     }
