@@ -102,7 +102,7 @@ object RequestData {
     var filter = "%" + filterIn + "%"
 
     var environment = ""
-    if (environmentIn != "all" && Environment.options.exists(t => t._2 == environmentIn)) 
+    if (environmentIn != "all" && Environment.options.exists(t => t._2 == environmentIn))
       environment = "and request_data.environmentId = " + Environment.options.find(t => t._2 == environmentIn).get._1
 
     var soapAction = "%" + soapActionIn + "%"
@@ -118,8 +118,8 @@ object RequestData {
           where request_data.soapAction like {filter}
           and request_data.soapAction like {soapAction}
           """
-          + environment + 
-         """
+          + environment +
+          """
           order by request_data.id desc
           limit {pageSize} offset {offset}
         """).on(
@@ -138,6 +138,26 @@ object RequestData {
           'soapAction -> soapAction,
           'filter -> filter).as(scalar[Long].single)
       Page(requests, -1, offset, totalRows)
+    }
+  }
+
+  /**
+   * Load reponse times for given parameters
+   */
+  def findResponseTimes(environment: String, soapAction: String): List[(Date, Long)] = {
+    val environmentId = Environment.options.find(t => t._2 == environment).get._1
+
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
+            select environmentId, soapAction, startTime, timeInMillis from request_data
+            where soapAction like {soapAction}
+            and environmentId = {environmentId}
+            order by request_data.id desc
+          """).on(
+          'soapAction -> soapAction,
+          'environmentId -> environmentId).as(get[Date]("startTime") ~ get[Long]("timeInMillis") *)
+        .map(flatten)
     }
   }
 

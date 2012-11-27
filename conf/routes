@@ -12,6 +12,9 @@ GET     /live                       controllers.Live.index
 GET     /search/:environment/:soapAction/  								controllers.Search.index(environment, soapAction)
 GET     /search/:environment/:soapAction/listDatatable    controllers.Search.listDatatable(environment, soapAction, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
+# Graph page
+GET     /graph/:environment/:soapAction    controllers.Graph.plot(environment, soapAction)
+
 # Soap 
 POST    /soap/:environment/*localTarget    controllers.Soap.index(environment, localTarget)
 
