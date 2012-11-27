@@ -35,7 +35,7 @@ object RequestData {
   val simple = {
     get[Pk[Long]]("request_data.id") ~
       str("request_data.sender") ~
-      long("request_data.environnmentId") ~
+      long("request_data.environmentId") ~
       str("request_data.localTarget") ~
       str("request_data.remoteTarget") ~
       get[Date]("request_data.startTime") ~
@@ -102,7 +102,7 @@ object RequestData {
 
       val requests = SQL(
         """
-          select id, localTarget, remoteTarget, startTime, timeInMillis, status from request_data
+          select id, sender, environmentId, localTarget, remoteTarget, startTime, timeInMillis, status from request_data
           where request_data.remoteTarget like {filter}
           order by request_data.id desc
           limit {pageSize} offset {offset}
@@ -126,13 +126,15 @@ object RequestData {
 
     def writes(o: RequestData): JsValue = JsObject(
       List("0" -> JsString(o.id.toString),
-        "1" -> JsString(o.localTarget),
-        "2" -> JsString(o.remoteTarget),
-        "3" -> JsString("request file"),
-        "4" -> JsString(o.startTime.toString),
-        "5" -> JsString("reponse file"),
-        "6" -> JsString(o.timeInMillis.toString),
-        "7" -> JsString(o.status.toString)))
+        "1" -> JsNumber(o.environmentId),
+        "2" -> JsString(o.sender),
+        "3" -> JsString(o.localTarget),
+        "4" -> JsString(o.remoteTarget),
+        "5" -> JsString("request file"),
+        "6" -> JsString(o.startTime.toString),
+        "7" -> JsString("reponse file"),
+        "8" -> JsString(o.timeInMillis.toString),
+        "9" -> JsString(o.status.toString)))
   }
 
 }
