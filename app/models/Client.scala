@@ -20,7 +20,7 @@ import play.api.mvc.Request
 import play.api.mvc.AnyContent
 
 class Client(service: Service, request: Request[AnyContent]) {
-  
+
   val content: String = request.body.asXml.get.toString
   val headersOut: Map[String, String] = request.headers.toSimpleMap
   val requestData = new RequestData(request.remoteAddress, service.environmentId, service.localTarget, service.remoteTarget, content)
@@ -47,7 +47,7 @@ class Client(service: Service, request: Request[AnyContent]) {
     for ((key, value) <- headersOut) {
       // FIXME : accept gzip body
       if (key != "Accept-Encoding")
-      wsRequestHolder = wsRequestHolder.withHeaders((key, value))
+        wsRequestHolder = wsRequestHolder.withHeaders((key, value))
     }
 
     // handle authentication
@@ -62,19 +62,20 @@ class Client(service: Service, request: Request[AnyContent]) {
   def waitForResponse() {
     try {
       val wsResponse: Response = Await.result(future, service.timeoutms.millis * 1000000)
-      
+
       response = new ClientResponse(wsResponse, (System.currentTimeMillis - requestTimeInMillis))
 
       requestData.timeInMillis = response.responseTimeInMillis
       requestData.response = response.body
       requestData.status = response.status
 
+      // asynchronously writes data to the DB
       val writeStartTime = System.currentTimeMillis()
       import play.api.Play.current
       Akka.future { RequestData.insert(requestData) }.map { result =>
         Logger.debug("Request Data written to DB in " + (System.currentTimeMillis() - writeStartTime) + " ms")
       }
-      
+
       if (Logger.isDebugEnabled) {
         //Logger.debug("Reponse in " + (responseTimeInMillis - requestTimeInMillis) + " ms, content=" + Utility.trim(wsresponse.xml))
         Logger.debug("Reponse in " + response.responseTimeInMillis + " ms")

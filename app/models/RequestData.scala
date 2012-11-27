@@ -35,7 +35,7 @@ object RequestData {
   val simple = {
     get[Pk[Long]]("request_data.id") ~
       str("request_data.sender") ~
-      long("request_data.environnmentId") ~
+      long("request_data.environmentId") ~
       str("request_data.localTarget") ~
       str("request_data.remoteTarget") ~
       get[Date]("request_data.startTime") ~
@@ -102,7 +102,7 @@ object RequestData {
 
       val requests = SQL(
         """
-          select id, localTarget, remoteTarget, startTime, timeInMillis, status from request_data
+          select id, sender, environmentId, localTarget, remoteTarget, startTime, timeInMillis, status from request_data
           where request_data.remoteTarget like {filter}
           order by request_data.id desc
           limit {pageSize} offset {offset}
