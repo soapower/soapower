@@ -23,7 +23,7 @@ class Client(service: Service, request: Request[AnyContent]) {
   
   val content: String = request.body.asXml.get.toString
   val headersOut: Map[String, String] = request.headers.toSimpleMap
-  val requestData = new RequestData(request.remoteAddress, service.environmentId, service.localTarget, service.remoteTarget, content)
+  val requestData = new RequestData(request.remoteAddress, request.headers("SOAPACTION"), service.environmentId, service.localTarget, service.remoteTarget, content)
   var response: ClientResponse = null
 
   private val url = new URL(service.remoteTarget);

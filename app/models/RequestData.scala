@@ -13,6 +13,7 @@ import anorm.SqlParser._
 case class RequestData(
   id: Pk[Long],
   sender: String,
+  soapAction: String,
   environmentId: Long,
   localTarget: String,
   remoteTarget: String,
@@ -22,8 +23,8 @@ case class RequestData(
   var timeInMillis: Long,
   var status: Int) {
 
-  def this(sender: String, environnmentId: Long, localTarget: String, remoteTarget: String, request: String) =
-    this(null, sender, environnmentId, localTarget, remoteTarget, request, new Date, null, -1, -1)
+  def this(sender: String, soapAction: String, environnmentId: Long, localTarget: String, remoteTarget: String, request: String) =
+    this(null, sender, soapAction, environnmentId, localTarget, remoteTarget, request, new Date, null, -1, -1)
 
 }
 
@@ -35,14 +36,15 @@ object RequestData {
   val simple = {
     get[Pk[Long]]("request_data.id") ~
       str("request_data.sender") ~
+      str("request_data.soapAction") ~
       long("request_data.environmentId") ~
       str("request_data.localTarget") ~
       str("request_data.remoteTarget") ~
       get[Date]("request_data.startTime") ~
       long("request_data.timeInMillis") ~
       int("request_data.status") map {
-        case id ~ sender ~ environnmentId ~ localTarget ~ remoteTarget ~ startTime ~ timeInMillis ~ status =>
-          RequestData(id, sender, environnmentId, localTarget, remoteTarget, null, startTime, null, timeInMillis, status)
+        case id ~ sender ~ soapAction ~ environnmentId ~ localTarget ~ remoteTarget ~ startTime ~ timeInMillis ~ status =>
+          RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, null, startTime, null, timeInMillis, status)
       }
   }
 
@@ -57,12 +59,13 @@ object RequestData {
         SQL(
           """
             insert into request_data 
-              (id, sender, environmentId, localTarget, remoteTarget, request, startTime, response, timeInMillis, status) values (
+              (id, sender, soapAction, environmentId, localTarget, remoteTarget, request, startTime, response, timeInMillis, status) values (
               (select next value for request_data_seq), 
               {sender}, {environmentId}, {localTarget}, {remoteTarget}, {request}, {startTime}, {response}, {timeInMillis}, {status}
             )
           """).on(
             'sender -> requestData.sender,
+            'soapAction -> requestData.soapAction,
             'environmentId -> requestData.environmentId,
             'localTarget -> requestData.localTarget,
             'remoteTarget -> requestData.remoteTarget,
@@ -102,7 +105,7 @@ object RequestData {
 
       val requests = SQL(
         """
-          select id, sender, environmentId, localTarget, remoteTarget, startTime, timeInMillis, status from request_data
+          select id, sender, soapAction, environmentId, localTarget, remoteTarget, startTime, timeInMillis, status from request_data
           where request_data.remoteTarget like {filter}
           order by request_data.id desc
           limit {pageSize} offset {offset}
@@ -126,15 +129,16 @@ object RequestData {
 
     def writes(o: RequestData): JsValue = JsObject(
       List("0" -> JsString(o.id.toString),
-        "1" -> JsNumber(o.environmentId),
+        "1" -> JsString(Environment.options.find(t => t._1 == o.environmentId.toString).get._2),
         "2" -> JsString(o.sender),
-        "3" -> JsString(o.localTarget),
-        "4" -> JsString(o.remoteTarget),
-        "5" -> JsString("request file"),
-        "6" -> JsString(o.startTime.toString),
-        "7" -> JsString("reponse file"),
-        "8" -> JsString(o.timeInMillis.toString),
-        "9" -> JsString(o.status.toString)))
+        "3" -> JsString(o.soapAction),
+        "4" -> JsString(o.localTarget),
+        "5" -> JsString(o.remoteTarget),
+        "6" -> JsString("request file"),
+        "7" -> JsString(o.startTime.toString),
+        "8" -> JsString("reponse file"),
+        "9" -> JsString(o.timeInMillis.toString),
+        "10" -> JsString(o.status.toString)))
   }
 
 }
