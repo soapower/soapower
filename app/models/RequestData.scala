@@ -61,7 +61,7 @@ object RequestData {
             insert into request_data 
               (id, sender, soapAction, environmentId, localTarget, remoteTarget, request, startTime, response, timeInMillis, status) values (
               (select next value for request_data_seq), 
-              {sender}, {environmentId}, {localTarget}, {remoteTarget}, {request}, {startTime}, {response}, {timeInMillis}, {status}
+              {sender}, {soapAction}, {environmentId}, {localTarget}, {remoteTarget}, {request}, {startTime}, {response}, {timeInMillis}, {status}
             )
           """).on(
             'sender -> requestData.sender,

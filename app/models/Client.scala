@@ -20,10 +20,11 @@ import play.api.mvc.Request
 import play.api.mvc.AnyContent
 
 class Client(service: Service, request: Request[AnyContent]) {
-  
+
+  val sender = request.remoteAddress
   val content: String = request.body.asXml.get.toString
   val headersOut: Map[String, String] = request.headers.toSimpleMap
-  val requestData = new RequestData(request.remoteAddress, request.headers("SOAPACTION"), service.environmentId, service.localTarget, service.remoteTarget, content)
+  val requestData = new RequestData(sender, request.headers("SOAPACTION"), service.environmentId, service.localTarget, service.remoteTarget, content)
   var response: ClientResponse = null
 
   private val url = new URL(service.remoteTarget);
@@ -42,12 +43,13 @@ class Client(service: Service, request: Request[AnyContent]) {
 
     // prepare request
     var wsRequestHolder = WS.url(service.remoteTarget).withTimeout(service.timeoutms.toInt)
+    wsRequestHolder = wsRequestHolder.withHeaders(("X-Forwarded-For", sender))
 
     // add headers
     for ((key, value) <- headersOut) {
       // FIXME : accept gzip body
       if (key != "Accept-Encoding")
-      wsRequestHolder = wsRequestHolder.withHeaders((key, value))
+        wsRequestHolder = wsRequestHolder.withHeaders((key, value))
     }
 
     // handle authentication
@@ -62,19 +64,20 @@ class Client(service: Service, request: Request[AnyContent]) {
   def waitForResponse() {
     try {
       val wsResponse: Response = Await.result(future, service.timeoutms.millis * 1000000)
-      
+
       response = new ClientResponse(wsResponse, (System.currentTimeMillis - requestTimeInMillis))
 
       requestData.timeInMillis = response.responseTimeInMillis
       requestData.response = response.body
       requestData.status = response.status
 
+      // asynchronously writes data to the DB
       val writeStartTime = System.currentTimeMillis()
       import play.api.Play.current
       Akka.future { RequestData.insert(requestData) }.map { result =>
         Logger.debug("Request Data written to DB in " + (System.currentTimeMillis() - writeStartTime) + " ms")
       }
-      
+
       if (Logger.isDebugEnabled) {
         //Logger.debug("Reponse in " + (responseTimeInMillis - requestTimeInMillis) + " ms, content=" + Utility.trim(wsresponse.xml))
         Logger.debug("Reponse in " + response.responseTimeInMillis + " ms")

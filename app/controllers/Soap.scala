@@ -24,8 +24,8 @@ object Soap extends Controller {
       // forward the response to the client
       SimpleResult(
         header = ResponseHeader(client.response.status, client.response.headers),
-        body = Enumerator(client.response.body)
-      ).withHeaders("ProxyVia" -> "soapower")
+        body = Enumerator(client.response.body)) //
+        .withHeaders("ProxyVia" -> "soapower")
 
     }.getOrElse {
       val err = "environment " + environment + " with localTarget " + localTarget + " unknown"

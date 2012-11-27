@@ -7,7 +7,8 @@ set ignorecase true;
 create table request_data (
   id                        bigint not null,
   sender                    varchar(255) not null,
-  environmentId             long null,
+  soapAction                varchar(255) not null,
+  environmentId             bigint not null,
   localTarget               varchar(255) not null,
   remoteTarget              varchar(255) not null,
   request                   clob not null,
