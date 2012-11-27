@@ -1,10 +1,8 @@
 package controllers
 
 import play.Logger
-import play.api._
 import play.api.mvc._
 import play.api.libs.iteratee._
-import java.nio.charset.Charset
 import models._
 
 object Soap extends Controller {

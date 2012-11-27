@@ -1,20 +1,21 @@
 package models;
 
 import com.sun.management.OperatingSystemMXBean;
+
 import java.lang.management.*;
 
 /*
 * Code from https://github.com/playframework/Play20/tree/master/samples/scala/comet-live-monitoring
 */
-public class CPU { 
-    
-    private int  availableProcessors = ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors();
-    
+public class CPU {
+
+    private int availableProcessors = ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors();
+
     private long lastSystemTime = 0;
     private long lastProcessCpuTime = 0;
 
     public synchronized double getCpuUsage() {
-        if(lastSystemTime == 0) {
+        if (lastSystemTime == 0) {
             baselineCounters();
             return 0;
         }
@@ -22,8 +23,8 @@ public class CPU {
         long systemTime = System.nanoTime();
         long processCpuTime = 0;
 
-        if(ManagementFactory.getOperatingSystemMXBean() instanceof OperatingSystemMXBean) {
-            processCpuTime = ((OperatingSystemMXBean)ManagementFactory.getOperatingSystemMXBean()).getProcessCpuTime();
+        if (ManagementFactory.getOperatingSystemMXBean() instanceof OperatingSystemMXBean) {
+            processCpuTime = ((OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()).getProcessCpuTime();
         }
 
         double cpuUsage = (double) (processCpuTime - lastProcessCpuTime) / (systemTime - lastSystemTime);
@@ -38,8 +39,8 @@ public class CPU {
         lastSystemTime = System.nanoTime();
 
         if (ManagementFactory.getOperatingSystemMXBean() instanceof OperatingSystemMXBean) {
-            lastProcessCpuTime = ( (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean() ).getProcessCpuTime();
+            lastProcessCpuTime = ((OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()).getProcessCpuTime();
         }
     }
-    
+
 }

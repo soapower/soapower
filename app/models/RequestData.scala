@@ -1,6 +1,6 @@
 package models
 
-import java.util.{ Date }
+import java.util.Date
 
 import play.api.db._
 import play.api.Play.current
@@ -12,17 +12,17 @@ import anorm._
 import anorm.SqlParser._
 
 case class RequestData(
-  id: Pk[Long],
-  sender: String,
-  soapAction: String,
-  environmentId: Long,
-  localTarget: String,
-  remoteTarget: String,
-  request: String,
-  startTime: Date,
-  var response: String,
-  var timeInMillis: Long,
-  var status: Int) {
+                        id: Pk[Long],
+                        sender: String,
+                        soapAction: String,
+                        environmentId: Long,
+                        localTarget: String,
+                        remoteTarget: String,
+                        request: String,
+                        startTime: Date,
+                        var response: String,
+                        var timeInMillis: Long,
+                        var status: Int) {
 
   def this(sender: String, soapAction: String, environnmentId: Long, localTarget: String, remoteTarget: String, request: String) =
     this(null, sender, soapAction, environnmentId, localTarget, remoteTarget, request, new Date, null, -1, -1)
@@ -46,19 +46,20 @@ object RequestData {
       get[Date]("request_data.startTime") ~
       long("request_data.timeInMillis") ~
       int("request_data.status") map {
-        case id ~ sender ~ soapAction ~ environnmentId ~ localTarget ~ remoteTarget ~ startTime ~ timeInMillis ~ status =>
-          RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, null, startTime, null, timeInMillis, status)
-      }
+      case id ~ sender ~ soapAction ~ environnmentId ~ localTarget ~ remoteTarget ~ startTime ~ timeInMillis ~ status =>
+        RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, null, startTime, null, timeInMillis, status)
+    }
   }
 
   /**
    * Construct the Map[String, String] needed to fill a select options set.
    */
-  def soapActionOptions: Seq[(String, String)] = DB.withConnection { implicit connection =>
-    Cache.getOrElse[Seq[(String, String)]](keyCacheSoapAction) {
-      Logger.debug("RequestData.SoapAction not found in cache: loading from db")
-      SQL("select distinct(soapAction) from request_data").as((get[String]("soapAction") ~ get[String]("soapAction")) *).map(flatten)
-    }
+  def soapActionOptions: Seq[(String, String)] = DB.withConnection {
+    implicit connection =>
+      Cache.getOrElse[Seq[(String, String)]](keyCacheSoapAction) {
+        Logger.debug("RequestData.SoapAction not found in cache: loading from db")
+        SQL("select distinct(soapAction) from request_data").as((get[String]("soapAction") ~ get[String]("soapAction")) *).map(flatten)
+      }
   }
 
   /**
@@ -68,15 +69,16 @@ object RequestData {
    */
   def insert(requestData: RequestData) = {
     try {
-      DB.withConnection { implicit connection =>
-        SQL(
-          """
+      DB.withConnection {
+        implicit connection =>
+          SQL(
+            """
             insert into request_data 
               (id, sender, soapAction, environmentId, localTarget, remoteTarget, request, startTime, response, timeInMillis, status) values (
               (select next value for request_data_seq), 
               {sender}, {soapAction}, {environmentId}, {localTarget}, {remoteTarget}, {request}, {startTime}, {response}, {timeInMillis}, {status}
             )
-          """).on(
+            """).on(
             'sender -> requestData.sender,
             'soapAction -> requestData.soapAction,
             'environmentId -> requestData.environmentId,
@@ -98,17 +100,19 @@ object RequestData {
   * Get All RequestData, used for testing only
   *
   */
-  def findAll(): List[RequestData] = DB.withConnection { implicit c =>
-    SQL("select * from request_data").as(RequestData.simple *)
+  def findAll(): List[RequestData] = DB.withConnection {
+    implicit c =>
+      SQL("select * from request_data").as(RequestData.simple *)
   }
 
   /**
-   * Return a page of (RequestData).
-   *
-   * @param page Page to display
-   * @param pageSize Number of requestData per page
-   * @param orderBy RequestData property used for sorting
-   * @param filter Filter applied on the name column
+   * Return a page of RequestData
+   * @param environmentIn
+   * @param soapActionIn
+   * @param offset
+   * @param pageSize
+   * @param filterIn
+   * @return
    */
   def list(environmentIn: String, soapActionIn: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
 
@@ -123,34 +127,35 @@ object RequestData {
 
     var test = "and request_data.environmentId in ({environmentId})";
 
-    DB.withConnection { implicit connection =>
+    DB.withConnection {
+      implicit connection =>
 
-      val requests = SQL(
-        """
+        val requests = SQL(
+          """
           select id, sender, soapAction, environmentId, localTarget, remoteTarget, startTime, timeInMillis, status from request_data
           where request_data.soapAction like {filter}
           and request_data.soapAction like {soapAction}
           """
-          + environment +
-          """
+            + environment +
+            """
           order by request_data.id desc
           limit {pageSize} offset {offset}
-        """).on(
+            """).on(
           'test -> test,
           'pageSize -> pageSize,
           'offset -> offset,
           'soapAction -> soapAction,
           'filter -> filter).as(RequestData.simple *)
 
-      val totalRows = SQL(
-        """
+        val totalRows = SQL(
+          """
           select count(id) from request_data 
           where request_data.soapAction like {filter}
           and request_data.soapAction like {soapAction}
-        """).on(
+          """).on(
           'soapAction -> soapAction,
           'filter -> filter).as(scalar[Long].single)
-      Page(requests, -1, offset, totalRows)
+        Page(requests, -1, offset, totalRows)
     }
   }
 
@@ -160,9 +165,10 @@ object RequestData {
   def findResponseTimes(environment: String, soapAction: String): List[(Date, Long)] = {
     val environmentId = Environment.options.find(t => t._2 == environment).get._1
 
-    DB.withConnection { implicit connection =>
-      SQL(
-        """
+    DB.withConnection {
+      implicit connection =>
+        SQL(
+          """
             select environmentId, soapAction, startTime, timeInMillis from request_data
             where soapAction like {soapAction}
             and environmentId = {environmentId}
@@ -170,7 +176,7 @@ object RequestData {
           """).on(
           'soapAction -> soapAction,
           'environmentId -> environmentId).as(get[Date]("startTime") ~ get[Long]("timeInMillis") *)
-        .map(flatten)
+          .map(flatten)
     }
   }
 

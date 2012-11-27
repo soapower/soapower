@@ -1,7 +1,5 @@
 package models
 
-import scala.Option.apply
-
 /**
  * Helper for pagination.
  */

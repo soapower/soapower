@@ -7,17 +7,17 @@ import play.api._
 
 import anorm._
 import anorm.SqlParser._
-import scala.collection.mutable.{ Map, HashMap }
+import scala.collection.mutable.{Map, HashMap}
 
 case class Service(
-  id: Pk[Long],
-  description: String,
-  localTarget: String,
-  remoteTarget: String,
-  timeoutms: Long,
-  user: Option[String],
-  password: Option[String],
-  environmentId: Long)
+                    id: Pk[Long],
+                    description: String,
+                    localTarget: String,
+                    remoteTarget: String,
+                    timeoutms: Long,
+                    user: Option[String],
+                    password: Option[String],
+                    environmentId: Long)
 
 object Service {
   // -- Parsers
@@ -34,18 +34,18 @@ object Service {
       get[Option[String]]("service.user") ~
       get[Option[String]]("service.password") ~
       get[Long]("service.environment_id") map {
-        case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ user ~ password ~ environmentId =>
-          Service(id, description, localTarget, remoteTarget, timeoutms, user, password, environmentId)
-      }
+      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ user ~ password ~ environmentId =>
+        Service(id, description, localTarget, remoteTarget, timeoutms, user, password, environmentId)
+    }
   }
 
   /**
    * 2 Caches :
-   *   - one with key "environmentName + localTarget" and value : service
-   *     -> fill in findByLocalTargetAndEnvironmentName
-   *     -> clear in update and delete
-   *   - a other with key cacheKey + service.id and value : environmentName + localTarget
-   *     -> used to update and delete from first cache
+   * - one with key "environmentName + localTarget" and value : service
+   * -> fill in findByLocalTargetAndEnvironmentName
+   * -> clear in update and delete
+   * - a other with key cacheKey + service.id and value : environmentName + localTarget
+   * -> used to update and delete from first cache
    */
   private val cacheKey = "servicekey-"
 
@@ -55,9 +55,10 @@ object Service {
    * Retrieve a Service from id.
    */
   def findById(id: Long): Option[Service] = {
-    DB.withConnection { implicit connection =>
-      SQL("select * from service where id = {id}").on(
-        'id -> id).as(Service.simple.singleOpt)
+    DB.withConnection {
+      implicit connection =>
+        SQL("select * from service where id = {id}").on(
+          'id -> id).as(Service.simple.singleOpt)
     }
   }
 
@@ -69,14 +70,15 @@ object Service {
     val service = Cache.getOrElse[Option[Service]](serviceKey) {
       Logger.debug("Service for " + environmentName + localTarget + " not found in cache: loading from db")
 
-      var serviceInDb = DB.withConnection { implicit connection =>
-        SQL(
-          """
+      var serviceInDb = DB.withConnection {
+        implicit connection =>
+          SQL(
+            """
           select * from service
             left join environment on service.environment_id = environment.id
             where service.localTarget like {localTarget}
             and environment.name like {environmentName}
-          """).on(
+            """).on(
             'localTarget -> localTarget,
             'environmentName -> environmentName).as(Service.simple.singleOpt)
       }
@@ -97,15 +99,16 @@ object Service {
    */
   def insert(service: Service) = {
     try {
-      DB.withConnection { implicit connection =>
-        SQL(
-          """
+      DB.withConnection {
+        implicit connection =>
+          SQL(
+            """
             insert into service 
               (id, description, localTarget, remoteTarget, timeoutms, user, password, environment_id) values (
               (select next value for service_seq), 
               {description}, {localTarget}, {remoteTarget}, {timeoutms}, {user}, {password}, {environment_id}
             )
-          """).on(
+            """).on(
             'description -> service.description,
             'localTarget -> checkLocalTarget(service.localTarget),
             'remoteTarget -> service.remoteTarget,
@@ -130,9 +133,10 @@ object Service {
    */
   def update(id: Long, service: Service) = {
     deleteFromCache(id)
-    DB.withConnection { implicit connection =>
-      SQL(
-        """
+    DB.withConnection {
+      implicit connection =>
+        SQL(
+          """
           update service
           set description = {description}, 
           localTarget = {localTarget}, 
@@ -142,7 +146,7 @@ object Service {
           password = {password}, 
           environment_id = {environment_id} 
           where id = {id}
-        """).on(
+          """).on(
           'id -> id,
           'description -> service.description,
           'localTarget -> checkLocalTarget(service.localTarget),
@@ -170,8 +174,9 @@ object Service {
    */
   def delete(id: Long) = {
     deleteFromCache(id)
-    DB.withConnection { implicit connection =>
-      SQL("delete from service where id = {id}").on('id -> id).executeUpdate()
+    DB.withConnection {
+      implicit connection =>
+        SQL("delete from service where id = {id}").on('id -> id).executeUpdate()
     }
   }
 
@@ -194,30 +199,31 @@ object Service {
 
     val offest = pageSize * page
 
-    DB.withConnection { implicit connection =>
+    DB.withConnection {
+      implicit connection =>
 
-      val services = SQL(
-        """
+        val services = SQL(
+          """
           select * from service
           left join environment on service.environment_id = environment.id
           where service.description like {filter}
           order by {orderBy} nulls last
           limit {pageSize} offset {offset}
-        """).on(
+          """).on(
           'pageSize -> pageSize,
           'offset -> offest,
           'filter -> filter,
           'orderBy -> orderBy).as(Service.withEnvironment *)
 
-      val totalRows = SQL(
-        """
+        val totalRows = SQL(
+          """
           select count(*) from service 
           left join environment on service.environment_id = environment.id
           where service.description like {filter}
-        """).on(
+          """).on(
           'filter -> filter).as(scalar[Long].single)
 
-      Page(services, page, offest, totalRows)
+        Page(services, page, offest, totalRows)
 
     }
 

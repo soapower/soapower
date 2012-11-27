@@ -74,8 +74,11 @@ class Client(service: Service, request: Request[AnyContent]) {
       // asynchronously writes data to the DB
       val writeStartTime = System.currentTimeMillis()
       import play.api.Play.current
-      Akka.future { RequestData.insert(requestData) }.map { result =>
-        Logger.debug("Request Data written to DB in " + (System.currentTimeMillis() - writeStartTime) + " ms")
+      Akka.future {
+        RequestData.insert(requestData)
+      }.map {
+        result =>
+          Logger.debug("Request Data written to DB in " + (System.currentTimeMillis() - writeStartTime) + " ms")
       }
 
       if (Logger.isDebugEnabled) {
@@ -100,7 +103,7 @@ class ClientResponse(wsResponse: Response, val responseTimeInMillis: Long) {
   headersNing.foreach(header =>
     if (header._1 != "Transfer-Encoding")
       headers += header._1 -> header._2.last // if more than one value for one header, take the last only
-      )
+  )
 
   private def ningHeadersToMap(headersNing: FluentCaseInsensitiveStringsMap) = {
     import scala.collection.JavaConverters._
