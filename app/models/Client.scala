@@ -21,9 +21,10 @@ import play.api.mvc.AnyContent
 
 class Client(service: Service, request: Request[AnyContent]) {
 
+  val sender = request.remoteAddress
   val content: String = request.body.asXml.get.toString
   val headersOut: Map[String, String] = request.headers.toSimpleMap
-  val requestData = new RequestData(request.remoteAddress, service.environmentId, service.localTarget, service.remoteTarget, content)
+  val requestData = new RequestData(sender, service.environmentId, service.localTarget, service.remoteTarget, content)
   var response: ClientResponse = null
 
   private val url = new URL(service.remoteTarget);
@@ -42,6 +43,7 @@ class Client(service: Service, request: Request[AnyContent]) {
 
     // prepare request
     var wsRequestHolder = WS.url(service.remoteTarget).withTimeout(service.timeoutms.toInt)
+    wsRequestHolder = wsRequestHolder.withHeaders(("X-Forwarded-For", sender))
 
     // add headers
     for ((key, value) <- headersOut) {
