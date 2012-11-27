@@ -16,7 +16,7 @@ case class Search(
 object Search extends Controller {
 
   def index(environment: String, soapAction: String) = Action { implicit request =>
-    Ok(views.html.search.index(environment, soapAction, Environment.options))
+    Ok(views.html.search.index(environment, soapAction, Environment.options, RequestData.soapActionOptions))
   }
 
   def listDatatable(environment: String, soapAction: String, sSearch:String, iDisplayStart: Int, iDisplayLength: Int) = Action { 

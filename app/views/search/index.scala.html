@@ -1,4 +1,4 @@
-@(environment: String, soapAction: String, environments : Seq[(String, String)])
+@(environment: String, soapAction: String, environments : Seq[(String, String)], soapActions:Seq[(String, String)])
 
 @import helper._
 
@@ -8,11 +8,22 @@
   <div id="container" style="width: 100%; margin:auto">
   	  
 		@simpleSelect(
+			"Environment : ",
 			"environmentSelect", 
 			"environmentSelect", 
 			environment,
 			environments, 
 			'_label -> "Environment", 
+			'_default -> "all"
+		)
+
+		@simpleSelect(
+			"SoapAction : ",
+			"soapActionSelect", 
+			"soapActionSelect", 
+			soapAction,
+			soapActions, 
+			'_label -> "SoapAction", 
 			'_default -> "all"
 		)
 

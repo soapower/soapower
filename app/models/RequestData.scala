@@ -5,6 +5,7 @@ import java.util.{ Date }
 import play.api.db._
 import play.api.Play.current
 import play.api._
+import play.api.cache._
 import play.api.libs.json._
 
 import anorm._
@@ -30,6 +31,8 @@ case class RequestData(
 
 object RequestData {
 
+  val keyCacheSoapAction = "soapaction-options"
+
   /**
    * Parse a RequestData from a ResultSet
    */
@@ -46,6 +49,16 @@ object RequestData {
         case id ~ sender ~ soapAction ~ environnmentId ~ localTarget ~ remoteTarget ~ startTime ~ timeInMillis ~ status =>
           RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, null, startTime, null, timeInMillis, status)
       }
+  }
+
+  /**
+   * Construct the Map[String, String] needed to fill a select options set.
+   */
+  def soapActionOptions: Seq[(String, String)] = DB.withConnection { implicit connection =>
+    Cache.getOrElse[Seq[(String, String)]](keyCacheSoapAction) {
+      Logger.debug("RequestData.SoapAction not found in cache: loading from db")
+      SQL("select distinct(soapAction) from request_data").as((get[String]("soapAction") ~ get[String]("soapAction")) *).map(flatten)
+    }
   }
 
   /**

@@ -1,9 +1,12 @@
 
 $(document).ready(function() {
-   createTable();
-   $('#environmentSelect').change(function() {
-      document.location.href="/search/" + $('#environmentSelect').val() + "/all/"
-    })
+  createTable();
+  $('#environmentSelect').change(function() {
+    document.location.href="/search/" + $('#environmentSelect').val() + "/"+ $('#soapActionSelect').val() +"/"
+  })
+  $('#soapActionSelect').change(function() {
+    document.location.href="/search/" + $('#environmentSelect').val() + "/"+ $('#soapActionSelect').val() +"/"
+  })
 });
 
 
