@@ -1,12 +1,13 @@
 
 $(document).ready(function() {
    createTable();
+   $('#environmentSelect').change(function() {
+      document.location.href="/search/" + $('#environmentSelect').val() + "/all/"
+    })
 });
 
 
 function createTable() {
-  
-  console.log("Create table")
   $('#datas').dataTable( {
     "bPaginate": true,
     "bFilter": true,

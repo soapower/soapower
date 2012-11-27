@@ -10,10 +10,13 @@ import models._
 import anorm._
 import java.util.{ Date }
 
+case class Search(
+  environmentId: Long)
+
 object Search extends Controller {
 
-  def index(environment: String, soapAction: String) = Action {
-    Ok(views.html.search.index())
+  def index(environment: String, soapAction: String) = Action { implicit request =>
+    Ok(views.html.search.index(environment, soapAction, Environment.options))
   }
 
   def listDatatable(environment: String, soapAction: String, sSearch:String, iDisplayStart: Int, iDisplayLength: Int) = Action { 

@@ -1,0 +1,21 @@
+@**
+ * Generate an HTML select.
+ *
+ * Example:
+ * {{{
+ * @select(field = myForm("isDone"), options = options("Yes","No"))
+ * }}}
+ *
+ * @param field The form field.
+ * @param args Set of extra attributes.
+ * @param handler The field constructor.
+ *@
+@(id: String, name: String, value: String, options: Seq[(String,String)], args: (Symbol,Any)*)(implicit handler: FieldConstructor, lang: play.api.i18n.Lang)
+    <select id="@id" name="@name">
+        @args.toMap.get('_default).map { defaultValue =>
+            <option class="blank" value="@defaultValue">@defaultValue</option>
+        }
+        @options.map { v =>
+            <option value="@v._2" @(if(value == v._2) "selected" else "")>@v._2</option>
+        }
+    </select>

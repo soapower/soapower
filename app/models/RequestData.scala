@@ -101,16 +101,14 @@ object RequestData {
 
     var filter = "%" + filterIn + "%"
 
-    var environmentId = ""
-    if (environmentIn == "all")  {
-      Environment.options.foreach(e => environmentId += e._1 + ",")
-      environmentId = environmentId.substring(0, environmentId.length - 1)
-    } else environmentId = Environment.options.find(t => t._2 == environmentIn).get._1
-    
-    Logger.debug("environmentId:" +environmentId)
+    var environment = ""
+    if (environmentIn != "all" && Environment.options.exists(t => t._2 == environmentIn)) 
+      environment = "and request_data.environmentId = " + Environment.options.find(t => t._2 == environmentIn).get._1
 
     var soapAction = "%" + soapActionIn + "%"
     if (soapActionIn == "all") soapAction = "%"
+
+    var test = "and request_data.environmentId in ({environmentId})";
 
     DB.withConnection { implicit connection =>
 
@@ -119,14 +117,16 @@ object RequestData {
           select id, sender, soapAction, environmentId, localTarget, remoteTarget, startTime, timeInMillis, status from request_data
           where request_data.soapAction like {filter}
           and request_data.soapAction like {soapAction}
-          and request_data.environmentId in ({environmentId})
+          """
+          + environment + 
+         """
           order by request_data.id desc
           limit {pageSize} offset {offset}
         """).on(
+          'test -> test,
           'pageSize -> pageSize,
           'offset -> offset,
           'soapAction -> soapAction,
-          'environmentId -> environmentId,
           'filter -> filter).as(RequestData.simple *)
 
       val totalRows = SQL(
@@ -134,10 +134,8 @@ object RequestData {
           select count(id) from request_data 
           where request_data.soapAction like {filter}
           and request_data.soapAction like {soapAction}
-          and request_data.environmentId = {environmentId}
         """).on(
           'soapAction -> soapAction,
-          'environmentId -> environmentId,
           'filter -> filter).as(scalar[Long].single)
       Page(requests, -1, offset, totalRows)
     }

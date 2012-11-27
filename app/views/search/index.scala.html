@@ -1,9 +1,21 @@
-@()
+@(environment: String, soapAction: String, environments : Seq[(String, String)])
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
 
 @main {
   <div id="container" style="width: 100%; margin:auto">
-  	
-  
+  	  
+		@simpleSelect(
+			"environmentSelect", 
+			"environmentSelect", 
+			environment,
+			environments, 
+			'_label -> "Environment", 
+			'_default -> "all"
+		)
+
   	<table id='datas' class='table table-striped table-bordered table-condensed'>
 	    <thead>
 		    <th>Request</th>
