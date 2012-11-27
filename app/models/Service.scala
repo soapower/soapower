@@ -17,7 +17,7 @@ case class Service(
   timeoutms: Long,
   user: Option[String],
   password: Option[String],
-  environmentId: Option[Long])
+  environmentId: Long)
 
 object Service {
   // -- Parsers
@@ -33,7 +33,7 @@ object Service {
       get[Long]("service.timeoutms") ~
       get[Option[String]]("service.user") ~
       get[Option[String]]("service.password") ~
-      get[Option[Long]]("service.environment_id") map {
+      get[Long]("service.environment_id") map {
         case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ user ~ password ~ environmentId =>
           Service(id, description, localTarget, remoteTarget, timeoutms, user, password, environmentId)
       }

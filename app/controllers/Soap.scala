@@ -17,7 +17,7 @@ object Soap extends Controller {
     val service = Service.findByLocalTargetAndEnvironmentName(localTarget, environment)
     service.map { service =>
       // forward the request to the actual destination
-      val client = new Client(service, request.body.asXml.get.toString, request.headers.toSimpleMap)
+      val client = new Client(service, request)
       client.sendRequest
       client.waitForResponse
 

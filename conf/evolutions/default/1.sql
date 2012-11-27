@@ -15,7 +15,7 @@ create table service (
   description               varchar(255) not null,
   localTarget               varchar(255) not null,
   remoteTarget              varchar(255) not null,
-  environment_id                bigint,
+  environment_id            bigint not null,
   constraint pk_service primary key (id))
 ;
 

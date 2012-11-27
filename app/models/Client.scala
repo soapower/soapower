@@ -16,11 +16,15 @@ import play.api.libs.concurrent._
 import play.core.utils.CaseInsensitiveOrdered
 import play.Logger
 import collection.immutable.TreeMap
+import play.api.mvc.Request
+import play.api.mvc.AnyContent
 
-class Client(service: Service, content: String, headersOut: Map[String, String]) {
-
+class Client(service: Service, request: Request[AnyContent]) {
+  
+  val content: String = request.body.asXml.get.toString
+  val headersOut: Map[String, String] = request.headers.toSimpleMap
+  val requestData = new RequestData(request.remoteAddress, service.environmentId, service.localTarget, service.remoteTarget, content)
   var response: ClientResponse = null
-  val requestData = new RequestData(service.localTarget, service.remoteTarget, content)
 
   private val url = new URL(service.remoteTarget);
   private val host = url.getHost
@@ -68,7 +72,6 @@ class Client(service: Service, content: String, headersOut: Map[String, String])
       val writeStartTime = System.currentTimeMillis()
       import play.api.Play.current
       Akka.future { RequestData.insert(requestData) }.map { result =>
-        Logger.debug(result.toString)
         Logger.debug("Request Data written to DB in " + (System.currentTimeMillis() - writeStartTime) + " ms")
       }
       

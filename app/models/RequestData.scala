@@ -12,6 +12,8 @@ import anorm.SqlParser._
 
 case class RequestData(
   id: Pk[Long],
+  sender: String,
+  environmentId: Long,
   localTarget: String,
   remoteTarget: String,
   request: String,
@@ -20,8 +22,8 @@ case class RequestData(
   var timeInMillis: Long,
   var status: Int) {
 
-  def this(localTarget: String, remoteTarget: String, request: String) =
-    this(null, localTarget, remoteTarget, request, new Date, null, -1, -1)
+  def this(sender: String, environnmentId: Long, localTarget: String, remoteTarget: String, request: String) =
+    this(null, sender, environnmentId, localTarget, remoteTarget, request, new Date, null, -1, -1)
 
 }
 
@@ -32,13 +34,15 @@ object RequestData {
    */
   val simple = {
     get[Pk[Long]]("request_data.id") ~
-      get[String]("request_data.localTarget") ~
-      get[String]("request_data.remoteTarget") ~
+      str("request_data.sender") ~
+      long("request_data.environnmentId") ~
+      str("request_data.localTarget") ~
+      str("request_data.remoteTarget") ~
       get[Date]("request_data.startTime") ~
-      get[Long]("request_data.timeInMillis") ~
-      get[Int]("request_data.status") map {
-        case id ~ localTarget ~ remoteTarget ~ startTime ~ timeInMillis ~ status =>
-          RequestData(id, localTarget, remoteTarget, null, startTime, null, timeInMillis, status)
+      long("request_data.timeInMillis") ~
+      int("request_data.status") map {
+        case id ~ sender ~ environnmentId ~ localTarget ~ remoteTarget ~ startTime ~ timeInMillis ~ status =>
+          RequestData(id, sender, environnmentId, localTarget, remoteTarget, null, startTime, null, timeInMillis, status)
       }
   }
 
@@ -53,11 +57,13 @@ object RequestData {
         SQL(
           """
             insert into request_data 
-              (id, localTarget, remoteTarget, request, startTime, response, timeInMillis, status) values (
+              (id, sender, environmentId, localTarget, remoteTarget, request, startTime, response, timeInMillis, status) values (
               (select next value for request_data_seq), 
-              {localTarget}, {remoteTarget}, {request}, {startTime}, {response}, {timeInMillis}, {status}
+              {sender}, {environmentId}, {localTarget}, {remoteTarget}, {request}, {startTime}, {response}, {timeInMillis}, {status}
             )
           """).on(
+            'sender -> requestData.sender,
+            'environmentId -> requestData.environmentId,
             'localTarget -> requestData.localTarget,
             'remoteTarget -> requestData.remoteTarget,
             'request -> requestData.request,
@@ -91,7 +97,7 @@ object RequestData {
   def list(offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
 
     var filter = "%" + filterIn + "%"
-    
+
     DB.withConnection { implicit connection =>
 
       val requests = SQL(
@@ -104,6 +110,7 @@ object RequestData {
           'pageSize -> pageSize,
           'offset -> offset,
           'filter -> filter).as(RequestData.simple *)
+
       val totalRows = SQL(
         """
           select count(id) from request_data 

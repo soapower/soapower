@@ -29,7 +29,7 @@ object Services extends Controller {
       "timeoutms" -> longNumber,
       "user" -> optional(text),
       "password" -> optional(text),
-      "environment" -> optional(longNumber))(Service.apply)(Service.unapply))
+      "environment" -> longNumber)(Service.apply)(Service.unapply))
 
   def index = Action {
     Ok("Index Services")

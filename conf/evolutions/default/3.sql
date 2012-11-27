@@ -6,6 +6,8 @@ set ignorecase true;
 
 create table request_data (
   id                        bigint not null,
+  sender                    varchar(255) not null,
+  environmentId             varchar(255) not null,
   localTarget               varchar(255) not null,
   remoteTarget              varchar(255) not null,
   request                   clob not null,
