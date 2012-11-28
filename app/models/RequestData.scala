@@ -189,8 +189,8 @@ object RequestData {
         select environmentId, soapAction, startTime, timeInMillis from request_data
         where soapAction like {soapAction}
         """
-        + environment +
-        """
+          + environment +
+          """
         order by request_data.id asc
         """).on(
           'soapAction -> soapAction).as(get[Date]("startTime") ~ get[Long]("timeInMillis") *)

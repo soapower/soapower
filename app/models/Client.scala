@@ -62,8 +62,6 @@ class Client(service: Service, request: Request[AnyContent]) {
 
       response = new ClientResponse(wsResponse, (System.currentTimeMillis - requestTimeInMillis))
 
-
-
       // asynchronously writes data to the DB
       val writeStartTime = System.currentTimeMillis()
       import play.api.Play.current
@@ -90,12 +88,12 @@ class Client(service: Service, request: Request[AnyContent]) {
     requestData.status = response.status
 
     var soapAction = request.headers("SOAPACTION")
-    
+
     // drop apostrophes if present
-    if(soapAction.startsWith("\"") && soapAction.endsWith("\"")) {
+    if (soapAction.startsWith("\"") && soapAction.endsWith("\"")) {
       soapAction = soapAction.drop(1).dropRight(1)
     }
-    
+
     requestData.setSoapActionAndPutInCache(soapAction)
   }
 
@@ -112,7 +110,7 @@ class ClientResponse(wsResponse: Response, val responseTimeInMillis: Long) {
   headersNing.foreach(header =>
     if (header._1 != "Transfer-Encoding")
       headers += header._1 -> header._2.last // if more than one value for one header, take the last only
-  )
+      )
 
   private def ningHeadersToMap(headersNing: FluentCaseInsensitiveStringsMap) = {
     import scala.collection.JavaConverters._
