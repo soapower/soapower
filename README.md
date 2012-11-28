@@ -5,7 +5,7 @@ soapower
 
 Trello
 =======
-https://trello.com/board/soapower
+https://trello.com/board/soapower/
 
 
 Licence

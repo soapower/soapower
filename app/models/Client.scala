@@ -2,8 +2,6 @@ package models
 
 import com.ning.http.client.Realm.AuthScheme
 import com.ning.http.client.FluentCaseInsensitiveStringsMap
-import java.net.InetSocketAddress
-import java.net.URL
 import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -22,14 +20,11 @@ import play.api.mvc.AnyContent
 class Client(service: Service, request: Request[AnyContent]) {
 
   val sender = request.remoteAddress
-  val content: String = request.body.asXml.get.toString
+  val content: String = request.body.asXml.get.toString()
   val headersOut: Map[String, String] = request.headers.toSimpleMap
   val requestData = new RequestData(sender, request.headers("SOAPACTION"), service.environmentId, service.localTarget, service.remoteTarget, content)
   var response: ClientResponse = null
 
-  private val url = new URL(service.remoteTarget);
-  private val host = url.getHost
-  private val port = if (url.getPort < 0) 80 else url.getPort
   private var future: Future[Response] = null
   private var requestTimeInMillis: Long = -1
 
@@ -67,14 +62,13 @@ class Client(service: Service, request: Request[AnyContent]) {
 
       response = new ClientResponse(wsResponse, (System.currentTimeMillis - requestTimeInMillis))
 
-      requestData.timeInMillis = response.responseTimeInMillis
-      requestData.response = response.body
-      requestData.status = response.status
+
 
       // asynchronously writes data to the DB
       val writeStartTime = System.currentTimeMillis()
       import play.api.Play.current
       Akka.future {
+        prepareRequestData()
         RequestData.insert(requestData)
       }.map {
         result =>
@@ -90,12 +84,21 @@ class Client(service: Service, request: Request[AnyContent]) {
     }
   }
 
+  private def prepareRequestData() {
+    requestData.timeInMillis = response.responseTimeInMillis
+    requestData.response = response.body
+    requestData.status = response.status
+
+    val soapAction = request.headers("SOAPACTION")
+    requestData.setSoapActionAndPutInCache(soapAction)
+  }
+
 }
 
 class ClientResponse(wsResponse: Response, val responseTimeInMillis: Long) {
 
   val body: String = wsResponse.body
-  val status: Int = wsResponse.status;
+  val status: Int = wsResponse.status
 
   private val headersNing: Map[String, Seq[String]] = ningHeadersToMap(wsResponse.getAHCResponse.getHeaders())
 

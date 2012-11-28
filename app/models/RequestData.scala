@@ -14,7 +14,7 @@ import anorm.SqlParser._
 case class RequestData(
                         id: Pk[Long],
                         sender: String,
-                        soapAction: String,
+                        var soapAction: String,
                         environmentId: Long,
                         localTarget: String,
                         remoteTarget: String,
@@ -27,6 +27,18 @@ case class RequestData(
   def this(sender: String, soapAction: String, environnmentId: Long, localTarget: String, remoteTarget: String, request: String) =
     this(null, sender, soapAction, environnmentId, localTarget, remoteTarget, request, new Date, null, -1, -1)
 
+  /**
+   * Set the soapAction to RequestData and add it in cache if neccessary.
+   * @param soapActionIn soapAction
+   */
+  def setSoapActionAndPutInCache(soapActionIn: String) {
+    if (!RequestData.soapActionOptions.exists(p => p._1 == soapActionIn)) {
+      Logger.info("SoapAction " + soapActionIn + " not found in cache : add to cache")
+      val inCache = RequestData.soapActionOptions ++ (List((soapActionIn, soapActionIn)))
+      Cache.set(RequestData.keyCacheSoapAction, inCache)
+    }
+    soapAction = soapActionIn
+  }
 }
 
 object RequestData {
@@ -107,16 +119,16 @@ object RequestData {
 
   /**
    * Return a page of RequestData
-   * @param environmentIn
-   * @param soapActionIn
-   * @param offset
-   * @param pageSize
-   * @param filterIn
+   * @param environmentIn name of environnement, "all" default
+   * @param soapActionIn soapAction, "all" default
+   * @param offset offset in search
+   * @param pageSize size of line in one page
+   * @param filterIn filter on soapAction. Usefull only is soapActionIn = "all"
    * @return
    */
   def list(environmentIn: String, soapActionIn: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
 
-    var filter = "%" + filterIn + "%"
+    val filter = "%" + filterIn + "%"
 
     var environment = ""
     if (environmentIn != "all" && Environment.options.exists(t => t._2 == environmentIn))
@@ -125,7 +137,7 @@ object RequestData {
     var soapAction = "%" + soapActionIn + "%"
     if (soapActionIn == "all") soapAction = "%"
 
-    var test = "and request_data.environmentId in ({environmentId})";
+    val test = "and request_data.environmentId in ({environmentId})"
 
     DB.withConnection {
       implicit connection =>
@@ -178,10 +190,10 @@ object RequestData {
             select environmentId, soapAction, startTime, timeInMillis from request_data
             where soapAction like {soapAction}
           """
-             + environment +
+            + environment +
             """
             order by request_data.id asc
-          """).on(
+            """).on(
           'soapAction -> soapAction).as(get[Date]("startTime") ~ get[Long]("timeInMillis") *)
           .map(flatten)
     }
