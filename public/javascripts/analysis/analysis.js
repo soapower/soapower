@@ -34,6 +34,10 @@ function loadGraph() {
                 categories: categories,
                 title: {
                     text: 'Requests'
+                },
+                labels: {
+                    align: 'right',
+                    rotation: -45
                 }
             },
             yAxis: {
