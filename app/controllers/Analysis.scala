@@ -10,7 +10,7 @@ object Analysis extends Controller {
 
   def index(environment: String, soapAction: String) = Action {
     implicit request =>
-      Ok(views.html.graph.index(environment, soapAction, Environment.options, RequestData.soapActionOptions))
+      Ok(views.html.analysis.index(environment, soapAction, Environment.options, RequestData.soapActionOptions))
   }
 
   // use by Json : from scala to json
