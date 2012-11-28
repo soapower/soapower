@@ -13,3 +13,4 @@ out
 conf/mail.conf
 documentation/
 bin
+dist
