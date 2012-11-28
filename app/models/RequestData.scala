@@ -217,12 +217,11 @@ object RequestData {
       List("0" -> JsString(o.status.toString),
         "1" -> JsString(Environment.options.find(t => t._1 == o.environmentId.toString).get._2),
         "2" -> JsString(o.sender),
-        "3" -> JsString(o.soapAction + " on " + o.remoteTarget),
-        "4" -> JsString(o.localTarget),
-        "5" -> JsString(o.startTime.toString),
-        "6" -> JsString(o.timeInMillis.toString),
-        "7" -> JsString("<a href='/download/request/" + o.id + "' title='Download'><i class='icon-file'></i></a>"),
-        "8" -> JsString("<a href='/download/response/" + o.id + "' title='Download'><i class='icon-file'></i></a>")))
+        "3" -> JsString(o.soapAction + " <br> " + o.remoteTarget + " <br>Local:" + o.localTarget),
+        "4" -> JsString(o.startTime.toString),
+        "5" -> JsString(o.timeInMillis.toString),
+        "6" -> JsString("<a href='/download/request/" + o.id + "' title='Download'><i class='icon-file'></i></a>"),
+        "7" -> JsString("<a href='/download/response/" + o.id + "' title='Download'><i class='icon-file'></i></a>")))
   }
 
 }
