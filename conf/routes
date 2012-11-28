@@ -9,12 +9,12 @@ GET     /                           controllers.Application.index
 GET     /live                       controllers.Live.index
 
 # Search page
-GET     /search/:environment/:soapAction/  								controllers.Search.index(environment, soapAction)
-GET     /search/:environment/:soapAction/listDatatable    controllers.Search.listDatatable(environment, soapAction, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
+GET     /search/:environment/:soapAction/  				 controllers.Search.index(environment, soapAction)
+GET     /search/:environment/:soapAction/listDatatable   controllers.Search.listDatatable(environment, soapAction, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
 GET     /analysis/:environment/:soapAction/load/     controllers.Analysis.load(environment, soapAction)
-GET     /analysis/:environment/:soapAction/     controllers.Analysis.index(environment, soapAction)
+GET     /analysis/:environment/:soapAction/          controllers.Analysis.index(environment, soapAction)
 
 # Soap 
 POST    /soap/:environment/*localTarget         controllers.Soap.index(environment, localTarget)
@@ -48,6 +48,10 @@ POST    /environments/:id          controllers.Environments.update(id:Long)
 
 # Delete a environment
 POST    /environments/:id/delete   controllers.Environments.delete(id:Long)
+
+# Download SOAP request and response
+GET     /download/request/:id      controllers.Search.downloadRequest(id:Long)
+GET     /download/response/:id     controllers.Search.downloadResponse(id:Long)
 
 # Monitoring
 GET     /monitor                    controllers.Monitor.index

@@ -12,17 +12,17 @@ import anorm._
 import anorm.SqlParser._
 
 case class RequestData(
-                        id: Pk[Long],
-                        sender: String,
-                        soapAction: String,
-                        environmentId: Long,
-                        localTarget: String,
-                        remoteTarget: String,
-                        request: String,
-                        startTime: Date,
-                        var response: String,
-                        var timeInMillis: Long,
-                        var status: Int) {
+  id: Pk[Long],
+  sender: String,
+  soapAction: String,
+  environmentId: Long,
+  localTarget: String,
+  remoteTarget: String,
+  request: String,
+  startTime: Date,
+  var response: String,
+  var timeInMillis: Long,
+  var status: Int) {
 
   def this(sender: String, soapAction: String, environnmentId: Long, localTarget: String, remoteTarget: String, request: String) =
     this(null, sender, soapAction, environnmentId, localTarget, remoteTarget, request, new Date, null, -1, -1)
@@ -46,9 +46,9 @@ object RequestData {
       get[Date]("request_data.startTime") ~
       long("request_data.timeInMillis") ~
       int("request_data.status") map {
-      case id ~ sender ~ soapAction ~ environnmentId ~ localTarget ~ remoteTarget ~ startTime ~ timeInMillis ~ status =>
-        RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, null, startTime, null, timeInMillis, status)
-    }
+        case id ~ sender ~ soapAction ~ environnmentId ~ localTarget ~ remoteTarget ~ startTime ~ timeInMillis ~ status =>
+          RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, null, startTime, null, timeInMillis, status)
+      }
   }
 
   /**
@@ -79,16 +79,16 @@ object RequestData {
               {sender}, {soapAction}, {environmentId}, {localTarget}, {remoteTarget}, {request}, {startTime}, {response}, {timeInMillis}, {status}
             )
             """).on(
-            'sender -> requestData.sender,
-            'soapAction -> requestData.soapAction,
-            'environmentId -> requestData.environmentId,
-            'localTarget -> requestData.localTarget,
-            'remoteTarget -> requestData.remoteTarget,
-            'request -> requestData.request,
-            'startTime -> requestData.startTime,
-            'response -> requestData.response,
-            'timeInMillis -> requestData.timeInMillis,
-            'status -> requestData.status).executeUpdate()
+              'sender -> requestData.sender,
+              'soapAction -> requestData.soapAction,
+              'environmentId -> requestData.environmentId,
+              'localTarget -> requestData.localTarget,
+              'remoteTarget -> requestData.remoteTarget,
+              'request -> requestData.request,
+              'startTime -> requestData.startTime,
+              'response -> requestData.response,
+              'timeInMillis -> requestData.timeInMillis,
+              'status -> requestData.status).executeUpdate()
       }
 
     } catch {
@@ -141,11 +141,11 @@ object RequestData {
           order by request_data.id desc
           limit {pageSize} offset {offset}
             """).on(
-          'test -> test,
-          'pageSize -> pageSize,
-          'offset -> offset,
-          'soapAction -> soapAction,
-          'filter -> filter).as(RequestData.simple *)
+            'test -> test,
+            'pageSize -> pageSize,
+            'offset -> offset,
+            'soapAction -> soapAction,
+            'filter -> filter).as(RequestData.simple *)
 
         val totalRows = SQL(
           """
@@ -153,8 +153,8 @@ object RequestData {
           where request_data.soapAction like {filter}
           and request_data.soapAction like {soapAction}
           """).on(
-          'soapAction -> soapAction,
-          'filter -> filter).as(scalar[Long].single)
+            'soapAction -> soapAction,
+            'filter -> filter).as(scalar[Long].single)
         Page(requests, -1, offset, totalRows)
     }
   }
@@ -171,19 +171,30 @@ object RequestData {
     var soapAction = "%" + soapActionIn + "%"
     if (soapActionIn == "all") soapAction = "%"
 
-    DB.withConnection {
-      implicit connection =>
-        SQL(
-          """
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
             select environmentId, soapAction, startTime, timeInMillis from request_data
             where soapAction like {soapAction}
           """
-             + environment +
-            """
+          + environment +
+          """
             order by request_data.id asc
           """).on(
           'soapAction -> soapAction).as(get[Date]("startTime") ~ get[Long]("timeInMillis") *)
-          .map(flatten)
+        .map(flatten)
+    }
+  }
+
+  def loadRequest(id: Long): String = {
+    DB.withConnection { implicit connection =>
+      SQL("select request from request_data where id= {id}").on('id -> id).as(str("request").single)
+    }
+  }
+  
+   def loadResponse(id: Long): Option[String] = {
+    DB.withConnection { implicit connection =>
+      SQL("select response from request_data where id = {id}").on('id -> id).as(str("response").singleOpt)
     }
   }
 
@@ -197,11 +208,12 @@ object RequestData {
         "3" -> JsString(o.soapAction),
         "4" -> JsString(o.localTarget),
         "5" -> JsString(o.remoteTarget),
-        "6" -> JsString("request file"),
-        "7" -> JsString(o.startTime.toString),
-        "8" -> JsString("reponse file"),
-        "9" -> JsString(o.timeInMillis.toString),
-        "10" -> JsString(o.status.toString)))
+        "6" -> JsString(o.startTime.toString),
+        "7" -> JsString(o.timeInMillis.toString),
+        "8" -> JsString(o.status.toString),
+        "9" -> JsString("<a href='/download/request/"+o.id+"'>request</a>"),   
+        "10" -> JsString("<a href='/download/response/"+o.id+"'>response</a>") 
+    ))
   }
 
 }
