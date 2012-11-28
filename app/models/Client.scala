@@ -89,7 +89,13 @@ class Client(service: Service, request: Request[AnyContent]) {
     requestData.response = response.body
     requestData.status = response.status
 
-    val soapAction = request.headers("SOAPACTION")
+    var soapAction = request.headers("SOAPACTION")
+    
+    // drop apostrophes if present
+    if(soapAction.startsWith("\"") && soapAction.endsWith("\"")) {
+      soapAction = soapAction.drop(1).dropRight(1)
+    }
+    
     requestData.setSoapActionAndPutInCache(soapAction)
   }
 
