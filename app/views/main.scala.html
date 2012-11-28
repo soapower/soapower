@@ -1,5 +1,7 @@
 @(content: Html)
 
+@import helper._
+
 <!DOCTYPE html>
 
 <html>
@@ -18,7 +20,8 @@
                 <li><a href="@routes.Live.index() "><i class="icon-random"></i> Live</a></li>
                 <li><a href="@routes.Search.index("all", "all") "><i class="icon-search"></i> Search</a></li>
                 <li><a href="@routes.Analysis.index("all", "all") "><i class="icon-eye-open"></i> Analysis</a></li>
-                <li><a href="@routes.Monitor.index() "><i class="icon-wrench"></i> Monitoring</a></li>
+                <li><a href="@routes.Monitor.index() "><i class="icon-wrench"></i> Monitoring </a></li>
+                <li><i class="icon-comment" id="toggle-monitoring"></i></li>
                 <li><a href="@routes.Services.list() "><i class="icon-pencil"></i> Services</a></li>
                 <li><a href="@routes.Environments.list() "><i class="icon-pencil"></i> Environments</a></li>
                 <li><a href="@routes.Admin.index() "><i class="icon-tasks"></i> Admin</a></li>
@@ -35,5 +38,14 @@
         <div class="container-fluid">
         @content
         </div>
+
+        <script src="@routes.Assets.at("javascripts/vendor/zanimo.min.js") " type="text/javascript"></script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/monitoring.js")"></script>
+
+        <script src="@routes.Assets.at("javascripts/bootstrap.min.js") " type="text/javascript"></script>
+
+        @monitoring()
+
+        <script src="@routes.Assets.at("javascripts/main.js") " type="text/javascript"></script>
     </body>
 </html>

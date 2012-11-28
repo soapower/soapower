@@ -1,4 +1,3 @@
-(function (app) {
 
     function create(elt) { return window.document.createElement(elt); }
 
@@ -20,6 +19,7 @@
         this.elt.appendChild(this.screenCurrent);
 
         this.screenMax = create("span");
+        this.screenMax.id = this.name + '-screen-max';
         this.screenMax.className = 'screen max';
         this.screenMax.innerHTML = this.maxVal + this.unit;
         this.elt.appendChild(this.screenMax);
@@ -36,7 +36,7 @@
         wheel.className = "wheel";
         this.elt.appendChild(wheel);
 
-        this.container.appendChild(this.elt);
+        this.container.append(this.elt);
     }
 
     SpeedOMeter.prototype.red = function () {
@@ -58,30 +58,32 @@
         this.screenCurrent.innerHTML = val + this.unit;
     }
 
-    function init() {
+    function init(app, container) {
 
         window.document.addEventListener('touchmove', function (evt) {
             evt.preventDefault();
         }, false);
 
+        app.totalMemory = 100
+
         app.rps = new SpeedOMeter({
             name : "RPS",
             maxVal : 40000,
-            container : window.document.body
+            container : container
         });
 
         app.memory = new SpeedOMeter({
             name : "MEMORY",
             maxVal : app.totalMemory,
             unit : "MB",
-            container : window.document.body
+            container : container
         });
 
         app.cpu = new SpeedOMeter({
             name : "CPU",
             maxVal : 100,
             unit : "%",
-            container : window.document.body
+            container : container
         });
 
         var button = create("button");
@@ -105,7 +107,7 @@
             false
         );
 
-        window.document.body.appendChild(button);
+        container.append(button);
 
         var iframe = create("iframe");
         iframe.src = "/monitoring";
@@ -116,6 +118,10 @@
             app.lastCall = (new Date()).getTime();
             if (d.length == 2) {
                 app[d[1]].update(d[0]);
+            } else if (d.length == 3) {
+                app[d[1]].update(d[0]);
+                app.memory.maxVal = d[2];
+                $('#MEMORY-screen-max').html(d[2] + "MB")
             }
         }
 
@@ -133,6 +139,5 @@
         },300);
     }
 
-    window.document.addEventListener("DOMContentLoaded", init, false);
+    //window.document.addEventListener("DOMContentLoaded", init, false);
 
-})(window.App);

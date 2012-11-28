@@ -58,7 +58,7 @@ object Streams {
 
   val getCPU = Enumerator.fromCallback { () =>
     Promise.timeout(
-      Some((cpu.getCpuUsage() * 1000).round / 10.0 + ":cpu"),
+      Some((cpu.getCpuUsage() * 1000).round / 10.0 + ":cpu:" + Runtime.getRuntime().totalMemory() / (1024 * 1024)),
       timeRefreshMillis, TimeUnit.MILLISECONDS)
   }
 
