@@ -8,6 +8,11 @@ GET     /                           controllers.Application.index
 # Live page
 GET     /live                       controllers.Live.index
 
+# Admin page
+GET     /admin                      controllers.Admin.index
+POST    /admin/deleteAll            controllers.Admin.deleteAllRequestData
+
+
 # Search page
 GET     /search/:environment/:soapAction/  				 controllers.Search.index(environment, soapAction)
 GET     /search/:environment/:soapAction/listDatatable   controllers.Search.listDatatable(environment, soapAction, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
@@ -21,7 +26,6 @@ POST    /soap/:environment/*localTarget         controllers.Soap.index(environme
 
 # Services list (look at the default values for pagination parameters)
 GET     /services                  controllers.Services.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
-GET     /services                  controllers.Services.index
 
 # Add service
 GET     /services/new              controllers.Services.create
@@ -36,7 +40,6 @@ POST    /services/:id/delete       controllers.Services.delete(id:Long)
 
 # Environments list (look at the default values for pagination parameters)
 GET     /environments              controllers.Environments.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
-GET     /environments              controllers.Environments.index
 
 # Add environment
 GET     /environments/new          controllers.Environments.create

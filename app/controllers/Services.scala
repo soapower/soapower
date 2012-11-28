@@ -29,10 +29,6 @@ object Services extends Controller {
       "password" -> optional(text),
       "environment" -> longNumber)(Service.apply)(Service.unapply))
 
-  def index = Action {
-    Ok("Index Services")
-  }
-
   /**
    * Display the paginated list of services.
    *

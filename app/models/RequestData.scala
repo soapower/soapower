@@ -108,6 +108,17 @@ object RequestData {
     }
   }
 
+  /**
+   * Delete all request data !
+   */
+  def deleteAll() = {
+    DB.withConnection {
+      implicit connection =>
+        SQL("delete from request_data").executeUpdate()
+    }
+    Cache.remove(keyCacheSoapAction)
+  }
+
   /*
   * Get All RequestData, used for testing only
   *

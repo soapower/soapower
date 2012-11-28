@@ -23,10 +23,6 @@ object Environments extends Controller {
       "id" -> ignored(NotAssigned: Pk[Long]),
       "name" -> nonEmptyText)(Environment.apply)(Environment.unapply))
 
-  def index = Action {
-    Ok("Index Environments")
-  }
-
   /**
    * Display the paginated list of environments.
    *

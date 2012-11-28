@@ -1,0 +1,21 @@
+@()(implicit flash: play.api.mvc.Flash)
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+@main {
+
+    @flash.get("success").map { message =>
+        <div class="alert warning">
+            <strong>Done!</strong> @message
+        </div>
+    }
+
+    @form(routes.Admin.deleteAllRequestData()) {
+        <input type="submit" value="Delete All Request Data !" class="btn btn-danger">
+    }
+
+
+
+}
