@@ -180,7 +180,7 @@ object RequestData {
           """
              + environment +
             """
-            order by request_data.id desc
+            order by request_data.id asc
           """).on(
           'soapAction -> soapAction).as(get[Date]("startTime") ~ get[Long]("timeInMillis") *)
           .map(flatten)
