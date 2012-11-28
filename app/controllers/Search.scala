@@ -26,7 +26,7 @@ object Search extends Controller {
   def downloadRequest(id: Long) = Action {
     val request = RequestData.loadRequest(id)
     val fileContent: Enumerator[String] = Enumerator(request)
-    val filename = "request-" + id + ".txt"
+    val filename = "request-" + id + ".xml"
 
     SimpleResult(
       header = ResponseHeader(200),
@@ -40,7 +40,7 @@ object Search extends Controller {
     response match {
       case Some(str: String) => {
         val fileContent: Enumerator[String] = Enumerator(str)
-        val filename = "response-" + id + ".txt"
+        val filename = "response-" + id + ".xml"
         SimpleResult(
           header = ResponseHeader(200),
           body = fileContent)

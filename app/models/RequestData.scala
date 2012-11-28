@@ -214,17 +214,15 @@ object RequestData {
   implicit object RequestDataWrites extends Writes[RequestData] {
 
     def writes(o: RequestData): JsValue = JsObject(
-      List("0" -> JsString(o.id.toString),
+      List("0" -> JsString(o.status.toString),
         "1" -> JsString(Environment.options.find(t => t._1 == o.environmentId.toString).get._2),
         "2" -> JsString(o.sender),
-        "3" -> JsString(o.soapAction),
+        "3" -> JsString(o.soapAction + " on " + o.remoteTarget),
         "4" -> JsString(o.localTarget),
-        "5" -> JsString(o.remoteTarget),
-        "6" -> JsString(o.startTime.toString),
-        "7" -> JsString(o.timeInMillis.toString),
-        "8" -> JsString(o.status.toString),
-        "9" -> JsString("<a href='/download/request/" + o.id + "'>request</a>"),
-        "10" -> JsString("<a href='/download/response/" + o.id + "'>response</a>")))
+        "5" -> JsString(o.startTime.toString),
+        "6" -> JsString(o.timeInMillis.toString),
+        "7" -> JsString("<a href='/download/request/" + o.id + "' title='Download'><i class='icon-file'></i></a>"),
+        "8" -> JsString("<a href='/download/response/" + o.id + "' title='Download'><i class='icon-file'></i></a>")))
   }
 
 }
