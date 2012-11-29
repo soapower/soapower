@@ -31,7 +31,7 @@ object Search extends Controller {
     SimpleResult(
       header = ResponseHeader(play.api.http.Status.OK),
       body = fileContent)
-      .withHeaders(("Content-Disposition", "attachment; filename=" + filename), ("Content-Type", "text/xml")).as(BINARY)
+      .withHeaders(("Content-Disposition", "attachment; filename=" + filename)).as(XML)
   }
 
   def downloadResponse(id: Long) = Action {
@@ -44,7 +44,7 @@ object Search extends Controller {
         SimpleResult(
           header = ResponseHeader(play.api.http.Status.OK),
           body = fileContent)
-          .withHeaders(("Content-Disposition", "attachment; filename=" + filename), ("Content-Type", "text/xml")).as(BINARY)
+          .withHeaders(("Content-Disposition", "attachment; filename=" + filename)).as(XML)
       }
 
       case _ => NotFound("The response does not exist")
