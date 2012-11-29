@@ -16,6 +16,7 @@ import play.core.utils.CaseInsensitiveOrdered
 import play.Logger
 import collection.immutable.TreeMap
 import play.api.mvc.Request
+import play.api.http._
 import play.api.mvc.AnyContent
 import java.io.StringWriter
 import java.io.PrintWriter
@@ -41,7 +42,7 @@ class Client(service: Service, request: Request[NodeSeq]) {
 
     // prepare request
     var wsRequestHolder = WS.url(service.remoteTarget).withTimeout(service.timeoutms.toInt)
-    wsRequestHolder = wsRequestHolder.withHeaders(("X-Forwarded-For", sender))
+    wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.X_FORWARDED_FOR -> sender))
 
     // add headers
     for ((key, value) <- headersOut) {
@@ -49,6 +50,8 @@ class Client(service: Service, request: Request[NodeSeq]) {
       if (key != "Accept-Encoding")
         wsRequestHolder = wsRequestHolder.withHeaders((key, value))
     }
+
+    wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.CONTENT_LENGTH -> content.getBytes.size.toString))
 
     try {
       // perform request
