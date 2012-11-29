@@ -29,16 +29,14 @@ case class RequestData(
     this(null, sender, soapAction, environnmentId, localTarget, remoteTarget, request, new Date, null, -1, -1)
 
   /**
-   * Set the soapAction to RequestData and add it in cache if neccessary.
-   * @param soapActionIn soapAction
+   * Add soapAction in cache if neccessary.
    */
-  def setSoapActionAndPutInCache(soapActionIn: String) {
-    if (!RequestData.soapActionOptions.exists(p => p._1 == soapActionIn)) {
-      Logger.info("SoapAction " + soapActionIn + " not found in cache : add to cache")
-      val inCache = RequestData.soapActionOptions ++ (List((soapActionIn, soapActionIn)))
+  def storeSoapActionInCache() {
+    if (!RequestData.soapActionOptions.exists(p => p._1 == soapAction)) {
+      Logger.info("SoapAction " + soapAction + " not found in cache : add to cache")
+      val inCache = RequestData.soapActionOptions ++ (List((soapAction, soapAction)))
       Cache.set(RequestData.keyCacheSoapAction, inCache)
     }
-    soapAction = soapActionIn
   }
 }
 
@@ -244,7 +242,7 @@ object RequestData {
     }
 
     private def soapAction(o: RequestData) : String = {
-      "<a class='popSoapAction' href='#' rel='tooltip' title='Local: " + o.localTarget + " Remote: " + o.remoteTarget + "'>" + o.soapAction + "</a>"
+      "<a class='popSoapAction' href='#' rel='tooltip' title='Local: " + o.localTarget+ " Remote: "+o.remoteTarget+"'>" +o.soapAction+ "</a>"
     }
   }
 

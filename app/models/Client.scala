@@ -1,23 +1,19 @@
 package models
 
-import com.ning.http.client.Realm.AuthScheme
 import com.ning.http.client.FluentCaseInsensitiveStringsMap
 import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.xml._
 import akka.util.Timeout
-import play.api._
 import play.api.libs.ws._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.concurrent._
-import play.api.http._
 import play.core.utils.CaseInsensitiveOrdered
 import play.Logger
 import collection.immutable.TreeMap
 import play.api.mvc.Request
 import play.api.http._
-import play.api.mvc.AnyContent
 import java.io.StringWriter
 import java.io.PrintWriter
 
@@ -26,7 +22,7 @@ class Client(service: Service, request: Request[NodeSeq]) {
   val sender = request.remoteAddress
   val content: String = request.body.toString()
   val headersOut: Map[String, String] = request.headers.toSimpleMap
-  val requestData = new RequestData(sender, request.headers("SOAPACTION"), service.environmentId, service.localTarget, service.remoteTarget, content)
+  val requestData = new RequestData(sender, extractSoapAction(request), service.environmentId, service.localTarget, service.remoteTarget, content)
   var response: ClientResponse = null
 
   private var future: Future[Response] = null
@@ -101,9 +97,7 @@ class Client(service: Service, request: Request[NodeSeq]) {
     requestData.timeInMillis = response.responseTimeInMillis
     requestData.response = response.body
     requestData.status = response.status
-
-    val soapAction = extractSoapAction(request)
-    requestData.setSoapActionAndPutInCache(soapAction)
+    requestData.storeSoapActionInCache()
   }
 
   private def extractSoapAction(request: Request[NodeSeq]): String = {
