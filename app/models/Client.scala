@@ -31,7 +31,7 @@ class Client(service: Service, request: Request[AnyContent]) {
   private var future: Future[Response] = null
   private var requestTimeInMillis: Long = -1
 
-  def sendRequest() {
+  def sendRequestAndWaitForResponse() {
     if (Logger.isDebugEnabled) {
       //Logger.debug("RemoteTarget " + service.remoteTarget + " content=" + Utility.trim(XML.loadString(content)))
       Logger.debug("RemoteTarget " + service.remoteTarget)
@@ -59,11 +59,12 @@ class Client(service: Service, request: Request[AnyContent]) {
     try {
       future = wsRequestHolder.post(content)
     } catch {
-      case e: Throwable => case e: Throwable => processError("post", e)
+      case e: Throwable => case e: Throwable =>
+        processError("post", e)
+        return
     }
-  }
 
-  def waitForResponse() {
+    // wait for response
     try {
       val wsResponse: Response = Await.result(future, service.timeoutms.millis * 1000000)
 

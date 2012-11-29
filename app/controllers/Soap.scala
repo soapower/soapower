@@ -16,8 +16,7 @@ object Soap extends Controller {
     service.map { service =>
       // forward the request to the actual destination
       val client = new Client(service, request)
-      client.sendRequest
-      client.waitForResponse
+      client.sendRequestAndWaitForResponse
 
       // forward the response to the client
       SimpleResult(
