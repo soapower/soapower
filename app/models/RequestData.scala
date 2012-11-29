@@ -244,7 +244,7 @@ object RequestData {
     }
 
     private def soapAction(o: RequestData) : String = {
-      "<a class='popSoapAction' href='#' rel='tooltip' title='Local: " + o.localTarget+ " Remote: "+o.remoteTarget+"'>" +o.localTarget+ "</a>"
+      "<a class='popSoapAction' href='#' rel='tooltip' title='Local: " + o.localTarget + " Remote: " + o.remoteTarget + "'>" + o.soapAction + "</a>"
     }
   }
 
