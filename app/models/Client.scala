@@ -46,8 +46,6 @@ class Client(service: Service, request: Request[NodeSeq]) {
 
     // add headers
     for ((key, value) <- headersOut) {
-      // FIXME : accept gzip body
-      if (key != "Accept-Encoding")
         wsRequestHolder = wsRequestHolder.withHeaders((key, value))
     }
 
