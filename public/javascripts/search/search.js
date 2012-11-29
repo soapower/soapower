@@ -23,7 +23,12 @@ function createTable() {
     "bProcessing": true,
     "bServerSide": true,
     "bDeferRender": true,
-    "sAjaxSource": "listDatatable"
+    "sAjaxSource": "listDatatable",
+    "fnDrawCallback": function( oSettings ) {
+        $('.popSoapAction').tooltip()
+    }
   } );
+
+
 }
 

@@ -11,6 +11,7 @@ import play.api._
 import play.api.libs.ws._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.concurrent._
+import play.api.http._
 import play.core.utils.CaseInsensitiveOrdered
 import play.Logger
 import collection.immutable.TreeMap
@@ -53,7 +54,11 @@ class Client(service: Service, request: Request[AnyContent]) {
     }
 
     // perform request
-    future = wsRequestHolder.post(content)
+    try {
+      future = wsRequestHolder.post(content)
+    } catch {
+      case e: Throwable => case e: Throwable => processError("post", e)
+    }
   }
 
   def waitForResponse() {
@@ -78,7 +83,7 @@ class Client(service: Service, request: Request[AnyContent]) {
         Logger.debug("Reponse in " + response.responseTimeInMillis + " ms")
       }
     } catch {
-      case e: Throwable => Logger.error("Error: " + e.getMessage)
+      case e: Throwable => processError("waitForResponse", e)
     }
   }
 
@@ -97,14 +102,38 @@ class Client(service: Service, request: Request[AnyContent]) {
     requestData.setSoapActionAndPutInCache(soapAction)
   }
 
+  private def processError(step: String, exception: Throwable) {
+    Logger.error("Error on step " + step + " : " + exception.getMessage)
+
+    if (response == null)
+      response = new ClientResponse(null, -1)
+    response.body = faultResponse("Server", exception.toString, exception.getMessage)
+    requestData.response = response.body
+    requestData.status = Status.INTERNAL_SERVER_ERROR
+    RequestData.insert(requestData)
+  }
+
+  private def faultResponse(faultCode : String, faultString : String, faultMessage: String) : String = {
+    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+      "<SOAP-ENV:Envelope xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding\"  xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"> " +
+      "<SOAP-ENV:Header/>" +
+      "<SOAP-ENV:Body>" +
+      "<SOAP-ENV:Fault>" +
+      "<faultcode>SOAP-ENV:"+faultCode+"</faultcode>   " +
+      "<faultstring>"+faultString+"</faultstring>   " +
+      "<detail><reason>"+faultMessage+"</reason></detail>  " +
+      "</SOAP-ENV:Fault>" +
+      "</SOAP-ENV:Body>" +
+      "</SOAP-ENV:Envelope>"
+  }
 }
 
-class ClientResponse(wsResponse: Response, val responseTimeInMillis: Long) {
+class ClientResponse(wsResponse: Response = null, val responseTimeInMillis: Long) {
 
-  val body: String = wsResponse.body
-  val status: Int = wsResponse.status
+  var body: String = if (wsResponse != null) wsResponse.body else ""
+  val status: Int =  if (wsResponse != null) wsResponse.status else Status.INTERNAL_SERVER_ERROR
 
-  private val headersNing: Map[String, Seq[String]] = ningHeadersToMap(wsResponse.getAHCResponse.getHeaders())
+  private val headersNing: Map[String, Seq[String]] = if (wsResponse != null) ningHeadersToMap(wsResponse.getAHCResponse.getHeaders()) else Map()
 
   var headers: Map[String, String] = Map()
   headersNing.foreach(header =>
@@ -119,3 +148,5 @@ class ClientResponse(wsResponse: Response, val responseTimeInMillis: Long) {
   }
 
 }
+
+
