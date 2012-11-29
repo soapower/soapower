@@ -23,7 +23,7 @@ object Soap extends Controller {
       SimpleResult(
         header = ResponseHeader(client.response.status, client.response.headers),
         body = Enumerator(client.response.body)) //
-        .withHeaders("ProxyVia" -> "soapower")
+        .withHeaders("ProxyVia" -> "soapower").as(XML)
 
     }.getOrElse {
       val err = "environment " + environment + " with localTarget " + localTarget + " unknown"

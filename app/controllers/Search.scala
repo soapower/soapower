@@ -29,9 +29,9 @@ object Search extends Controller {
     val filename = "request-" + id + ".xml"
 
     SimpleResult(
-      header = ResponseHeader(200),
+      header = ResponseHeader(play.api.http.Status.OK),
       body = fileContent)
-      .withHeaders(("Content-Disposition", "attachment; filename=" + filename), ("Content-Type", "text/xml"))
+      .withHeaders(("Content-Disposition", "attachment; filename=" + filename), ("Content-Type", "text/xml")).as(BINARY)
   }
 
   def downloadResponse(id: Long) = Action {
@@ -42,9 +42,9 @@ object Search extends Controller {
         val fileContent: Enumerator[String] = Enumerator(str)
         val filename = "response-" + id + ".xml"
         SimpleResult(
-          header = ResponseHeader(200),
+          header = ResponseHeader(play.api.http.Status.OK),
           body = fileContent)
-          .withHeaders(("Content-Disposition", "attachment; filename=" + filename), ("Content-Type", "text/xml"))
+          .withHeaders(("Content-Disposition", "attachment; filename=" + filename), ("Content-Type", "text/xml")).as(BINARY)
       }
 
       case _ => NotFound("The response does not exist")
