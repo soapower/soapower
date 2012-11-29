@@ -7,7 +7,7 @@ import models._
 
 object Soap extends Controller {
 
-  def index(environment: String, localTarget: String) = Action { implicit request =>
+  def index(environment: String, localTarget: String) = Action(parse.xml) { implicit request =>
 
     Logger.info("Request on environment:" + environment + " localTarget:" + localTarget)
 
