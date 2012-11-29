@@ -51,9 +51,9 @@ class Client(service: Service, request: Request[AnyContent]) {
     }
 
     // handle authentication
-    if (service.user.isDefined && service.password.isDefined) {
+    /*if (service.user.isDefined && service.password.isDefined) {
       wsRequestHolder = wsRequestHolder.withAuth(service.user.get, service.password.get, AuthScheme.BASIC)
-    }
+    }*/
 
     // perform request
     try {
