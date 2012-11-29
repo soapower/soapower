@@ -46,7 +46,8 @@ class Client(service: Service, request: Request[NodeSeq]) {
 
     // add headers
     for ((key, value) <- headersOut) {
-        wsRequestHolder = wsRequestHolder.withHeaders((key, value))
+        if (key != "Transfer-Encoding")
+          wsRequestHolder = wsRequestHolder.withHeaders((key, value))
     }
 
     wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.CONTENT_LENGTH -> content.getBytes.size.toString))
