@@ -12,16 +12,35 @@
         
         <fieldset>
         
-            @inputText(serviceForm("description"), '_label -> "Service Description")
-            @inputText(serviceForm("localTarget"), '_label -> "Local Target")
-            @inputText(serviceForm("remoteTarget"), '_label -> "Remote Target")
-            @inputText(serviceForm("timeoutms"), '_label -> "Timeout ms")
+            @inputText(serviceForm("description"),
+                '_label -> "Service Description",
+                'required -> true,
+                'class -> "input-xxlarge")
+
+            @inputText(serviceForm("localTarget"),
+                '_label -> "Local Target",
+                '_help -> "Enter service1 to have http://<serverSoapower>:<port>/soap/<environment>/service1",
+                'class -> "input-xxlarge",
+                'required -> true)
+
+            @inputText(serviceForm("remoteTarget"),
+                '_label -> "Remote Target",
+                'required -> true,
+                'class -> "input-xxlarge")
+
+            @inputText(serviceForm("timeoutms"),
+                'required -> true,
+                'type -> "number",
+                '_label -> "Timeout ms")
+
             @inputText(serviceForm("user"), '_label -> "User Auth")
+
             @inputText(serviceForm("password"), '_label -> "Password Auth")
             
             @select(
                 serviceForm("environment"), 
-                environments, 
+                environments,
+                'required -> true,
                 '_label -> "Environment", '_default -> "-- Choose a environment --",
                 '_showConstraints -> false
             )
