@@ -11,6 +11,8 @@ object Soap extends Controller {
 
     Logger.info("Request on environment:" + environment + " localTarget:" + localTarget)
 
+    printRequest
+
     val service = Service.findByLocalTargetAndEnvironmentName(localTarget, environment)
     service.map { service =>
       // forward the request to the actual destination
