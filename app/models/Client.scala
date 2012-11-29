@@ -20,7 +20,7 @@ import play.api.mvc.AnyContent
 import java.io.StringWriter
 import java.io.PrintWriter
 
-class Client(service: Service, request: Request[scala.xml.NodeSeq]) {
+class Client(service: Service, request: Request[NodeSeq]) {
 
   val sender = request.remoteAddress
   val content: String = request.body.toString()
@@ -50,24 +50,31 @@ class Client(service: Service, request: Request[scala.xml.NodeSeq]) {
         wsRequestHolder = wsRequestHolder.withHeaders((key, value))
     }
 
-    // perform request
     try {
+      // perform request
       future = wsRequestHolder.post(content)
 
       // wait for the response
       waitForResponse()
 
     } catch {
-      case e: Throwable => case e: Throwable => processError("post", e)
+      case e: Throwable => processError("post", e)
     }
+
+    saveData()
   }
 
   private def waitForResponse() {
     try {
       val wsResponse: Response = Await.result(future, service.timeoutms.millis * 1000000)
-
       response = new ClientResponse(wsResponse, (System.currentTimeMillis - requestTimeInMillis))
+    } catch {
+      case e: Throwable => processError("waitForResponse", e)
+    }
+  }
 
+  private def saveData() {
+    try {
       // asynchronously writes data to the DB
       val writeStartTime = System.currentTimeMillis()
       import play.api.Play.current
@@ -84,7 +91,7 @@ class Client(service: Service, request: Request[scala.xml.NodeSeq]) {
         Logger.debug("Reponse in " + response.responseTimeInMillis + " ms")
       }
     } catch {
-      case e: Throwable => processError("waitForResponse", e)
+      case e: Throwable => Logger.error("Error writing to DB", e)
     }
   }
 
@@ -93,6 +100,11 @@ class Client(service: Service, request: Request[scala.xml.NodeSeq]) {
     requestData.response = response.body
     requestData.status = response.status
 
+    val soapAction = extractSoapAction(request)
+    requestData.setSoapActionAndPutInCache(soapAction)
+  }
+
+  private def extractSoapAction(request: Request[NodeSeq]): String = {
     var soapAction = request.headers("SOAPACTION")
 
     // drop apostrophes if present
@@ -100,21 +112,22 @@ class Client(service: Service, request: Request[scala.xml.NodeSeq]) {
       soapAction = soapAction.drop(1).dropRight(1)
     }
 
-    requestData.setSoapActionAndPutInCache(soapAction)
+    soapAction
   }
 
   private def processError(step: String, exception: Throwable) {
     Logger.error("Error on step " + step, exception)
 
-    if (response == null)
+    if (response == null) {
       response = new ClientResponse(null, -1)
+    }
 
-    val writer = new StringWriter
-    exception.printStackTrace(new PrintWriter(writer))
-    response.body = faultResponse("Server", exception.getMessage, writer.toString)
+    val stackTraceWriter = new StringWriter
+    exception.printStackTrace(new PrintWriter(stackTraceWriter))
+    response.body = faultResponse("Server", exception.getMessage, stackTraceWriter.toString)
+
     requestData.response = response.body
     requestData.status = Status.INTERNAL_SERVER_ERROR
-    RequestData.insert(requestData)
   }
 
   private def faultResponse(faultCode: String, faultString: String, faultMessage: String): String = {
