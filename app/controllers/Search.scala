@@ -31,7 +31,7 @@ object Search extends Controller {
     SimpleResult(
       header = ResponseHeader(200),
       body = fileContent)
-      .withHeaders(("Content-Disposition", "attachment; filename=" + filename))
+      .withHeaders(("Content-Disposition", "attachment; filename=" + filename), ("Content-Type", "text/xml"))
   }
 
   def downloadResponse(id: Long) = Action {
@@ -44,7 +44,7 @@ object Search extends Controller {
         SimpleResult(
           header = ResponseHeader(200),
           body = fileContent)
-          .withHeaders(("Content-Disposition", "attachment; filename=" + filename))
+          .withHeaders(("Content-Disposition", "attachment; filename=" + filename), ("Content-Type", "text/xml"))
       }
 
       case _ => NotFound("The response does not exist")
