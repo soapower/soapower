@@ -15,8 +15,6 @@ case class Service(
                     localTarget: String,
                     remoteTarget: String,
                     timeoutms: Long,
-                    user: Option[String],
-                    password: Option[String],
                     environmentId: Long)
 
 object Service {
@@ -31,11 +29,9 @@ object Service {
       get[String]("service.localTarget") ~
       get[String]("service.remoteTarget") ~
       get[Long]("service.timeoutms") ~
-      get[Option[String]]("service.user") ~
-      get[Option[String]]("service.password") ~
       get[Long]("service.environment_id") map {
-      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ user ~ password ~ environmentId =>
-        Service(id, description, localTarget, remoteTarget, timeoutms, user, password, environmentId)
+      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ environmentId =>
+        Service(id, description, localTarget, remoteTarget, timeoutms, environmentId)
     }
   }
 
@@ -104,17 +100,15 @@ object Service {
           SQL(
             """
             insert into service 
-              (id, description, localTarget, remoteTarget, timeoutms, user, password, environment_id) values (
+              (id, description, localTarget, remoteTarget, timeoutms, environment_id) values (
               (select next value for service_seq), 
-              {description}, {localTarget}, {remoteTarget}, {timeoutms}, {user}, {password}, {environment_id}
+              {description}, {localTarget}, {remoteTarget}, {timeoutms}, {environment_id}
             )
             """).on(
             'description -> service.description,
             'localTarget -> checkLocalTarget(service.localTarget),
             'remoteTarget -> service.remoteTarget,
             'timeoutms -> service.timeoutms,
-            'user -> service.user,
-            'password -> service.password,
             'environment_id -> service.environmentId).executeUpdate()
       }
 
@@ -141,9 +135,7 @@ object Service {
           set description = {description}, 
           localTarget = {localTarget}, 
           remoteTarget = {remoteTarget}, 
-          timeoutms = {timeoutms}, 
-          user = {user}, 
-          password = {password}, 
+          timeoutms = {timeoutms},
           environment_id = {environment_id} 
           where id = {id}
           """).on(
@@ -152,8 +144,6 @@ object Service {
           'localTarget -> checkLocalTarget(service.localTarget),
           'remoteTarget -> service.remoteTarget,
           'timeoutms -> service.timeoutms,
-          'user -> service.user,
-          'password -> service.password,
           'environment_id -> service.environmentId).executeUpdate()
     }
   }

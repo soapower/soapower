@@ -50,11 +50,6 @@ class Client(service: Service, request: Request[AnyContent]) {
         wsRequestHolder = wsRequestHolder.withHeaders((key, value))
     }
 
-    // handle authentication
-    /*if (service.user.isDefined && service.password.isDefined) {
-      wsRequestHolder = wsRequestHolder.withAuth(service.user.get, service.password.get, AuthScheme.BASIC)
-    }*/
-
     // perform request
     try {
       future = wsRequestHolder.post(content)

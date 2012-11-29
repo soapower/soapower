@@ -25,8 +25,6 @@ object Services extends Controller {
       "localTarget" -> nonEmptyText,
       "remoteTarget" -> nonEmptyText,
       "timeoutms" -> longNumber,
-      "user" -> optional(text),
-      "password" -> optional(text),
       "environment" -> longNumber)(Service.apply)(Service.unapply))
 
   /**
