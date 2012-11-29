@@ -110,8 +110,8 @@ class Client(service: Service, request: Request[AnyContent]) {
     if (response == null)
       response = new ClientResponse(null, -1)
 
-    val writer = new PrintWriter(new StringWriter)
-    exception.printStackTrace(writer)
+    val writer = new StringWriter
+    exception.printStackTrace(new PrintWriter(writer))
     response.body = faultResponse("Server", exception.getMessage, writer.toString)
     requestData.response = response.body
     requestData.status = Status.INTERNAL_SERVER_ERROR
