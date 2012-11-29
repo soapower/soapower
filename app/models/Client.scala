@@ -17,6 +17,8 @@ import play.Logger
 import collection.immutable.TreeMap
 import play.api.mvc.Request
 import play.api.mvc.AnyContent
+import java.io.StringWriter
+import java.io.PrintWriter
 
 class Client(service: Service, request: Request[AnyContent]) {
 
@@ -103,25 +105,28 @@ class Client(service: Service, request: Request[AnyContent]) {
   }
 
   private def processError(step: String, exception: Throwable) {
-    Logger.error("Error on step " + step + " : " + exception.getMessage)
+    Logger.error("Error on step " + step, exception)
 
     if (response == null)
       response = new ClientResponse(null, -1)
-    response.body = faultResponse("Server", exception.toString, exception.getMessage)
+
+    val writer = new PrintWriter(new StringWriter)
+    exception.printStackTrace(writer)
+    response.body = faultResponse("Server", exception.getMessage, writer.toString)
     requestData.response = response.body
     requestData.status = Status.INTERNAL_SERVER_ERROR
     RequestData.insert(requestData)
   }
 
-  private def faultResponse(faultCode : String, faultString : String, faultMessage: String) : String = {
+  private def faultResponse(faultCode: String, faultString: String, faultMessage: String): String = {
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
       "<SOAP-ENV:Envelope xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding\"  xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"> " +
       "<SOAP-ENV:Header/>" +
       "<SOAP-ENV:Body>" +
       "<SOAP-ENV:Fault>" +
-      "<faultcode>SOAP-ENV:"+faultCode+"</faultcode>   " +
-      "<faultstring>"+faultString+"</faultstring>   " +
-      "<detail><reason>"+faultMessage+"</reason></detail>  " +
+      "<faultcode>SOAP-ENV:" + faultCode + "</faultcode>   " +
+      "<faultstring>" + faultString + "</faultstring>   " +
+      "<detail><reason>" + faultMessage + "</reason></detail>  " +
       "</SOAP-ENV:Fault>" +
       "</SOAP-ENV:Body>" +
       "</SOAP-ENV:Envelope>"
@@ -131,7 +136,7 @@ class Client(service: Service, request: Request[AnyContent]) {
 class ClientResponse(wsResponse: Response = null, val responseTimeInMillis: Long) {
 
   var body: String = if (wsResponse != null) wsResponse.body else ""
-  val status: Int =  if (wsResponse != null) wsResponse.status else Status.INTERNAL_SERVER_ERROR
+  val status: Int = if (wsResponse != null) wsResponse.status else Status.INTERNAL_SERVER_ERROR
 
   private val headersNing: Map[String, Seq[String]] = if (wsResponse != null) ningHeadersToMap(wsResponse.getAHCResponse.getHeaders()) else Map()
 
