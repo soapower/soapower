@@ -53,13 +53,16 @@ class Client(service: Service, request: Request[AnyContent]) {
     // perform request
     try {
       future = wsRequestHolder.post(content)
-    } catch {
-      case e: Throwable => case e: Throwable =>
-        processError("post", e)
-        return
-    }
 
-    // wait for response
+      // wait for the response
+      waitForResponse()
+
+    } catch {
+      case e: Throwable => case e: Throwable => processError("post", e)
+    }
+  }
+
+  private def waitForResponse() {
     try {
       val wsResponse: Response = Await.result(future, service.timeoutms.millis * 1000000)
 
