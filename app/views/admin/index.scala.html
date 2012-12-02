@@ -5,7 +5,8 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
 
 @main {
-
+<h2>Admin</h2>
+    <hr>
     @flash.get("success").map { message =>
         <div class="alert success">
             <strong>Done!</strong> @message
@@ -23,8 +24,6 @@
     }
 
     <hr>
-    <br><br>
-
 
     <h4>Upload Configuration</h4>
         <p class="muted"><span class="label label-info">Tips </span>
@@ -44,7 +43,7 @@
     }
 
     <hr>
-    <br><br>
+    <h4>Deleting data</h4>
 
     @form(routes.Admin.deleteAllRequestData()) {
         <input type="submit" value="Delete All Request Data !" class="btn btn-danger">
