@@ -7,10 +7,44 @@
 @main {
 
     @flash.get("success").map { message =>
-        <div class="alert warning">
+        <div class="alert success">
             <strong>Done!</strong> @message
         </div>
     }
+    @flash.get("warning").map { message =>
+        <div class="alert warning">
+        <strong>Warning ! </strong> @message
+    </div>
+    }
+
+    <h4>Download Configuration</h4>
+    @form(routes.Admin.downloadConfiguration()) {
+        <input type="submit" value="Download configuration as csv File" class="btn">
+    }
+
+    <hr>
+    <br><br>
+
+
+    <h4>Upload Configuration</h4>
+        <p class="muted"><span class="label label-info">Tips </span>
+            Download the configuration above to have an example of csv file.</p>
+
+        <div class="well">
+            <ul>
+                <li>A service is identified by localTarget and EnvironmentName. If the service already exist in db, it will be ignored (no update)</li>
+                <li>A environment is identified by his name, if an environment exist in db, it will be ignored</li>
+                <li>IDs in csv file uploaded are ignored</li>
+            </ul>
+        </div>
+
+        @form(action = routes.Admin.uploadConfiguration, 'enctype -> "multipart/form-data") {
+        <input type="file" name="services">
+        <input type="submit" value="Upload configuration" class="btn">
+    }
+
+    <hr>
+    <br><br>
 
     @form(routes.Admin.deleteAllRequestData()) {
         <input type="submit" value="Delete All Request Data !" class="btn btn-danger">

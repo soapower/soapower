@@ -4,6 +4,7 @@ import play.api.mvc._
 import play.api.libs.json._
 import models._
 import play.api.libs.iteratee.Enumerator
+import play.api.http.HeaderNames
 
 case class Search(environmentId: Long)
 
@@ -31,7 +32,7 @@ object Search extends Controller {
     SimpleResult(
       header = ResponseHeader(play.api.http.Status.OK),
       body = fileContent)
-      .withHeaders(("Content-Disposition", "attachment; filename=" + filename)).as(XML)
+      .withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename)).as(XML)
   }
 
   def downloadResponse(id: Long) = Action {
@@ -44,7 +45,7 @@ object Search extends Controller {
         SimpleResult(
           header = ResponseHeader(play.api.http.Status.OK),
           body = fileContent)
-          .withHeaders(("Content-Disposition", "attachment; filename=" + filename)).as(XML)
+          .withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename)).as(XML)
       }
 
       case _ => NotFound("The response does not exist")

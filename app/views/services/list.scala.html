@@ -1,4 +1,4 @@
-@(currentPage: Page[(Service, Option[Environment])], currentOrderBy: Int, currentFilter: String)(implicit flash: play.api.mvc.Flash)
+@(currentPage: Page[(Service, Environment)], currentOrderBy: Int, currentFilter: String)(implicit flash: play.api.mvc.Flash)
 
 @****************************************
 * Helper generating navigation links    *
@@ -63,13 +63,13 @@
                                 <a href="@routes.Services.edit(service.id.get)">@service.description</a>
                             </td>
                             <td>
-                                @environment.map(_.name).getOrElse { <em>-</em> }
+                                @environment.name
                             </td>
                             <td>
                                 @service.localTarget
                             </td>
                             <td>
-                                /soap/@environment.map(_.name)/@service.localTarget
+                                /soap/@environment.name/@service.localTarget
                             </td>
                             <td>
                                 @service.remoteTarget

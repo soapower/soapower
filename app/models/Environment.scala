@@ -12,14 +12,15 @@ case class Environment(id: Pk[Long], name: String)
 
 object Environment {
 
-  val keyCacheAll = "environment-options"
+  val keyCacheAllOptions = "environment-options"
+  val keyCacheByName = "environment-all"
 
   /**
    * Parse a Environment from a ResultSet
    */
   val simple = {
-    get[Pk[Long]]("environment.id") ~
-      get[String]("environment.name") map {
+    get[Pk[Long]]("id") ~
+      get[String]("name") map {
       case id ~ name => Environment(id, name)
     }
   }
@@ -29,7 +30,7 @@ object Environment {
    */
   def options: Seq[(String, String)] = DB.withConnection {
     implicit connection =>
-      Cache.getOrElse[Seq[(String, String)]](keyCacheAll) {
+      Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
         Logger.debug("Environments not found in cache: loading from db")
         SQL("select * from environment order by name").as(Environment.simple *).map(c => c.id.toString -> c.name)
       }
@@ -47,12 +48,23 @@ object Environment {
   }
 
   /**
+   * Retrieve an Environment from name.
+   */
+  def findByName(name: String): Option[Environment] = DB.withConnection {
+      implicit connection =>
+        Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
+          SQL("select * from environment where name = {name}").on(
+            'name -> name).as(Environment.simple.singleOpt)
+        }
+  }
+
+  /**
    * Insert a new environment.
    *
    * @param environment The environment values.
    */
   def insert(environment: Environment) = {
-    Cache.remove(keyCacheAll)
+    clearCache
     DB.withConnection {
       implicit connection =>
         SQL(
@@ -73,7 +85,7 @@ object Environment {
    * @param environment The environment values.
    */
   def update(id: Long, environment: Environment) = {
-    Cache.remove(keyCacheAll)
+    clearCache
     DB.withConnection {
       implicit connection =>
         SQL(
@@ -93,11 +105,15 @@ object Environment {
    * @param id Id of the environment to delete.
    */
   def delete(id: Long) = {
-    Cache.remove(keyCacheAll)
+    clearCache
     DB.withConnection {
       implicit connection =>
         SQL("delete from environment where id = {id}").on('id -> id).executeUpdate()
     }
+  }
+
+  def clearCache() {
+    Cache.remove(keyCacheAllOptions)
   }
 
   /**

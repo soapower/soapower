@@ -3,26 +3,27 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index
+GET     /                               controllers.Application.index
 
 # Live page
-GET     /live                       controllers.Live.index
+GET     /live                           controllers.Live.index
 
 # Admin page
-GET     /admin                      controllers.Admin.index
-POST    /admin/deleteAll            controllers.Admin.deleteAllRequestData
-
+GET     /admin                          controllers.Admin.index
+POST    /admin/deleteAll                controllers.Admin.deleteAllRequestData
+POST    /admin/downloadConfiguration    controllers.Admin.downloadConfiguration
+POST    /admin/uploadConfiguration      controllers.Admin.uploadConfiguration
 
 # Search page
 GET     /search/:environment/:soapAction/  				 controllers.Search.index(environment, soapAction)
 GET     /search/:environment/:soapAction/listDatatable   controllers.Search.listDatatable(environment, soapAction, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
-GET     /analysis/:environment/:soapAction/load/     controllers.Analysis.load(environment, soapAction)
-GET     /analysis/:environment/:soapAction/          controllers.Analysis.index(environment, soapAction)
+GET     /analysis/:environment/:soapAction/load/         controllers.Analysis.load(environment, soapAction)
+GET     /analysis/:environment/:soapAction/              controllers.Analysis.index(environment, soapAction)
 
-# Soap 
-POST    /soap/:environment/*localTarget         controllers.Soap.index(environment, localTarget)
+# Soap
+POST    /soap/:environment/*localTarget                  controllers.Soap.index(environment, localTarget)
 
 # Services list (look at the default values for pagination parameters)
 GET     /services                  controllers.Services.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
@@ -57,10 +58,10 @@ GET     /download/request/:id      controllers.Search.downloadRequest(id:Long)
 GET     /download/response/:id     controllers.Search.downloadResponse(id:Long)
 
 # Monitoring
-GET     /monitor                    controllers.Monitor.index
-GET     /load                       controllers.Monitor.load
-GET     /monitoring                 controllers.Monitor.monitoring
-POST    /gc!                        controllers.Monitor.gc
+GET     /monitor                   controllers.Monitor.index
+GET     /load                      controllers.Monitor.load
+GET     /monitoring                controllers.Monitor.monitoring
+POST    /gc!                       controllers.Monitor.gc
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file              controllers.Assets.at(path="/public", file)
