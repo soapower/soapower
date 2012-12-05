@@ -86,6 +86,13 @@
             container : container
         });
 
+        app.dbfile = new SpeedOMeter({
+            name : "DBFILE",
+            maxVal : 1000,
+            unit : "MB",
+            container : container
+        });
+
         var button = create("button");
         button.className = "gc";
         button.innerHTML = "GARBAGE COLLECT";
@@ -135,6 +142,7 @@
                 app.rps.red();
                 app.memory.red();
                 app.cpu.red();
+                app.dbfile.red();
             }
         },300);
     }

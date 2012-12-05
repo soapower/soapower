@@ -7,6 +7,8 @@ import play.api.libs.concurrent.Promise
 import java.util.concurrent.TimeUnit
 import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.stm._
+import java.io.File
+import play.api.Logger
 
 /*
 * Code from https://github.com/playframework/Play20/tree/master/samples/scala/comet-live-monitoring
@@ -26,6 +28,7 @@ object Monitor extends Controller {
     Ok.stream(
       Streams.getRequestsPerSecond >-
         Streams.getCPU >-
+        Streams.getDbFile >-
         Streams.getHeap &>
         Comet(callback = "parent.message"))
   }
@@ -40,6 +43,8 @@ object Streams {
 
   val timeRefreshMillis = 500
 
+  val timeRefreshMillisLong = 2000
+
   val getRequestsPerSecond = Enumerator.fromCallback { () =>
     Promise.timeout({
       val currentMillis = java.lang.System.currentTimeMillis()
@@ -52,6 +57,14 @@ object Streams {
     Promise.timeout(
       Some((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024) + ":memory"),
       timeRefreshMillis, TimeUnit.MILLISECONDS)
+  }
+
+  val fileDb = new File(play.api.Play.current.configuration.getString("monitoring.file").get)
+
+  val getDbFile = Enumerator.fromCallback { () =>
+    Promise.timeout(
+      Some((fileDb.length() / 1024 / 1024) + ":dbfile"),
+      timeRefreshMillisLong, TimeUnit.MILLISECONDS)
   }
 
   val cpu = new models.CPU()
