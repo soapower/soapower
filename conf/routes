@@ -9,8 +9,9 @@ GET     /                               controllers.Application.index
 GET     /live                           controllers.Live.index
 
 # Admin page
-GET     /admin                          controllers.Admin.index
+GET     /admin/                         controllers.Admin.index
 POST    /admin/deleteAll                controllers.Admin.deleteAllRequestData
+POST    /admin/delete                   controllers.Admin.delete
 POST    /admin/downloadConfiguration    controllers.Admin.downloadConfiguration
 POST    /admin/uploadConfiguration      controllers.Admin.uploadConfiguration
 

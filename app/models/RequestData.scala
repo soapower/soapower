@@ -110,10 +110,64 @@ object RequestData {
   /**
    * Delete all request data !
    */
-  def deleteAll() = {
+  def deleteAll() {
     DB.withConnection {
       implicit connection =>
         SQL("delete from request_data").executeUpdate()
+    }
+    Cache.remove(keyCacheSoapAction)
+  }
+
+  /**
+   * Delete XML data (request & reponse) between min and max date
+   * @param environmentIn environmement or "" / all if all
+   * @param minDate min date
+   * @param maxDate max date
+   */
+  def deleteRequestResponse(environmentIn: String, minDate: Date, maxDate: Date) {
+    Logger.debug("Environment:" + environmentIn + " mindate:"  + minDate.getTime + " maxDate:" + maxDate.getTime)
+    Logger.debug("EnvironmentSQL:" + sqlAndEnvironnement(environmentIn))
+
+    val d = new Date()
+    val deleted = "deleted by admin Soapower " + d.toString
+
+    DB.withConnection {
+      implicit connection =>
+        SQL(
+          """
+            update request_data
+            set response = {deleted},
+            request = {deleted}
+            where startTime >= {minDate} and startTime <= {maxDate}
+          """
+            + sqlAndEnvironnement(environmentIn)
+        ).on(
+          'deleted -> deleted,
+          'minDate -> minDate,
+          'maxDate -> maxDate).executeUpdate()
+
+    }
+    Cache.remove(keyCacheSoapAction)
+  }
+
+  /**
+   * Delete entries between min and max date
+   * @param environmentIn environmement or "" / all if all
+   * @param minDate min date
+   * @param maxDate max date
+   */
+  def delete(environmentIn: String, minDate: Date, maxDate: Date) {
+    DB.withConnection {
+      implicit connection =>
+        SQL(
+          """
+            delete from request_data where startTime >= {minDate} and startTime <= {maxDate}
+          """
+            + sqlAndEnvironnement(environmentIn)
+        ).on(
+          'minDate -> minDate,
+          'maxDate -> maxDate).executeUpdate()
+
     }
     Cache.remove(keyCacheSoapAction)
   }
@@ -140,14 +194,8 @@ object RequestData {
 
     val filter = "%" + filterIn + "%"
 
-    var environment = ""
-    if (environmentIn != "all" && Environment.options.exists(t => t._2 == environmentIn))
-      environment = "and request_data.environmentId = " + Environment.options.find(t => t._2 == environmentIn).get._1
-
     var soapAction = "%" + soapActionIn + "%"
     if (soapActionIn == "all") soapAction = "%"
-
-    val test = "and request_data.environmentId in ({environmentId})"
 
     DB.withConnection {
       implicit connection =>
@@ -158,12 +206,11 @@ object RequestData {
           where request_data.soapAction like {filter}
           and request_data.soapAction like {soapAction}
           """
-            + environment +
+            + sqlAndEnvironnement(environmentIn) +
             """
           order by request_data.id desc
           limit {pageSize} offset {offset}
             """).on(
-            'test -> test,
             'pageSize -> pageSize,
             'offset -> offset,
             'soapAction -> soapAction,
@@ -186,10 +233,6 @@ object RequestData {
    */
   def findResponseTimes(environmentIn: String, soapActionIn: String): List[(Date, Long)] = {
 
-    var environment = ""
-    if (environmentIn != "all" && Environment.options.exists(t => t._2 == environmentIn))
-      environment = "and request_data.environmentId = " + Environment.options.find(t => t._2 == environmentIn).get._1
-
     var soapAction = "%" + soapActionIn + "%"
     if (soapActionIn == "all") soapAction = "%"
 
@@ -199,7 +242,7 @@ object RequestData {
         select environmentId, soapAction, startTime, timeInMillis from request_data
         where soapAction like {soapAction}
         """
-          + environment +
+          + sqlAndEnvironnement(environmentIn) +
           """
         order by request_data.id asc
         """).on(
@@ -218,6 +261,21 @@ object RequestData {
     DB.withConnection { implicit connection =>
       SQL("select response from request_data where id = {id}").on('id -> id).as(str("response").singleOpt)
     }
+  }
+
+  private def sqlAndEnvironnement(environmentIn: String) : String = {
+
+    var environment = ""
+
+    // search by name
+    if (environmentIn != "all" && Environment.options.exists(t => t._2 == environmentIn))
+      environment = "and request_data.environmentId = " + Environment.options.find(t => t._2 == environmentIn).get._1
+
+    // search by id
+    if (environment == "" && Environment.options.exists(t => t._1 == environmentIn))
+      environment = "and request_data.environmentId = " + Environment.options.find(t => t._1 == environmentIn).get._1
+
+    environment
   }
 
   // use by Json : from scala to json

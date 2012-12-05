@@ -1,4 +1,4 @@
-@()(implicit flash: play.api.mvc.Flash)
+@(environments : Seq[(String, String)], adminForm: Form[Admin.AdminForm])(implicit flash: play.api.mvc.Flash)
 
 @import helper._
 
@@ -45,6 +45,41 @@
     <hr>
     <h4>Deleting data</h4>
 
+        @form(routes.Admin.delete()) {
+
+            @select(
+                adminForm("environment"),
+                environments,
+                '_label -> "Environment",
+                '_default -> "All",
+                '_showConstraints -> false
+            )
+
+            ￼￼￼￼￼￼￼￼￼
+            @inputDate(adminForm("minDate"), 'required -> "required",
+                '_label -> "Min Date",
+                'size -> 40)
+
+            @inputDate(adminForm("maxDate"), 'required -> "required",
+                '_label -> "Max Date",
+                'size -> 40)
+
+            @inputRadioGroup(
+                       adminForm("typeAction"),
+                       options = options("xml-data"->"Only XML Data","all-data"->"All Data"),
+                        '_label -> "Type Action for selected environment between min and max date",
+                        'required -> "required",
+                        '_class -> "radio inline",
+                        '_showConstraints -> false,
+                       '_error -> adminForm("typeAction").error.map(_.withMessage("select type action")))
+
+            @form(routes.Admin.deleteAllRequestData()) {
+                <input type="submit" value="Delete" class="btn btn-danger">
+            }
+        }
+
+    <hr>
+    <h4>Deleting All</h4>
     @form(routes.Admin.deleteAllRequestData()) {
         <input type="submit" value="Delete All Request Data !" class="btn btn-danger">
     }
