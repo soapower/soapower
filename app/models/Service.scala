@@ -125,6 +125,7 @@ object Service {
    */
   def insert(service: Service) = {
     try {
+      var localTarget = checkLocalTarget(service.localTarget)
       DB.withConnection {
         implicit connection =>
           SQL(
@@ -136,11 +137,16 @@ object Service {
             )
             """).on(
             'description -> service.description,
-            'localTarget -> checkLocalTarget(service.localTarget),
+            'localTarget -> localTarget,
             'remoteTarget -> service.remoteTarget,
             'timeoutms -> service.timeoutms,
             'environment_id -> service.environmentId).executeUpdate()
       }
+
+      val serviceKey = localTarget + Environment.options.find(t => t._1 == service.environmentId.toString).get._2
+      val inst = Cache.get(serviceKey)
+      if (inst isDefined) Cache.remove(serviceKey)
+
 
     } catch {
       //case e:SQLException => Logger.error("Database error")
