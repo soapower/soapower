@@ -15,7 +15,7 @@ object Analysis extends Controller {
 
   // use by Json : from scala to json
   implicit object ReponseTimeWrites extends Writes[(Date, Long)] {
-    def writes(data: (Date, Long)): JsValue = JsObject(List("date" -> JsString(data._1.toString), "time" -> JsNumber(data._2)))
+    def writes(data: (Date, Long)): JsValue = JsObject(List("date" -> JsNumber(data._1.getTime), "time" -> JsNumber(data._2)))
   }
 
   def load(environment: String, soapAction: String) = Action {
