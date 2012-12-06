@@ -9,9 +9,9 @@ import java.util.Date
 
 object Analysis extends Controller {
 
-  def index(environment: String, soapAction: String) = Action {
+  def index(environment: String, soapAction: String, status : String) = Action {
     implicit request =>
-      Ok(views.html.analysis.index(environment, soapAction, Environment.options, RequestData.soapActionOptions))
+      Ok(views.html.analysis.index(environment, soapAction, status, Environment.options, RequestData.soapActionOptions, RequestData.statusOptions))
   }
 
   // use by Json : from scala to json
@@ -24,8 +24,8 @@ object Analysis extends Controller {
     )
   }
 
-  def load(environment: String, soapAction: String, dateMin: Long, dateMax: Long) = Action {
-    val responsesTimesByDate = RequestData.findResponseTimes(environment, soapAction, dateMin, dateMax)
+  def load(environment: String, soapAction: String, status: String, dateMin: Long, dateMax: Long) = Action {
+    val responsesTimesByDate = RequestData.findResponseTimes(environment, soapAction, status, dateMin, dateMax)
     Ok(Json.toJson(responsesTimesByDate)).as(JSON)
   }
 

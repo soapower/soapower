@@ -97,7 +97,7 @@ class Client(service: Service, request: Request[NodeSeq]) {
     requestData.timeInMillis = response.responseTimeInMillis
     requestData.response = response.body
     requestData.status = response.status
-    requestData.storeSoapActionInCache()
+    requestData.storeSoapActionAndStatusInCache()
   }
 
   private def extractSoapAction(request: Request[NodeSeq]): String = {

@@ -1,11 +1,31 @@
 $(document).ready(function() {
     loadGraph()
     $('#environmentSelect').change(function() {
-        document.location.href="/analysis/" + $('#environmentSelect').val() + "/"+ $('#soapActionSelect').val() +"/"
-    })
+        document.location.href="/analysis/" + $('#environmentSelect').val() + "/"+ $('#soapActionSelect').val() +"/" + $('#statusSelect').val() +"/"
+    });
     $('#soapActionSelect').change(function() {
-        document.location.href="/analysis/" + $('#environmentSelect').val() + "/"+ $('#soapActionSelect').val() +"/"
-    })
+        document.location.href="/analysis/" + $('#environmentSelect').val() + "/"+ $('#soapActionSelect').val() +"/"+ $('#statusSelect').val() +"/"
+    });
+    $('#statusSelect').change(function() {
+        document.location.href="/analysis/" + $('#environmentSelect').val() + "/"+ $('#soapActionSelect').val() +"/"+ $('#statusSelect').val() +"/"
+    });
+
+    $( "#from" ).datepicker({
+        defaultDate: "+1w",
+        changeMonth: true,
+        numberOfMonths: 3,
+        onClose: function( selectedDate ) {
+            $( "#to" ).datepicker( "option", "minDate", selectedDate );
+        }
+    });
+    $( "#to" ).datepicker({
+        defaultDate: "+1w",
+        changeMonth: true,
+        numberOfMonths: 3,
+        onClose: function( selectedDate ) {
+            $( "#from" ).datepicker( "option", "maxDate", selectedDate );
+        }
+    });
 });
 
 
@@ -96,10 +116,7 @@ function loadGraph() {
                 },
 
                 xAxis : {
-                    events : {
-                        afterSetExtremes : afterSetExtremes
-                    },
-                    minRange: 3600 * 1000 // 3600 * 1000 : one hour. 60 * 1000 => 1 min
+                    minRange: 60 * 1000 // 3600 * 1000 : one hour. 60 * 1000 => 1 min
                 },
 
                 navigator : {
@@ -110,28 +127,8 @@ function loadGraph() {
                 },
 
                 series : data
-            }, function(chart){
-
-                // apply the date pickers
-                setTimeout(function(){
-                    console.log("Change type");
-                    //$('input.highcharts-range-selector').get(0).type = "date";
-                    //$('input.highcharts-range-selector').get(1).type = "date";
-                    $('input.highcharts-range-selector', $('#'+chart.options.chart.renderTo))
-                        .datepicker()
-                },0)
             });
         });
-
-        // Set the datepicker's date format
-        $.datepicker.setDefaults({
-            dateFormat: 'yy-mm-dd',
-            onSelect: function(dateText) {
-                this.onchange();
-                this.onblur();
-            }
-        });
-
     });
 }
 
@@ -153,7 +150,7 @@ function processData(datas) {
                 data: [],
                 pointInterval: 3600 * 1000,
                 dataGrouping: {
-                    enabled: true
+                    smoothed: true
                 },
                 marker : {
                     enabled : true,

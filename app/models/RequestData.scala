@@ -31,11 +31,16 @@ case class RequestData(
   /**
    * Add soapAction in cache if neccessary.
    */
-  def storeSoapActionInCache() {
+  def storeSoapActionAndStatusInCache() {
     if (!RequestData.soapActionOptions.exists(p => p._1 == soapAction)) {
       Logger.info("SoapAction " + soapAction + " not found in cache : add to cache")
       val inCache = RequestData.soapActionOptions ++ (List((soapAction, soapAction)))
       Cache.set(RequestData.keyCacheSoapAction, inCache)
+    }
+    if (!RequestData.statusOptions.exists(p => p._1 == status)) {
+      Logger.info("Status " + soapAction + " not found in cache : add to cache")
+      val inCache = RequestData.statusOptions ++ (List((status, status)))
+      Cache.set(RequestData.keyCacheStatusOptions, inCache)
     }
   }
 }
@@ -43,6 +48,7 @@ case class RequestData(
 object RequestData {
 
   val keyCacheSoapAction = "soapaction-options"
+  val keyCacheStatusOptions = "status-options"
 
   /**
    * Parse a RequestData from a ResultSet
@@ -74,6 +80,17 @@ object RequestData {
   }
 
   /**
+   * Construct the Map[String, String] needed to fill a select options set.
+   */
+  def statusOptions: Seq[(String, String)] = DB.withConnection {
+    implicit connection =>
+      Cache.getOrElse[Seq[(String, String)]](keyCacheStatusOptions) {
+        Logger.debug("RequestData.status not found in cache: loading from db")
+        SQL("select distinct(status) from request_data").as(get[Int]("status") *).map(c => c.toString -> c.toString)
+      }
+  }
+
+  /**
    * Insert a new RequestData.
    *
    * @param requestData the requestData
@@ -101,7 +118,6 @@ object RequestData {
               'timeInMillis -> requestData.timeInMillis,
               'status -> requestData.status).executeUpdate()
       }
-
     } catch {
       case e: Exception => Logger.error("Error during insertion of RequestData ", e)
     }
@@ -116,6 +132,7 @@ object RequestData {
         SQL("delete from request_data").executeUpdate()
     }
     Cache.remove(keyCacheSoapAction)
+    Cache.remove(keyCacheStatusOptions)
   }
 
   /**
@@ -148,6 +165,7 @@ object RequestData {
 
     }
     Cache.remove(keyCacheSoapAction)
+    Cache.remove(keyCacheStatusOptions)
   }
 
   /**
@@ -170,6 +188,7 @@ object RequestData {
 
     }
     Cache.remove(keyCacheSoapAction)
+    Cache.remove(keyCacheStatusOptions)
   }
 
   /*
@@ -231,10 +250,13 @@ object RequestData {
   /**
    * Load reponse times for given parameters
    */
-  def findResponseTimes(environmentIn: String, soapActionIn: String, dateMin: Long, dateMax : Long): List[(Long, String, Date, Long)] = {
+  def findResponseTimes(environmentIn: String, soapActionIn: String, status: String, dateMin: Long, dateMax : Long): List[(Long, String, Date, Long)] = {
 
     var soapAction = "%" + soapActionIn + "%"
     if (soapActionIn == "all") soapAction = "%"
+    var sqlStatus = ""
+    if (status != "all") sqlStatus = " and status = {status}"
+
 
     var minDate : Date = null
     var maxDate : Date = null
@@ -257,10 +279,11 @@ object RequestData {
         select environmentId, soapAction, startTime, timeInMillis from request_data
         where soapAction like {soapAction}
         """
-          + sqlDate + sqlAndEnvironnement(environmentIn) +
+          + sqlStatus + sqlDate + sqlAndEnvironnement(environmentIn) +
           """
         order by request_data.id asc
         """).on(
+          'status -> status,
           'minDate -> minDate,
           'maxDate -> maxDate,
           'soapAction -> soapAction
