@@ -17,45 +17,11 @@ function loadGraph() {
 
             // Create a timer
             var start = + new Date();
+            var mdate = new Date();
 
-            var seriesOptions = [];
+            var data = processData(datas);
 
-
-            var idSeries = {};
-            var nseries = 0;
-            $.each(datas, function(key, value) {
-                var name = value.env + " " + value.act;
-                if (idSeries[name] == null) {
-                    idSeries[name] = nseries;
-
-                    console.log("create serie:" + name + " val:" + nseries + " val2:" + idSeries[name]);
-
-                    seriesOptions[nseries] = {
-                        name: name,
-                        data: [],
-                        pointInterval: 3600 * 1000,
-                        dataGrouping: {
-                            enabled: true
-                        },
-                        marker : {
-                            enabled : true,
-                            radius : 3
-                        },
-                        tooltip: {
-                            valueDecimals: 2,
-                            valueSuffix: 'ms'
-                        }
-                    };
-
-                    nseries++
-                }
-
-                // value.env, value.act, value.date, value.time
-
-                var tuple = [value.date, value.time];
-                seriesOptions[idSeries[name]].data.push(tuple)
-
-            });
+            data = [].concat(data, [[Date.UTC(mdate.getFullYear(), mdate.getMonth(), mdate.getDate(), mdate.getHours(), mdate.getMinutes()), null, null, null, null]]);
 
             // Create the chart
             window.chart = new Highcharts.StockChart({
@@ -72,6 +38,9 @@ function loadGraph() {
                 },
 
                 rangeSelector: {
+                    inputDateFormat : "%Y-%m-%d",
+                    inputEditDateFormat : "%Y-%m-%d",
+                    inputEnabled : true,
                     buttons: [{
                         type: 'day',
                         count: 1,
@@ -84,6 +53,10 @@ function loadGraph() {
                         type: 'week',
                         count: 1,
                         text: '1w'
+                    }, {
+                        type: 'week',
+                        count: 2,
+                        text: '2w'
                     }, {
                         type: 'month',
                         count: 1,
@@ -123,16 +96,104 @@ function loadGraph() {
                 },
 
                 xAxis : {
-                    minRange: 60 * 1000 // 3600 * 1000 : one hour. 3600 * 1000 => 1 min
+                    events : {
+                        afterSetExtremes : afterSetExtremes
+                    },
+                    minRange: 3600 * 1000 // 3600 * 1000 : one hour. 60 * 1000 => 1 min
                 },
 
-                series : seriesOptions
+                navigator : {
+                    adaptToUpdatedData: false,
+                    series : {
+                        data : data
+                    }
+                },
+
+                series : data
+            }, function(chart){
+
+                // apply the date pickers
+                setTimeout(function(){
+                    console.log("Change type");
+                    //$('input.highcharts-range-selector').get(0).type = "date";
+                    //$('input.highcharts-range-selector').get(1).type = "date";
+                    $('input.highcharts-range-selector', $('#'+chart.options.chart.renderTo))
+                        .datepicker()
+                },0)
             });
+        });
+
+        // Set the datepicker's date format
+        $.datepicker.setDefaults({
+            dateFormat: 'yy-mm-dd',
+            onSelect: function(dateText) {
+                this.onchange();
+                this.onblur();
+            }
         });
 
     });
 }
 
+function processData(datas) {
+    var data = [];
+    var idSeries = {};
+    var nseries = 0;
+    $.each(datas, function(key, value) {
+        // value.e : environment
+        // value.a : soapAction
+        // value.d : startTime Date : timestamp
+        // value.t : time in ms
+        var name = value.e + " " + value.a;
+        if (idSeries[name] == null) {
+            idSeries[name] = nseries;
+
+            data[nseries] = {
+                name: name,
+                data: [],
+                pointInterval: 3600 * 1000,
+                dataGrouping: {
+                    enabled: true
+                },
+                marker : {
+                    enabled : true,
+                    radius : 3
+                },
+                tooltip: {
+                    valueDecimals: 2,
+                    valueSuffix: 'ms'
+                }
+            };
+
+            nseries++
+        }
+        // value.env, value.act, value.date, value.time
+        var tuple = [value.d, value.t];
+        data[idSeries[name]].data.push(tuple)
+
+    });
+
+    return data;
+}
+
+
+/**
+ * Load new data depending on the selected min and max
+ */
+function afterSetExtremes(e) {
+
+    var url,
+        currentExtremes = this.getExtremes(),
+        range = e.max - e.min;
+
+    chart.showLoading('Loading data from server...');
+
+    $.getJSON('load/?dateMin='+ Math.round(e.min) + '&dateMax='+ Math.round(e.max), function(datas) {
+
+        chart.series[0].setData(processData(datas));
+        chart.hideLoading();
+    });
+}
 
 Highcharts.theme = {
     colors: ['#058DC7', '#50B432', '#ED561B', '#DDDF00', '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4'],

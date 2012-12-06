@@ -1,5 +1,6 @@
 package controllers
 
+import play.api._
 import play.api.mvc._
 import play.api.libs.json._
 
@@ -15,11 +16,16 @@ object Analysis extends Controller {
 
   // use by Json : from scala to json
   implicit object ReponseTimeWrites extends Writes[(Long, String, Date, Long)] {
-    def writes(data: (Long, String, Date, Long)): JsValue = JsObject(List("env" -> JsString(Environment.options.find(t => t._1 == data._1.toString).get._2), "act" -> JsString(data._2), "date" -> JsNumber(data._3.getTime), "time" -> JsNumber(data._4)))
+    def writes(data: (Long, String, Date, Long)): JsValue = JsObject(
+      List("e" -> JsString(Environment.options.find(t => t._1 == data._1.toString).get._2),
+        "a" -> JsString(data._2),
+        "d" -> JsNumber(data._3.getTime),
+        "t" -> JsNumber(data._4))
+    )
   }
 
-  def load(environment: String, soapAction: String) = Action {
-    val responsesTimesByDate = RequestData.findResponseTimes(environment, soapAction)
+  def load(environment: String, soapAction: String, dateMin: Long, dateMax: Long) = Action {
+    val responsesTimesByDate = RequestData.findResponseTimes(environment, soapAction, dateMin, dateMax)
     Ok(Json.toJson(responsesTimesByDate)).as(JSON)
   }
 

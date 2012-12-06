@@ -145,7 +145,10 @@ object Service {
 
       val serviceKey = localTarget + Environment.options.find(t => t._1 == service.environmentId.toString).get._2
       val inst = Cache.get(serviceKey)
-      if (inst isDefined) Cache.remove(serviceKey)
+      if (inst isDefined) {
+        Logger.debug("Insert new service - Delete from cache key:" + serviceKey)
+        Cache.remove(serviceKey)
+      }
 
 
     } catch {
