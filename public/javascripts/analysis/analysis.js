@@ -18,10 +18,39 @@ function loadGraph() {
             // Create a timer
             var start = + new Date();
 
+            var seriesOptions = [];
+
+
             var data = [];
+            var idSeries = {};
+            var nseries = 0;
             $.each(datas, function(key, value) {
-                var tuple = [value.date, value.time]
-                data.push(tuple)
+                name = value.env + " " + value.act;
+                if (idSeries[name] == null) {
+                    idSeries[name] = nseries;
+
+                    seriesOptions[nseries] = {
+                        name: name,
+                        data: [],
+                        pointInterval: 3600 * 1000,
+                        dataGrouping: {
+                            enabled: true
+                        },
+                        tooltip: {
+                            valueDecimals: 1,
+                            valueSuffix: 'ms'
+                        }
+                    };
+
+                    nseries ++
+                }
+
+                // value.env, value.act, value.date, value.time
+
+                var tuple = [value.date, value.time];
+                data.push(tuple);
+                seriesOptions[idSeries[name]].data = data
+
             });
 
             // Create the chart
@@ -71,7 +100,7 @@ function loadGraph() {
                 },
 
                 title: {
-                    text: 'Reponse Time'
+                    text: 'Response Time'
                 },
 
                 subtitle: {
@@ -88,18 +117,7 @@ function loadGraph() {
                     minRange: 60 * 1000 // 3600 * 1000 : one hour. 3600 * 1000 => 1 min
                 },
 
-                series : [{
-                    name : 'Requests',
-                    data : data,
-                    pointInterval: 3600 * 1000,
-                    dataGrouping: {
-                        enabled: true
-                    },
-                    tooltip: {
-                        valueDecimals: 1,
-                        valueSuffix: 'ms'
-                    }
-                }]
+                series : seriesOptions
             });
         });
 

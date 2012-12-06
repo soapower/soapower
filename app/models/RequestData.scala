@@ -231,7 +231,7 @@ object RequestData {
   /**
    * Load reponse times for given parameters
    */
-  def findResponseTimes(environmentIn: String, soapActionIn: String): List[(Date, Long)] = {
+  def findResponseTimes(environmentIn: String, soapActionIn: String): List[(Long, String, Date, Long)] = {
 
     var soapAction = "%" + soapActionIn + "%"
     if (soapActionIn == "all") soapAction = "%"
@@ -246,7 +246,7 @@ object RequestData {
           """
         order by request_data.id asc
         """).on(
-          'soapAction -> soapAction).as(get[Date]("startTime") ~ get[Long]("timeInMillis") *)
+          'soapAction -> soapAction).as(get[Long]("environmentId") ~ get[String]("soapAction") ~ get[Date]("startTime") ~ get[Long]("timeInMillis") *)
         .map(flatten)
     }
   }

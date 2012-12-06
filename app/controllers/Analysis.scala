@@ -14,12 +14,12 @@ object Analysis extends Controller {
   }
 
   // use by Json : from scala to json
-  implicit object ReponseTimeWrites extends Writes[(Date, Long)] {
-    def writes(data: (Date, Long)): JsValue = JsObject(List("date" -> JsNumber(data._1.getTime), "time" -> JsNumber(data._2)))
+  implicit object ReponseTimeWrites extends Writes[(Long, String, Date, Long)] {
+    def writes(data: (Long, String, Date, Long)): JsValue = JsObject(List("env" -> JsString(Environment.options.find(t => t._1 == data._1.toString).get._2), "act" -> JsString(data._2), "date" -> JsNumber(data._3.getTime), "time" -> JsNumber(data._4)))
   }
 
   def load(environment: String, soapAction: String) = Action {
-    val responsesTimesByDate: List[(Date, Long)] = RequestData.findResponseTimes(environment, soapAction)
+    val responsesTimesByDate = RequestData.findResponseTimes(environment, soapAction)
     Ok(Json.toJson(responsesTimesByDate)).as(JSON)
   }
 
