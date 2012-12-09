@@ -1,13 +1,13 @@
 $(document).ready(function() {
-    loadGraph()
+    loadGraph();
     $('#environmentSelect').change(function() {
-        document.location.href="/analysis/" + $('#environmentSelect').val() + "/"+ $('#soapActionSelect').val() +"/" + $('#statusSelect').val() +"/"
+        document.location.href=makeUrl();
     });
     $('#soapActionSelect').change(function() {
-        document.location.href="/analysis/" + $('#environmentSelect').val() + "/"+ $('#soapActionSelect').val() +"/"+ $('#statusSelect').val() +"/"
+        document.location.href=makeUrl();
     });
     $('#statusSelect').change(function() {
-        document.location.href="/analysis/" + $('#environmentSelect').val() + "/"+ $('#soapActionSelect').val() +"/"+ $('#statusSelect').val() +"/"
+        document.location.href=makeUrl();
     });
 
     $( "#from" ).datepicker({
@@ -28,6 +28,11 @@ $(document).ready(function() {
     });
 });
 
+function makeUrl() {
+ return "/analysis/" + $('#environmentSelect').val()
+     + "/"+ $('#soapActionSelect').val()
+     +"/" + $('#statusSelect').val() +"/";
+}
 
 function loadGraph() {
 

@@ -55,12 +55,11 @@
                 '_showConstraints -> false
             )
 
-            ￼￼￼￼￼￼￼￼￼
-            @inputDate(adminForm("minDate"), 'required -> "required",
+            @inputText(adminForm("minDate"), 'required -> "required",
                 '_label -> "Min Date",
                 'size -> 40)
 
-            @inputDate(adminForm("maxDate"), 'required -> "required",
+            @inputText(adminForm("maxDate"), 'required -> "required",
                 '_label -> "Max Date",
                 'size -> 40)
 
@@ -84,6 +83,5 @@
         <input type="submit" value="Delete All Request Data !" class="btn btn-danger">
     }
 
-
-
+    <script src="@routes.Assets.at("javascripts/soapower/admin.js")" type="text/javascript"></script>
 }

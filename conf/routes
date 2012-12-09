@@ -16,8 +16,8 @@ POST    /admin/downloadConfiguration    controllers.Admin.downloadConfiguration
 POST    /admin/uploadConfiguration      controllers.Admin.uploadConfiguration
 
 # Search page
-GET     /search/:environment/:soapAction/  				 controllers.Search.index(environment, soapAction)
-GET     /search/:environment/:soapAction/listDatatable   controllers.Search.listDatatable(environment, soapAction, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
+GET     /search/:environment/:soapAction/:minDate/:maxDate/                   controllers.Search.index(environment, soapAction, minDate, maxDate)
+GET     /search/:environment/:soapAction/:minDate/:maxDate/listDatatable      controllers.Search.listDatatable(environment, soapAction, minDate, maxDate, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
 GET     /analysis/:environment/:soapAction/:status/load/    controllers.Analysis.load(environment, soapAction, status, dateMin: Long ?= 0, dateMax: Long ?= 0)

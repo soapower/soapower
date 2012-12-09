@@ -49,6 +49,7 @@ object RequestData {
 
   val keyCacheSoapAction = "soapaction-options"
   val keyCacheStatusOptions = "status-options"
+  val keyCacheMinStartTime = "minStartTime"
 
   /**
    * Parse a RequestData from a ResultSet
@@ -87,6 +88,17 @@ object RequestData {
       Cache.getOrElse[Seq[(String, String)]](keyCacheStatusOptions) {
         Logger.debug("RequestData.status not found in cache: loading from db")
         SQL("select distinct(status) from request_data").as(get[Int]("status") *).map(c => c.toString -> c.toString)
+      }
+  }
+
+  /**
+   * find Min Date.
+   */
+  def getMinStartTime: Option[Date] = DB.withConnection {
+    implicit connection =>
+      Cache.getOrElse[Option[Date]](keyCacheMinStartTime) {
+        Logger.debug("MinStartTime not found in cache: loading from db")
+          SQL("select min(startTime) as startTimeMin from request_data").as(scalar[Option[Date]].single)
       }
   }
 
@@ -204,12 +216,14 @@ object RequestData {
    * Return a page of RequestData
    * @param environmentIn name of environnement, "all" default
    * @param soapActionIn soapAction, "all" default
+   * @param minDate Min Date
+   * @param maxDate Max Date
    * @param offset offset in search
    * @param pageSize size of line in one page
    * @param filterIn filter on soapAction. Usefull only is soapActionIn = "all"
    * @return
    */
-  def list(environmentIn: String, soapActionIn: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
+  def list(environmentIn: String, soapActionIn: String, minDate: Date, maxDate : Date, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
 
     val filter = "%" + filterIn + "%"
 
@@ -224,6 +238,7 @@ object RequestData {
           select id, sender, soapAction, environmentId, localTarget, remoteTarget, startTime, timeInMillis, status from request_data
           where request_data.soapAction like {filter}
           and request_data.soapAction like {soapAction}
+          and startTime >= {minDate} and startTime <= {maxDate}
           """
             + sqlAndEnvironnement(environmentIn) +
             """
@@ -233,6 +248,8 @@ object RequestData {
             'pageSize -> pageSize,
             'offset -> offset,
             'soapAction -> soapAction,
+            'minDate -> minDate,
+            'maxDate -> maxDate,
             'filter -> filter).as(RequestData.simple *)
 
         val totalRows = SQL(
@@ -240,8 +257,11 @@ object RequestData {
           select count(id) from request_data 
           where request_data.soapAction like {filter}
           and request_data.soapAction like {soapAction}
+          and startTime >= {minDate} and startTime <= {maxDate}
           """).on(
             'soapAction -> soapAction,
+            'minDate -> minDate,
+            'maxDate -> maxDate,
             'filter -> filter).as(scalar[Long].single)
         Page(requests, -1, offset, totalRows)
     }
