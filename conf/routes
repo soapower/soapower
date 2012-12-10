@@ -20,8 +20,8 @@ GET     /search/:environment/:soapAction/:minDate/:maxDate/                   co
 GET     /search/:environment/:soapAction/:minDate/:maxDate/listDatatable      controllers.Search.listDatatable(environment, soapAction, minDate, maxDate, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
-GET     /analysis/:environment/:soapAction/:status/load/    controllers.Analysis.load(environment, soapAction, status, dateMin: Long ?= 0, dateMax: Long ?= 0)
-GET     /analysis/:environment/:soapAction/:status/         controllers.Analysis.index(environment, soapAction, status)
+GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/load/    controllers.Analysis.load(environment, soapAction, minDate, maxDate, status)
+GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/         controllers.Analysis.index(environment, soapAction, minDate, maxDate, status)
 
 # Soap
 POST    /soap/:environment/*localTarget                  controllers.Soap.index(environment, localTarget)

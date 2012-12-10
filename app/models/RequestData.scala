@@ -270,36 +270,21 @@ object RequestData {
   /**
    * Load reponse times for given parameters
    */
-  def findResponseTimes(environmentIn: String, soapActionIn: String, status: String, dateMin: Long, dateMax : Long): List[(Long, String, Date, Long)] = {
+  def findResponseTimes(environmentIn: String, soapActionIn: String, minDate: Date, maxDate : Date, status: String): List[(Long, String, Date, Long)] = {
 
     var soapAction = "%" + soapActionIn + "%"
     if (soapActionIn == "all") soapAction = "%"
     var sqlStatus = ""
     if (status != "all") sqlStatus = " and status = {status}"
 
-
-    var minDate : Date = null
-    var maxDate : Date = null
-    if (dateMax > 0 && dateMin > 0) {
-      minDate = new Date(dateMin)
-      maxDate = new Date(dateMax)
-    }
-
-    var sqlDate = ""
-    if (maxDate != null && minDate != null) {
-      sqlDate = " and startTime >= {minDate} and startTime <= {maxDate} "
-      Logger.debug("Find by date : " + sqlDate)
-    } else {
-      Logger.debug("Find all")
-    }
-
     DB.withConnection { implicit connection =>
       SQL(
         """
         select environmentId, soapAction, startTime, timeInMillis from request_data
         where soapAction like {soapAction}
+        and startTime >= {minDate} and startTime <= {maxDate}
         """
-          + sqlStatus + sqlDate + sqlAndEnvironnement(environmentIn) +
+          + sqlStatus + sqlAndEnvironnement(environmentIn) +
           """
         order by request_data.id asc
         """).on(

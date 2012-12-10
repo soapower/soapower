@@ -9,49 +9,63 @@ $(document).ready(function() {
     $('#statusSelect').change(function() {
         document.location.href=makeUrl();
     });
+    $('#from').change(function() {
+        document.location.href=makeUrl();
+    });
+    $('#to').change(function() {
+        document.location.href=makeUrl();
+    });
 
-    $( "#from" ).datepicker({
-        defaultDate: "+1w",
+    $("#from").datepicker({
+        dateFormat: "yy-mm-dd",
         changeMonth: true,
         numberOfMonths: 3,
-        onClose: function( selectedDate ) {
-            $( "#to" ).datepicker( "option", "minDate", selectedDate );
+        onClose: function (selectedDate) {
+            $("#to").datepicker("option", "minDate", selectedDate);
         }
     });
-    $( "#to" ).datepicker({
-        defaultDate: "+1w",
+    $("#to").datepicker({
+        dateFormat: "yy-mm-dd",
         changeMonth: true,
         numberOfMonths: 3,
-        onClose: function( selectedDate ) {
-            $( "#from" ).datepicker( "option", "maxDate", selectedDate );
+        onClose: function (selectedDate) {
+            $("#from").datepicker("option", "maxDate", selectedDate);
         }
     });
 });
 
 function makeUrl() {
- return "/analysis/" + $('#environmentSelect').val()
-     + "/"+ $('#soapActionSelect').val()
-     +"/" + $('#statusSelect').val() +"/";
+    var minDate = $('#from').val();
+    var maxDate = $('#to').val();
+    if (minDate == "") minDate = "all";
+    if (maxDate == "") maxDate = "all";
+
+    return "/analysis/" + $('#environmentSelect').val()
+        + "/"+ $('#soapActionSelect').val()
+        +"/"+ minDate
+        +"/"+ maxDate
+        +"/" + $('#statusSelect').val() + "/";
 }
 
 function loadGraph() {
 
     $(function() {
 
+        var data = [];
+
         $.getJSON('load/', function(datas) {
 
             // Create a timer
             var start = + new Date();
-            var mdate = new Date();
 
             var data = processData(datas);
 
-            data = [].concat(data, [[Date.UTC(mdate.getFullYear(), mdate.getMonth(), mdate.getDate(), mdate.getHours(), mdate.getMinutes()), null, null, null, null]]);
-
             // Create the chart
-            window.chart = new Highcharts.StockChart({
+            window.chart = new Highcharts.Chart({
                 chart: {
                     renderTo: 'container',
+                    //type: 'scatter',
+                    type: 'line',
                     events: {
                         load: function(chart) {
                             this.setTitle(null, {
@@ -60,45 +74,6 @@ function loadGraph() {
                         }
                     },
                     zoomType: 'x'
-                },
-
-                rangeSelector: {
-                    inputDateFormat : "%Y-%m-%d",
-                    inputEditDateFormat : "%Y-%m-%d",
-                    inputEnabled : true,
-                    buttons: [{
-                        type: 'day',
-                        count: 1,
-                        text: '1d'
-                    },{
-                        type: 'day',
-                        count: 3,
-                        text: '3d'
-                    }, {
-                        type: 'week',
-                        count: 1,
-                        text: '1w'
-                    }, {
-                        type: 'week',
-                        count: 2,
-                        text: '2w'
-                    }, {
-                        type: 'month',
-                        count: 1,
-                        text: '1m'
-                    }, {
-                        type: 'month',
-                        count: 6,
-                        text: '6m'
-                    }, {
-                        type: 'year',
-                        count: 1,
-                        text: '1y'
-                    }, {
-                        type: 'all',
-                        text: 'All'
-                    }],
-                    selected: 3
                 },
 
                 title: {
@@ -110,6 +85,13 @@ function loadGraph() {
                 },
 
                 yAxis: {
+                    min:0,
+                    labels: {
+                        formatter: function() {
+                            return this.value +' ms';
+                        }
+                    },
+                    valueDecimals: 0,
                     title: {
                         text: 'Response Time in ms'
                     }
@@ -121,18 +103,15 @@ function loadGraph() {
                 },
 
                 xAxis : {
-                    minRange: 60 * 1000 // 3600 * 1000 : one hour. 60 * 1000 => 1 min
-                },
-
-                navigator : {
-                    adaptToUpdatedData: false,
-                    series : {
-                        data : data
+                    type: 'datetime',
+                    dateTimeLabelFormats: { // don't display the dummy year
+                        month: '%e. %b',
+                        year: '%b'
                     }
                 },
-
                 series : data
             });
+            if (data.length == 0) chart.showLoading('No Result');
         });
     });
 }
@@ -162,7 +141,7 @@ function processData(datas) {
                     radius : 3
                 },
                 tooltip: {
-                    valueDecimals: 2,
+                    valueDecimals: 0,
                     valueSuffix: 'ms'
                 }
             };
@@ -171,10 +150,9 @@ function processData(datas) {
         }
         // value.env, value.act, value.date, value.time
         var tuple = [value.d, value.t];
-        data[idSeries[name]].data.push(tuple)
+        data[idSeries[name]].data.push(tuple);
 
     });
-
     return data;
 }
 
