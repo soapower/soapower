@@ -64,8 +64,8 @@ function loadGraph() {
             window.chart = new Highcharts.Chart({
                 chart: {
                     renderTo: 'container',
-                    //type: 'scatter',
-                    type: 'line',
+                    type: 'scatter',
+                    //type: 'line',
                     events: {
                         load: function(chart) {
                             this.setTitle(null, {
@@ -98,7 +98,10 @@ function loadGraph() {
                 },
 
                 tooltip: {
-                    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b><br/>',
+                    formatter: function() {
+                        return ''+
+                        this.series.name +' : '+ this.y +' ms';
+                    },
                     valueDecimals: 0
                 },
 

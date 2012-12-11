@@ -12,7 +12,7 @@
  *@
 @(label: String, id: String, name: String, value: String, options: Seq[(String,String)], args: (Symbol,Any)*)(implicit handler: FieldConstructor, lang: play.api.i18n.Lang)
     @label
-    <select id="@id" name="@name">
+    <select id="@id" name="@name" class="@args.toMap.get('_class)">
         @args.toMap.get('_default).map { defaultValue =>
             <option class="blank" value="@defaultValue">@defaultValue</option>
         }
