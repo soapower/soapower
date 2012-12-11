@@ -54,6 +54,16 @@ POST    /environments/:id          controllers.Environments.update(id:Long)
 # Delete a environment
 POST    /environments/:id/delete   controllers.Environments.delete(id:Long)
 
+# SoapActions list (look at the default values for pagination parameters)
+GET     /soapActions              controllers.SoapActions.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
+
+# Regeneration soapAction listDatatable
+GET     /soapActions/regenerate   controllers.SoapActions.regenerate
+
+# Edit existing soapAction
+GET     /soapActions/:id          controllers.SoapActions.edit(id:Long)
+POST    /soapActions/:id          controllers.SoapActions.update(id:Long)
+
 # Download SOAP request and response
 GET     /download/request/:id      controllers.Search.downloadRequest(id:Long)
 GET     /download/response/:id     controllers.Search.downloadResponse(id:Long)

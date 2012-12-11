@@ -1,0 +1,25 @@
+@(id: Long, soapActionForm: Form[SoapAction])
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+@main {
+    
+    <h1>Edit soapAction Threshold</h1>
+    
+    @form(routes.SoapActions.update(id)) {
+        
+        <fieldset>
+        
+            @inputText(soapActionForm("thresholdms"), '_label -> "SoapAction Threshold in ms")
+                    
+        </fieldset>
+        
+        <div class="actions">
+            <input type="submit" value="Save this Threshold" class="btn btn-primary"> or 
+            <a href="@routes.SoapActions.list()" class="btn">Cancel</a> 
+        </div>
+        
+    }    
+}

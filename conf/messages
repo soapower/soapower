@@ -2,3 +2,4 @@
 
 environments.list.title={0,choice,0#No environment|1#One environment|1<{0,number,integer} environments} found
 services.list.title={0,choice,0#No service|1#One service|1<{0,number,integer} services} found
+soapActions.list.title={0,choice,0#No Soap Action|1#One SoapAction|1<{0,number,integer} Soap Actions} found
