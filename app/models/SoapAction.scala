@@ -35,6 +35,16 @@ object SoapAction {
     }
   }
 
+  /**
+   * Retrieve an SoapAction from name.
+   */
+  def findByName(name: String): Option[SoapAction] = {
+    DB.withConnection {
+      implicit connection =>
+        SQL("select * from soapaction where name = {name}").on('name -> name).as(SoapAction.simple.singleOpt)
+    }
+  }
+
 	/**
 	* Insert a new SoapAction.
 	*
@@ -47,10 +57,12 @@ object SoapAction {
           """
             insert into soapaction values (
               (select next value for soapaction_seq), 
-              {name}
+              {name},
+              {thresholdms}
             )
           """).on(
-          'name -> soapAction.name).executeUpdate()
+          'name -> soapAction.name,
+          'thresholdms -> soapAction.thresholdms).executeUpdate()
     }
   }
 

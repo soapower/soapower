@@ -1,5 +1,6 @@
 package controllers
 
+import play.api._
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
@@ -21,7 +22,7 @@ object SoapActions extends Controller {
   val soapActionForm = Form(
     mapping(
       "id" -> ignored(NotAssigned: Pk[Long]),
-      "name" -> text,
+      "name" -> nonEmptyText,
       "thresholdms" -> longNumber)(SoapAction.apply)(SoapAction.unapply))
 
   /**
@@ -43,6 +44,7 @@ object SoapActions extends Controller {
    * @param id Id of the soapAction to edit
    */
   def edit(id: Long) = Action {
+    Logger.debug("Edit : " + id)
     SoapAction.findById(id).map { soapAction =>
       Ok(views.html.soapActions.editForm(id, soapActionForm.fill(soapAction)))
     }.getOrElse(NotFound)
@@ -54,6 +56,7 @@ object SoapActions extends Controller {
    * @param id Id of the soapAction to edit
    */
   def update(id: Long) = Action { implicit request =>
+    Logger.debug("Update : " + id)
     soapActionForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.soapActions.editForm(id, formWithErrors)),
       soapAction => {
@@ -63,6 +66,16 @@ object SoapActions extends Controller {
   }
 
   def regenerate = Action { implicit request =>
-          Home.flashing("success" -> "Success regeneration")
+    RequestData.soapActionOptions.foreach{
+      soapAction => println("SoapAction:" + soapAction._1)
+      if (SoapAction.findByName(soapAction._1) == None) {
+        Logger.debug("SoapAction not found. Insert in db")
+        SoapAction.insert(new SoapAction(NotAssigned, soapAction._1, 30000))
+      } else {
+        Logger.debug("SoapAction found. Do nothing.")
+      }
+
+    }
+    Home.flashing("success" -> "Success regeneration")
   }
 }

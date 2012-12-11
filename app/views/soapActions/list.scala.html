@@ -37,6 +37,8 @@
             <input type="submit" id="searchsubmit" value="Filter by name" class="btn btn-primary">
         }
         <a class="btn btn-success" id="add" href="@routes.SoapActions.regenerate()">Regenerate List</a>
+        <p class="muted"><span class="label label-info">Info </span>
+          The regeneration add missing soapAction in the list below. No update for existing values.</p>
     </div>
     
     @Option(currentPage.items).filterNot(_.isEmpty).map { soapActions =>

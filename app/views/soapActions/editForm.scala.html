@@ -6,12 +6,14 @@
 
 @main {
     
-    <h1>Edit soapAction Threshold</h1>
+    <h1>Edit @soapActionForm("name").value Threshold </h1>
     
     @form(routes.SoapActions.update(id)) {
         
         <fieldset>
         
+            @inputText(soapActionForm("name"), 'type -> "hidden", '_label -> null, '_showConstraints -> false)
+
             @inputText(soapActionForm("thresholdms"), '_label -> "SoapAction Threshold in ms")
                     
         </fieldset>
