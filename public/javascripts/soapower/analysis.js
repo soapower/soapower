@@ -1,54 +1,7 @@
 $(document).ready(function() {
     loadGraph();
-    $('#environmentSelect').change(function() {
-        document.location.href=makeUrl();
-    });
-    $('#soapActionSelect').change(function() {
-        document.location.href=makeUrl();
-    });
-    $('#statusSelect').change(function() {
-        document.location.href=makeUrl();
-    });
-    $('#from').change(function() {
-        document.location.href=makeUrl();
-    });
-    $('#to').change(function() {
-        document.location.href=makeUrl();
-    });
-
-    $("#from").datepicker({
-        dateFormat: "yy-mm-dd",
-        changeMonth: true,
-        numberOfMonths: 3,
-        onClose: function (selectedDate) {
-            $("#to").datepicker("option", "minDate", selectedDate);
-        }
-    });
-    $("#to").datepicker({
-        dateFormat: "yy-mm-dd",
-        changeMonth: true,
-        numberOfMonths: 3,
-        onClose: function (selectedDate) {
-            $("#from").datepicker("option", "maxDate", selectedDate);
-        }
-    });
-    //retrieveLocalStorage();
+    initCriterias("analysis");
 });
-
-function makeUrl() {
-    storeLocalStorage();
-
-    var minDate = $('#from').val();
-    var maxDate = $('#to').val();
-    if (minDate == "") minDate = "all";
-    if (maxDate == "") maxDate = "all";
-
-    return "/analysis/" + $('#environmentSelect').val()
-        + "/"+ $('#soapActionSelect').val()
-        +"/"+ minDate
-        +"/"+ maxDate
-        +"/" + $('#statusSelect').val() + "/";
-}
 
 function loadGraph() {
 

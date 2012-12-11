@@ -1,31 +1,43 @@
 $(document).ready ->
-  getUrl = (prefix, suffix) ->
+  initCriterias = ->
+    localStorage["environmentSelect"] = "all" if localStorage["environmentSelect"]?
+    localStorage["soapActionSelect"] = "all" if localStorage["soapActionSelect"]?
+    localStorage["statusSelect"] = "all" if localStorage["statusSelect"]?
+    localStorage["from"] = "all" if localStorage["from"]?
+    localStorage["to"] = "today" if localStorage["to"]?
+
+  getUrl = (prefix) ->
     env = "all"
     env = localStorage["environmentSelect"]  if localStorage["environmentSelect"]?
     soapaction = "all"
     soapaction = localStorage["soapActionSelect"]  if localStorage["soapActionSelect"]?
+    status = "all"
+    status = localStorage["statusSelect"]  if localStorage["statusSelect"]?
     from = "all"
     from = localStorage["from"]  if localStorage["from"]?
     to = "today"
     if localStorage["to"]?
       to = localStorage["to"]
-      mDate = new Date()
-      month = mDate.getMonth() + 1
-      day = mDate.getDate()
-      month = "0" + month  if month < 10
-      day = "0" + day  if day < 10
-      sDate = mDate.getFullYear() + "-" + month + "-" + day
-      console.log "Date:" + sDate
+      sDate = getToday
       to = "today"  if sDate is to
-      "/" + prefix + "/" + env + "/" + soapaction + "/" + from + "/" + to + "/" + suffix
+    "/" + prefix + "/" + env + "/" + soapaction + "/" + from + "/" + to + "/" + status + "/"
 
   window.App = {}
   window.App.totalMemory = 400
+  initCriterias
+
   $("#menu-search").click ->
-    document.location.href = getUrl("search", "")
+    document.location.href = getUrl("search")
+
+  $("#today").click ->
+    today = getToday()
+    $("#to").val(today)
+    localStorage["to"] = "today"
+    document.location.href = getUrl("search")
+
 
   $("#menu-analysis").click ->
-    document.location.href = getUrl("analysis", "200/")
+    document.location.href = getUrl("analysis")
 
   $("#toggle-monitoring").click ->
     init window.App, $("#monitoring-modal")

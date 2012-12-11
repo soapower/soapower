@@ -11,13 +11,13 @@ case class Search(environmentId: Long)
 
 object Search extends Controller {
 
-  def index(environment: String, soapAction: String, minDate: String, maxDate : String) = Action {
+  def index(environment: String, soapAction: String, minDate: String, maxDate : String, status : String) = Action {
     implicit request =>
-      Ok(views.html.search.index(environment, soapAction, formatDate(getDate(minDate)), formatDate(getDate(maxDate)), Environment.options, RequestData.soapActionOptions))
+      Ok(views.html.search.index(environment, soapAction, formatDate(getDate(minDate)), formatDate(getDate(maxDate)), status, Environment.options, RequestData.soapActionOptions, RequestData.statusOptions))
   }
 
-  def listDatatable(environment: String, soapAction: String, minDate: String, maxDate: String, sSearch: String, iDisplayStart: Int, iDisplayLength: Int) = Action {
-    val page: Page[(RequestData)] = RequestData.list(environment, soapAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s).getTime, iDisplayStart, iDisplayLength, sSearch)
+  def listDatatable(environment: String, soapAction: String, minDate: String, maxDate: String, status: String, sSearch: String, iDisplayStart: Int, iDisplayLength: Int) = Action {
+    val page: Page[(RequestData)] = RequestData.list(environment, soapAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s).getTime, status, iDisplayStart, iDisplayLength, sSearch)
 
     Ok(Json.toJson(Map(
       "iTotalRecords" -> Json.toJson(iDisplayLength),

@@ -218,17 +218,21 @@ object RequestData {
    * @param soapActionIn soapAction, "all" default
    * @param minDate Min Date
    * @param maxDate Max Date
+   * @param status Status
    * @param offset offset in search
    * @param pageSize size of line in one page
    * @param filterIn filter on soapAction. Usefull only is soapActionIn = "all"
    * @return
    */
-  def list(environmentIn: String, soapActionIn: String, minDate: Date, maxDate : Date, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
+  def list(environmentIn: String, soapActionIn: String, minDate: Date, maxDate : Date, status: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
 
     val filter = "%" + filterIn + "%"
 
     var soapAction = "%" + soapActionIn + "%"
     if (soapActionIn == "all") soapAction = "%"
+
+    var sqlStatus = ""
+    if (status != "all") sqlStatus = " and status = {status}"
 
     DB.withConnection {
       implicit connection =>
@@ -240,7 +244,7 @@ object RequestData {
           and request_data.soapAction like {soapAction}
           and startTime >= {minDate} and startTime <= {maxDate}
           """
-            + sqlAndEnvironnement(environmentIn) +
+            + sqlStatus + sqlAndEnvironnement(environmentIn) +
             """
           order by request_data.id desc
           limit {pageSize} offset {offset}
@@ -250,6 +254,7 @@ object RequestData {
             'soapAction -> soapAction,
             'minDate -> minDate,
             'maxDate -> maxDate,
+            'status -> status,
             'filter -> filter).as(RequestData.simple *)
 
         val totalRows = SQL(
@@ -258,10 +263,14 @@ object RequestData {
           where request_data.soapAction like {filter}
           and request_data.soapAction like {soapAction}
           and startTime >= {minDate} and startTime <= {maxDate}
+          """
+            +sqlStatus + sqlAndEnvironnement(environmentIn) +
+          """
           """).on(
             'soapAction -> soapAction,
             'minDate -> minDate,
             'maxDate -> maxDate,
+            'status -> status,
             'filter -> filter).as(scalar[Long].single)
         Page(requests, -1, offset, totalRows)
     }
