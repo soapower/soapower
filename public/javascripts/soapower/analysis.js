@@ -32,9 +32,12 @@ $(document).ready(function() {
             $("#from").datepicker("option", "maxDate", selectedDate);
         }
     });
+    //retrieveLocalStorage();
 });
 
 function makeUrl() {
+    storeLocalStorage();
+
     var minDate = $('#from').val();
     var maxDate = $('#to').val();
     if (minDate == "") minDate = "all";
