@@ -52,10 +52,11 @@ object Environment {
    */
   def findByName(name: String): Option[Environment] = DB.withConnection {
       implicit connection =>
-        Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
+        // FIXME : add key to clearCache
+        //Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
           SQL("select * from environment where name = {name}").on(
             'name -> name).as(Environment.simple.singleOpt)
-        }
+        //}
   }
 
   /**

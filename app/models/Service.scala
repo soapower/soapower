@@ -336,7 +336,7 @@ object Service {
     Logger.debug("environmentName:" + environmentName)
 
     var environment = Environment.findByName(environmentName)
-    if (environment == null) {
+    if (environment == None) {
       Logger.debug("Insert Environment " + environmentName)
       Environment.insert(new Environment(NotAssigned, environmentName))
       environment = Environment.findByName(environmentName)
