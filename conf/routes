@@ -66,8 +66,8 @@ GET     /soapActions/:id          controllers.SoapActions.edit(id:Long)
 POST    /soapActions/:id          controllers.SoapActions.update(id:Long)
 
 # Download SOAP request and response
-GET     /download/request/:id      controllers.Search.downloadRequest(id:Long)
-GET     /download/response/:id     controllers.Search.downloadResponse(id:Long)
+GET     /download/request/:id      controllers.Search.downloadRequest(id:Long, asFile: Boolean ?= false)
+GET     /download/response/:id     controllers.Search.downloadResponse(id:Long, asFile: Boolean ?= false)
 
 # Monitoring
 GET     /monitor                   controllers.Monitor.index

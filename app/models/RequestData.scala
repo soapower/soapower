@@ -375,16 +375,21 @@ object RequestData {
   // use by Json : from scala to json
   implicit object RequestDataWrites extends Writes[RequestData] {
 
-    def writes(o: RequestData): JsValue = JsObject(
-      List("0" -> JsString(status(o.status)),
-        "1" -> JsString(Environment.options.find(t => t._1 == o.environmentId.toString).get._2),
-        "2" -> JsString(o.sender),
-        "3" -> JsString(soapAction(o)),
-        "4" -> JsString(o.startTime.toString),
-        "5" -> JsString(o.timeInMillis.toString),
-        "6" -> JsString("<a href='/download/request/" + o.id + "' title='Download'><i class='icon-file'></i></a>"),
-        "7" -> JsString("<a href='/download/response/" + o.id + "' title='Download'><i class='icon-file'></i></a>"),
-        "8" -> JsString("<a href='#' class='replay' data-request-id='" + o.id + "'><i class='icon-refresh'></i></a>")))
+    def writes(o: RequestData): JsValue = {
+      val dlRequestUrl = "/download/request/" + o.id
+      val dlResponseUrl = "/download/response/" + o.id
+
+      JsObject(
+        List("0" -> JsString(status(o.status)),
+          "1" -> JsString(Environment.options.find(t => t._1 == o.environmentId.toString).get._2),
+          "2" -> JsString(o.sender),
+          "3" -> JsString(soapAction(o)),
+          "4" -> JsString(o.startTime.toString),
+          "5" -> JsString(o.timeInMillis.toString),
+          "6" -> JsString("<a href='" + dlRequestUrl + "?asFile=true' title='Download'><i class='icon-file'></i></a> <a target='_blank' href='" + dlRequestUrl + "' title='Open in new tab'><i class='icon-eye-open'></i></a>"),
+          "7" -> JsString("<a href='" + dlResponseUrl + "?asFile=true' title='Download'><i class='icon-file'></i></a> <a target='_blank' href='" + dlResponseUrl + "' title='Open in new tab'><i class='icon-eye-open'></i></a>"),
+          "8" -> JsString("<a href='#' class='replay' data-request-id='" + o.id + "'><i class='icon-refresh'></i></a>")))
+    }
 
     private def status(status: Int): String = {
       if (status == Status.OK) {

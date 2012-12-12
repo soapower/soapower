@@ -6,6 +6,7 @@ import models._
 import models.UtilDate._
 import play.api.libs.iteratee.Enumerator
 import play.api.http.HeaderNames
+import scala.xml.PrettyPrinter
 
 case class Search(environmentId: Long)
 
@@ -25,28 +26,41 @@ object Search extends Controller {
       "aaData" -> Json.toJson(page.items)))).as(JSON)
   }
 
-  def downloadRequest(id: Long) = Action {
+  def downloadRequest(id: Long, asFile: Boolean) = Action {
     val request = RequestData.loadRequest(id)
-    val fileContent: Enumerator[String] = Enumerator(request)
+    val xml = scala.xml.XML.loadString(request)
+    val formattedXml = new PrettyPrinter(250, 4).format(xml)
     val filename = "request-" + id + ".xml"
 
-    SimpleResult(
+    var result = SimpleResult(
       header = ResponseHeader(play.api.http.Status.OK),
-      body = fileContent)
-      .withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename)).as(XML)
+      body = Enumerator(formattedXml))
+    if (asFile) {
+      result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
+      result.as(XML)
+    } else {
+      result.as(TEXT)
+    }
   }
 
-  def downloadResponse(id: Long) = Action {
+  def downloadResponse(id: Long, asFile: Boolean) = Action {
     val response = RequestData.loadResponse(id)
 
     response match {
       case Some(str: String) => {
-        val fileContent: Enumerator[String] = Enumerator(str)
+        val xml = scala.xml.XML.loadString(str)
+        val formattedXml = new PrettyPrinter(250, 4).format(xml)
+
         val filename = "response-" + id + ".xml"
-        SimpleResult(
+        var result = SimpleResult(
           header = ResponseHeader(play.api.http.Status.OK),
-          body = fileContent)
-          .withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename)).as(XML)
+          body = Enumerator(formattedXml))
+        if (asFile) {
+          result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
+          result.as(XML)
+        } else {
+          result.as(TEXT)
+        }
       }
 
       case _ => NotFound("The response does not exist")
