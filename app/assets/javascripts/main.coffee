@@ -1,30 +1,30 @@
 $(document).ready ->
   initCriterias = ->
-    localStorage["environmentSelect"] = "all" if localStorage["environmentSelect"]?
-    localStorage["soapActionSelect"] = "all" if localStorage["soapActionSelect"]?
-    localStorage["statusSelect"] = "all" if localStorage["statusSelect"]?
-    localStorage["from"] = "all" if localStorage["from"]?
-    localStorage["to"] = "today" if localStorage["to"]?
+    localStorage["environmentSelect"] = "all"  if not localStorage["environmentSelect"] or localStorage["environmentSelect"] is "undefined"
+    localStorage["soapActionSelect"] = "all" if not localStorage["soapActionSelect"] or localStorage["soapActionSelect"] is "undefined"
+    localStorage["statusSelect"] = "all" if not localStorage["statusSelect"] or localStorage["statusSelect"] is "undefined"
+    localStorage["from"] = "all" if not localStorage["from"] or localStorage["from"] is "undefined"
+    localStorage["to"] = "today" if not localStorage["to"] or localStorage["to"] is "undefined"
 
   getUrl = (prefix) ->
+    initCriterias
     env = "all"
-    env = localStorage["environmentSelect"]  if localStorage["environmentSelect"]?
+    env = localStorage["environmentSelect"]  if localStorage["environmentSelect"] and not localStorage["environmentSelect"] is "undefined"
     soapaction = "all"
-    soapaction = localStorage["soapActionSelect"]  if localStorage["soapActionSelect"]?
-    status = "all"
-    status = localStorage["statusSelect"]  if localStorage["statusSelect"]?
+    soapaction = localStorage["soapActionSelect"]  if localStorage["soapActionSelect"] and not localStorage["soapActionSelect"] is "undefined"
+    mStatus = "all"
+    mStatus = localStorage["statusSelect"]  if localStorage["statusSelect"] and not localStorage["statusSelect"] is "undefined"
     from = "all"
-    from = localStorage["from"]  if localStorage["from"]?
+    from = localStorage["from"]  if localStorage["from"] and not localStorage["from"] is "undefined"
     to = "today"
-    if localStorage["to"]?
+    if localStorage["to"] and not localStorage["to"] is "undefined"
       to = localStorage["to"]
       sDate = getToday
       to = "today"  if sDate is to
-    "/" + prefix + "/" + env + "/" + soapaction + "/" + from + "/" + to + "/" + status + "/"
+    "/" + prefix + "/" + env + "/" + soapaction + "/" + from + "/" + to + "/" + mStatus + "/"
 
   window.App = {}
   window.App.totalMemory = 400
-  initCriterias
 
   $("#menu-search").click ->
     document.location.href = getUrl("search")
