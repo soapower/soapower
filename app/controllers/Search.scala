@@ -11,7 +11,7 @@ case class Search(environmentId: Long)
 
 object Search extends Controller {
 
-  def index(environment: String, soapAction: String, minDate: String, maxDate : String, status : String) = Action {
+  def index(environment: String, soapAction: String, minDate: String, maxDate: String, status: String) = Action {
     implicit request =>
       Ok(views.html.search.index(environment, soapAction, formatDate(getDate(minDate)), formatDate(getDate(maxDate)), status, Environment.options, RequestData.soapActionOptions, RequestData.statusOptions))
   }

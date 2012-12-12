@@ -17,15 +17,12 @@ import play.api.http._
 import java.io.StringWriter
 import java.io.PrintWriter
 
-class Client(service: Service, request: Request[NodeSeq]) {
+class Client(service: Service, sender: String, content: String, headers: Map[String, String]) {
 
-  val sender = request.remoteAddress
-  val content: String = request.body.toString()
-  val headersOut: Map[String, String] = request.headers.toSimpleMap
-  val requestData = new RequestData(sender, extractSoapAction(request), service.environmentId, service.localTarget, service.remoteTarget, content)
+  val requestData = new RequestData(sender, extractSoapAction(headers), service.environmentId, service.localTarget, service.remoteTarget, content, headers)
   var response: ClientResponse = null
 
-  private var future: Future[Response] = null
+  private var futureResponse: Future[Response] = null
   private var requestTimeInMillis: Long = -1
 
   def sendRequestAndWaitForResponse() {
@@ -41,16 +38,13 @@ class Client(service: Service, request: Request[NodeSeq]) {
     wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.X_FORWARDED_FOR -> sender))
 
     // add headers
-    for ((key, value) <- headersOut) {
-        if (key != "Transfer-Encoding")
-          wsRequestHolder = wsRequestHolder.withHeaders((key, value))
-    }
-
+    def filteredHeaders = headers.filterNot { _._1 == HeaderNames.TRANSFER_ENCODING }
+    wsRequestHolder = wsRequestHolder.withHeaders(filteredHeaders.toArray : _*)
     wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.CONTENT_LENGTH -> content.getBytes.size.toString))
 
     try {
       // perform request
-      future = wsRequestHolder.post(content)
+      futureResponse = wsRequestHolder.post(content)
 
       // wait for the response
       waitForResponse()
@@ -59,13 +53,24 @@ class Client(service: Service, request: Request[NodeSeq]) {
       case e: Throwable => processError("post", e)
     }
 
+    // save the request and response data to DB
     saveData()
   }
 
   private def waitForResponse() {
     try {
-      val wsResponse: Response = Await.result(future, service.timeoutms.millis * 1000000)
+      val wsResponse: Response = Await.result(futureResponse, service.timeoutms.millis * 1000000)
       response = new ClientResponse(wsResponse, (System.currentTimeMillis - requestTimeInMillis))
+      requestData.timeInMillis = response.responseTimeInMillis
+      requestData.response = response.body
+      requestData.status = response.status
+      requestData.responseHeaders = response.headers
+      requestData.storeSoapActionAndStatusInCache()
+
+      if (Logger.isDebugEnabled) {
+        //Logger.debug("Reponse in " + (responseTimeInMillis - requestTimeInMillis) + " ms, content=" + Utility.trim(wsresponse.xml))
+        Logger.debug("Reponse in " + response.responseTimeInMillis + " ms")
+      }
     } catch {
       case e: Throwable => processError("waitForResponse", e)
     }
@@ -77,31 +82,18 @@ class Client(service: Service, request: Request[NodeSeq]) {
       val writeStartTime = System.currentTimeMillis()
       import play.api.Play.current
       Akka.future {
-        prepareRequestData()
         RequestData.insert(requestData)
       }.map {
         result =>
           Logger.debug("Request Data written to DB in " + (System.currentTimeMillis() - writeStartTime) + " ms")
-      }
-
-      if (Logger.isDebugEnabled) {
-        //Logger.debug("Reponse in " + (responseTimeInMillis - requestTimeInMillis) + " ms, content=" + Utility.trim(wsresponse.xml))
-        Logger.debug("Reponse in " + response.responseTimeInMillis + " ms")
       }
     } catch {
       case e: Throwable => Logger.error("Error writing to DB", e)
     }
   }
 
-  private def prepareRequestData() {
-    requestData.timeInMillis = response.responseTimeInMillis
-    requestData.response = response.body
-    requestData.status = response.status
-    requestData.storeSoapActionAndStatusInCache()
-  }
-
-  private def extractSoapAction(request: Request[NodeSeq]): String = {
-    var soapAction = request.headers("SOAPACTION")
+  private def extractSoapAction(headers: Map[String, String]): String = {
+    var soapAction = headers.get("SOAPAction").get
 
     // drop apostrophes if present
     if (soapAction.startsWith("\"") && soapAction.endsWith("\"")) {

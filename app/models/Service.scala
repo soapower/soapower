@@ -7,20 +7,15 @@ import play.api._
 
 import anorm._
 import anorm.SqlParser._
-import scala.collection.mutable.{Map, HashMap}
+import scala.collection.mutable.{ Map, HashMap }
 
 case class Service(
-                    id: Pk[Long],
-                    description: String,
-                    localTarget: String,
-                    remoteTarget: String,
-                    timeoutms: Long,
-                    environmentId: Long) {
-
-  /*def this(csvLigne: String) {
-
-  }*/
-
+  id: Pk[Long],
+  description: String,
+  localTarget: String,
+  remoteTarget: String,
+  timeoutms: Long,
+  environmentId: Long) {
 }
 
 object Service {
@@ -36,15 +31,15 @@ object Service {
       get[String]("service.remoteTarget") ~
       get[Long]("service.timeoutms") ~
       get[Long]("service.environment_id") map {
-      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ environmentId =>
-        Service(id, description, localTarget, remoteTarget, timeoutms, environmentId)
-    }
+        case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ environmentId =>
+          Service(id, description, localTarget, remoteTarget, timeoutms, environmentId)
+      }
   }
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("id" -> 0, "description" -> 1 , "localTarget" -> 2, "remoteTarget" -> 3,  "timeoutms" -> 4, "environmentName" -> 5)
+  val csvTitle = Map("id" -> 0, "description" -> 1, "localTarget" -> 2, "remoteTarget" -> 3, "timeoutms" -> 4, "environmentName" -> 5)
 
   /**
    * Csv format.
@@ -56,9 +51,9 @@ object Service {
       get[String]("service.remoteTarget") ~
       get[Long]("service.timeoutms") ~
       get[String]("environment.name") map {
-      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ environmentName =>
-        id + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + environmentName + "\n"
-    }
+        case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ environmentName =>
+          id + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + environmentName + "\n"
+      }
   }
 
   /**
@@ -66,7 +61,7 @@ object Service {
    * - one with key "environmentName + localTarget" and value : service
    * -> fill in findByLocalTargetAndEnvironmentName
    * -> clear in update and delete
-   * - a other with key cacheKey + service.id and value : environmentName + localTarget
+   * - another with key cacheKey + service.id and value : environmentName + localTarget
    * -> used to update and delete from first cache
    */
   private val cacheKey = "servicekey-"
@@ -100,13 +95,13 @@ object Service {
         implicit connection =>
           SQL(
             """
-          select * from service
+            select * from service
             left join environment on service.environment_id = environment.id
             where service.localTarget like {localTarget}
             and environment.name like {environmentName}
             """).on(
-            'localTarget -> localTarget,
-            'environmentName -> environmentName).as(Service.simple.singleOpt)
+              'localTarget -> localTarget,
+              'environmentName -> environmentName).as(Service.simple.singleOpt)
       }
       if (serviceInDb isDefined) {
         Cache.set(cacheKey + serviceInDb.get.id, serviceKey)
@@ -117,6 +112,7 @@ object Service {
 
     return service
   }
+  
 
   /**
    * Insert a new service.
@@ -136,11 +132,11 @@ object Service {
               {description}, {localTarget}, {remoteTarget}, {timeoutms}, {environment_id}
             )
             """).on(
-            'description -> service.description,
-            'localTarget -> localTarget,
-            'remoteTarget -> service.remoteTarget,
-            'timeoutms -> service.timeoutms,
-            'environment_id -> service.environmentId).executeUpdate()
+              'description -> service.description,
+              'localTarget -> localTarget,
+              'remoteTarget -> service.remoteTarget,
+              'timeoutms -> service.timeoutms,
+              'environment_id -> service.environmentId).executeUpdate()
       }
 
       val serviceKey = localTarget + Environment.options.find(t => t._1 == service.environmentId.toString).get._2
@@ -149,7 +145,6 @@ object Service {
         Logger.debug("Insert new service - Delete from cache key:" + serviceKey)
         Cache.remove(serviceKey)
       }
-
 
     } catch {
       //case e:SQLException => Logger.error("Database error")
@@ -178,12 +173,12 @@ object Service {
           environment_id = {environment_id} 
           where id = {id}
           """).on(
-          'id -> id,
-          'description -> service.description,
-          'localTarget -> checkLocalTarget(service.localTarget),
-          'remoteTarget -> service.remoteTarget,
-          'timeoutms -> service.timeoutms,
-          'environment_id -> service.environmentId).executeUpdate()
+            'id -> id,
+            'description -> service.description,
+            'localTarget -> checkLocalTarget(service.localTarget),
+            'remoteTarget -> service.remoteTarget,
+            'timeoutms -> service.timeoutms,
+            'environment_id -> service.environmentId).executeUpdate()
     }
   }
 
@@ -254,10 +249,10 @@ object Service {
           order by {orderBy} nulls last
           limit {pageSize} offset {offset}
           """).on(
-          'pageSize -> pageSize,
-          'offset -> offest,
-          'filter -> filter,
-          'orderBy -> orderBy).as(Service.withEnvironment *)
+            'pageSize -> pageSize,
+            'offset -> offest,
+            'filter -> filter,
+            'orderBy -> orderBy).as(Service.withEnvironment *)
 
         val totalRows = SQL(
           """
@@ -265,7 +260,7 @@ object Service {
           left join environment on service.environment_id = environment.id
           where service.description like {filter}
           """).on(
-          'filter -> filter).as(scalar[Long].single)
+            'filter -> filter).as(scalar[Long].single)
 
         Page(services, page, offest, totalRows)
 
@@ -301,7 +296,7 @@ object Service {
    * @param environment service's environment
    * @return service (new or not)
    */
-  private def uploadService(dataCsv : Array[String], environment: Environment) = {
+  private def uploadService(dataCsv: Array[String], environment: Environment) = {
 
     val localTarget = dataCsv(csvTitle.get("localTarget").get)
     val s = findByLocalTargetAndEnvironmentName(localTarget, environment.name)
@@ -317,13 +312,11 @@ object Service {
         dataCsv(csvTitle.get("localTarget").get).trim,
         dataCsv(csvTitle.get("remoteTarget").get).trim,
         dataCsv(csvTitle.get("timeoutms").get).toLong,
-        environment.id.get
-      )
+        environment.id.get)
       Service.insert(service)
       Logger.info("Insert Service " + environment.name + "/" + localTarget)
     }
   }
-
 
   /**
    * Check if environment exist and insert it if not
@@ -331,7 +324,7 @@ object Service {
    * @param dataCsv List of string
    * @return environment
    */
-  private def uploadEnvironment(dataCsv: Array[String]) : Environment = {
+  private def uploadEnvironment(dataCsv: Array[String]): Environment = {
     val environmentName = dataCsv(csvTitle.get("environmentName").get)
     Logger.debug("environmentName:" + environmentName)
 
@@ -340,7 +333,7 @@ object Service {
       Logger.debug("Insert Environment " + environmentName)
       Environment.insert(new Environment(NotAssigned, environmentName))
       environment = Environment.findByName(environmentName)
-      if (environment.get == null ) Logger.error("Environment insert failed : " + environmentName)
+      if (environment.get == null) Logger.error("Environment insert failed : " + environmentName)
     } else {
       Logger.debug("Environment already exist : " + environment.get.name)
     }

@@ -25,6 +25,7 @@ GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/         co
 
 # Soap
 POST    /soap/:environment/*localTarget                  controllers.Soap.index(environment, localTarget)
+GET     /replay/:id                                      controllers.Soap.replay(id:Long)
 
 # Services list (look at the default values for pagination parameters)
 GET     /services                  controllers.Services.list(p:Int ?= 0, s:Int ?= 2, f ?= "")

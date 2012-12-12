@@ -20,13 +20,15 @@ case class RequestData(
   localTarget: String,
   remoteTarget: String,
   request: String,
+  requestHeaders: Map[String, String],
   startTime: Date,
   var response: String,
+  var responseHeaders: Map[String, String],
   var timeInMillis: Long,
   var status: Int) {
 
-  def this(sender: String, soapAction: String, environnmentId: Long, localTarget: String, remoteTarget: String, request: String) =
-    this(null, sender, soapAction, environnmentId, localTarget, remoteTarget, request, new Date, null, -1, -1)
+  def this(sender: String, soapAction: String, environnmentId: Long, localTarget: String, remoteTarget: String, request: String, requestHeaders: Map[String, String]) =
+    this(null, sender, soapAction, environnmentId, localTarget, remoteTarget, request, requestHeaders, new Date, null, null, -1, -1)
 
   /**
    * Add soapAction in cache if neccessary.
@@ -65,7 +67,25 @@ object RequestData {
       long("request_data.timeInMillis") ~
       int("request_data.status") map {
         case id ~ sender ~ soapAction ~ environnmentId ~ localTarget ~ remoteTarget ~ startTime ~ timeInMillis ~ status =>
-          RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, null, startTime, null, timeInMillis, status)
+          RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, null, null, startTime, null, null, timeInMillis, status)
+      }
+  }
+
+  /**
+   * Parse required parts of a RequestData from a ResultSet in order to replay the request
+   */
+  val forReplay = {
+    get[Pk[Long]]("request_data.id") ~
+      str("request_data.sender") ~
+      str("request_data.soapAction") ~
+      long("request_data.environmentId") ~
+      str("request_data.localTarget") ~
+      str("request_data.remoteTarget") ~
+      str("request_data.request") ~
+      str("request_data.requestHeaders") map {
+        case id ~ sender ~ soapAction ~ environnmentId ~ localTarget ~ remoteTarget ~ request ~ requestHeaders =>
+          val headers = headersFromString(requestHeaders)
+          new RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, request, headers, null, null, null, -1, -1)
       }
   }
 
@@ -98,7 +118,7 @@ object RequestData {
     implicit connection =>
       Cache.getOrElse[Option[Date]](keyCacheMinStartTime) {
         Logger.debug("MinStartTime not found in cache: loading from db")
-          SQL("select min(startTime) as startTimeMin from request_data").as(scalar[Option[Date]].single)
+        SQL("select min(startTime) as startTimeMin from request_data").as(scalar[Option[Date]].single)
       }
   }
 
@@ -114,9 +134,9 @@ object RequestData {
           SQL(
             """
             insert into request_data 
-              (id, sender, soapAction, environmentId, localTarget, remoteTarget, request, startTime, response, timeInMillis, status) values (
+              (id, sender, soapAction, environmentId, localTarget, remoteTarget, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status) values (
               (select next value for request_data_seq), 
-              {sender}, {soapAction}, {environmentId}, {localTarget}, {remoteTarget}, {request}, {startTime}, {response}, {timeInMillis}, {status}
+              {sender}, {soapAction}, {environmentId}, {localTarget}, {remoteTarget}, {request}, {requestHeaders}, {startTime}, {response}, {responseHeaders}, {timeInMillis}, {status}
             )
             """).on(
               'sender -> requestData.sender,
@@ -125,8 +145,10 @@ object RequestData {
               'localTarget -> requestData.localTarget,
               'remoteTarget -> requestData.remoteTarget,
               'request -> requestData.request,
+              'requestHeaders -> headersToString(requestData.requestHeaders),
               'startTime -> requestData.startTime,
               'response -> requestData.response,
+              'responseHeaders -> headersToString(requestData.responseHeaders),
               'timeInMillis -> requestData.timeInMillis,
               'status -> requestData.status).executeUpdate()
       }
@@ -154,7 +176,7 @@ object RequestData {
    * @param maxDate max date
    */
   def deleteRequestResponse(environmentIn: String, minDate: Date, maxDate: Date) {
-    Logger.debug("Environment:" + environmentIn + " mindate:"  + minDate.getTime + " maxDate:" + maxDate.getTime)
+    Logger.debug("Environment:" + environmentIn + " mindate:" + minDate.getTime + " maxDate:" + maxDate.getTime)
     Logger.debug("EnvironmentSQL:" + sqlAndEnvironnement(environmentIn))
 
     val d = new Date()
@@ -169,11 +191,10 @@ object RequestData {
             request = {deleted}
             where startTime >= {minDate} and startTime <= {maxDate}
           """
-            + sqlAndEnvironnement(environmentIn)
-        ).on(
-          'deleted -> deleted,
-          'minDate -> minDate,
-          'maxDate -> maxDate).executeUpdate()
+            + sqlAndEnvironnement(environmentIn)).on(
+            'deleted -> deleted,
+            'minDate -> minDate,
+            'maxDate -> maxDate).executeUpdate()
 
     }
     Cache.remove(keyCacheSoapAction)
@@ -193,10 +214,9 @@ object RequestData {
           """
             delete from request_data where startTime >= {minDate} and startTime <= {maxDate}
           """
-            + sqlAndEnvironnement(environmentIn)
-        ).on(
-          'minDate -> minDate,
-          'maxDate -> maxDate).executeUpdate()
+            + sqlAndEnvironnement(environmentIn)).on(
+            'minDate -> minDate,
+            'maxDate -> maxDate).executeUpdate()
 
     }
     Cache.remove(keyCacheSoapAction)
@@ -205,7 +225,6 @@ object RequestData {
 
   /*
   * Get All RequestData, used for testing only
-  *
   */
   def findAll(): List[RequestData] = DB.withConnection {
     implicit c =>
@@ -224,7 +243,7 @@ object RequestData {
    * @param filterIn filter on soapAction. Usefull only is soapActionIn = "all"
    * @return
    */
-  def list(environmentIn: String, soapActionIn: String, minDate: Date, maxDate : Date, status: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
+  def list(environmentIn: String, soapActionIn: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
 
     val filter = "%" + filterIn + "%"
 
@@ -264,8 +283,8 @@ object RequestData {
           and request_data.soapAction like {soapAction}
           and startTime >= {minDate} and startTime <= {maxDate}
           """
-            +sqlStatus + sqlAndEnvironnement(environmentIn) +
-          """
+            + sqlStatus + sqlAndEnvironnement(environmentIn) +
+            """
           """).on(
             'soapAction -> soapAction,
             'minDate -> minDate,
@@ -279,7 +298,7 @@ object RequestData {
   /**
    * Load reponse times for given parameters
    */
-  def findResponseTimes(environmentIn: String, soapActionIn: String, minDate: Date, maxDate : Date, status: String): List[(Long, String, Date, Long)] = {
+  def findResponseTimes(environmentIn: String, soapActionIn: String, minDate: Date, maxDate: Date, status: String): List[(Long, String, Date, Long)] = {
 
     var soapAction = "%" + soapActionIn + "%"
     if (soapActionIn == "all") soapAction = "%"
@@ -300,10 +319,16 @@ object RequestData {
           'status -> status,
           'minDate -> minDate,
           'maxDate -> maxDate,
-          'soapAction -> soapAction
-        )
+          'soapAction -> soapAction)
         .as(get[Long]("environmentId") ~ get[String]("soapAction") ~ get[Date]("startTime") ~ get[Long]("timeInMillis") *)
         .map(flatten)
+    }
+  }
+
+  def load(id: Long): RequestData = {
+    DB.withConnection { implicit connection =>
+      SQL("select id, sender, soapAction, environmentId, localTarget, remoteTarget, request, requestHeaders from request_data where id= {id}")
+        .on('id -> id).as(RequestData.forReplay.single)
     }
   }
 
@@ -319,7 +344,7 @@ object RequestData {
     }
   }
 
-  private def sqlAndEnvironnement(environmentIn: String) : String = {
+  private def sqlAndEnvironnement(environmentIn: String): String = {
 
     var environment = ""
 
@@ -334,6 +359,19 @@ object RequestData {
     environment
   }
 
+  private def headersToString(headers: Map[String, String]): String = {
+    headers.foldLeft("") { (string, header) => string + header._1 + " -> " + header._2 + "\n" }
+  }
+
+  private def headersFromString(headersAsStr: String): Map[String, String] = {
+    def headers = headersAsStr.split("\n").collect {
+      case header =>
+        val parts = header.split(" -> ")
+        (parts(0), parts.tail.mkString(""))
+    }
+    headers.toMap
+  }
+
   // use by Json : from scala to json
   implicit object RequestDataWrites extends Writes[RequestData] {
 
@@ -345,7 +383,8 @@ object RequestData {
         "4" -> JsString(o.startTime.toString),
         "5" -> JsString(o.timeInMillis.toString),
         "6" -> JsString("<a href='/download/request/" + o.id + "' title='Download'><i class='icon-file'></i></a>"),
-        "7" -> JsString("<a href='/download/response/" + o.id + "' title='Download'><i class='icon-file'></i></a>")))
+        "7" -> JsString("<a href='/download/response/" + o.id + "' title='Download'><i class='icon-file'></i></a>"),
+        "8" -> JsString("<a href='#' class='replay' data-request-id='" + o.id + "'><i class='icon-refresh'></i></a>")))
 
     private def status(status: Int): String = {
       if (status == Status.OK) {
@@ -355,8 +394,8 @@ object RequestData {
       }
     }
 
-    private def soapAction(o: RequestData) : String = {
-      "<a class='popSoapAction' href='#' rel='tooltip' title='Local: " + o.localTarget+ " Remote: "+o.remoteTarget+"'>" +o.soapAction+ "</a>"
+    private def soapAction(o: RequestData): String = {
+      "<a class='popSoapAction' href='#' rel='tooltip' title='Local: " + o.localTarget + " Remote: " + o.remoteTarget + "'>" + o.soapAction + "</a>"
     }
   }
 

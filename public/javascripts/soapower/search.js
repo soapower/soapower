@@ -19,6 +19,19 @@ function createTable() {
     "sAjaxSource": "listDatatable",
     "fnDrawCallback": function( oSettings ) {
         $('.popSoapAction').tooltip()
+	    prepareRequestsReplays();
     }
   } );
-}
+};
+
+function prepareRequestsReplays() {
+	$(".replay").click(function() {
+		var requestId = $(this).attr("data-request-id");
+		$.get("/replay/" + requestId, 
+			function() {
+				location.reload(false);
+				//document.location.href=window.location
+			}
+		);
+	});
+};
