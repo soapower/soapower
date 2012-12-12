@@ -3,6 +3,7 @@ package controllers
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
+import play.api.data.validation.Constraints._
 
 import anorm._
 
@@ -21,7 +22,10 @@ object Environments extends Controller {
   val environmentForm = Form(
     mapping(
       "id" -> ignored(NotAssigned: Pk[Long]),
-      "name" -> nonEmptyText)(Environment.apply)(Environment.unapply))
+      "name" -> nonEmptyText,
+      "hourRecordXmlDataMin" -> number(min=0, max=23),
+      "hourRecordXmlDataMax" -> number(min=0, max=24),
+      "nbDayKeepXmlData" -> number(min=0, max=10)) (Environment.apply)(Environment.unapply))
 
   /**
    * Display the paginated list of environments.
@@ -65,7 +69,7 @@ object Environments extends Controller {
    * Display the 'new environment form'.
    */
   def create = Action {
-    Ok(views.html.environments.createForm(environmentForm))
+    Ok(views.html.environments.createForm(environmentForm.fill(new Environment(NotAssigned, "", 6, 22, 5))))
   }
 
   /**

@@ -8,20 +8,28 @@ import play.api._
 import anorm._
 import anorm.SqlParser._
 
-case class Environment(id: Pk[Long], name: String)
+case class Environment(id: Pk[Long],
+                       name: String,
+                       hourRecordXmlDataMin: Int = 6,
+                       hourRecordXmlDataMax : Int = 22,
+                       nbDayKeepXmlData: Int = 5)
 
 object Environment {
 
-  val keyCacheAllOptions = "environment-options"
-  val keyCacheByName = "environment-all"
+  private val keyCacheAllOptions = "environment-options"
+  private val keyCacheById = "environment-all"
 
   /**
    * Parse a Environment from a ResultSet
    */
   val simple = {
     get[Pk[Long]]("id") ~
-      get[String]("name") map {
-      case id ~ name => Environment(id, name)
+      get[String]("name") ~
+      get[Int]("hourRecordXmlDataMin") ~
+      get[Int]("hourRecordXmlDataMax") ~
+      get[Int]("nbDayKeepXmlData") map {
+      case id ~ name ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData
+        => Environment(id, name, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData)
     }
   }
 
@@ -42,8 +50,10 @@ object Environment {
   def findById(id: Long): Option[Environment] = {
     DB.withConnection {
       implicit connection =>
-        SQL("select * from environment where id = {id}").on(
-          'id -> id).as(Environment.simple.singleOpt)
+        Cache.getOrElse[Option[Environment]](keyCacheById + id) {
+          SQL("select * from environment where id = {id}").on(
+            'id -> id).as(Environment.simple.singleOpt)
+        }
     }
   }
 
@@ -72,10 +82,15 @@ object Environment {
           """
             insert into environment values (
               (select next value for environment_seq), 
-              {name}
+              {name}, {hourRecordXmlDataMin},
+              {hourRecordXmlDataMax}, {nbDayKeepXmlData}
             )
           """).on(
-          'name -> environment.name).executeUpdate()
+          'name -> environment.name,
+          'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
+          'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
+          'nbDayKeepXmlData -> environment.nbDayKeepXmlData
+          ).executeUpdate()
     }
   }
 
@@ -87,16 +102,24 @@ object Environment {
    */
   def update(id: Long, environment: Environment) = {
     clearCache
+    Cache.remove(keyCacheById + id)
     DB.withConnection {
       implicit connection =>
         SQL(
           """
           update environment
-          set name = {name}
+          set name = {name},
+          hourRecordXmlDataMin = {hourRecordXmlDataMin},
+          hourRecordXmlDataMax = {hourRecordXmlDataMax},
+          nbDayKeepXmlData = {nbDayKeepXmlData}
           where id = {id}
           """).on(
           'id -> id,
-          'name -> environment.name).executeUpdate()
+          'name -> environment.name,
+          'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
+          'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
+          'nbDayKeepXmlData -> environment.nbDayKeepXmlData)
+          .executeUpdate()
     }
   }
 
@@ -107,6 +130,7 @@ object Environment {
    */
   def delete(id: Long) = {
     clearCache
+    Cache.remove(keyCacheById + id)
     DB.withConnection {
       implicit connection =>
         SQL("delete from environment where id = {id}").on('id -> id).executeUpdate()

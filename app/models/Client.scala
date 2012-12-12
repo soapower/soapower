@@ -27,7 +27,6 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
 
   def sendRequestAndWaitForResponse() {
     if (Logger.isDebugEnabled) {
-      //Logger.debug("RemoteTarget " + service.remoteTarget + " content=" + Utility.trim(XML.loadString(content)))
       Logger.debug("RemoteTarget " + service.remoteTarget)
     }
 
@@ -68,7 +67,6 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       requestData.storeSoapActionAndStatusInCache()
 
       if (Logger.isDebugEnabled) {
-        //Logger.debug("Reponse in " + (responseTimeInMillis - requestTimeInMillis) + " ms, content=" + Utility.trim(wsresponse.xml))
         Logger.debug("Reponse in " + response.responseTimeInMillis + " ms")
       }
     } catch {

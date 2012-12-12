@@ -47,6 +47,9 @@
             <thead>
                 <tr>
                     @header(2, "Environment Name")
+                    @header(3, "Xml Data : Start Record Hour")
+                    @header(4, "Xml Data : End Record Hour")
+                    @header(5, "Xml Data : nb days keep")
                 </tr>
             </thead>
             <tbody>
@@ -55,7 +58,9 @@
                     case (environment) => {
                         <tr>
                             <td><a href="@routes.Environments.edit(environment.id.get)">@environment.name</a></td>
-                            
+                            <td><a href="@routes.Environments.edit(environment.id.get)">@environment.hourRecordXmlDataMin h</a></td>
+                            <td><a href="@routes.Environments.edit(environment.id.get)">@environment.hourRecordXmlDataMax h</a></td>
+                            <td><a href="@routes.Environments.edit(environment.id.get)">@environment.nbDayKeepXmlData days</a></td>
                         </tr>
                     }
                 }

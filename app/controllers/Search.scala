@@ -7,6 +7,7 @@ import models.UtilDate._
 import play.api.libs.iteratee.Enumerator
 import play.api.http.HeaderNames
 import scala.xml.PrettyPrinter
+import org.xml.sax.SAXParseException
 
 case class Search(environmentId: Long)
 
@@ -28,8 +29,13 @@ object Search extends Controller {
 
   def downloadRequest(id: Long, asFile: Boolean) = Action {
     val request = RequestData.loadRequest(id)
-    val xml = scala.xml.XML.loadString(request)
-    val formattedXml = new PrettyPrinter(250, 4).format(xml)
+
+    var formattedXml = ""
+    try {
+      formattedXml = new PrettyPrinter(250, 4).format(scala.xml.XML.loadString(request))
+    } catch {
+      case e:SAXParseException => formattedXml = request
+    }
     val filename = "request-" + id + ".xml"
 
     var result = SimpleResult(
@@ -48,8 +54,12 @@ object Search extends Controller {
 
     response match {
       case Some(str: String) => {
-        val xml = scala.xml.XML.loadString(str)
-        val formattedXml = new PrettyPrinter(250, 4).format(xml)
+        var formattedXml = ""
+        try {
+          formattedXml = new PrettyPrinter(250, 4).format(scala.xml.XML.loadString(str))
+        } catch {
+          case e:SAXParseException => formattedXml = str
+        }
 
         val filename = "response-" + id + ".xml"
         var result = SimpleResult(

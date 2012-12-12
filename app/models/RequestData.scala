@@ -1,6 +1,6 @@
 package models
 
-import java.util.Date
+import java.util.{GregorianCalendar, Calendar, Date}
 
 import play.api.db._
 import play.api.Play.current
@@ -128,6 +128,26 @@ object RequestData {
    * @param requestData the requestData
    */
   def insert(requestData: RequestData) = {
+    var xmlRequest = ""
+    var xmlResponse = ""
+
+    val environment = Environment.findById(requestData.environmentId).get
+    val date = new Date()
+    val gcal = new GregorianCalendar()
+    gcal.setTime(date)
+    gcal.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
+
+    if (environment.hourRecordXmlDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
+      environment.hourRecordXmlDataMax > gcal.get(Calendar.HOUR_OF_DAY)) {
+      xmlRequest = requestData.request
+      xmlResponse = requestData.response
+    } else {
+      val msg = "Xml Data not recording. Record between " + environment.hourRecordXmlDataMin + "h to " + environment.hourRecordXmlDataMax + "h for this environment."
+      xmlRequest = msg
+      xmlResponse = msg
+      Logger.debug(msg)
+    }
+
     try {
       DB.withConnection {
         implicit connection =>
@@ -144,10 +164,10 @@ object RequestData {
               'environmentId -> requestData.environmentId,
               'localTarget -> requestData.localTarget,
               'remoteTarget -> requestData.remoteTarget,
-              'request -> requestData.request,
+              'request -> xmlRequest,
               'requestHeaders -> headersToString(requestData.requestHeaders),
               'startTime -> requestData.startTime,
-              'response -> requestData.response,
+              'response -> xmlResponse,
               'responseHeaders -> headersToString(requestData.responseHeaders),
               'timeInMillis -> requestData.timeInMillis,
               'status -> requestData.status).executeUpdate()

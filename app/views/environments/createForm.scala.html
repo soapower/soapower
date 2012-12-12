@@ -1,4 +1,4 @@
-@(serviceForm: Form[Environment])
+@(environmentForm: Form[Environment])
 
 @import helper._
 
@@ -12,8 +12,11 @@
         
         <fieldset>
         
-            @inputText(serviceForm("name"), '_label -> "Environment name")
-        
+            @inputText(environmentForm("name"), '_label -> "Environment name", '_showErrors -> true)
+            @inputText(environmentForm("hourRecordXmlDataMin"), '_label -> "Xml Data : Start Record Hour", '_showErrors -> true)
+            @inputText(environmentForm("hourRecordXmlDataMax"), '_label -> "Xml Data : End Record Hour", '_showErrors -> true)
+            @inputText(environmentForm("nbDayKeepXmlData"), '_label -> "Xml Data : Nb days keep", '_showErrors -> true)
+
         </fieldset>
         
         <div class="actions">

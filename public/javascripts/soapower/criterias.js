@@ -74,7 +74,7 @@ function makeUrl(action) {
 
     return "/"+ action +"/" + $('#environmentSelect').val()
         + "/"+ $('#soapActionSelect').val()
-        +"/"+ minDate
-        +"/"+ maxDate
-        +"/" + $('#statusSelect').val() + "/";
+        + "/"+ minDate
+        + "/"+ maxDate
+        + "/" + $('#statusSelect').val() + "/";
 }
