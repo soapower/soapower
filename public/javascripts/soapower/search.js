@@ -18,6 +18,7 @@ function createTable() {
     "bDeferRender": true,
     "sAjaxSource": "listDatatable",
     "fnDrawCallback": function( oSettings ) {
+    	$('#datas td:nth-child(7), #datas td:nth-child(8), #datas td:nth-child(9)').addClass('narrow')
         $('.popSoapAction').tooltip()
 	    prepareRequestsReplays();
     }
