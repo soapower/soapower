@@ -26,13 +26,15 @@ function createTable() {
 };
 
 function prepareRequestsReplays() {
+	var callback = function() {
+		location.reload();
+	}
+	
 	$(".replay").click(function() {
 		var requestId = $(this).attr("data-request-id");
-		$.get("/replay/" + requestId, 
-			function() {
-				location.reload(false);
-				//document.location.href=window.location
-			}
-		);
+		$.ajax({
+			url: "/replay/" + requestId,
+			error: callback
+		}).done(callback);
 	});
 };
