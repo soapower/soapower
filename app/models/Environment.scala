@@ -7,6 +7,7 @@ import play.api._
 
 import anorm._
 import anorm.SqlParser._
+import java.util.GregorianCalendar
 
 case class Environment(id: Pk[Long],
                        name: String,
@@ -178,6 +179,26 @@ object Environment {
         Page(environments, page, offest, totalRows)
 
     }
+  }
+
+  def purgeXmlData() = {
+    val minDate = UtilDate.getDate("all").getTime
+
+    Environment.options.foreach{(e) =>
+      Logger.debug("Purge env:" + e._1 )
+      val env = Environment.findById(e._1.toInt).get
+
+      if (env.hourRecordXmlDataMin < env.hourRecordXmlDataMax) {
+        val maxDate = new GregorianCalendar
+        maxDate.setTimeInMillis(maxDate.getTimeInMillis - UtilDate.v1d * env.nbDayKeepXmlData)
+        Logger.debug("env.name: " +env.name+ " NbDaysKeep: " + env.nbDayKeepXmlData + " MinDate:" + minDate + " MaxDate:" + maxDate.getTime)
+        RequestData.deleteRequestResponse(env.name, minDate, maxDate.getTime,
+          "Soapower Akka Scheduler (keep xml data for " + env.nbDayKeepXmlData + " days for this env " + env.name + ")")
+      } else {
+        Logger.error("Invalid min / max hours for environment " + env.name)
+      }
+    }
+
   }
 
 }

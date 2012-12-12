@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat
 object UtilDate {
 
   val v23h59min59s = ((24*60*60)-1)*1000
+  val v1d = 24*60*60*1000
 
   def getDate(sDate: String, addInMillis : Long = 0):GregorianCalendar = {
     val gCal = new GregorianCalendar()

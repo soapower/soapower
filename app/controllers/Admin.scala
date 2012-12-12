@@ -86,7 +86,7 @@ object Admin extends Controller {
           val maxDate = new Date(form.maxDate.getTime +  ((24*60*60)-1)*1000) // 23h59,59s
           Logger.debug("Delete min:" + form.minDate + " max:" + maxDate)
           form.typeAction match {
-            case "xml-data" => RequestData.deleteRequestResponse(form.environment, form.minDate, maxDate)
+            case "xml-data" => RequestData.deleteRequestResponse(form.environment, form.minDate, maxDate, "Admin Soapower")
             case "all-data" => RequestData.delete(form.environment, form.minDate, maxDate)
           }
           Home.flashing("success" -> "Success deleting data")

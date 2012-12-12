@@ -194,13 +194,14 @@ object RequestData {
    * @param environmentIn environmement or "" / all if all
    * @param minDate min date
    * @param maxDate max date
+   * @param user use who delete the data : admin or akka
    */
-  def deleteRequestResponse(environmentIn: String, minDate: Date, maxDate: Date) {
+  def deleteRequestResponse(environmentIn: String, minDate: Date, maxDate: Date, user : String) {
     Logger.debug("Environment:" + environmentIn + " mindate:" + minDate.getTime + " maxDate:" + maxDate.getTime)
     Logger.debug("EnvironmentSQL:" + sqlAndEnvironnement(environmentIn))
 
     val d = new Date()
-    val deleted = "deleted by admin Soapower " + d.toString
+    val deleted = "deleted by " + user + " " + d.toString
 
     DB.withConnection {
       implicit connection =>
@@ -208,8 +209,9 @@ object RequestData {
           """
             update request_data
             set response = {deleted},
-            request = {deleted}
-            where startTime >= {minDate} and startTime <= {maxDate}
+            request = {deleted},
+            purged = true
+            where startTime >= {minDate} and startTime <= {maxDate} and purged = false
           """
             + sqlAndEnvironnement(environmentIn)).on(
             'deleted -> deleted,
