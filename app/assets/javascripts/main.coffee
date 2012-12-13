@@ -14,7 +14,7 @@ $(document).ready ->
     soapaction = localStorage["soapActionSelect"]  if localStorage["soapActionSelect"] and not localStorage["soapActionSelect"] is "undefined"
     mStatus = "all"
     mStatus = localStorage["statusSelect"]  if localStorage["statusSelect"] and not localStorage["statusSelect"] is "undefined"
-    from = "all"
+    from = "yesterday"
     from = localStorage["from"]  if localStorage["from"] and not localStorage["from"] is "undefined"
     to = "today"
     if localStorage["to"] and not localStorage["to"] is "undefined"
