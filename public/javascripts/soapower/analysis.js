@@ -4,6 +4,11 @@ $(document).ready(function() {
 });
 
 function loadGraph() {
+	Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    });
 
     $(function() {
 
