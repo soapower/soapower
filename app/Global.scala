@@ -17,7 +17,6 @@ object Global extends GlobalSettings {
     Logger.info("Starting Soapower...")
 
     Akka.system.scheduler.schedule(0 seconds, 30 minutes) {
-      Logger.debug("Tick")
       Environment.purgeXmlData()
     }
 

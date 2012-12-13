@@ -10,10 +10,10 @@ import anorm.SqlParser._
 import java.util.GregorianCalendar
 
 case class Environment(id: Pk[Long],
-                       name: String,
-                       hourRecordXmlDataMin: Int = 6,
-                       hourRecordXmlDataMax : Int = 22,
-                       nbDayKeepXmlData: Int = 5)
+  name: String,
+  hourRecordXmlDataMin: Int = 6,
+  hourRecordXmlDataMax: Int = 22,
+  nbDayKeepXmlData: Int = 5)
 
 object Environment {
 
@@ -29,9 +29,8 @@ object Environment {
       get[Int]("hourRecordXmlDataMin") ~
       get[Int]("hourRecordXmlDataMax") ~
       get[Int]("nbDayKeepXmlData") map {
-      case id ~ name ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData
-        => Environment(id, name, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData)
-    }
+        case id ~ name ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData => Environment(id, name, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData)
+      }
   }
 
   /**
@@ -62,12 +61,12 @@ object Environment {
    * Retrieve an Environment from name.
    */
   def findByName(name: String): Option[Environment] = DB.withConnection {
-      implicit connection =>
-        // FIXME : add key to clearCache
-        //Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
-          SQL("select * from environment where name = {name}").on(
-            'name -> name).as(Environment.simple.singleOpt)
-        //}
+    implicit connection =>
+      // FIXME : add key to clearCache
+      //Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
+      SQL("select * from environment where name = {name}").on(
+        'name -> name).as(Environment.simple.singleOpt)
+    //}
   }
 
   /**
@@ -87,11 +86,10 @@ object Environment {
               {hourRecordXmlDataMax}, {nbDayKeepXmlData}
             )
           """).on(
-          'name -> environment.name,
-          'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
-          'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
-          'nbDayKeepXmlData -> environment.nbDayKeepXmlData
-          ).executeUpdate()
+            'name -> environment.name,
+            'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
+            'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
+            'nbDayKeepXmlData -> environment.nbDayKeepXmlData).executeUpdate()
     }
   }
 
@@ -115,11 +113,11 @@ object Environment {
           nbDayKeepXmlData = {nbDayKeepXmlData}
           where id = {id}
           """).on(
-          'id -> id,
-          'name -> environment.name,
-          'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
-          'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
-          'nbDayKeepXmlData -> environment.nbDayKeepXmlData)
+            'id -> id,
+            'name -> environment.name,
+            'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
+            'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
+            'nbDayKeepXmlData -> environment.nbDayKeepXmlData)
           .executeUpdate()
     }
   }
@@ -164,17 +162,17 @@ object Environment {
           order by {orderBy} nulls last
           limit {pageSize} offset {offset}
           """).on(
-          'pageSize -> pageSize,
-          'offset -> offest,
-          'filter -> filter,
-          'orderBy -> orderBy).as(Environment.simple *)
+            'pageSize -> pageSize,
+            'offset -> offest,
+            'filter -> filter,
+            'orderBy -> orderBy).as(Environment.simple *)
 
         val totalRows = SQL(
           """
           select count(*) from environment
           where environment.name like {filter}
           """).on(
-          'filter -> filter).as(scalar[Long].single)
+            'filter -> filter).as(scalar[Long].single)
 
         Page(environments, page, offest, totalRows)
 
@@ -182,23 +180,29 @@ object Environment {
   }
 
   def purgeXmlData() = {
+    Logger.info("Purging XML data...")
     val minDate = UtilDate.getDate("all").getTime
 
-    Environment.options.foreach{(e) =>
-      Logger.debug("Purge env:" + e._1 )
+    var purgedRequests = 0
+    Environment.options.foreach { (e) =>
+      Logger.debug("Purge env:" + e._1)
       val env = Environment.findById(e._1.toInt).get
 
       if (env.hourRecordXmlDataMin < env.hourRecordXmlDataMax) {
         val maxDate = new GregorianCalendar
         maxDate.setTimeInMillis(maxDate.getTimeInMillis - UtilDate.v1d * env.nbDayKeepXmlData)
-        Logger.debug("env.name: " +env.name+ " NbDaysKeep: " + env.nbDayKeepXmlData + " MinDate:" + minDate + " MaxDate:" + maxDate.getTime)
+
+        Logger.debug("env.name: " + env.name + " NbDaysKeep: " + env.nbDayKeepXmlData + " MinDate:" + minDate + " MaxDate:" + maxDate.getTime)
         RequestData.deleteRequestResponse(env.name, minDate, maxDate.getTime,
           "Soapower Akka Scheduler (keep xml data for " + env.nbDayKeepXmlData + " days for this env " + env.name + ")")
+
+        purgedRequests += 1
       } else {
         Logger.error("Invalid min / max hours for environment " + env.name)
       }
     }
 
+    Logger.info("Purging XML data: done (" + purgedRequests + " requests purged)")
   }
 
 }
