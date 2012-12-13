@@ -229,10 +229,8 @@ object Environment {
         maxDate.setTimeInMillis(maxDate.getTimeInMillis - UtilDate.v1d * env.nbDayKeepXmlData)
 
         Logger.debug("env.name: " + env.name + " NbDaysKeep: " + env.nbDayKeepXmlData + " MinDate:" + minDate + " MaxDate:" + maxDate.getTime)
-        RequestData.deleteRequestResponse(env.name, minDate, maxDate.getTime,
-          "Soapower Akka Scheduler (keep xml data for " + env.nbDayKeepXmlData + " days for this env " + env.name + ")")
-
-        purgedRequests += 1
+        val user = "Soapower Akka Scheduler (keep xml data for " + env.nbDayKeepXmlData + " days for this env " + env.name + ")"
+        purgedRequests += RequestData.deleteRequestResponse(env.name, minDate, maxDate.getTime, user)
       } else {
         Logger.error("Invalid min / max hours for environment " + env.name)
       }

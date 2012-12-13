@@ -197,31 +197,31 @@ object RequestData {
    * @param maxDate max date
    * @param user use who delete the data : admin or akka
    */
-  def deleteRequestResponse(environmentIn: String, minDate: Date, maxDate: Date, user: String) {
+  def deleteRequestResponse(environmentIn: String, minDate: Date, maxDate: Date, user: String): Int = {
     Logger.debug("Environment:" + environmentIn + " mindate:" + minDate.getTime + " maxDate:" + maxDate.getTime)
     Logger.debug("EnvironmentSQL:" + sqlAndEnvironnement(environmentIn))
 
     val d = new Date()
     val deleted = "deleted by " + user + " " + d.toString
 
-    DB.withConnection {
-      implicit connection =>
-        SQL(
-          """
+    DB.withConnection { implicit connection =>
+      val purgedRequests = SQL(
+        """
             update request_data
             set response = {deleted},
             request = {deleted},
             purged = true
             where startTime >= {minDate} and startTime <= {maxDate} and purged = false
           """
-            + sqlAndEnvironnement(environmentIn)).on(
-            'deleted -> deleted,
-            'minDate -> minDate,
-            'maxDate -> maxDate).executeUpdate()
+          + sqlAndEnvironnement(environmentIn)).on(
+          'deleted -> deleted,
+          'minDate -> minDate,
+          'maxDate -> maxDate).executeUpdate()
 
+      Cache.remove(keyCacheSoapAction)
+      Cache.remove(keyCacheStatusOptions)
+      purgedRequests
     }
-    Cache.remove(keyCacheSoapAction)
-    Cache.remove(keyCacheStatusOptions)
   }
 
   /**
