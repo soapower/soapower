@@ -38,10 +38,46 @@ object Environment {
    */
   def options: Seq[(String, String)] = DB.withConnection {
     implicit connection =>
-      Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
+      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
         Logger.debug("Environments not found in cache: loading from db")
         SQL("select * from environment order by name").as(Environment.simple *).map(c => c.id.toString -> c.name)
       }
+
+      val sortedEnvs = envs.sortWith { (a, b) =>
+        val pattern = """^(.+?)([0-9]+)$""".r
+
+        val matchA = pattern.findAllIn(a._2)
+        val matchB = pattern.findAllIn(b._2)
+
+        if (matchA.hasNext && matchB.hasNext) {
+          // both names match the regex: compare name then number
+          val nameA = matchA.group(1)
+          val numberA = matchA.group(2)
+          val nameB = matchB.group(1)
+          val numberB = matchB.group(2)
+          if (nameA != nameB) {
+            nameA < nameB
+          } else {
+            numberA.toInt <= numberB.toInt
+          }
+
+        } else if (matchA.hasNext) {
+          val nameA = matchA.group(1)
+          // only a matches the regex
+          nameA < b._2
+
+        } else if (matchB.hasNext) {
+          val nameB = matchB.group(1)
+          // only b matches the regex
+          a._2 < nameB
+
+        } else {
+          // none matches the regex
+          a._2 < b._2
+        }
+      }
+
+      sortedEnvs
   }
 
   /**
