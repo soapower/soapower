@@ -326,23 +326,34 @@ object RequestData {
     }
   }
 
-  //  def loadResponseTimesStats(environmentId: Long, minDate: Date, maxDate: Date): List[(String, Long)] = {
-  //    DB.withConnection { implicit connection =>
-  //      val responseTimes = SQL(
-  //        """
-  //        select soapAction, timeInMillis from request_data 
-  //        where environmentId={environmentId} and status=200 
-  //        and startTime >= {minDate} and startTime <= {maxDate}
-  //        limit {limit}
-  //        """)
-  //        .on(
-  //          'environmentId -> environmentId,
-  //          'minDate -> minDate,
-  //          'maxDate -> maxDate)
-  //        .as(get[String]("soapAction") ~ get[Long]("timeInMillis") *)
-  //        .map(flatten)
-  //    }
-  //  }
+  def loadAvgResponseTimesByAction(environmentId: Long, minDate: Date, maxDate: Date): List[(String, Long)] = {
+    DB.withConnection { implicit connection =>
+      val responseTimes = SQL(
+        """
+          select soapAction, timeInMillis from request_data 
+          where environmentId={environmentId} and status=200 
+          and startTime >= {minDate} and startTime <= {maxDate}
+          order by timeInMillis asc
+          """)
+        .on(
+          'environmentId -> environmentId,
+          'minDate -> minDate,
+          'maxDate -> maxDate)
+        .as(get[String]("soapAction") ~ get[Long]("timeInMillis") *)
+        .map(flatten)
+
+      val avgTimesByAction = responseTimes.groupBy(_._1).mapValues { e =>
+        val times = e.map(_._2).toList
+        val ninePercentiles = times.slice(0, times.size * 9 / 10)
+        if (ninePercentiles.size > 0) {
+          ninePercentiles.sum / ninePercentiles.size
+        } else {
+          -1
+        }
+      }
+      avgTimesByAction.toList
+    }
+  }
 
   def load(id: Long): RequestData = {
     DB.withConnection { implicit connection =>
