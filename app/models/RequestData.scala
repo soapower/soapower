@@ -270,30 +270,42 @@ object RequestData {
 
     val filter = "%" + filterIn + "%"
 
-    var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
+    // Convert dates... bad perf anorm ?
+    val g = new GregorianCalendar()
+    g.setTime(minDate)
+    val min = UtilDate.formatDate(g)
+    g.setTime(maxDate)
+    val max = UtilDate.formatDate(g)
+
+    var whereClause = "where startTime >= '"+min+"' and startTime <= '"+max+"'"
     if (status != "all") whereClause += " and status = {status}"
     if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
-    if (filterIn != "%") whereClause += " and soapAction like {filter}"
+    if (filterIn != "%" && filterIn.trim != "") whereClause += " and soapAction like {filter}"
+
     whereClause += sqlAndEnvironnement(environmentIn)
 
     val params: Array[(Any, anorm.ParameterValue[_])] = Array(
       'pageSize -> pageSize,
       'offset -> offset,
       'soapAction -> soapAction,
-      'minDate -> minDate,
-      'maxDate -> maxDate,
+      //'minDate -> minDate,
+      //'maxDate -> maxDate,
       'status -> status,
       'filter -> filter)
 
     DB.withConnection { implicit connection =>
-      // explainPlan("select * from request_data " + whereClause, params: _*)
-
+      /*val requestTimeInMillis = System.currentTimeMillis
+      Logger.debug("Start")*/
       val requests = SQL(
         "select id, sender, soapAction, environmentId, localTarget, remoteTarget, startTime, timeInMillis, status, purged from request_data "
           + whereClause + " order by request_data.id desc limit {pageSize} offset {offset}").on(params: _*).as(RequestData.simple *)
+      /*val middle = System.currentTimeMillis
+        Logger.debug("Middle : "+ (System.currentTimeMillis - requestTimeInMillis))*/
 
       val totalRows = SQL(
         "select count(id) from request_data " + whereClause).on(params: _*).as(scalar[Long].single)
+      //Logger.debug("End : "+ (System.currentTimeMillis - middle))
+
       Page(requests, -1, offset, totalRows)
     }
   }

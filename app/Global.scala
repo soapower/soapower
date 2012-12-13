@@ -16,7 +16,7 @@ object Global extends GlobalSettings {
   override def onStart(app: Application) {
     Logger.info("Starting Soapower...")
 
-    Akka.system.scheduler.schedule(0 seconds, 30 minutes) {
+    Akka.system.scheduler.schedule(30 seconds, 30 minutes) {
       Environment.purgeXmlData()
     }
 
