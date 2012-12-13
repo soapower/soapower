@@ -96,7 +96,7 @@ object RequestData {
     implicit connection =>
       Cache.getOrElse[Seq[(String, String)]](keyCacheSoapAction) {
         Logger.debug("RequestData.SoapAction not found in cache: loading from db")
-        SQL("select distinct(soapAction) from request_data").as((get[String]("soapAction") ~ get[String]("soapAction")) *).map(flatten)
+        SQL("select distinct(soapAction) from request_data order by soapAction asc").as((get[String]("soapAction") ~ get[String]("soapAction")) *).map(flatten)
       }
   }
 
