@@ -1,16 +1,15 @@
 package models
 
-import java.util.{GregorianCalendar, Calendar, Date}
-
+import java.util.{ GregorianCalendar, Calendar, Date }
 import play.api.db._
 import play.api.Play.current
 import play.api._
 import play.api.cache._
 import play.api.libs.json._
 import play.api.http._
-
 import anorm._
 import anorm.SqlParser._
+import java.sql.Connection
 
 case class RequestData(
   id: Pk[Long],
@@ -196,7 +195,7 @@ object RequestData {
    * @param maxDate max date
    * @param user use who delete the data : admin or akka
    */
-  def deleteRequestResponse(environmentIn: String, minDate: Date, maxDate: Date, user : String) {
+  def deleteRequestResponse(environmentIn: String, minDate: Date, maxDate: Date, user: String) {
     Logger.debug("Environment:" + environmentIn + " mindate:" + minDate.getTime + " maxDate:" + maxDate.getTime)
     Logger.debug("EnvironmentSQL:" + sqlAndEnvironnement(environmentIn))
 
@@ -265,87 +264,83 @@ object RequestData {
    * @param filterIn filter on soapAction. Usefull only is soapActionIn = "all"
    * @return
    */
-  def list(environmentIn: String, soapActionIn: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
+  def list(environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
 
     val filter = "%" + filterIn + "%"
 
-    var soapAction = "%" + soapActionIn + "%"
-    if (soapActionIn == "all") soapAction = "%"
+    var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
+    if (status != "all") whereClause += " and status = {status}"
+    if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
+    if (filterIn != "%") whereClause += " and soapAction like {filter}"
+    whereClause += sqlAndEnvironnement(environmentIn)
 
-    var sqlStatus = ""
-    if (status != "all") sqlStatus = " and status = {status}"
+    val params: Array[(Any, anorm.ParameterValue[_])] = Array(
+      'pageSize -> pageSize,
+      'offset -> offset,
+      'soapAction -> soapAction,
+      'minDate -> minDate,
+      'maxDate -> maxDate,
+      'status -> status,
+      'filter -> filter)
 
-    DB.withConnection {
-      implicit connection =>
+    DB.withConnection { implicit connection =>
+      // explainPlan("select * from request_data " + whereClause, params: _*)
 
-        val requests = SQL(
-          """
-          select id, sender, soapAction, environmentId, localTarget, remoteTarget, startTime, timeInMillis, status from request_data
-          where request_data.soapAction like {filter}
-          and request_data.soapAction like {soapAction}
-          and startTime >= {minDate} and startTime <= {maxDate}
-          """
-            + sqlStatus + sqlAndEnvironnement(environmentIn) +
-            """
-          order by request_data.id desc
-          limit {pageSize} offset {offset}
-            """).on(
-            'pageSize -> pageSize,
-            'offset -> offset,
-            'soapAction -> soapAction,
-            'minDate -> minDate,
-            'maxDate -> maxDate,
-            'status -> status,
-            'filter -> filter).as(RequestData.simple *)
+      val requests = SQL(
+        "select id, sender, soapAction, environmentId, localTarget, remoteTarget, startTime, timeInMillis, status from request_data "
+          + whereClause + " order by request_data.id desc limit {pageSize} offset {offset}").on(params: _*).as(RequestData.simple *)
 
-        val totalRows = SQL(
-          """
-          select count(id) from request_data 
-          where request_data.soapAction like {filter}
-          and request_data.soapAction like {soapAction}
-          and startTime >= {minDate} and startTime <= {maxDate}
-          """
-            + sqlStatus + sqlAndEnvironnement(environmentIn) +
-            """
-          """).on(
-            'soapAction -> soapAction,
-            'minDate -> minDate,
-            'maxDate -> maxDate,
-            'status -> status,
-            'filter -> filter).as(scalar[Long].single)
-        Page(requests, -1, offset, totalRows)
+      val totalRows = SQL(
+        "select count(id) from request_data " + whereClause).on(params: _*).as(scalar[Long].single)
+      Page(requests, -1, offset, totalRows)
     }
   }
 
   /**
    * Load reponse times for given parameters
    */
-  def findResponseTimes(environmentIn: String, soapActionIn: String, minDate: Date, maxDate: Date, status: String): List[(Long, String, Date, Long)] = {
+  def findResponseTimes(environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String): List[(Long, String, Date, Long)] = {
 
-    var soapAction = "%" + soapActionIn + "%"
-    if (soapActionIn == "all") soapAction = "%"
-    var sqlStatus = ""
-    if (status != "all") sqlStatus = " and status = {status}"
+    var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
+    if (status != "all") whereClause += " and status = {status}"
+    if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
+    whereClause += sqlAndEnvironnement(environmentIn)
+
+    val params: Array[(Any, anorm.ParameterValue[_])] = Array(
+      'status -> status,
+      'minDate -> minDate,
+      'maxDate -> maxDate,
+      'soapAction -> soapAction)
+
+    val sql = "select environmentId, soapAction, startTime, timeInMillis from request_data " +
+      whereClause + " order by request_data.id asc"
 
     DB.withConnection { implicit connection =>
-      SQL(
-        """
-        select environmentId, soapAction, startTime, timeInMillis from request_data
-        where soapAction like {soapAction}
-        and startTime >= {minDate} and startTime <= {maxDate}
-        """
-          + sqlStatus + sqlAndEnvironnement(environmentIn) +
-          """
-        order by request_data.id asc
-        """).on(
-          'status -> status,
-          'minDate -> minDate,
-          'maxDate -> maxDate,
-          'soapAction -> soapAction)
+      // explainPlan(sql, params: _*)
+      SQL(sql)
+        .on(params: _*)
         .as(get[Long]("environmentId") ~ get[String]("soapAction") ~ get[Date]("startTime") ~ get[Long]("timeInMillis") *)
         .map(flatten)
     }
   }
+
+  //  def loadResponseTimesStats(environmentId: Long, minDate: Date, maxDate: Date): List[(String, Long)] = {
+  //    DB.withConnection { implicit connection =>
+  //      val responseTimes = SQL(
+  //        """
+  //        select soapAction, timeInMillis from request_data 
+  //        where environmentId={environmentId} and status=200 
+  //        and startTime >= {minDate} and startTime <= {maxDate}
+  //        limit {limit}
+  //        """)
+  //        .on(
+  //          'environmentId -> environmentId,
+  //          'minDate -> minDate,
+  //          'maxDate -> maxDate)
+  //        .as(get[String]("soapAction") ~ get[Long]("timeInMillis") *)
+  //        .map(flatten)
+  //    }
+  //  }
 
   def load(id: Long): RequestData = {
     DB.withConnection { implicit connection =>
@@ -367,7 +362,6 @@ object RequestData {
   }
 
   private def sqlAndEnvironnement(environmentIn: String): String = {
-
     var environment = ""
 
     // search by name
@@ -423,6 +417,13 @@ object RequestData {
 
     private def soapAction(o: RequestData): String = {
       "<a class='popSoapAction' href='#' rel='tooltip' title='Local: " + o.localTarget + " Remote: " + o.remoteTarget + "'>" + o.soapAction + "</a>"
+    }
+  }
+
+  private def explainPlan(sql: String, params: (Any, anorm.ParameterValue[_])*)(implicit connection: Connection) {
+    val plan = SQL("explain plan for " + sql).on(params: _*).resultSet()
+    while (plan.next) {
+      println(plan.getString(1))
     }
   }
 

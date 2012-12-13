@@ -1,7 +1,7 @@
 
 # --- !Ups
 
-create index idx_request_data_4 on request_data (soapAction, startTime, environmentId, status);
+create index idx_request_data_4 on request_data (startTime, soapAction, environmentId, status);
 
 
 # --- !Downs
