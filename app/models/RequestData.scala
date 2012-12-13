@@ -24,10 +24,11 @@ case class RequestData(
   var response: String,
   var responseHeaders: Map[String, String],
   var timeInMillis: Long,
-  var status: Int) {
+  var status: Int,
+  var purged: Boolean) {
 
   def this(sender: String, soapAction: String, environnmentId: Long, localTarget: String, remoteTarget: String, request: String, requestHeaders: Map[String, String]) =
-    this(null, sender, soapAction, environnmentId, localTarget, remoteTarget, request, requestHeaders, new Date, null, null, -1, -1)
+    this(null, sender, soapAction, environnmentId, localTarget, remoteTarget, request, requestHeaders, new Date, null, null, -1, -1, false)
 
   /**
    * Add soapAction in cache if neccessary.
@@ -64,9 +65,10 @@ object RequestData {
       str("request_data.remoteTarget") ~
       get[Date]("request_data.startTime") ~
       long("request_data.timeInMillis") ~
-      int("request_data.status") map {
-        case id ~ sender ~ soapAction ~ environnmentId ~ localTarget ~ remoteTarget ~ startTime ~ timeInMillis ~ status =>
-          RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, null, null, startTime, null, null, timeInMillis, status)
+      int("request_data.status") ~
+      bool("request_data.purged") map {
+        case id ~ sender ~ soapAction ~ environnmentId ~ localTarget ~ remoteTarget ~ startTime ~ timeInMillis ~ status ~ purged =>
+          RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, null, null, startTime, null, null, timeInMillis, status, purged)
       }
   }
 
@@ -84,7 +86,7 @@ object RequestData {
       str("request_data.requestHeaders") map {
         case id ~ sender ~ soapAction ~ environnmentId ~ localTarget ~ remoteTarget ~ request ~ requestHeaders =>
           val headers = headersFromString(requestHeaders)
-          new RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, request, headers, null, null, null, -1, -1)
+          new RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, request, headers, null, null, null, -1, -1, false)
       }
   }
 
@@ -287,7 +289,7 @@ object RequestData {
       // explainPlan("select * from request_data " + whereClause, params: _*)
 
       val requests = SQL(
-        "select id, sender, soapAction, environmentId, localTarget, remoteTarget, startTime, timeInMillis, status from request_data "
+        "select id, sender, soapAction, environmentId, localTarget, remoteTarget, startTime, timeInMillis, status, purged from request_data "
           + whereClause + " order by request_data.id desc limit {pageSize} offset {offset}").on(params: _*).as(RequestData.simple *)
 
       val totalRows = SQL(
@@ -395,6 +397,17 @@ object RequestData {
       val dlRequestUrl = "/download/request/" + o.id
       val dlResponseUrl = "/download/response/" + o.id
 
+      var requestDownloadLinks = "-"
+      var responseDownloadLinks = "-"
+      if (!o.purged) {
+        requestDownloadLinks =
+          "<a href='" + dlRequestUrl + "?asFile=true' title='Download'><i class='icon-file'></i></a> " +
+            "<a target='_blank' href='" + dlRequestUrl + "' title='Open in new tab'><i class='icon-eye-open'></i></a>"
+        responseDownloadLinks =
+          "<a href='" + dlResponseUrl + "?asFile=true' title='Download'><i class='icon-file'></i></a> " +
+            "<a target='_blank' href='" + dlResponseUrl + "' title='Open in new tab'><i class='icon-eye-open'></i></a>"
+      }
+
       JsObject(
         List("0" -> JsString(status(o.status)),
           "1" -> JsString(Environment.options.find(t => t._1 == o.environmentId.toString).get._2),
@@ -402,8 +415,8 @@ object RequestData {
           "3" -> JsString(soapAction(o)),
           "4" -> JsString(o.startTime.toString),
           "5" -> JsString(o.timeInMillis.toString),
-          "6" -> JsString("<a href='" + dlRequestUrl + "?asFile=true' title='Download'><i class='icon-file'></i></a> <a target='_blank' href='" + dlRequestUrl + "' title='Open in new tab'><i class='icon-eye-open'></i></a>"),
-          "7" -> JsString("<a href='" + dlResponseUrl + "?asFile=true' title='Download'><i class='icon-file'></i></a> <a target='_blank' href='" + dlResponseUrl + "' title='Open in new tab'><i class='icon-eye-open'></i></a>"),
+          "6" -> JsString(requestDownloadLinks),
+          "7" -> JsString(responseDownloadLinks),
           "8" -> JsString("<a href='#' class='replay' data-request-id='" + o.id + "'><i class='icon-refresh'></i></a>")))
     }
 
