@@ -277,7 +277,7 @@ object RequestData {
     g.setTime(maxDate)
     val max = UtilDate.formatDate(g)
 
-    var whereClause = "where startTime >= '"+min+"' and startTime <= '"+max+"'"
+    var whereClause = "where startTime >= '" + min + "' and startTime <= '" + max + "'"
     if (status != "all") whereClause += " and status = {status}"
     if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
     if (filterIn != "%" && filterIn.trim != "") whereClause += " and soapAction like {filter}"
@@ -363,7 +363,7 @@ object RequestData {
           -1
         }
       }
-      avgTimesByAction.toList
+      avgTimesByAction.toList.filterNot(_._2 == -1).sortBy(_._1)
     }
   }
 

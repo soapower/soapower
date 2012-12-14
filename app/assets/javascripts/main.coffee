@@ -39,6 +39,9 @@ $(document).ready ->
   $("#menu-analysis").click ->
     document.location.href = getUrl("analysis")
 
+  $("#menu-statistics").click ->
+    document.location.href = getUrl("stats")
+
   $("#toggle-monitoring").click ->
     init window.App, $("#monitoring-modal")
     $("#myModal").modal keyboard: true

@@ -8,6 +8,7 @@ import play.api.libs.iteratee.Enumerator
 import play.api.http.HeaderNames
 import scala.xml.PrettyPrinter
 import org.xml.sax.SAXParseException
+import java.util.Date
 
 case class Search(environmentId: Long)
 

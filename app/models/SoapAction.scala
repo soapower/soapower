@@ -124,4 +124,11 @@ object SoapAction {
 
     }
   }
+  
+  def loadAll(): List[SoapAction] = {
+    DB.withConnection { implicit connection =>
+        SQL("select * from soapaction").as(SoapAction.simple *)
+    }
+  }
+
 }

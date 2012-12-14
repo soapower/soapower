@@ -1,13 +1,14 @@
 package controllers
 
+import anorm._
+import models._
+import models.UtilDate._
 import play.api._
-import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-
-import anorm._
-
-import models._
+import play.api.mvc._
+import views.html.defaultpages.badRequest
+import org.omg.CosNaming.NamingContextPackage.NotFound
 
 object SoapActions extends Controller {
 
@@ -65,17 +66,17 @@ object SoapActions extends Controller {
       })
   }
 
-  def regenerate = Action { implicit request =>
-    RequestData.soapActionOptions.foreach{
-      soapAction => println("SoapAction:" + soapAction._1)
+  def regenerate() = Action { implicit request =>
+    RequestData.soapActionOptions.foreach { soapAction =>
+      println("SoapAction:" + soapAction._1)
       if (SoapAction.findByName(soapAction._1) == None) {
         Logger.debug("SoapAction not found. Insert in db")
         SoapAction.insert(new SoapAction(NotAssigned, soapAction._1, 30000))
       } else {
         Logger.debug("SoapAction found. Do nothing.")
       }
-
     }
     Home.flashing("success" -> "Success regeneration")
   }
+
 }

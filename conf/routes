@@ -65,6 +65,10 @@ GET     /soapActions/regenerate   controllers.SoapActions.regenerate
 GET     /soapActions/:id          controllers.SoapActions.edit(id:Long)
 POST    /soapActions/:id          controllers.SoapActions.update(id:Long)
 
+# Statistics on SoapActions by environments
+GET     /stats/:environment/:soapAction/:minDate/:maxDate/:status/                   controllers.Stats.index(environment, minDate, maxDate, soapAction, status)
+GET     /stats/:environment/:soapAction/:minDate/:maxDate/:status/listDataTable      controllers.Stats.listDataTable(environment, minDate, maxDate, soapAction, status)
+
 # Download SOAP request and response
 GET     /download/request/:id      controllers.Search.downloadRequest(id:Long, asFile: Boolean ?= false)
 GET     /download/response/:id     controllers.Search.downloadResponse(id:Long, asFile: Boolean ?= false)
