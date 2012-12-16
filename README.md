@@ -1,11 +1,33 @@
 soapower
 ========
 
-soapower
+Soapower provides a GUI for 
+ - viewing webservices requests, 
+ - download the data from the request and response, 
+ - getting response time, 
+ - viewing 90percentiles response times, etc ...
+
+Soapower allows monitoring several applications across multiple environments. 
+
+It is also possible to set a threshold response time on soapaction, 
+the alerts are rising if the receiver does not send the response back in time.
+
+
+Administration interface is available for
+ - Configure environments and webservices (local / remote target / timeout)
+ - Set the thresholds for response time for each soapaction
+ - Import / export service configurations & settings
+ - Set the purges data XML Data requests & Answers, All Data /  environment
+
+<img src='https://raw.github.com/soapower/soapower/master/doc/soapower.png' width='50%' display='float:left'> 
 
 Trello
 =======
 https://trello.com/board/soapower/
+
+Development
+=======
+Soapower developed with Play Framework 2, with scala / java / js / html5
 
 
 Licence
