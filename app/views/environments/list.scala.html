@@ -50,6 +50,7 @@
                     @header(3, "Xml Data : Start Record Hour")
                     @header(4, "Xml Data : End Record Hour")
                     @header(5, "Xml Data : nb days keep")
+                    @header(6, "All Data : nb days keep")
                 </tr>
             </thead>
             <tbody>
@@ -61,6 +62,7 @@
                             <td><a href="@routes.Environments.edit(environment.id.get)">@environment.hourRecordXmlDataMin h</a></td>
                             <td><a href="@routes.Environments.edit(environment.id.get)">@environment.hourRecordXmlDataMax h</a></td>
                             <td><a href="@routes.Environments.edit(environment.id.get)">@environment.nbDayKeepXmlData days</a></td>
+                            <td><a href="@routes.Environments.edit(environment.id.get)">@environment.nbDayKeepAllData days</a></td>
                         </tr>
                     }
                 }

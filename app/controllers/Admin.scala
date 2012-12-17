@@ -75,8 +75,8 @@ object Admin extends Controller {
   }
 
   def deleteAllRequestData = Action {
-    RequestData.deleteAll()
-    Home.flashing("success" -> "Request Data deleted")
+    //RequestData.deleteAll()
+    Home.flashing("error" -> "You can't delete all data. Actually disabled on Soapower")
   }
 
   def delete = Action { implicit request =>

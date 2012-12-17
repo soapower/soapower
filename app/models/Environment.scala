@@ -7,13 +7,19 @@ import play.api._
 
 import anorm._
 import anorm.SqlParser._
-import java.util.GregorianCalendar
+import java.util.{Date, Calendar, GregorianCalendar}
 
 case class Environment(id: Pk[Long],
   name: String,
   hourRecordXmlDataMin: Int = 6,
   hourRecordXmlDataMax: Int = 22,
-  nbDayKeepXmlData: Int = 5)
+  nbDayKeepXmlData: Int = 5,
+  nbDayKeepAllData: Int = 20)
+
+object ModePurge extends Enumeration {
+  type ModePurge = Value
+  val XML, ALL = Value
+}
 
 object Environment {
 
@@ -28,8 +34,10 @@ object Environment {
       get[String]("name") ~
       get[Int]("hourRecordXmlDataMin") ~
       get[Int]("hourRecordXmlDataMax") ~
-      get[Int]("nbDayKeepXmlData") map {
-        case id ~ name ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData => Environment(id, name, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData)
+      get[Int]("nbDayKeepXmlData") ~
+      get[Int]("nbDayKeepAllData") map {
+        case id ~ name ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData
+          => Environment(id, name, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData, nbDayKeepAllData)
       }
   }
 
@@ -119,13 +127,14 @@ object Environment {
             insert into environment values (
               (select next value for environment_seq), 
               {name}, {hourRecordXmlDataMin},
-              {hourRecordXmlDataMax}, {nbDayKeepXmlData}
+              {hourRecordXmlDataMax}, {nbDayKeepXmlData}, {nbDayKeepAllData}
             )
           """).on(
             'name -> environment.name,
             'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
             'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
-            'nbDayKeepXmlData -> environment.nbDayKeepXmlData).executeUpdate()
+            'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
+            'nbDayKeepAllData -> environment.nbDayKeepAllData).executeUpdate()
     }
   }
 
@@ -146,14 +155,16 @@ object Environment {
           set name = {name},
           hourRecordXmlDataMin = {hourRecordXmlDataMin},
           hourRecordXmlDataMax = {hourRecordXmlDataMax},
-          nbDayKeepXmlData = {nbDayKeepXmlData}
+          nbDayKeepXmlData = {nbDayKeepXmlData},
+          nbDayKeepAllData = {nbDayKeepAllData}
           where id = {id}
           """).on(
             'id -> id,
             'name -> environment.name,
             'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
             'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
-            'nbDayKeepXmlData -> environment.nbDayKeepXmlData)
+            'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
+            'nbDayKeepAllData -> environment.nbDayKeepAllData)
           .executeUpdate()
     }
   }
@@ -215,28 +226,66 @@ object Environment {
     }
   }
 
-  def purgeXmlData() = {
-    Logger.info("Purging XML data...")
-    val minDate = UtilDate.getDate("all").getTime
+  /*
+   * Compile stats for each env / day
+   */
+  def compileStats() {
 
-    var purgedRequests = 0
-    Environment.options.foreach { (e) =>
-      Logger.debug("Purge env:" + e._1)
-      val env = Environment.findById(e._1.toInt).get
+    val gcal = new GregorianCalendar
 
-      if (env.hourRecordXmlDataMin < env.hourRecordXmlDataMax) {
-        val maxDate = new GregorianCalendar
-        maxDate.setTimeInMillis(maxDate.getTimeInMillis - UtilDate.v1d * env.nbDayKeepXmlData)
+    Environment.options.foreach {
+      (e) =>
+        Logger.debug("Compile Stats env:" + e._1)
+        val days = RequestData.findDayNotCompileStats(e._1.toLong)
 
-        Logger.debug("env.name: " + env.name + " NbDaysKeep: " + env.nbDayKeepXmlData + " MinDate:" + minDate + " MaxDate:" + maxDate.getTime)
-        val user = "Soapower Akka Scheduler (keep xml data for " + env.nbDayKeepXmlData + " days for this env " + env.name + ")"
-        purgedRequests += RequestData.deleteRequestResponse(env.name, minDate, maxDate.getTime, user)
-      } else {
-        Logger.error("Invalid min / max hours for environment " + env.name)
-      }
+        days.foreach{minDate =>
+          gcal.setTimeInMillis(minDate.getTime + UtilDate.v1d)
+          val maxDate = gcal.getTime
+
+          val result = RequestData.loadAvgResponseTimesByAction(e._1.toLong, minDate, maxDate)
+          result.foreach{(r) =>
+            Logger.debug("e:" + e._1 + " S:"+r._1+ " t:" + r._2)
+            RequestData.insertStats(e._1.toLong, r._1, minDate, r._2)
+          }
+        }
     }
+  }
 
-    Logger.info("Purging XML data: done (" + purgedRequests + " requests purged)")
+  import ModePurge._
+
+  def purgeXmlData() {
+    purgeData(ModePurge.XML)
+  }
+
+  def purgeAllData() {
+    purgeData(ModePurge.ALL)
+  }
+
+  private def purgeData(mode: ModePurge) {
+    Logger.info("Purging " + mode + " data...")
+
+    val minDate = UtilDate.getDate("all").getTime
+    var purgedRequests = 0
+
+    Environment.options.foreach {
+      (e) =>
+        Logger.debug("Purge env:" + e._1)
+        val env = Environment.findById(e._1.toInt).get
+        var nbDay = 100
+
+        val maxDate = new GregorianCalendar
+        if (mode == ModePurge.XML)
+          nbDay = env.nbDayKeepXmlData
+        else
+          nbDay = env.nbDayKeepAllData
+
+        maxDate.setTimeInMillis(maxDate.getTimeInMillis - UtilDate.v1d * nbDay)
+        Logger.debug("env.name: " + env.name + " NbDaysKeep: " + nbDay + " MinDate:" + minDate + " MaxDate:" + maxDate.getTime)
+        val user = "Soapower Akka Scheduler (keep "+mode+" data for " + nbDay + " days for this env " + env.name + ")"
+        purgedRequests += RequestData.deleteRequestResponse(env.name, minDate, maxDate.getTime, user)
+    }
+    Logger.info("Purging " + mode + " data: done (" + purgedRequests + " requests purged)")
+
   }
 
 }

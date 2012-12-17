@@ -10,6 +10,7 @@ import play.api.http._
 import anorm._
 import anorm.SqlParser._
 import java.sql.Connection
+import collection.mutable.Set
 
 case class RequestData(
   id: Pk[Long],
@@ -179,16 +180,42 @@ object RequestData {
   }
 
   /**
+   * Insert a new RequestData.
+   */
+  def insertStats(environmentId : Long, soapAction: String, startTime : Date, timeInMillis : Long) = {
+
+    try {
+      DB.withConnection {
+        implicit connection =>
+          SQL(
+            """
+            insert into request_data
+              (id, sender, soapAction, environmentId, localTarget, remoteTarget, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status, isStats) values (
+              (select next value for request_data_seq),
+              '', {soapAction}, {environmentId}, '', '', '', '', {startTime}, '', '', {timeInMillis}, 200, true
+            )
+            """).on(
+            'soapAction -> soapAction,
+            'environmentId -> environmentId,
+            'startTime -> startTime,
+            'timeInMillis -> timeInMillis).executeUpdate()
+      }
+    } catch {
+      case e: Exception => Logger.error("Error during insertion of RequestData Stats", e)
+    }
+  }
+
+  /**
    * Delete all request data !
    */
-  def deleteAll() {
+  /*def deleteAll() {
     DB.withConnection {
       implicit connection =>
         SQL("delete from request_data").executeUpdate()
     }
     Cache.remove(keyCacheSoapAction)
     Cache.remove(keyCacheStatusOptions)
-  }
+  }*/
 
   /**
    * Delete XML data (request & reponse) between min and max date
@@ -213,7 +240,7 @@ object RequestData {
             requestHeaders = '',
             responseHeaders = '',
             purged = true
-            where startTime >= {minDate} and startTime <= {maxDate} and purged = false
+            where startTime >= {minDate} and startTime <= {maxDate} and purged = false and isStats = false
         """
           + sqlAndEnvironnement(environmentIn)).on(
           'minDate -> minDate,
@@ -258,7 +285,7 @@ object RequestData {
   /**
    * Return a page of RequestData
    * @param environmentIn name of environnement, "all" default
-   * @param soapActionIn soapAction, "all" default
+   * @param soapAction soapAction, "all" default
    * @param minDate Min Date
    * @param maxDate Max Date
    * @param status Status
@@ -346,8 +373,9 @@ object RequestData {
           select soapAction, timeInMillis from request_data 
           where environmentId={environmentId} and status=200 
           and startTime >= {minDate} and startTime <= {maxDate}
+          and isStats = false
           order by timeInMillis asc
-          """)
+        """)
         .on(
           'environmentId -> environmentId,
           'minDate -> minDate,
@@ -365,6 +393,35 @@ object RequestData {
         }
       }
       avgTimesByAction.toList.filterNot(_._2 == -1).sortBy(_._1)
+    }
+  }
+
+  /**
+   * Find all day before today, for environment given and state = 200.
+   * @param environmentId environment id
+   * @return list of unique date
+   */
+  def findDayNotCompileStats(environmentId: Long) : List[Date] = {
+    DB.withConnection { implicit connection =>
+
+      val gcal = new GregorianCalendar
+      val today = new GregorianCalendar(gcal.get(Calendar.YEAR),gcal.get(Calendar.MONTH),gcal.get(Calendar.DATE))
+
+      val startTimes = SQL(
+        """
+          select startTime from request_data
+          where environmentId={environmentId} and status=200 and isStats = false and startTime < {today}
+        """
+      ).on('environmentId -> environmentId, 'today -> today.getTime)
+       .as(get[Date]("startTime") *).toList
+
+      val uniqueStartTimePerDay : Set[Date] = Set()
+      startTimes.foreach{(t) =>
+        gcal.setTimeInMillis(t.getTime)
+        val ccal = new GregorianCalendar(gcal.get(Calendar.YEAR),gcal.get(Calendar.MONTH),gcal.get(Calendar.DATE))
+        uniqueStartTimePerDay += ccal.getTime
+      }
+      uniqueStartTimePerDay.toList
     }
   }
 
