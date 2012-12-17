@@ -202,19 +202,20 @@ object RequestData {
     Logger.debug("EnvironmentSQL:" + sqlAndEnvironnement(environmentIn))
 
     val d = new Date()
-    val deleted = "deleted by " + user + " " + d.toString
+    //val deleted = "deleted by " + user + " " + d.toString
 
     DB.withConnection { implicit connection =>
       val purgedRequests = SQL(
         """
             update request_data
-            set response = {deleted},
-            request = {deleted},
+            set response = '',
+            request = '',
+            requestHeaders = '',
+            responseHeaders = '',
             purged = true
             where startTime >= {minDate} and startTime <= {maxDate} and purged = false
-          """
+        """
           + sqlAndEnvironnement(environmentIn)).on(
-          'deleted -> deleted,
           'minDate -> minDate,
           'maxDate -> maxDate).executeUpdate()
 
