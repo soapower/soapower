@@ -184,9 +184,28 @@ object RequestData {
    */
   def insertStats(environmentId : Long, soapAction: String, startTime : Date, timeInMillis : Long) = {
 
-    try {
+     try {
+
       DB.withConnection {
         implicit connection =>
+          val gcal = new GregorianCalendar()
+          gcal.setTimeInMillis(startTime.getTime + UtilDate.v1d)
+
+          val purgedStats = SQL(
+            """
+            delete from request_data
+            where isStats = true
+            and startTime >= {startTime} and startTime < {startTime}
+            and soapAction = {soapAction}
+            """
+          ).on(
+            'soapAction -> soapAction,
+            'environmentId -> environmentId,
+            'startTime -> startTime).executeUpdate()
+
+          Logger.debug("Purged " + purgedStats + " existing stats for:" + environmentId + " and startTime:" + startTime)
+
+
           SQL(
             """
             insert into request_data
@@ -228,7 +247,7 @@ object RequestData {
     Logger.debug("Environment:" + environmentIn + " mindate:" + minDate.getTime + " maxDate:" + maxDate.getTime)
     Logger.debug("EnvironmentSQL:" + sqlAndEnvironnement(environmentIn))
 
-    val d = new Date()
+    //val d = new Date()
     //val deleted = "deleted by " + user + " " + d.toString
 
     DB.withConnection { implicit connection =>
@@ -258,20 +277,22 @@ object RequestData {
    * @param minDate min date
    * @param maxDate max date
    */
-  def delete(environmentIn: String, minDate: Date, maxDate: Date) {
+  def delete(environmentIn: String, minDate: Date, maxDate: Date) : Int = {
     DB.withConnection {
       implicit connection =>
-        SQL(
-          """
-            delete from request_data where startTime >= {minDate} and startTime <= {maxDate}
-          """
-            + sqlAndEnvironnement(environmentIn)).on(
+      val deletedRequests = SQL(
+        """
+            delete from request_data
+            where startTime >= {minDate} and startTime < {maxDate}
+            and isStats = false
+        """
+          + sqlAndEnvironnement(environmentIn)).on(
             'minDate -> minDate,
             'maxDate -> maxDate).executeUpdate()
-
+      Cache.remove(keyCacheSoapAction)
+      Cache.remove(keyCacheStatusOptions)
+      deletedRequests
     }
-    Cache.remove(keyCacheSoapAction)
-    Cache.remove(keyCacheStatusOptions)
   }
 
   /*
@@ -310,6 +331,8 @@ object RequestData {
     if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
     if (filterIn != "%" && filterIn.trim != "") whereClause += " and soapAction like {filter}"
 
+    whereClause += " and isStats = false "
+
     whereClause += sqlAndEnvironnement(environmentIn)
 
     val params: Array[(Any, anorm.ParameterValue[_])] = Array(
@@ -321,20 +344,23 @@ object RequestData {
       'status -> status,
       'filter -> filter)
 
-    DB.withConnection { implicit connection =>
-      /*val requestTimeInMillis = System.currentTimeMillis
-      Logger.debug("Start")*/
-      val requests = SQL(
-        "select id, sender, soapAction, environmentId, localTarget, remoteTarget, startTime, timeInMillis, status, purged from request_data "
-          + whereClause + " order by request_data.id desc limit {pageSize} offset {offset}").on(params: _*).as(RequestData.simple *)
-      /*val middle = System.currentTimeMillis
-        Logger.debug("Middle : "+ (System.currentTimeMillis - requestTimeInMillis))*/
+    DB.withConnection {
+      implicit connection =>
+      /*val requestTimeInMillis = System.currentTimeMillis */
+        val requests = SQL(
+          "select id, sender, soapAction, environmentId, localTarget, " +
+            "remoteTarget, startTime, timeInMillis, status, purged from request_data "
+            + whereClause +
+            " order by request_data.id " +
+            " desc limit {pageSize} offset {offset}").on(params: _*).as(RequestData.simple *)
+        /*val middle = System.currentTimeMillis
+          Logger.debug("Middle : "+ (System.currentTimeMillis - requestTimeInMillis))*/
 
-      val totalRows = SQL(
-        "select count(id) from request_data " + whereClause).on(params: _*).as(scalar[Long].single)
-      //Logger.debug("End : "+ (System.currentTimeMillis - middle))
+        val totalRows = SQL(
+          "select count(id) from request_data " + whereClause).on(params: _*).as(scalar[Long].single)
+        //Logger.debug("End : "+ (System.currentTimeMillis - middle))
 
-      Page(requests, -1, offset, totalRows)
+        Page(requests, -1, offset, totalRows)
     }
   }
 
@@ -366,14 +392,18 @@ object RequestData {
     }
   }
 
-  def loadAvgResponseTimesByAction(environmentId: Long, minDate: Date, maxDate: Date): List[(String, Long)] = {
+  def loadAvgResponseTimesByAction(environmentId: Long, minDate: Date, maxDate: Date, withStats : Boolean): List[(String, Long)] = {
     DB.withConnection { implicit connection =>
+
+      var andStats = ""
+      if (!withStats) andStats = "and isStats = false"
+
       val responseTimes = SQL(
         """
           select soapAction, timeInMillis from request_data 
           where environmentId={environmentId} and status=200 
           and startTime >= {minDate} and startTime <= {maxDate}
-          and isStats = false
+          """ + andStats + """
           order by timeInMillis asc
         """)
         .on(

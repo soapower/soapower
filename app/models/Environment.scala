@@ -235,16 +235,16 @@ object Environment {
 
     Environment.options.foreach {
       (e) =>
-        Logger.debug("Compile Stats env:" + e._1)
+        Logger.debug("Compile Stats env:" + e._2)
         val days = RequestData.findDayNotCompileStats(e._1.toLong)
 
         days.foreach{minDate =>
           gcal.setTimeInMillis(minDate.getTime + UtilDate.v1d)
           val maxDate = gcal.getTime
 
-          val result = RequestData.loadAvgResponseTimesByAction(e._1.toLong, minDate, maxDate)
+          val result = RequestData.loadAvgResponseTimesByAction(e._1.toLong, minDate, maxDate, false)
           result.foreach{(r) =>
-            Logger.debug("e:" + e._1 + " S:"+r._1+ " t:" + r._2)
+            Logger.debug("env:" + e._2 + " SoapAction:"+r._1+ " timeAverage:" + r._2)
             RequestData.insertStats(e._1.toLong, r._1, minDate, r._2)
           }
         }
@@ -267,9 +267,11 @@ object Environment {
     val minDate = UtilDate.getDate("all").getTime
     var purgedRequests = 0
 
+    val gcal = new GregorianCalendar
+    val today = new GregorianCalendar(gcal.get(Calendar.YEAR),gcal.get(Calendar.MONTH),gcal.get(Calendar.DATE))
+
     Environment.options.foreach {
       (e) =>
-        Logger.debug("Purge env:" + e._1)
         val env = Environment.findById(e._1.toInt).get
         var nbDay = 100
 
@@ -279,10 +281,13 @@ object Environment {
         else
           nbDay = env.nbDayKeepAllData
 
-        maxDate.setTimeInMillis(maxDate.getTimeInMillis - UtilDate.v1d * nbDay)
-        Logger.debug("env.name: " + env.name + " NbDaysKeep: " + nbDay + " MinDate:" + minDate + " MaxDate:" + maxDate.getTime)
+        maxDate.setTimeInMillis(today.getTimeInMillis - UtilDate.v1d * nbDay)
+        Logger.debug("Purge env: " + env.name + " NbDaysKeep: " + nbDay + " MinDate:" + minDate + " MaxDate:" + maxDate.getTime)
         val user = "Soapower Akka Scheduler (keep "+mode+" data for " + nbDay + " days for this env " + env.name + ")"
-        purgedRequests += RequestData.deleteRequestResponse(env.name, minDate, maxDate.getTime, user)
+        if (mode == ModePurge.XML)
+          purgedRequests += RequestData.deleteRequestResponse(env.name, minDate, maxDate.getTime, user)
+        else
+          purgedRequests += RequestData.delete(env.name, minDate, maxDate.getTime)
     }
     Logger.info("Purging " + mode + " data: done (" + purgedRequests + " requests purged)")
 

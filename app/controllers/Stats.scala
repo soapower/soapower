@@ -38,8 +38,8 @@ object Stats extends Controller {
 
       // compute average response times
       val minDate = getDate(minDateAsStr).getTime()
-      val maxDate = getDate(maxDateAsStr).getTime()
-      val avgResponseTimesByAction = RequestData.loadAvgResponseTimesByAction(environmentId.get, minDate, maxDate)
+      val maxDate = getDate(maxDateAsStr, v23h59min59s).getTime()
+      val avgResponseTimesByAction = RequestData.loadAvgResponseTimesByAction(environmentId.get, minDate, maxDate, true)
 
       val data = avgResponseTimesByAction.map(d => (d._1, d._2, thresholdsBySoapActions.getOrElse[Long](d._1, -1)))
 
