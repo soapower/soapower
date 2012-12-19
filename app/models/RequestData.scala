@@ -491,7 +491,11 @@ object RequestData {
   }
 
   private def headersToString(headers: Map[String, String]): String = {
-    headers.foldLeft("") { (string, header) => string + header._1 + " -> " + header._2 + "\n" }
+    if (headers != null) {
+      headers.foldLeft("") { (string, header) => string + header._1 + " -> " + header._2 + "\n" }
+    } else {
+      ""
+    }
   }
 
   private def headersFromString(headersAsStr: String): Map[String, String] = {
