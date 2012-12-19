@@ -418,6 +418,8 @@ object RequestData {
         val ninePercentiles = times.slice(0, times.size * 9 / 10)
         if (ninePercentiles.size > 0) {
           ninePercentiles.sum / ninePercentiles.size
+        } else if (times.size == 1) {
+          times.head
         } else {
           -1
         }
