@@ -1,0 +1,7 @@
+#warningIE {
+    display:block!important;
+    background-image:url('/assets/images/nomoreie.png');
+    background-repeat:no-repeat;
+    height:80px;
+    text-align: right;
+}
