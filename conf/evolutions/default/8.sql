@@ -13,6 +13,9 @@ alter table request_data alter column remoteTarget varchar(100) not null;
 alter table environment add column nbDayKeepAllData int not null default 10;
 alter table request_data add column isStats int not null default false;
 
+delete from request_data where soapAction like '"%"';
+delete from soapAction where name like '"%"';
+
 # --- !Downs
 
 drop index if exists idx_request_data_4;
