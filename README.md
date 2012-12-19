@@ -19,7 +19,9 @@ Administration interface is available for
  - Import / export service configurations & settings
  - Set the purges data XML Data requests & Answers, All Data /  environment
 
-<img src='https://raw.github.com/soapower/soapower/master/public/images/soapower/soapower.png' width='50%' display='float:left'>
+<img src='https://raw.github.com/soapower/soapower/master/public/images/soapower/ucDiagram.png' display='float:left'>
+<img src='https://raw.github.com/soapower/soapower/master/public/images/soapower/seqDiagram.png' display='float:right'>
+<img src='https://raw.github.com/soapower/soapower/master/public/images/soapower/classDiagram.png' display='float:left'>
 
 Trello
 =======

@@ -1,4 +1,4 @@
-// Class Diagram
+// Class Diagram - http://yuml.me/diagram/scruffy/class/draw
 [Environment|hourRecordXmlDataMin; hourRecordXmlDataMax; nbDayKeepXmlData; nbDayKeepAllData]<>-*>[Service]
 [Service|localTarget; remoteTarget; timeoutInMs]<>-*>[RequestData]
 [RequestData|sender; Request; Response;startTime;responseTime]
@@ -7,3 +7,12 @@
 [Environment]-[note:Added by Admin{bg:cornsilk}]
 [Environment]-[note:Soapower store XML Data in RequestData between min and max hour only{bg:cornsilk}]
 
+
+//Sequence Diagram - http://www.websequencediagrams.com
+
+Sender->Soapower: Webservice request
+Soapower->Receiver: Webservice Request
+Receiver->Soapower: Webservice Response
+Soapower->Sender: Webservice Response
+Soapower->Soapower: Store Async
+note right of Soapower: Sopower store async Request Data : \nWS Request & Response\n responseTime\nFrom & To, StartTime
