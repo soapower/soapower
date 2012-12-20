@@ -258,6 +258,8 @@ object RequestData {
             request = '',
             requestHeaders = '',
             responseHeaders = '',
+            localTarget = '',
+            remoteTarget = '',
             purged = true
             where startTime >= {minDate} and startTime <= {maxDate} and purged = false and isStats = false
         """
