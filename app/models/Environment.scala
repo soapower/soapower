@@ -11,10 +11,10 @@ import java.util.{Date, Calendar, GregorianCalendar}
 
 case class Environment(id: Pk[Long],
   name: String,
-  hourRecordXmlDataMin: Int = 6,
+  hourRecordXmlDataMin: Int = 8,
   hourRecordXmlDataMax: Int = 22,
-  nbDayKeepXmlData: Int = 5,
-  nbDayKeepAllData: Int = 20)
+  nbDayKeepXmlData: Int = 2,
+  nbDayKeepAllData: Int = 5)
 
 object ModePurge extends Enumeration {
   type ModePurge = Value

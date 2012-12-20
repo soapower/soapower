@@ -70,7 +70,7 @@ object Environments extends Controller {
    * Display the 'new environment form'.
    */
   def create = Action {
-    Ok(views.html.environments.createForm(environmentForm.fill(new Environment(NotAssigned, "", 6, 22, 5))))
+    Ok(views.html.environments.createForm(environmentForm.fill(new Environment(NotAssigned, "", 6, 22, 2, 5))))
   }
 
   /**
