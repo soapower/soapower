@@ -230,7 +230,7 @@ object Environment {
    * Compile stats for each env / day
    */
   def compileStats() {
-
+    Logger.info("Compile Stats")
     val gcal = new GregorianCalendar
 
     Environment.options.foreach {
