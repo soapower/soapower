@@ -26,7 +26,7 @@ object Environments extends Controller {
       "hourRecordXmlDataMin" -> number(min=0, max=23),
       "hourRecordXmlDataMax" -> number(min=0, max=24),
       "nbDayKeepXmlData" -> number(min=0, max=10),
-      "nbDayKeepAllData" -> number(min=5, max=50)) (Environment.apply)(Environment.unapply))
+      "nbDayKeepAllData" -> number(min=2, max=50)) (Environment.apply)(Environment.unapply))
 
   /**
    * Display the paginated list of environments.
