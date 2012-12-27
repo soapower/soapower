@@ -45,35 +45,34 @@ object Streams {
 
   val timeRefreshMillisLong = 2000
 
-  val getRequestsPerSecond = Enumerator.fromCallback { () =>
+  val getRequestsPerSecond = Enumerator.generateM({
     Promise.timeout({
-      val currentMillis = java.lang.System.currentTimeMillis()
       Some(SpeedOMeter.getSpeed + ":rps")
     },
       timeRefreshMillis, TimeUnit.MILLISECONDS)
-  }
+  })
 
-  val getHeap = Enumerator.fromCallback { () =>
+  val getHeap = Enumerator.generateM({
     Promise.timeout(
       Some((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024) + ":memory"),
       timeRefreshMillis, TimeUnit.MILLISECONDS)
-  }
+  })
 
   val fileDb = new File(play.api.Play.current.configuration.getString("monitoring.file").get)
 
-  val getDbFile = Enumerator.fromCallback { () =>
+  val getDbFile = Enumerator.generateM({
     Promise.timeout(
       Some((fileDb.length() / 1024 / 1024) + ":dbfile"),
       timeRefreshMillisLong, TimeUnit.MILLISECONDS)
-  }
+  })
 
   val cpu = new models.CPU()
 
-  val getCPU = Enumerator.fromCallback { () =>
+  val getCPU = Enumerator.generateM({
     Promise.timeout(
       Some((cpu.getCpuUsage() * 1000).round / 10.0 + ":cpu:" + Runtime.getRuntime().totalMemory() / (1024 * 1024)),
       timeRefreshMillis, TimeUnit.MILLISECONDS)
-  }
+  })
 
 }
 
@@ -97,7 +96,7 @@ object SpeedOMeter {
     val (precedent, (count, millis)) = counter.single()
     val since = current - millis
     if (since <= unit) ((count + precedent) * 1000) / (since + unit / 2)
-    else 0
+    else 0.toLong
   }
 
 }
