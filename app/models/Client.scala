@@ -16,6 +16,7 @@ import play.api.mvc.Request
 import play.api.http._
 import java.io.StringWriter
 import java.io.PrintWriter
+import play.api.libs.json.Json
 
 class Client(service: Service, sender: String, content: String, headers: Map[String, String]) {
 
@@ -80,7 +81,9 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       val writeStartTime = System.currentTimeMillis()
       import play.api.Play.current
       Akka.future {
-        RequestData.insert(requestData)
+        val id = RequestData.insert(requestData)
+        requestData.id = anorm.Id(id)
+        Robot.talk(requestData)
       }.map {
         result =>
           Logger.debug("Request Data written to DB in " + (System.currentTimeMillis() - writeStartTime) + " ms")

@@ -7,6 +7,7 @@ GET     /                               controllers.Application.index
 
 # Live page
 GET     /live                           controllers.Live.index
+GET     /live/socket                    controllers.Live.socket
 
 # Admin page
 GET     /admin/                         controllers.Admin.index

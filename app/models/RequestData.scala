@@ -13,7 +13,7 @@ import java.sql.Connection
 import collection.mutable.Set
 
 case class RequestData(
-  id: Pk[Long],
+  var id: Pk[Long],
   sender: String,
   var soapAction: String,
   environmentId: Long,
@@ -172,10 +172,15 @@ object RequestData {
               'response -> xmlResponse,
               'responseHeaders -> headersToString(requestData.responseHeaders),
               'timeInMillis -> requestData.timeInMillis,
-              'status -> requestData.status).executeUpdate()
+              'status -> requestData.status).executeInsert()
+      } match {
+        case Some(long) => long // The Primary Key
+        case None       => -1
       }
+
     } catch {
       case e: Exception => Logger.error("Error during insertion of RequestData ", e)
+      -1
     }
   }
 
