@@ -21,7 +21,7 @@ $(document).ready(function() {
         if (data.kind == "talkRequestData") {
             $('#datas').dataTable().fnAddData( [ data.message["0"] ] );
         }
-        $('#nbConnected').html($(data.members).size())
+        $('#nbConnected').html($(data.members).size() - 1) // substract Robot
 
     }
 

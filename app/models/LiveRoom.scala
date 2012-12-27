@@ -31,14 +31,6 @@ object Robot {
         // Apply this Enumerator on the logger.
         robotChannel |>> loggerIteratee
     }
-
-    // Make the robot talk every 30 seconds
-    /*Akka.system.scheduler.schedule(
-      30 seconds,
-      30 seconds,
-      liveRoom,
-      Talk("Robot", "I'm still alive")
-    )*/
   }
 
   def talk(msg:String) {
@@ -66,9 +58,15 @@ object LiveRoom {
     val roomActor = Akka.system.actorOf(Props[LiveRoom])
 
     // Create a bot user (just for fun)
-    val robot = Robot(roomActor)
+    Logger.info("Init Robot Live Room")
+    Robot(roomActor)
 
     roomActor
+  }
+
+  def init{
+    Logger.info("Init LiveRoom")
+    default
   }
 
   def join(username:String):scala.concurrent.Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
@@ -99,9 +97,7 @@ object LiveRoom {
         (iteratee,enumerator)
 
     }
-
   }
-
 }
 
 class LiveRoom extends Actor {

@@ -1,5 +1,5 @@
 import java.util.{ GregorianCalendar, Date }
-import models.{ UtilDate, Environment, RequestData }
+import models.{LiveRoom, UtilDate, Environment, RequestData}
 import org.apache.http.protocol.RequestDate
 import play.api._
 
@@ -16,6 +16,8 @@ object Global extends GlobalSettings {
 
   override def onStart(app: Application) {
     Logger.info("Starting Soapower...")
+
+    LiveRoom.init
 
     // initialDelay: Duration : 10 minutes
     // frequency: Duration : 10 hours
