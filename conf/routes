@@ -6,8 +6,10 @@
 GET     /                               controllers.Application.index
 
 # Live page
-GET     /live                           controllers.Live.index
 GET     /live/socket                    controllers.Live.socket
+GET     /live                           controllers.Live.index(search ?= "")
+GET     /live/*search                   controllers.Live.index(search)
+
 
 # Admin page
 GET     /admin/                         controllers.Admin.index

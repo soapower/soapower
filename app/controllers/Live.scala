@@ -7,8 +7,8 @@ import play.Logger
 
 object Live extends Controller {
 
-  def index = Action { implicit request =>
-    Ok(views.html.live.index())
+  def index(search :String = "") = Action { implicit request =>
+    Ok(views.html.live.index(search))
   }
 
   /**
