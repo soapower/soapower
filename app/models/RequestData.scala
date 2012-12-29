@@ -374,7 +374,7 @@ object RequestData {
   /**
    * Load reponse times for given parameters
    */
-  def findResponseTimes(environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String): List[(Long, String, Date, Long)] = {
+  def findResponseTimes(environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, statsOnly: Boolean): List[(Long, String, Date, Long)] = {
 
     var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
     if (status != "all") whereClause += " and status = {status}"
@@ -387,8 +387,12 @@ object RequestData {
       'maxDate -> maxDate,
       'soapAction -> soapAction)
 
-    val sql = "select environmentId, soapAction, startTime, timeInMillis from request_data " +
-      whereClause + " order by request_data.id asc"
+    var sql = "select environmentId, soapAction, startTime, timeInMillis from request_data " + whereClause
+
+    if (statsOnly) {
+      sql  += " and isStats = true "
+    }
+    sql += " order by request_data.id asc"
 
     DB.withConnection { implicit connection =>
       // explainPlan(sql, params: _*)

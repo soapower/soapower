@@ -1,4 +1,4 @@
-@(environment: String, soapAction: String, minDate: String, maxDate : String, status: String, environments : Seq[(String, String)], soapActions:Seq[(String, String)], statusList: Seq[(String, String)])
+@(environment: String, soapAction: String, minDate: String, maxDate : String, status: String, environments : Seq[(String, String)], soapActions:Seq[(String, String)], statusList: Seq[(String, String)], isStatsOnly : Boolean)
 
 @import helper._
 
@@ -7,6 +7,10 @@
 @main {
 
  @criterias(minDate, maxDate, environment, soapAction, status, environments, soapActions, statusList)
+
+  <label class="checkbox">
+    <input id="isStatsOnly" name="isStatsOnly" type="checkbox" @if(isStatsOnly) { checked }> Stats Only
+  </label>
 
   <div id="container">
   </div>

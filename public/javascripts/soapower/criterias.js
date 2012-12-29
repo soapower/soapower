@@ -17,6 +17,12 @@ function initCriterias(action) {
         document.location.href=makeUrl(action);
     });
 
+    if ($('#isStatsOnly').length > 0) {
+        $('#isStatsOnly').change(function() {
+            document.location.href=makeUrl(action);
+        });
+    }
+
     $("#from").datepicker({
         dateFormat: "yy-mm-dd",
         changeMonth: true,
@@ -43,6 +49,7 @@ function storeLocalStorage() {
     initValToStore('statusSelect', "all");
     initValToStore('from', "yesterday", true);
     initValToStore('to', "today", true);
+    initValToStore('isStatsOnly', "true")
 }
 
 function initValToStore(key, defaultValue, isDate) {
@@ -94,12 +101,22 @@ function initDayToUrl(val, defaultValue) {
     return dayInit;
 }
 
-
 function makeUrl(action) {
     storeLocalStorage();
+    var isStatsOnly = ""
+    if (action == "analysis") {
+        isStatsOnly =  "true/"
+        if ($('#isStatsOnly').length > 0 ) { // is we are on analysis page
+            if ( $('input:checkbox[name=isStatsOnly]:checked') && $('input:checkbox[name=isStatsOnly]:checked').val() == "on") {
+                isStatsOnly =  "true/"
+            } else {
+                isStatsOnly =  "false/"
+            }
+        }
+    }
     return "/"+ action +"/" + localStorage['environmentSelect']
         + "/"+ localStorage['soapActionSelect']
         + "/"+ localStorage['from']
         + "/"+ localStorage['to']
-        + "/" + localStorage['statusSelect'] + "/";
+        + "/" + localStorage['statusSelect'] + "/" + isStatsOnly;
 }
