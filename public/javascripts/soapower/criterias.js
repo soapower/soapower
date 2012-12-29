@@ -20,7 +20,7 @@ function initCriterias(action) {
     $("#from").datepicker({
         dateFormat: "yy-mm-dd",
         changeMonth: true,
-        numberOfMonths: 3,
+        numberOfMonths: 1,
         onClose: function (selectedDate) {
             $("#to").datepicker("option", "minDate", selectedDate);
         }
@@ -28,7 +28,7 @@ function initCriterias(action) {
     $("#to").datepicker({
         dateFormat: "yy-mm-dd",
         changeMonth: true,
-        numberOfMonths: 3,
+        numberOfMonths: 1,
         onClose: function (selectedDate) {
             $("#from").datepicker("option", "maxDate", selectedDate);
         }
