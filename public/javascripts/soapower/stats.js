@@ -22,6 +22,13 @@ function createTable() {
     "bServerSide": true,
     "bDeferRender": true,
     "sAjaxSource": "listDataTable",
+    "bStateSave": true,
+    "fnStateSave": function (oSettings, oData) {
+      localStorage.setItem( 'DataTables_'+window.location.pathname, JSON.stringify(oData) );
+    },
+    "fnStateLoad": function (oSettings) {
+      return JSON.parse( localStorage.getItem('DataTables_'+window.location.pathname) );
+    },
     "fnDrawCallback": function( oSettings ) {
     	$('#datas tr').each(function() {
     		var responseTime = parseInt($(this).children('td:nth-child(2)').text(), 10);

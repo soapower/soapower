@@ -4,16 +4,13 @@ var socket = null;
 
 $(document).ready(function() {
     startWS();
-
     createTable();
     initCriterias("search");
     btnActions();
-
 });
 
 var receiveEvent = function(event) {
     var data = JSON.parse(event.data)
-    console.log("RECEIVE Data:" + data.message)
 
     // Handle errors
     if(data.error) {
@@ -69,12 +66,21 @@ function createTable() {
         "bProcessing": true,
         "bServerSide": false,
         "bDeferRender": true,
+        "bStateSave": true,
+        "fnStateSave": function (oSettings, oData) {
+            localStorage.setItem( 'DataTables_'+window.location.pathname, JSON.stringify(oData) );
+        },
+        "fnStateLoad": function (oSettings) {
+            return JSON.parse( localStorage.getItem('DataTables_'+window.location.pathname) );
+        },
         "fnDrawCallback": function( oSettings ) {
             $('#datas td:nth-child(7), #datas td:nth-child(8), #datas td:nth-child(9)').addClass('narrow')
             $('.popSoapAction').tooltip()
             prepareRequestsReplays();
         }
     } );
+
+    $('#datas').dataTable().fnFilter($('#search').val());
 };
 
 function prepareRequestsReplays() {
