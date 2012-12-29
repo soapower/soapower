@@ -72,10 +72,13 @@ object Service {
    * Retrieve a Service from id.
    */
   def findById(id: Long): Option[Service] = {
-    DB.withConnection {
-      implicit connection =>
-        SQL("select * from service where id = {id}").on(
-          'id -> id).as(Service.simple.singleOpt)
+    Cache.getOrElse[Option[Service]](cacheKey + id) {
+      Logger.debug("Service " + id + " not found in cache: loading from db")
+      DB.withConnection {
+        implicit connection =>
+          SQL("select * from service where id = {id}").on(
+            'id -> id).as(Service.simple.singleOpt)
+      }
     }
   }
 

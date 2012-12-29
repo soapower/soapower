@@ -17,8 +17,7 @@ case class RequestData(
   sender: String,
   var soapAction: String,
   environmentId: Long,
-  localTarget: String,
-  remoteTarget: String,
+  serviceId: Long,
   request: String,
   requestHeaders: Map[String, String],
   startTime: Date,
@@ -28,8 +27,8 @@ case class RequestData(
   var status: Int,
   var purged: Boolean) {
 
-  def this(sender: String, soapAction: String, environnmentId: Long, localTarget: String, remoteTarget: String, request: String, requestHeaders: Map[String, String]) =
-    this(null, sender, soapAction, environnmentId, localTarget, remoteTarget, request, requestHeaders, new Date, null, null, -1, -1, false)
+  def this(sender: String, soapAction: String, environnmentId: Long, serviceId: Long, request: String, requestHeaders: Map[String, String]) =
+    this(null, sender, soapAction, environnmentId, serviceId, request, requestHeaders, new Date, null, null, -1, -1, false)
 
   /**
    * Add soapAction in cache if neccessary.
@@ -62,14 +61,13 @@ object RequestData {
       str("request_data.sender") ~
       str("request_data.soapAction") ~
       long("request_data.environmentId") ~
-      str("request_data.localTarget") ~
-      str("request_data.remoteTarget") ~
+      long("request_data.serviceId") ~
       get[Date]("request_data.startTime") ~
       long("request_data.timeInMillis") ~
       int("request_data.status") ~
       bool("request_data.purged") map {
-        case id ~ sender ~ soapAction ~ environnmentId ~ localTarget ~ remoteTarget ~ startTime ~ timeInMillis ~ status ~ purged =>
-          RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, null, null, startTime, null, null, timeInMillis, status, purged)
+        case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ startTime ~ timeInMillis ~ status ~ purged =>
+          RequestData(id, sender, soapAction, environnmentId, serviceId, null, null, startTime, null, null, timeInMillis, status, purged)
       }
   }
 
@@ -81,13 +79,12 @@ object RequestData {
       str("request_data.sender") ~
       str("request_data.soapAction") ~
       long("request_data.environmentId") ~
-      str("request_data.localTarget") ~
-      str("request_data.remoteTarget") ~
+      long("request_data.serviceId") ~
       str("request_data.request") ~
       str("request_data.requestHeaders") map {
-        case id ~ sender ~ soapAction ~ environnmentId ~ localTarget ~ remoteTarget ~ request ~ requestHeaders =>
+        case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ request ~ requestHeaders =>
           val headers = headersFromString(requestHeaders)
-          new RequestData(id, sender, soapAction, environnmentId, localTarget, remoteTarget, request, headers, null, null, null, -1, -1, false)
+          new RequestData(id, sender, soapAction, environnmentId, serviceId, request, headers, null, null, null, -1, -1, false)
       }
   }
 
@@ -156,16 +153,15 @@ object RequestData {
           SQL(
             """
             insert into request_data 
-              (id, sender, soapAction, environmentId, localTarget, remoteTarget, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status) values (
+              (id, sender, soapAction, environmentId, serviceId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status) values (
               (select next value for request_data_seq), 
-              {sender}, {soapAction}, {environmentId}, {localTarget}, {remoteTarget}, {request}, {requestHeaders}, {startTime}, {response}, {responseHeaders}, {timeInMillis}, {status}
+              {sender}, {soapAction}, {environmentId}, {serviceId}, {request}, {requestHeaders}, {startTime}, {response}, {responseHeaders}, {timeInMillis}, {status}
             )
             """).on(
               'sender -> requestData.sender,
               'soapAction -> requestData.soapAction,
               'environmentId -> requestData.environmentId,
-              'localTarget -> requestData.localTarget,
-              'remoteTarget -> requestData.remoteTarget,
+              'serviceId -> requestData.serviceId,
               'request -> xmlRequest,
               'requestHeaders -> headersToString(requestData.requestHeaders),
               'startTime -> requestData.startTime,
@@ -214,9 +210,9 @@ object RequestData {
           SQL(
             """
             insert into request_data
-              (id, sender, soapAction, environmentId, localTarget, remoteTarget, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status, isStats) values (
+              (id, sender, soapAction, environmentId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status, isStats) values (
               (select next value for request_data_seq),
-              '', {soapAction}, {environmentId}, '', '', '', '', {startTime}, '', '', {timeInMillis}, 200, true
+              '', {soapAction}, {environmentId}, '', '', {startTime}, '', '', {timeInMillis}, 200, true
             )
             """).on(
             'soapAction -> soapAction,
@@ -263,8 +259,6 @@ object RequestData {
             request = '',
             requestHeaders = '',
             responseHeaders = '',
-            localTarget = '',
-            remoteTarget = '',
             purged = true
             where startTime >= {minDate} and startTime <= {maxDate} and purged = false and isStats = false
         """
@@ -355,8 +349,8 @@ object RequestData {
       implicit connection =>
       /*val requestTimeInMillis = System.currentTimeMillis */
         val requests = SQL(
-          "select id, sender, soapAction, environmentId, localTarget, " +
-            "remoteTarget, startTime, timeInMillis, status, purged from request_data "
+          "select id, sender, soapAction, environmentId, serviceId, " +
+            " startTime, timeInMillis, status, purged from request_data "
             + whereClause +
             " order by request_data.id " +
             " desc limit {pageSize} offset {offset}").on(params: _*).as(RequestData.simple *)
@@ -470,7 +464,7 @@ object RequestData {
 
   def load(id: Long): RequestData = {
     DB.withConnection { implicit connection =>
-      SQL("select id, sender, soapAction, environmentId, localTarget, remoteTarget, request, requestHeaders from request_data where id= {id}")
+      SQL("select id, sender, soapAction, environmentId, serviceId, request, requestHeaders from request_data where id= {id}")
         .on('id -> id).as(RequestData.forReplay.single)
     }
   }
@@ -557,7 +551,12 @@ object RequestData {
     }
 
     private def soapAction(o: RequestData): String = {
-      "<a class='popSoapAction' href='#' rel='tooltip' title='Local: " + o.localTarget + " Remote: " + o.remoteTarget + "'>" + o.soapAction + "</a>"
+      if (o.serviceId > 0) {
+        val s = Service.findById(o.serviceId).get
+        "<a class='popSoapAction' href='#' rel='tooltip' title='Local: " + s.localTarget + " Remote: " + s.remoteTarget + "'>" + o.soapAction + "</a>"
+      } else {
+        o.soapAction
+      }
     }
   }
 

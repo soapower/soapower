@@ -20,7 +20,7 @@ import play.api.libs.json.Json
 
 class Client(service: Service, sender: String, content: String, headers: Map[String, String]) {
 
-  val requestData = new RequestData(sender, extractSoapAction(headers), service.environmentId, service.localTarget, service.remoteTarget, content, headers)
+  val requestData = new RequestData(sender, extractSoapAction(headers), service.environmentId, service.id.get, content, headers)
   var response: ClientResponse = null
 
   private var futureResponse: Future[Response] = null

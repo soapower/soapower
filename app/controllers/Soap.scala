@@ -37,7 +37,14 @@ object Soap extends Controller {
       val content = requestData.request
       val headers = requestData.requestHeaders
       val environmentName = environmentTuple.get._2
-      forwardRequest(environmentName, requestData.localTarget, sender, content, headers)
+      if (requestData.serviceId > 0) {
+        val service = Service.findById(requestData.serviceId).get
+        forwardRequest(environmentName, service.localTarget, sender, content, headers)
+      } else {
+        val err = "service with id " + requestData.serviceId + " unknown"
+        Logger.error(err)
+        BadRequest(err)
+      }
     }
   }
 
