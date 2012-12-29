@@ -535,7 +535,7 @@ object RequestData {
           "1" -> JsString(Environment.options.find(t => t._1 == o.environmentId.toString).get._2),
           "2" -> JsString(o.sender),
           "3" -> JsString(soapAction(o)),
-          "4" -> JsString(o.startTime.toString),
+          "4" -> JsString(UtilDate.getDateFormatees(o.startTime)),
           "5" -> JsString(o.timeInMillis.toString),
           "6" -> JsString(requestDownloadLinks),
           "7" -> JsString(responseDownloadLinks),

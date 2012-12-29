@@ -8,6 +8,8 @@ object UtilDate {
   val v23h59min59s = ((24 * 60 * 60) - 1) * 1000
   val v1d = 24 * 60 * 60 * 1000
   val pattern = "today-([0-9]+)".r
+  //val longFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+  val defaultGCal = new GregorianCalendar()
 
   def getDate(sDate: String, addInMillis: Long = 0): GregorianCalendar = {
     val gCal = new GregorianCalendar()
@@ -30,6 +32,18 @@ object UtilDate {
     var rDate = gCal.get(Calendar.YEAR) + "-"
     rDate += addZero(gCal.get(Calendar.MONTH) + 1) + "-"
     rDate += addZero(gCal.get(Calendar.DATE)) + ""
+    rDate
+  }
+
+  def getDateFormatees(date: Date): String = {
+    defaultGCal.setTime(date).toString
+    var rDate = defaultGCal.get(Calendar.YEAR) + "-"
+    rDate += addZero(defaultGCal.get(Calendar.MONTH) + 1) + "-"
+    rDate += addZero(defaultGCal.get(Calendar.DATE)) + " "
+    rDate += addZero(defaultGCal.get(Calendar.HOUR_OF_DAY)) + ":"
+    rDate += addZero(defaultGCal.get(Calendar.MINUTE)) + ":"
+    rDate += addZero(defaultGCal.get(Calendar.SECOND)) + "."
+    rDate += addZero(defaultGCal.get(Calendar.MILLISECOND))
     rDate
   }
 
