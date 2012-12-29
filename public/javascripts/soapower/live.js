@@ -1,36 +1,59 @@
 
+// Global var
+var socket = null;
+
 $(document).ready(function() {
-    var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
-    var socket = new WS($('#urlWS').val())
-
-    var receiveEvent = function(event) {
-        var data = JSON.parse(event.data)
-
-        // Handle errors
-        if(data.error) {
-            socket.close()
-            $("#onError span").text(data.error)
-            $("#onError").show()
-            return
-        } else {
-            $("#onChat").show()
-        }
-
-        console.log("Valeur : " + data.message["0"]);
-
-        if (data.kind == "talkRequestData") {
-            $('#datas').dataTable().fnAddData( [ data.message["0"] ] );
-        }
-        $('#nbConnected').html($(data.members).size() - 1) // substract Robot
-
-    }
-
-    socket.onmessage = receiveEvent
+    startWS();
 
     createTable();
     initCriterias("search");
+    btnActions();
 
 });
+
+var receiveEvent = function(event) {
+    var data = JSON.parse(event.data)
+    console.log("RECEIVE Data:" + data.message)
+
+    // Handle errors
+    if(data.error) {
+        socket.close()
+        $("#onError span").text(data.error)
+        $("#onError").show()
+        return
+    }
+
+    if (data.kind == "talkRequestData") {
+        $('#datas').dataTable().fnAddData( [ data.message["0"] ] );
+    }
+    $('#nbConnected').html($(data.members).size() - 1) // substract Robot
+
+}
+
+function stopWS() {
+    socket.close();
+    console.log("Websocket closed")
+    $('.liveOnAir').hide();
+    $('.liveOff').show();
+}
+
+function startWS() {
+    var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
+    socket = new WS($('#urlWS').val())
+    console.log("Websocket started")
+    socket.onmessage = receiveEvent
+    $('.liveOnAir').show();
+    $('.liveOff').hide();
+}
+
+function btnActions() {
+    $('#btnStop').click(function() {
+        stopWS();
+    });
+    $('#btnStart').click(function() {
+        startWS();
+    });
+}
 
 function createTable() {
     $('#datas').dataTable( {

@@ -101,7 +101,7 @@ object LiveRoom {
 class LiveRoom extends Actor {
 
   var members = Set.empty[String]
-  val (chatEnumerator, channel) = Concurrent.broadcast[JsValue]
+  val (liveEnumerator, channel) = Concurrent.broadcast[JsValue]
 
   def receive = {
 
@@ -110,7 +110,7 @@ class LiveRoom extends Actor {
         sender ! CannotConnect("You have already a navigator on this page !")
       } else {
         members = members + username
-        sender ! Connected(chatEnumerator)
+        sender ! Connected(liveEnumerator)
         self ! NotifyJoin(username)
       }
     }

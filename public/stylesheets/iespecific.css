@@ -2,6 +2,9 @@
     display:block!important;
     background-image:url('/assets/images/nomoreie.png');
     background-repeat:no-repeat;
-    height:80px;
-    text-align: right;
+    height:2000px;
+    text-align: center;
+    position:absolute;
+    width:100%;
+    z-index:1000
 }
