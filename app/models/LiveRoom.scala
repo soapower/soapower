@@ -85,9 +85,7 @@ object LiveRoom {
         (iteratee,enumerator)
 
       case CannotConnect(error) =>
-
         // Connection error
-
         // A finished Iteratee sending EOF
         val iteratee = Done[JsValue,Unit]((),Input.EOF)
 
@@ -102,19 +100,18 @@ object LiveRoom {
 
 class LiveRoom extends Actor {
 
-  var members = Map.empty[String, PushEnumerator[JsValue]]
+  var members = Set.empty[String]
+  val (chatEnumerator, channel) = Concurrent.broadcast[JsValue]
 
   def receive = {
 
     case Join(username) => {
-      // Create an Enumerator to write to this socket
-      val channel =  Enumerator.imperative[JsValue]( onStart = () => self ! NotifyJoin(username))
       if(members.contains(username)) {
         sender ! CannotConnect("You have already a navigator on this page !")
       } else {
-        members = members + (username -> channel)
-
-        sender ! Connected(channel)
+        members = members + username
+        sender ! Connected(chatEnumerator)
+        self ! NotifyJoin(username)
       }
     }
 
@@ -132,7 +129,7 @@ class LiveRoom extends Actor {
 
     case Quit(username) => {
       members = members - username
-      notifyAll("quit", username, "has leaved the room")
+      notifyAll("quit", username, "has left the room")
     }
 
   }
@@ -144,13 +141,11 @@ class LiveRoom extends Actor {
         "user" -> JsString(user),
         "message" -> JsArray(Seq(Json.toJson(requestData))),
         "members" -> JsArray(
-          members.keySet.toList.map(JsString)
+          members.toList.map(JsString)
         )
       )
     )
-    members.foreach {
-      case (_, channel) => channel.push(msg)
-    }
+    channel.push(msg)
   }
 
   def notifyAll(kind: String, user: String, text: String) {
@@ -160,13 +155,11 @@ class LiveRoom extends Actor {
         "user" -> JsString(user),
         "message" -> JsString(text),
         "members" -> JsArray(
-          members.keySet.toList.map(JsString)
+          members.toList.map(JsString)
         )
       )
     )
-    members.foreach {
-      case (_, channel) => channel.push(msg)
-    }
+    channel.push(msg)
   }
 
 }
