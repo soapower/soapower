@@ -236,8 +236,8 @@ object Environment {
           """
           select * from environment
           where environment.name like {filter}
-          order by {orderBy} nulls last
-          limit {pageSize} offset {offset}
+          order by {orderBy}
+          limit {offset}, {pageSize}
           """).on(
             'pageSize -> pageSize,
             'offset -> offest,

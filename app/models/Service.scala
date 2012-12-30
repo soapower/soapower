@@ -250,8 +250,8 @@ object Service {
           select * from service
           left join environment on service.environment_id = environment.id
           where service.description like {filter}
-          order by {orderBy} nulls last
-          limit {pageSize} offset {offset}
+          order by {orderBy}
+          limit {offset}, {pageSize}
           """).on(
             'pageSize -> pageSize,
             'offset -> offest,
