@@ -125,8 +125,7 @@ object Environment {
         SQL(
           """
             insert into environment values (
-              (select next value for environment_seq), 
-              {name}, {hourRecordXmlDataMin},
+              null, {name}, {hourRecordXmlDataMin},
               {hourRecordXmlDataMax}, {nbDayKeepXmlData}, {nbDayKeepAllData}
             )
           """).on(

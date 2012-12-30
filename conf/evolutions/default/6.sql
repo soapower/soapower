@@ -1,4 +1,3 @@
-
 # --- !Ups
 
 alter table request_data add column requestHeaders varchar(2000) null;

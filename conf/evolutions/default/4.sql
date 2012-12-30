@@ -1,4 +1,3 @@
-
 # --- !Ups
 
 alter table service drop column user;

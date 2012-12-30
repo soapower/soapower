@@ -130,8 +130,7 @@ object Service {
           SQL(
             """
             insert into service 
-              (id, description, localTarget, remoteTarget, timeoutms, environment_id) values (
-              (select next value for service_seq), 
+              (description, localTarget, remoteTarget, timeoutms, environment_id) values (
               {description}, {localTarget}, {remoteTarget}, {timeoutms}, {environment_id}
             )
             """).on(

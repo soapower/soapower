@@ -1,25 +1,19 @@
-# --- First database schema
-
 # --- !Ups
 
-set ignorecase true;
-
 create table request_data (
-  id                        bigint not null,
+  id                        int not null auto_increment,
   sender                    varchar(255) not null,
   soapAction                varchar(255) not null,
-  environmentId             bigint not null,
+  environmentId             int not null,
   localTarget               varchar(255) not null,
   remoteTarget              varchar(255) not null,
-  request                   clob not null,
+  request                   LONGTEXT not null,
   startTime                 timestamp not null,
-  response                  clob null,
-  timeInMillis              long null,
+  response                  LONGTEXT null,
+  timeInMillis              int null,
   status                    int(3) null,
-  constraint pk_request_data primary key (id))
+  constraint pk_request_data primary key (id)) ENGINE=InnoDB
 ;
-
-create sequence request_data_seq start with 1000;
 
 create index idx_request_data_1 on request_data (id);
 create index idx_request_data_2 on request_data (localTarget, remoteTarget, startTime);
@@ -27,11 +21,6 @@ create index idx_request_data_2 on request_data (localTarget, remoteTarget, star
 
 # --- !Downs
 
-SET REFERENTIAL_INTEGRITY FALSE;
-
-drop table if exists request_data;
-
-SET REFERENTIAL_INTEGRITY TRUE;
-
-drop sequence if exists request_data_seq;
+drop table request_data;
+drop sequence request_data_seq;
 

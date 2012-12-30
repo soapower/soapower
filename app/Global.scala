@@ -1,11 +1,6 @@
-import java.util.{ GregorianCalendar, Date }
-import models.{LiveRoom, UtilDate, Environment, RequestData}
-import org.apache.http.protocol.RequestDate
+import models.{LiveRoom, Environment}
 import play.api._
 
-import play.api.libs.concurrent._
-
-import akka.actor._
 import scala.concurrent.duration._
 import play.api.libs.concurrent._
 
@@ -21,11 +16,11 @@ object Global extends GlobalSettings {
 
     // initialDelay: Duration : 10 minutes
     // frequency: Duration : 10 hours
-    Akka.system.scheduler.schedule(10 minutes, 10 hours) {
+    /*Akka.system.scheduler.schedule(10 minutes, 10 hours) {
       Environment.compileStats()
       Environment.purgeXmlData()
       Environment.purgeAllData()
-    }
+    }*/
   }
 
   override def onStop(app: Application) {

@@ -153,8 +153,7 @@ object RequestData {
           SQL(
             """
             insert into request_data 
-              (id, sender, soapAction, environmentId, serviceId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status) values (
-              (select next value for request_data_seq), 
+              (sender, soapAction, environmentId, serviceId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status) values (
               {sender}, {soapAction}, {environmentId}, {serviceId}, {request}, {requestHeaders}, {startTime}, {response}, {responseHeaders}, {timeInMillis}, {status}
             )
             """).on(
@@ -210,8 +209,7 @@ object RequestData {
           SQL(
             """
             insert into request_data
-              (id, sender, soapAction, environmentId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status, isStats) values (
-              (select next value for request_data_seq),
+              (sender, soapAction, environmentId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status, isStats) values (
               '', {soapAction}, {environmentId}, '', '', {startTime}, '', '', {timeInMillis}, 200, true
             )
             """).on(
@@ -347,19 +345,19 @@ object RequestData {
 
     DB.withConnection {
       implicit connection =>
-      /*val requestTimeInMillis = System.currentTimeMillis */
+      val requestTimeInMillis = System.currentTimeMillis
         val requests = SQL(
           "select id, sender, soapAction, environmentId, serviceId, " +
             " startTime, timeInMillis, status, purged from request_data "
             + whereClause +
             " order by request_data.id " +
             " desc limit {pageSize} offset {offset}").on(params: _*).as(RequestData.simple *)
-        /*val middle = System.currentTimeMillis
-          Logger.debug("Middle : "+ (System.currentTimeMillis - requestTimeInMillis))*/
+        val middle = System.currentTimeMillis
+          Logger.debug("Middle : "+ (System.currentTimeMillis - requestTimeInMillis))
 
         val totalRows = SQL(
           "select count(id) from request_data " + whereClause).on(params: _*).as(scalar[Long].single)
-        //Logger.debug("End : "+ (System.currentTimeMillis - middle))
+        Logger.debug("End : "+ (System.currentTimeMillis - middle))
 
         Page(requests, -1, offset, totalRows)
     }

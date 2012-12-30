@@ -1,7 +1,6 @@
-
 # --- !Ups
 
-alter table service add column timeoutms bigint;
+alter table service add column timeoutms int;
 update service set timeoutms = 30000;
 
 alter table service add column user varchar(255) null;

@@ -56,7 +56,7 @@ object SoapAction {
         SQL(
           """
             insert into soapaction values (
-              (select next value for soapaction_seq), 
+              null,
               {name},
               {thresholdms}
             )
