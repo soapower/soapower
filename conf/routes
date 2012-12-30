@@ -16,6 +16,7 @@ GET     /admin/                         controllers.Admin.index
 POST    /admin/deleteAll                controllers.Admin.deleteAllRequestData
 POST    /admin/delete                   controllers.Admin.delete
 POST    /admin/downloadConfiguration    controllers.Admin.downloadConfiguration
+POST    /admin/downloadRequestDataStatsEntries controllers.Admin.downloadRequestDataStatsEntries
 POST    /admin/uploadConfiguration      controllers.Admin.uploadConfiguration
 
 # Search page
