@@ -20,9 +20,36 @@ object SoapAction {
     get[Pk[Long]]("soapaction.id") ~
     get[String]("soapaction.name") ~
     get[Long]("soapaction.thresholdms") map {
-    case id ~ name ~ thresholdms =>
+      case id ~ name ~ thresholdms =>
         SoapAction(id, name, thresholdms)
     }
+  }
+
+  /**
+   * Title of csvFile. The value is the order of title.
+   */
+  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "thresholdms" -> 3)
+
+  val csvKey = "soapaction";
+
+  /**
+   * Csv format.
+   */
+  val csv = {
+    get[Pk[Long]]("soapaction.id") ~
+    get[String]("soapaction.name") ~
+    get[Long]("soapaction.thresholdms") map {
+      case id ~ name ~ thresholdms =>
+        id + ";" + name + ";" + thresholdms + "\n"
+    }
+  }
+
+  /**
+   * Get All soapActions, csv format.
+   * @return List of SoapActions, csv format
+   */
+  def fetchCsv(): List[String] = DB.withConnection {
+    implicit c => SQL("select * from soapaction").as(SoapAction.csv *)
   }
 
   /**
@@ -48,7 +75,7 @@ object SoapAction {
 	/**
 	* Insert a new SoapAction.
 	*
-	* @param SoapAction The SoapAction values.
+	* @param soapAction The SoapAction values.
 	*/
   def insert(soapAction: SoapAction) = {
     DB.withConnection {
@@ -70,7 +97,7 @@ object SoapAction {
    * Update a SoapAction : update only threshold
    *
    * @param id The SoapAction id
-   * @param SoapAction The SoapAction values.
+   * @param soapAction The SoapAction values.
    */
   def update(id: Long, soapAction: SoapAction) = {
     DB.withConnection {
@@ -128,6 +155,52 @@ object SoapAction {
   def loadAll(): List[SoapAction] = {
     DB.withConnection { implicit connection =>
         SQL("select * from soapaction").as(SoapAction.simple *)
+    }
+  }
+
+  /**
+   * Upload a csvLine => insert soapAction.
+   *
+   * @param csvLine line in csv file
+   * @return nothing
+   */
+  def upload(csvLine: String) = {
+
+    val dataCsv = csvLine.split(";")
+
+    if (dataCsv.size != csvTitle.size)
+      throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
+
+    if (dataCsv(csvTitle.get("key").get) == csvKey) {
+      uploadSoapAction(dataCsv)
+    } else {
+      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
+    }
+  }
+
+  /**
+   * Check if soapAction already exist (with same name). Insert or do nothing if exist.
+   *
+   * @param dataCsv line in csv file
+   * @return soapAction (new or not)
+   */
+  private def uploadSoapAction(dataCsv: Array[String]) = {
+
+    val name = dataCsv(csvTitle.get("name").get)
+    val s = findByName(name)
+
+    s.map {
+      soapAction =>
+        Logger.warn("SoapAction " + soapAction.name + " already exist")
+        throw new Exception("Warning : SoapAction " + soapAction.name + " already exist")
+    }.getOrElse {
+
+      val soapAction = new SoapAction(
+        NotAssigned,
+        dataCsv(csvTitle.get("name").get).trim,
+        dataCsv(csvTitle.get("thresholdms").get).toInt)
+      SoapAction.insert(soapAction)
+      Logger.info("Insert SoapAction " + soapAction.name)
     }
   }
 

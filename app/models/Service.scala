@@ -26,20 +26,22 @@ object Service {
    */
   val simple = {
     get[Pk[Long]]("service.id") ~
-      get[String]("service.description") ~
-      get[String]("service.localTarget") ~
-      get[String]("service.remoteTarget") ~
-      get[Long]("service.timeoutms") ~
-      get[Long]("service.environment_id") map {
-        case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ environmentId =>
-          Service(id, description, localTarget, remoteTarget, timeoutms, environmentId)
-      }
+    get[String]("service.description") ~
+    get[String]("service.localTarget") ~
+    get[String]("service.remoteTarget") ~
+    get[Long]("service.timeoutms") ~
+    get[Long]("service.environment_id") map {
+      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ environmentId =>
+        Service(id, description, localTarget, remoteTarget, timeoutms, environmentId)
+    }
   }
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("id" -> 0, "description" -> 1, "localTarget" -> 2, "remoteTarget" -> 3, "timeoutms" -> 4, "environmentName" -> 5)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "description" -> 2, "localTarget" -> 3, "remoteTarget" -> 4, "timeoutms" -> 5, "environmentName" -> 6)
+
+  val csvKey = "service";
 
   /**
    * Csv format.
@@ -283,11 +285,11 @@ object Service {
     if (dataCsv.size != csvTitle.size)
       throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
 
-    if (dataCsv(csvTitle.get("id").get) != "id") {
+    if (dataCsv(csvTitle.get("key").get) == csvKey) {
       val environment = uploadEnvironment(dataCsv)
       uploadService(dataCsv, environment)
     } else {
-      Logger.info("First line of csvLine - ignored")
+      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
     }
   }
 
@@ -305,6 +307,7 @@ object Service {
 
     s.map {
       service =>
+        Logger.warn("Service " + environment.name + "/" + localTarget + " already exist")
         throw new Exception("Warning : Service " + environment.name + "/" + localTarget + " already exist")
     }.getOrElse {
 
