@@ -46,6 +46,8 @@ object Admin extends Controller {
                   Environment.upload(line)
                 } else if (line.startsWith(SoapAction.csvKey)) {
                   SoapAction.upload(line)
+                } else if (line.startsWith(RequestData.csvKey)) {
+                  RequestData.upload(line)
                 }
 
               } catch {
@@ -87,6 +89,23 @@ object Admin extends Controller {
       header = ResponseHeader(play.api.http.Status.OK),
       body = fileContent
     ).withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=configuration.csv")).as(BINARY)
+  }
+
+  def downloadRequestDataStatsEntries = Action {
+    // Title
+    var content = "#for key " + RequestData.csvKey + "\n"
+    RequestData.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
+    content = content.dropRight(1) + "\n" // delete last ; and add new line
+
+    // data
+    RequestData.fetchCsv().foreach { s => content += RequestData.csvKey + ";" + s }
+
+    // result as a file
+    val fileContent: Enumerator[String] = Enumerator(content)
+    SimpleResult(
+      header = ResponseHeader(play.api.http.Status.OK),
+      body = fileContent
+    ).withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=requestDataStatsEntries.csv")).as(BINARY)
   }
 
   def deleteAllRequestData = Action {

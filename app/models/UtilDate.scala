@@ -8,7 +8,7 @@ object UtilDate {
   val v23h59min59s = ((24 * 60 * 60) - 1) * 1000
   val v1d = 24 * 60 * 60 * 1000
   val pattern = "today-([0-9]+)".r
-  //val longFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+  val longFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
   val defaultGCal = new GregorianCalendar()
 
   def getDate(sDate: String, addInMillis: Long = 0): GregorianCalendar = {
@@ -45,6 +45,10 @@ object UtilDate {
     rDate += addZero(defaultGCal.get(Calendar.SECOND)) + "."
     rDate += addZero(defaultGCal.get(Calendar.MILLISECOND))
     rDate
+  }
+
+  def parse(date : String): Date = {
+    longFormat.parse(date)
   }
 
   def addZero(f: Int): String = {

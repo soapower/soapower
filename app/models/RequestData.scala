@@ -72,6 +72,37 @@ object RequestData {
   }
 
   /**
+   * Title of csvFile. The value is the order of title.
+   */
+  val csvTitle = Map("key" -> 0, "id" -> 1, "soapAction" -> 2, "startTime" -> 3, "timeInMillis" -> 4, "environmentName" -> 5)
+
+  val csvKey = "requestDataStat";
+
+  /**
+   * Csv format.
+   */
+  val csv = {
+    get[Pk[Long]]("request_data.id") ~
+      get[String]("request_data.soapAction") ~
+      get[Date]("request_data.startTime") ~
+      get[Long]("request_data.timeInMillis") ~
+      get[String]("environment.name") map {
+      case id ~ soapAction ~ startTime ~ timeInMillis ~ environmentName =>
+        id + ";" + soapAction + ";" + startTime + ";" + timeInMillis + ";" + environmentName + "\n"
+    }
+  }
+
+  /**
+   * Get All RequestData, csv format.
+   * @return List of RequestData, csv format
+   */
+  def fetchCsv(): List[String] = DB.withConnection {
+    implicit c => SQL("select * " +
+      " from request_data left join environment on environmentId = environment.id " +
+      " where isStats = true ").as(RequestData.csv. *)
+  }
+
+  /**
    * Parse required parts of a RequestData from a ResultSet in order to replay the request
    */
   val forReplay = {
@@ -565,4 +596,32 @@ object RequestData {
     }
   }
 
+  /**
+   * Upload a csvLine => insert requestDataStat.
+   *
+   * @param csvLine line in csv file
+   * @return nothing
+   */
+  def upload(csvLine: String) = {
+
+    val dataCsv = csvLine.split(";")
+
+    if (dataCsv.size != csvTitle.size)
+      throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
+
+    if (dataCsv(csvTitle.get("key").get) != csvKey) {
+      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
+    } else {
+      val environmentName = dataCsv(csvTitle.get("environmentName").get).trim
+      val e = Environment.findByName(environmentName)
+
+      e.map {
+        environment =>
+          insertStats(environment.id.get, dataCsv(csvTitle.get("soapAction").get).trim, UtilDate.parse(dataCsv(csvTitle.get("startTime").get).trim), dataCsv(csvTitle.get("timeInMillis").get).toLong)
+      }.getOrElse {
+        Logger.warn("Warning : Environment " + environmentName + " unknown")
+        throw new Exception("Warning : Environment " + environmentName + " already exist")
+      }
+    }
+  }
 }

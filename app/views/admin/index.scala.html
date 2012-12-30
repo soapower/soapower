@@ -22,6 +22,9 @@
     @form(routes.Admin.downloadConfiguration()) {
         <input type="submit" value="Download configuration as csv File" class="btn">
     }
+    @form(routes.Admin.downloadRequestDataStatsEntries()) {
+        <input type="submit" value="Download RequestData Stat Entries as csv File" class="btn">
+    }
     <hr>
 
     <h4>Upload Configuration</h4>
@@ -33,6 +36,7 @@
                 <li>A service is identified by localTarget and EnvironmentName. If the service already exist in db, it will be ignored (no update)</li>
                 <li>A environment is identified by his name, if an environment exist in db, it will be ignored</li>
                 <li>IDs in csv file uploaded are ignored</li>
+                <li>You can upload a RequestData Stats File</li>
             </ul>
         </div>
 
