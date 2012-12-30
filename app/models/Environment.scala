@@ -31,14 +31,45 @@ object Environment {
    */
   val simple = {
     get[Pk[Long]]("id") ~
-      get[String]("name") ~
-      get[Int]("hourRecordXmlDataMin") ~
-      get[Int]("hourRecordXmlDataMax") ~
-      get[Int]("nbDayKeepXmlData") ~
-      get[Int]("nbDayKeepAllData") map {
+    get[String]("name") ~
+    get[Int]("hourRecordXmlDataMin") ~
+    get[Int]("hourRecordXmlDataMax") ~
+    get[Int]("nbDayKeepXmlData") ~
+    get[Int]("nbDayKeepAllData") map {
         case id ~ name ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData
           => Environment(id, name, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData, nbDayKeepAllData)
       }
+  }
+
+  /**
+   * Title of csvFile. The value is the order of title.
+   */
+  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "hourRecordXmlDataMin" -> 3, "hourRecordXmlDataMax" -> 4, "nbDayKeepXmlData" -> 5, "nbDayKeepAllData" -> 6)
+
+  val csvKey = "environment";
+
+  /**
+   * Csv format.
+   */
+  val csv = {
+    get[Pk[Long]]("id") ~
+    get[String]("name") ~
+    get[Int]("hourRecordXmlDataMin") ~
+    get[Int]("hourRecordXmlDataMax") ~
+    get[Int]("nbDayKeepXmlData") ~
+    get[Int]("nbDayKeepAllData") map {
+      case id ~ name ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData =>
+        id + ";" + name + ";" + hourRecordXmlDataMin + ";" + hourRecordXmlDataMax + ";" + nbDayKeepXmlData + ";" + nbDayKeepAllData + "\n"
+    }
+  }
+
+
+  /**
+   * Get All environements, csv format.
+   * @return List of Environements, csv format
+   */
+  def fetchCsv(): List[String] = DB.withConnection {
+    implicit c => SQL("select * from environment").as(Environment.csv *)
   }
 
   /**
@@ -293,4 +324,54 @@ object Environment {
 
   }
 
+
+  /**
+   * Upload a csvLine => insert environment.
+   *
+   * @param csvLine line in csv file
+   * @return nothing
+   */
+  def upload(csvLine: String) = {
+
+    val dataCsv = csvLine.split(";")
+
+    if (dataCsv.size != csvTitle.size)
+      throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
+
+    if (dataCsv(csvTitle.get("key").get) == csvKey) {
+      uploadEnvironment(dataCsv)
+    } else {
+      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
+    }
+  }
+
+
+  /**
+   * Check if environment already exist (with same name). Insert or do nothing if exist.
+   *
+   * @param dataCsv line in csv file
+   * @return environment (new or not)
+   */
+  private def uploadEnvironment(dataCsv: Array[String]) = {
+
+    val name = dataCsv(csvTitle.get("name").get)
+    val s = findByName(name)
+
+    s.map {
+      environment =>
+        Logger.warn("Warning : Environment " + environment.name + " already exist")
+        throw new Exception("Warning : Environment " + environment.name + " already exist")
+    }.getOrElse {
+
+      val environment = new Environment(
+        NotAssigned,
+        dataCsv(csvTitle.get("name").get).trim,
+        dataCsv(csvTitle.get("hourRecordXmlDataMin").get).toInt,
+        dataCsv(csvTitle.get("hourRecordXmlDataMax").get).toInt,
+        dataCsv(csvTitle.get("nbDayKeepXmlData").get).toInt,
+        dataCsv(csvTitle.get("nbDayKeepAllData").get).toInt)
+      Environment.insert(environment)
+      Logger.info("Insert Environment " + environment.name)
+    }
+  }
 }

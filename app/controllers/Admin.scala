@@ -33,14 +33,21 @@ object Admin extends Controller {
 
   def uploadConfiguration = Action(parse.multipartFormData) {
     request =>
-      request.body.file("services").map {
-        services =>
+      request.body.file("fileUploaded").map {
+        fileUploaded =>
           import scala.io._
           var err = ""
-          Source.fromFile(services.ref.file).getLines().foreach {
+          Source.fromFile(fileUploaded.ref.file).getLines().foreach {
             line =>
               try {
-                Service.upload(line)
+                if (line.startsWith(Service.csvKey)) {
+                  Service.upload(line)
+                } else if (line.startsWith(Environment.csvKey)) {
+                  Environment.upload(line)
+                } else if (line.startsWith(SoapAction.csvKey)) {
+                  SoapAction.upload(line)
+                }
+
               } catch {
                 case e: Exception => {
                   err += e.getMessage
@@ -48,30 +55,38 @@ object Admin extends Controller {
               }
           }
           if (err.size > 0) {
-            Home.flashing("warning" -> err)
+            Home.flashing("warning" -> "Configuration uploaded partially. See Warn Logs")
           } else {
-            Home.flashing("success" -> "Configuration Upload")
+            Home.flashing("success" -> "Configuration Uploaded")
           }
-
       }.getOrElse {
-        Home.flashing("error" -> "Failed to upload configuration")
+        Home.flashing("warning" -> "Failed to upload configuration")
       }
   }
 
   def downloadConfiguration = Action {
-    var content = ""
-    Service.csvTitle.toList.sortBy(_._2).foreach {
-      case (k, v) => content += k + ";"
-    }
+    // Title
+    var content = "#for key " + Environment.csvKey + "\n"
+    Environment.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
     content = content.dropRight(1) + "\n" // delete last ; and add new line
-    Service.fetchCsv().foreach {
-      s => content += s
-    }
+    content += "#for key " + SoapAction.csvKey + "\n"
+    SoapAction.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
+    content = content.dropRight(1) + "\n"
+    content += "#for key " + Service.csvKey + "\n"
+    Service.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
+    content = content.dropRight(1) + "\n"
+
+    // data
+    Environment.fetchCsv().foreach { s => content += Environment.csvKey + ";" + s }
+    SoapAction.fetchCsv().foreach { s => content += SoapAction.csvKey + ";" + s }
+    Service.fetchCsv().foreach { s => content += Service.csvKey + ";" + s }
+
+    // result as a file
     val fileContent: Enumerator[String] = Enumerator(content)
     SimpleResult(
       header = ResponseHeader(play.api.http.Status.OK),
       body = fileContent
-    ).withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=services.csv")).as(XML)
+    ).withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=configuration.csv")).as(BINARY)
   }
 
   def deleteAllRequestData = Action {

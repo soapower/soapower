@@ -22,7 +22,6 @@
     @form(routes.Admin.downloadConfiguration()) {
         <input type="submit" value="Download configuration as csv File" class="btn">
     }
-
     <hr>
 
     <h4>Upload Configuration</h4>
@@ -38,7 +37,7 @@
         </div>
 
         @form(action = routes.Admin.uploadConfiguration, 'enctype -> "multipart/form-data") {
-        <input type="file" name="services">
+        <input type="file" name="fileUploaded">
         <input type="submit" value="Upload configuration" class="btn">
     }
 
