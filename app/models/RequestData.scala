@@ -65,9 +65,9 @@ object RequestData {
       get[Date]("request_data.startTime") ~
       long("request_data.timeInMillis") ~
       int("request_data.status") ~
-      bool("request_data.purged") map {
+      str("request_data.purged") map {
         case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ startTime ~ timeInMillis ~ status ~ purged =>
-          RequestData(id, sender, soapAction, environnmentId, serviceId, null, null, startTime, null, null, timeInMillis, status, purged)
+          RequestData(id, sender, soapAction, environnmentId, serviceId, null, null, startTime, null, null, timeInMillis, status, (purged == "true"))
       }
   }
 
@@ -99,7 +99,7 @@ object RequestData {
   def fetchCsv(): List[String] = DB.withConnection {
     implicit c => SQL("select * " +
       " from request_data left join environment on environmentId = environment.id " +
-      " where isStats = true ").as(RequestData.csv. *)
+      " where isStats = 'true' ").as(RequestData.csv. *)
   }
 
   /**
@@ -225,7 +225,7 @@ object RequestData {
           val purgedStats = SQL(
             """
             delete from request_data
-            where isStats = true
+            where isStats = 'true'
             and startTime >= {startTime} and startTime < {startTime}
             and soapAction = {soapAction}
             """
@@ -288,8 +288,8 @@ object RequestData {
             request = '',
             requestHeaders = '',
             responseHeaders = '',
-            purged = true
-            where startTime >= {minDate} and startTime <= {maxDate} and purged = false and isStats = false
+            purged = 'true'
+            where startTime >= {minDate} and startTime <= {maxDate} and purged = 'false' and isStats = 'false'
         """
           + sqlAndEnvironnement(environmentIn)).on(
           'minDate -> minDate,
@@ -361,7 +361,7 @@ object RequestData {
     if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
     if (filterIn != "%" && filterIn.trim != "") whereClause += " and soapAction like {filter}"
 
-    whereClause += " and isStats = false "
+    whereClause += " and isStats = 'false' "
 
     whereClause += sqlAndEnvironnement(environmentIn)
 
@@ -382,7 +382,7 @@ object RequestData {
             " startTime, timeInMillis, status, purged from request_data "
             + whereClause +
             " order by request_data.id " +
-            " desc limit {pageSize} offset {offset}").on(params: _*).as(RequestData.simple *)
+            " desc limit {offset}, {pageSize}").on(params: _*).as(RequestData.simple *)
         val middle = System.currentTimeMillis
           Logger.debug("Middle : "+ (System.currentTimeMillis - requestTimeInMillis))
 
@@ -413,7 +413,7 @@ object RequestData {
     var sql = "select environmentId, soapAction, startTime, timeInMillis from request_data " + whereClause
 
     if (statsOnly) {
-      sql  += " and isStats = true "
+      sql  += " and isStats = 'true' "
     }
     sql += " order by request_data.id asc"
 
@@ -430,7 +430,7 @@ object RequestData {
     DB.withConnection { implicit connection =>
 
       var andStats = ""
-      if (!withStats) andStats = "and isStats = false"
+      if (!withStats) andStats = "and isStats = 'false'"
 
       val responseTimes = SQL(
         """
@@ -476,7 +476,7 @@ object RequestData {
       val startTimes = SQL(
         """
           select startTime from request_data
-          where environmentId={environmentId} and status=200 and isStats = false and startTime < {today}
+          where environmentId={environmentId} and status=200 and isStats = 'false' and startTime < {today}
         """
       ).on('environmentId -> environmentId, 'today -> today.getTime)
        .as(get[Date]("startTime") *).toList
