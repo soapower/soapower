@@ -4,6 +4,7 @@ import play.api.mvc._
 import play.api.libs.json._
 import models._
 import models.UtilDate._
+import play.api.Logger
 
 object Stats extends Controller {
 
@@ -54,7 +55,7 @@ object Stats extends Controller {
 
       ret += "<testsuite name=\""+e._2+"\">"
       data.foreach{ d =>
-        ret += "<testcase classname='"+d._1+"' name='"+d._1+"_on_"+e._2+"' time='"+d._2+"'>"
+        ret += "<testcase classname='"+d._1+"' name='"+d._1+"_on_"+e._2+"' time='"+(d._2.toFloat/1000).toFloat+"'>"
         if (d._2 > d._3) ret += "<failure type='NotEnoughFoo'> Response Time > Threshold: "+d._2+" > "+d._3+" </failure>"
         ret += "</testcase>"
       }
