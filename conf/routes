@@ -70,6 +70,7 @@ GET     /soapActions/:id          controllers.SoapActions.edit(id:Long)
 POST    /soapActions/:id          controllers.SoapActions.update(id:Long)
 
 # Statistics on SoapActions by environments
+GET     /statsAsJunit/:minDate/:maxDate/                                             controllers.Stats.statsAsJunit(minDate, maxDate)
 GET     /stats/:environment/:soapAction/:minDate/:maxDate/:status/                   controllers.Stats.index(environment, minDate, maxDate, soapAction, status)
 GET     /stats/:environment/:soapAction/:minDate/:maxDate/:status/listDataTable      controllers.Stats.listDataTable(environment, minDate, maxDate, soapAction, status)
 

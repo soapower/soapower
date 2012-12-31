@@ -428,22 +428,25 @@ object RequestData {
     }
   }
 
-  def loadAvgResponseTimesByAction(environmentId: Long, minDate: Date, maxDate: Date, withStats : Boolean): List[(String, Long)] = {
+  def loadAvgResponseTimesByAction(environmentName: String, minDate: Date, maxDate: Date, withStats : Boolean): List[(String, Long)] = {
     DB.withConnection { implicit connection =>
 
-      var andStats = ""
-      if (!withStats) andStats = "and isStats = false"
+      var whereClause = ""
+      if (!withStats) whereClause = " and isStats = false "
+
+      Logger.debug("Load Stats with env:" + environmentName)
+      whereClause += sqlAndEnvironnement(environmentName)
 
       val responseTimes = SQL(
         """
-          select soapAction, timeInMillis from request_data 
-          where environmentId={environmentId} and status=200 
+          select soapAction, timeInMillis
+          from request_data
+          where status=200
           and startTime >= {minDate} and startTime <= {maxDate}
-          """ + andStats + """
+        """ + whereClause + """
           order by timeInMillis asc
         """)
         .on(
-          'environmentId -> environmentId,
           'minDate -> minDate,
           'maxDate -> maxDate)
         .as(get[String]("soapAction") ~ get[Long]("timeInMillis") *)
@@ -626,4 +629,5 @@ object RequestData {
       }
     }
   }
+
 }
