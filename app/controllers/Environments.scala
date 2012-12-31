@@ -8,13 +8,52 @@ import play.api.data.validation.Constraints._
 import anorm._
 
 import models._
+import play.api.libs.json._
+import play.api.libs.json.JsObject
+import play.api.libs.json.JsString
 
 object Environments extends Controller {
+
+  // use by Json : from scala to json
+  private implicit object StatsDataWrites extends Writes[Environment] {
+    def writes(data: Environment): JsValue = {
+      JsObject(
+        List(
+          "0" -> JsString(data.name),
+          "1" -> JsNumber(data.hourRecordXmlDataMin),
+          "2" -> JsNumber(data.hourRecordXmlDataMax),
+          "3" -> JsNumber(data.nbDayKeepXmlData),
+          "4" -> JsNumber(data.nbDayKeepAllData),
+          "5" -> JsString("<a href=\"environments/"+data.id+"\"><i class=\"icon-edit\"></i> Edit</a>")
+        ))
+    }
+  }
 
   /**
    * This result directly redirect to the application home.
    */
-  val Home = Redirect(routes.Environments.list(0, 2, ""))
+  val Home = Redirect(routes.Environments.index)
+
+  /**
+   * Display the list of services.
+   */
+  def index = Action { implicit request =>
+    Ok(views.html.environments.index())
+  }
+
+  /**
+   * List to Datable table.
+   *
+   * @return JSON
+   */
+  def listDatatable = Action { implicit request =>
+    val data = Environment.list
+    Ok(Json.toJson(Map(
+      "iTotalRecords" -> Json.toJson(data.size),
+      "iTotalDisplayRecords" -> Json.toJson(data.size),
+      "aaData" -> Json.toJson(data)
+    ))).as(JSON)
+  }
 
   /**
    * Describe the environment form (used in both edit and create screens).
@@ -27,19 +66,6 @@ object Environments extends Controller {
       "hourRecordXmlDataMax" -> number(min=0, max=24),
       "nbDayKeepXmlData" -> number(min=0, max=10),
       "nbDayKeepAllData" -> number(min=2, max=50)) (Environment.apply)(Environment.unapply))
-
-  /**
-   * Display the paginated list of environments.
-   *
-   * @param page Current page number (starts from 0)
-   * @param orderBy Column to be sorted
-   * @param filter Filter applied on soap Action
-   */
-  def list(page: Int, orderBy: Int, filter: String) = Action { implicit request =>
-    Ok(views.html.environments.list(
-      Environment.list(page = page, orderBy = orderBy, filter = ("%" + filter + "%")),
-      orderBy, filter))
-  }
 
   /**
    * Display the 'edit form' of a existing Environment.

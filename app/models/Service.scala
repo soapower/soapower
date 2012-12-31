@@ -232,17 +232,9 @@ object Service {
   }
 
   /**
-   * Return a page of (Service).
-   *
-   * @param page Page to display
-   * @param pageSize Number of services per page
-   * @param orderBy Service property used for sorting
-   * @param filter Filter applied on the name column
+   * Return a list of (Service, Environment).
    */
-  def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(Service, Environment)] = {
-
-    val offest = pageSize * page
-
+  def list: List[(Service, Environment)] = {
     DB.withConnection {
       implicit connection =>
 
@@ -250,27 +242,11 @@ object Service {
           """
           select * from service
           left join environment on service.environment_id = environment.id
-          where service.description like {filter}
-          order by {orderBy} nulls last
-          limit {pageSize} offset {offset}
-          """).on(
-            'pageSize -> pageSize,
-            'offset -> offest,
-            'filter -> filter,
-            'orderBy -> orderBy).as(Service.withEnvironment *)
+          order by environment_id asc, description asc
+          """).as(Service.withEnvironment *)
 
-        val totalRows = SQL(
-          """
-          select count(*) from service 
-          left join environment on service.environment_id = environment.id
-          where service.description like {filter}
-          """).on(
-            'filter -> filter).as(scalar[Long].single)
-
-        Page(services, page, offest, totalRows)
-
+        services
     }
-
   }
 
   /**

@@ -114,16 +114,9 @@ object SoapAction {
   }
 
    /**
-   * Return a page of (SoapAction).
-   *
-   * @param page Page to display
-   * @param pageSize Number of soapactions per page
-   * @param orderBy SoapAction property used for sorting
-   * @param filter Filter applied on the name column
+   * Return a list of (SoapAction).
    */
-  def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(SoapAction)] = {
-
-    val offest = pageSize * page
+  def list: List[SoapAction] = {
 
     DB.withConnection {
       implicit connection =>
@@ -131,24 +124,10 @@ object SoapAction {
         val soapactions = SQL(
           """
           select * from soapaction
-          where soapaction.name like {filter}
-          order by {orderBy} nulls last
-          limit {pageSize} offset {offset}
-          """).on(
-          'pageSize -> pageSize,
-          'offset -> offest,
-          'filter -> filter,
-          'orderBy -> orderBy).as(SoapAction.simple *)
+          order by name
+          """).as(SoapAction.simple *)
 
-        val totalRows = SQL(
-          """
-          select count(*) from soapaction
-          where soapaction.name like {filter}
-          """).on(
-          'filter -> filter).as(scalar[Long].single)
-
-        Page(soapactions, page, offest, totalRows)
-
+        soapactions
     }
   }
   

@@ -219,16 +219,10 @@ object Environment {
   }
 
   /**
-   * Return a page of (Environment).
+   * Return a list of Environment.
    *
-   * @param page Page to display
-   * @param pageSize Number of environments per page
-   * @param orderBy Environment property used for sorting
-   * @param filter Filter applied on the name column
    */
-  def list(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%"): Page[(Environment)] = {
-
-    val offest = pageSize * page
+  def list: List[Environment] = {
 
     DB.withConnection {
       implicit connection =>
@@ -236,24 +230,10 @@ object Environment {
         val environments = SQL(
           """
           select * from environment
-          where environment.name like {filter}
-          order by {orderBy} nulls last
-          limit {pageSize} offset {offset}
-          """).on(
-            'pageSize -> pageSize,
-            'offset -> offest,
-            'filter -> filter,
-            'orderBy -> orderBy).as(Environment.simple *)
+          order by environment.name
+          """).as(Environment.simple *)
 
-        val totalRows = SQL(
-          """
-          select count(*) from environment
-          where environment.name like {filter}
-          """).on(
-            'filter -> filter).as(scalar[Long].single)
-
-        Page(environments, page, offest, totalRows)
-
+        environments
     }
   }
 
