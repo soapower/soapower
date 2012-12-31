@@ -1,12 +1,6 @@
 $(document).ready(function() {
     initCriterias("stats");
-    
-    if($('#environmentSelect').val() !== "all") {
-    	createTable();
-    	$('#usage').hide();
-    } else {
-    	$('#tip').hide();
-    }
+    createTable();
 });
 
 function createTable() {
