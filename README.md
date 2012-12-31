@@ -23,6 +23,14 @@ Administration interface is available for
 <img src='https://raw.github.com/soapower/soapower/master/public/images/soapower/seqDiagram.png' display='float:right'>
 <img src='https://raw.github.com/soapower/soapower/master/public/images/soapower/classDiagram.png' display='float:left'>
 
+
+Jenkins Integration
+===================
+- Create a job, with a shell execution :
+`rm *.xml ; wget http://<server>:<port>/statsAsJunit/all/yesterday/ -O result.xml`
+- Add a publish test Junit to view all SoapAction's result time. If a SoapAction's response time is > threshold, a failed test is generate.
+
+
 Trello
 =======
 https://trello.com/board/soapower/
