@@ -31,8 +31,9 @@ GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/
 POST    /soap/:environment/*localTarget                  controllers.Soap.index(environment, localTarget)
 GET     /replay/:id                                      controllers.Soap.replay(id:Long)
 
-# Services list (look at the default values for pagination parameters)
-GET     /services                  controllers.Services.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
+# Services list
+GET     /services/listDatatable    controllers.Services.listDatatable
+GET     /services                  controllers.Services.index
 
 # Add service
 GET     /services/new              controllers.Services.create
@@ -45,8 +46,9 @@ POST    /services/:id              controllers.Services.update(id:Long)
 # Delete a service
 POST    /services/:id/delete       controllers.Services.delete(id:Long)
 
-# Environments list (look at the default values for pagination parameters)
-GET     /environments              controllers.Environments.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
+# Environments list
+GET     /environments/listDatatable    controllers.Environments.listDatatable
+GET     /environments                  controllers.Environments.index
 
 # Add environment
 GET     /environments/new          controllers.Environments.create
@@ -59,8 +61,9 @@ POST    /environments/:id          controllers.Environments.update(id:Long)
 # Delete a environment
 POST    /environments/:id/delete   controllers.Environments.delete(id:Long)
 
-# SoapActions list (look at the default values for pagination parameters)
-GET     /soapActions              controllers.SoapActions.list(p:Int ?= 0, s:Int ?= 2, f ?= "")
+# SoapActions list
+GET     /soapActions/listDatatable    controllers.SoapActions.listDatatable
+GET     /soapActions                  controllers.SoapActions.index
 
 # Regeneration soapAction listDatatable
 GET     /soapActions/regenerate   controllers.SoapActions.regenerate

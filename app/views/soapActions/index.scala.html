@@ -1,0 +1,35 @@
+@()(implicit flash: play.api.mvc.Flash)
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+@main {
+
+    <h2>SoapActions</h2>
+
+    @flash.get("success").map { message =>
+        <div class="alert warning">
+            <strong>Done!</strong> @message
+        </div>
+    }
+
+    <a class="btn btn-success" id="add" href="/soapActions/regenerate">Regenerate List</a>
+
+    <div id="container" style="width: 100%; margin:auto">
+
+        <table id='datas' class='table table-bordered table-condensed'>
+            <thead>
+                <tr>
+                    <th>SoapAction Name</th>
+                    <th>SoapAction Threshold in ms</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+        </table>
+
+    </div>
+
+    <script src="@routes.Assets.at("javascripts/jquery.dataTables.min.js")" type="text/javascript"></script>
+    <script src="@routes.Assets.at("javascripts/dataTable.bootstrap.js")" type="text/javascript"></script>
+    <script src="@routes.Assets.at("javascripts/soapower/soapactions.js")" type="text/javascript"></script>
+}

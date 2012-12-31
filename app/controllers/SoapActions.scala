@@ -4,6 +4,9 @@ import anorm._
 import models._
 import models.UtilDate._
 import play.api._
+import libs.json._
+import libs.json.JsObject
+import libs.json.JsString
 import play.api.data._
 import play.api.data.Forms._
 import play.api.mvc._
@@ -12,10 +15,19 @@ import org.omg.CosNaming.NamingContextPackage.NotFound
 
 object SoapActions extends Controller {
 
-  /**
-   * This result directly redirect to the application home.
-   */
-  val Home = Redirect(routes.SoapActions.list(0, 2, ""))
+  // use by Json : from scala to json
+  private implicit object StatsDataWrites extends Writes[SoapAction] {
+    def writes(data: SoapAction): JsValue = {
+      JsObject(
+        List(
+          "0" -> JsString(data.name),
+          "1" -> JsNumber(data.thresholdms),
+          "2" -> JsString("<a href=\"soapActions/"+data.id+"\"><i class=\"icon-edit\"></i> Edit</a>")
+        ))
+    }
+  }
+
+  val Home = Redirect(routes.SoapActions.index)
 
   /**
    * Describe the soapAction form (used in both edit and create screens).
@@ -27,16 +39,24 @@ object SoapActions extends Controller {
       "thresholdms" -> longNumber)(SoapAction.apply)(SoapAction.unapply))
 
   /**
-   * Display the paginated list of soapActions.
-   *
-   * @param page Current page number (starts from 0)
-   * @param orderBy Column to be sorted
-   * @param filter Filter applied on soap Action
+   * Display the list of services.
    */
-  def list(page: Int, orderBy: Int, filter: String) = Action { implicit request =>
-    Ok(views.html.soapActions.list(
-      SoapAction.list(page = page, orderBy = orderBy, filter = ("%" + filter + "%")),
-      orderBy, filter))
+  def index = Action { implicit request =>
+    Ok(views.html.soapActions.index())
+  }
+
+  /**
+   * List to Datable table.
+   *
+   * @return JSON
+   */
+  def listDatatable = Action { implicit request =>
+    val data = SoapAction.list
+    Ok(Json.toJson(Map(
+      "iTotalRecords" -> Json.toJson(data.size),
+      "iTotalDisplayRecords" -> Json.toJson(data.size),
+      "aaData" -> Json.toJson(data)
+    ))).as(JSON)
   }
 
   /**
