@@ -27,9 +27,9 @@ Administration interface is available for
 Jenkins Integration
 ===================
 - Create a job, with a shell execution :
-`rm *.xml ; wget http://<server>:<port>/statsAsJunit/all/yesterday/ -O result.xml`
+`rm *.xml ; wget http://<server>:<port>/statsAsJunit/yesterday/yesterday/ -O result.xml`
 - Add a publish test Junit to view all SoapAction's result time. If a SoapAction's response time is > threshold, a failed test is generate.
-
+- Url parameters : `http://<server>:<port>/statsAsJunit/<minDate>/<maxDate>/` with minDate / maxDate like : 2012-11-29, yesterday, today
 
 Trello
 =======
