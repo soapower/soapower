@@ -11,11 +11,16 @@ $(document).ready(function() {
 
 var receiveEvent = function(event) {
     var data = JSON.parse(event.data)
+    console.log(data);
 
     // Handle errors
-    if(data.error) {
+    if(data.error || data.kind == "error") {
         socket.close()
-        $("#onError span").text(data.error)
+        if(data.error) {
+            $("#onError span").text(data.error)
+        } else if(data.kind == "error") {
+            $("#onError span").text(data.message)
+        }
         $("#onError").show()
         return
     }
@@ -23,8 +28,8 @@ var receiveEvent = function(event) {
     if (data.kind == "talkRequestData") {
         $('#datas').dataTable().fnAddData( [ data.message["0"] ] );
     }
-    $('#nbConnected').html($(data.members).size() - 1) // substract Robot
 
+    $('#nbConnected').html($(data.members).size() - 1) // substract Robot
 }
 
 function stopWS() {

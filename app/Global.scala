@@ -1,4 +1,4 @@
-import models.{LiveRoom, Environment}
+import models.{Robot, LiveRoom, Environment}
 import play.api._
 
 import scala.concurrent.duration._
@@ -24,6 +24,8 @@ object Global extends GlobalSettings {
   }
 
   override def onStop(app: Application) {
+    Robot.talkMsg("Soapower is restarting... Please refresh your page", "error")
+    Akka.system.awaitTermination(3 seconds)
     Logger.info("Soapower shutdown...")
   }
 

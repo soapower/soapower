@@ -33,11 +33,11 @@ object Robot {
     }
   }
 
-  def talk(msg:String) {
+  def talkMsg(msg:String, typeMsg:String) {
     Akka.system.scheduler.scheduleOnce(
     0 seconds,
     liveRoom,
-      Talk("Robot", msg)
+      Talk("Robot", msg, typeMsg)
     )
   }
 
@@ -77,7 +77,7 @@ object LiveRoom {
 
         // Create an Iteratee to consume the feed
         val iteratee = Iteratee.foreach[JsValue] { event =>
-          default ! Talk(username, (event \ "text").as[String])
+          default ! Talk(username, (event \ "text").as[String], "talk")
         }.mapDone { _ =>
           default ! Quit(username)
         }
@@ -119,8 +119,8 @@ class LiveRoom extends Actor {
       notifyAll("join", username, "has entered the room")
     }
 
-    case Talk(username, text) => {
-      notifyAll("talk", username, text)
+    case Talk(username, text, typeMsg) => {
+      notifyAll(typeMsg, username, text)
     }
 
     case TalkRequestData(username, requestData) => {
@@ -167,7 +167,7 @@ class LiveRoom extends Actor {
 case class Join(username: String)
 case class Quit(username: String)
 case class TalkRequestData(username: String, requestData: RequestData)
-case class Talk(username: String, text: String)
+case class Talk(username: String, text: String, typeMsg: String)
 case class NotifyJoin(username: String)
 
 case class Connected(enumerator:Enumerator[JsValue])
