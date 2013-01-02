@@ -27,7 +27,7 @@ var receiveEvent = function(event) {
         chartMemory.yAxis[0].removePlotBand(2)
         chartMemory.yAxis[0].removePlotBand(3)
 
-        var range1 = value/3;
+        var range1 = value/2;
         var range2 = range1 + value/3;
 
         var plot1 = {
