@@ -21,11 +21,9 @@ var receiveEvent = function(event) {
     } else if (type == "memory") {
         chartMemory.series[0].points[0].update(value)
     } else if (type == "totalMemory") {
-        chartMemory.series[0].points[0].update(value)
         chartMemory.yAxis[0].setExtremes(0,value)
     }
 }
-
 
 function btnActions() {
     $('#btnStop').click(function() {
@@ -54,7 +52,7 @@ function startWS() {
 
 function graph() {
     chartCPU = makeGraph('cpu', 'CPU Usage in %', 100, 60, 80, '%');
-    chartMemory = makeGraph('memory', 'Memory in MB', 400, 60, 80, 'MB');
+    chartMemory = makeGraph('memory', 'Memory in MB', 400, 120, 250, 'MB');
 }
 
 function makeGraph(container, title, maxValue, range1, range2, valueSuffix) {
