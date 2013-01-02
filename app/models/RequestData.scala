@@ -18,8 +18,8 @@ case class RequestData(
   var soapAction: String,
   environmentId: Long,
   serviceId: Long,
-  request: String,
-  requestHeaders: Map[String, String],
+  var request: String,
+  var requestHeaders: Map[String, String],
   startTime: Date,
   var response: String,
   var responseHeaders: Map[String, String],
@@ -27,8 +27,8 @@ case class RequestData(
   var status: Int,
   var purged: Boolean) {
 
-  def this(sender: String, soapAction: String, environnmentId: Long, serviceId: Long, request: String, requestHeaders: Map[String, String]) =
-    this(null, sender, soapAction, environnmentId, serviceId, request, requestHeaders, new Date, null, null, -1, -1, false)
+  def this(sender: String, soapAction: String, environnmentId: Long, serviceId: Long) =
+    this(null, sender, soapAction, environnmentId, serviceId, null, null, new Date, null, null, -1, -1, false)
 
   /**
    * Add soapAction in cache if neccessary.
@@ -348,7 +348,6 @@ object RequestData {
    * @return
    */
   def list(environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
-
     val filter = "%" + filterIn + "%"
 
     // Convert dates... bad perf anorm ?

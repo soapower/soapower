@@ -12,10 +12,6 @@ $(document).ready ->
   $("#menu-statistics").attr("href", makeUrl("stats"))
   $("#menu-search").attr("href", makeUrl("search"))
 
-  $("#toggle-monitoring").click ->
-    init window.App, $("#monitoring-modal")
-    $("#myModal").modal keyboard: true
-
   # Hehe.
   if window.addEventListener
     kkeys = []

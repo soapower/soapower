@@ -82,8 +82,8 @@ GET     /download/request/:id      controllers.Search.downloadRequest(id:Long, a
 GET     /download/response/:id     controllers.Search.downloadResponse(id:Long, asFile: Boolean ?= false)
 
 # Monitoring
+GET     /monitor/socket            controllers.Monitor.socket
 GET     /monitor                   controllers.Monitor.index
-GET     /load                      controllers.Monitor.load
 GET     /monitoring                controllers.Monitor.monitoring
 POST    /gc!                       controllers.Monitor.gc
 

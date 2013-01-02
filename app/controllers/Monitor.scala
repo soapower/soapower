@@ -7,6 +7,7 @@ import play.api.libs.concurrent.Promise
 import java.util.concurrent.TimeUnit
 import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.stm._
+import scala.concurrent.duration._
 import java.io.File
 import play.api.Logger
 
@@ -15,13 +16,20 @@ import play.api.Logger
 */
 object Monitor extends Controller {
 
-  def load = Action {
-    SpeedOMeter.countRequest()
-    Ok("from your shell ab -k -c 100 -n 1000000 http://localhost:9000/load")
+  def index = Action { implicit request =>
+    Ok(views.html.monitor.index())
   }
 
-  def index = Action {
-    Ok(views.html.monitor.index(Runtime.getRuntime().totalMemory() / (1024 * 1024)))
+  def socket = WebSocket.using[String] { request =>
+
+    val in = Iteratee.ignore[String]
+
+    val out = Streams.getCPU >-
+      Streams.getHeap >-
+      Streams.getTotalMemory
+
+    (in, out)
+
   }
 
   def monitoring = Action {
@@ -69,10 +77,17 @@ object Streams {
   val cpu = new models.CPU()
 
   val getCPU = Enumerator.generateM({
-    Promise.timeout(
-      Some((cpu.getCpuUsage() * 1000).round / 10.0 + ":cpu:" + Runtime.getRuntime().totalMemory() / (1024 * 1024)),
-      timeRefreshMillis, TimeUnit.MILLISECONDS)
+    Promise.timeout(getCPUUsage, timeRefreshMillis, TimeUnit.MILLISECONDS)
   })
+
+  val getCPUUsage = Some((cpu.getCpuUsage() * 1000).round / 10 + ":cpu")
+
+  val getTotalMemory =Enumerator.generateM({
+    Promise.timeout(
+      Some(Runtime.getRuntime().totalMemory() / (1024 * 1024) + ":totalMemory")
+      , timeRefreshMillis, TimeUnit.MILLISECONDS)
+  })
+
 
 }
 
