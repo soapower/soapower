@@ -4,23 +4,39 @@ import com.ning.http.client.FluentCaseInsensitiveStringsMap
 import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.xml._
-import akka.util.Timeout
 import play.api.libs.ws._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.concurrent._
 import play.core.utils.CaseInsensitiveOrdered
 import play.Logger
 import collection.immutable.TreeMap
-import play.api.mvc.Request
 import play.api.http._
 import java.io.StringWriter
 import java.io.PrintWriter
-import play.api.libs.json.Json
+import play.api.Play.current
+
+object Client {
+  val queue = new scala.collection.mutable.Queue[RequestData]
+  val maxQueueSize = 100
+
+  def processQueue(requestData : RequestData) {
+    val writeStartTime = System.currentTimeMillis()
+    Akka.future {
+      Client.queue += requestData
+      if (Client.queue.size > maxQueueSize) {
+        val req = Client.queue.dequeue
+        Logger.debug("Request: " + req.toString)
+      }
+    }.map {
+      result =>
+        Logger.debug("Request Data store to queue in " + (System.currentTimeMillis() - writeStartTime) + " ms")
+    }
+  }
+}
 
 class Client(service: Service, sender: String, content: String, headers: Map[String, String]) {
 
-  val requestData = new RequestData(sender, extractSoapAction(headers), service.environmentId, service.id.get, content, headers)
+  val requestData = new RequestData(sender, extractSoapAction(headers), service.environmentId, service.id.get)
   var response: ClientResponse = null
 
   private var futureResponse: Future[Response] = null
@@ -47,7 +63,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       futureResponse = wsRequestHolder.post(content)
 
       // wait for the response
-      waitForResponse()
+      waitForResponse(headers, content)
 
     } catch {
       case e: Throwable => processError("post", e)
@@ -57,15 +73,17 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     saveData()
   }
 
-  private def waitForResponse() {
+  private def waitForResponse(headers: Map[String, String], content: String) {
     try {
       val wsResponse: Response = Await.result(futureResponse, service.timeoutms.millis * 1000000)
       response = new ClientResponse(wsResponse, (System.currentTimeMillis - requestTimeInMillis))
       requestData.timeInMillis = response.responseTimeInMillis
-      requestData.response = response.body
       requestData.status = response.status
+      Client.processQueue(requestData)
+      requestData.request = content
+      requestData.requestHeaders = headers
+      requestData.response = response.body
       requestData.responseHeaders = response.headers
-      requestData.storeSoapActionAndStatusInCache()
 
       if (Logger.isDebugEnabled) {
         Logger.debug("Reponse in " + response.responseTimeInMillis + " ms")
@@ -79,8 +97,8 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     try {
       // asynchronously writes data to the DB
       val writeStartTime = System.currentTimeMillis()
-      import play.api.Play.current
       Akka.future {
+        requestData.storeSoapActionAndStatusInCache()
         val id = RequestData.insert(requestData)
         requestData.id = anorm.Id(id)
         Robot.talk(requestData)
@@ -92,6 +110,8 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       case e: Throwable => Logger.error("Error writing to DB", e)
     }
   }
+
+
 
   private def extractSoapAction(headers: Map[String, String]): String = {
     var soapAction = headers.get("SOAPAction").get
@@ -145,7 +165,7 @@ class ClientResponse(wsResponse: Response = null, val responseTimeInMillis: Long
   headersNing.foreach(header =>
     if (header._1 != "Transfer-Encoding")
       headers += header._1 -> header._2.last // if more than one value for one header, take the last only
-      )
+  )
 
   private def ningHeadersToMap(headersNing: FluentCaseInsensitiveStringsMap) = {
     import scala.collection.JavaConverters._

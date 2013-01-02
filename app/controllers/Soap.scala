@@ -57,6 +57,7 @@ object Soap extends Controller {
         client.sendRequestAndWaitForResponse
 
         // forward the response to the client
+        Logger.debug("Return result")
         SimpleResult(
           header = ResponseHeader(client.response.status, client.response.headers),
           body = Enumerator(client.response.body)) //
