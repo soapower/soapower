@@ -16,7 +16,7 @@ object Global extends GlobalSettings {
 
     // initialDelay: Duration : 10 minutes
     // frequency: Duration : 10 hours
-    Akka.system.scheduler.schedule(10 minutes, 10 hours) {
+    Akka.system.scheduler.schedule(10 minutes, 5 hours) {
       Environment.compileStats()
       Environment.purgeXmlData()
       Environment.purgeAllData()
@@ -25,7 +25,7 @@ object Global extends GlobalSettings {
 
   override def onStop(app: Application) {
     Robot.talkMsg("Soapower is restarting... Please refresh your page", "error")
-    Akka.system.awaitTermination(3 seconds)
+    Akka.system.awaitTermination(3 seconds) // time to let Robot talk
     Logger.info("Soapower shutdown...")
   }
 
