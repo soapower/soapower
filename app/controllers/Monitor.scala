@@ -32,15 +32,6 @@ object Monitor extends Controller {
 
   }
 
-  def monitoring = Action {
-    Ok.stream(
-      Streams.getRequestsPerSecond >-
-        Streams.getCPU >-
-        Streams.getDbFile >-
-        Streams.getHeap &>
-        Comet(callback = "parent.message"))
-  }
-
   def gc = Action {
     Runtime.getRuntime().gc()
     Ok("Done")
@@ -66,21 +57,11 @@ object Streams {
       timeRefreshMillis, TimeUnit.MILLISECONDS)
   })
 
-  val fileDb = new File(play.api.Play.current.configuration.getString("monitoring.file").get)
-
-  val getDbFile = Enumerator.generateM({
-    Promise.timeout(
-      Some((fileDb.length() / 1024 / 1024) + ":dbfile"),
-      timeRefreshMillisLong, TimeUnit.MILLISECONDS)
-  })
-
   val cpu = new models.CPU()
 
   val getCPU = Enumerator.generateM({
-    Promise.timeout(getCPUUsage, timeRefreshMillis, TimeUnit.MILLISECONDS)
+    Promise.timeout(Some((cpu.getCpuUsage() * 1000).round / 10.0 + ":cpu"), timeRefreshMillis, TimeUnit.MILLISECONDS)
   })
-
-  val getCPUUsage = Some((cpu.getCpuUsage() * 1000).round / 10 + ":cpu")
 
   val getTotalMemory =Enumerator.generateM({
     Promise.timeout(

@@ -14,10 +14,14 @@
     <button type="button" class="btn btn-warning liveOnAir" id="btnStop"><i class="icon-stop"></i></button>
     <button type="button" class="btn btn-success liveOff" id="btnStart"><i class="icon-play"></i></button>
 
-    <div id="cpu"></div>
-    <div id="memory"></div>
+    <div class="row">
+        <div class="span4" id="cpu"></div>
+        <div class="span4" id="memory"></div>
+    </div>
 
     <input type="hidden" id="urlWS" value="@routes.Monitor.socket().webSocketURL()">
+
+    <button id="btnGC">Run Garbarge Collect</button>
 
     <script src="@routes.Assets.at("javascripts/highcharts/highcharts.js")" type="text/javascript"></script>
     <script src="@routes.Assets.at("javascripts/highcharts/highcharts-more.js")" type="text/javascript"></script>

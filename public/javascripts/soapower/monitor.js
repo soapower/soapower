@@ -22,6 +22,37 @@ var receiveEvent = function(event) {
         chartMemory.series[0].points[0].update(value)
     } else if (type == "totalMemory") {
         chartMemory.yAxis[0].setExtremes(0,value)
+
+        chartMemory.yAxis[0].removePlotBand(1)
+        chartMemory.yAxis[0].removePlotBand(2)
+        chartMemory.yAxis[0].removePlotBand(3)
+
+        var range1 = value/3;
+        var range2 = range1 + value/3;
+
+        var plot1 = {
+                id:1,
+                from: 0,
+                to: range1,
+                color: '#55BF3B' // green
+            };
+        var plot2 = {
+                id:2,
+                from: range1,
+                to: range2,
+                color: '#DDDF0D' // yellow
+            };
+        var plot3 = {
+                id:3,
+                from: range2,
+                to: value + 500,
+                color: '#DF5353' // red
+        };
+
+        chartMemory.yAxis[0].addPlotBand(plot1);
+        chartMemory.yAxis[0].addPlotBand(plot2);
+        chartMemory.yAxis[0].addPlotBand(plot3);
+
     }
 }
 
@@ -128,14 +159,17 @@ function makeGraph(container, title, maxValue, range1, range2, valueSuffix) {
                 text: title
             },
             plotBands: [{
+                id:1,
                 from: 0,
                 to: range1,
                 color: '#55BF3B' // green
             }, {
+                id:2,
                 from: range1,
                 to: range2,
                 color: '#DDDF0D' // yellow
             }, {
+                id:3,
                 from: range2,
                 to: maxValue + 500,
                 color: '#DF5353' // red
@@ -154,3 +188,14 @@ function makeGraph(container, title, maxValue, range1, range2, valueSuffix) {
     );
     return ret;
 }
+
+
+$('#btnGC').click(function() {
+    $.ajax({
+        url: '/gc!',
+        type: 'POST',
+        complete: function(data) {
+            alert("Garbage Collect : " + data.responseText);
+        }
+    });
+});
