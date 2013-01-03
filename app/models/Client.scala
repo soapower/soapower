@@ -70,7 +70,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     }
 
     // save the request and response data to DB
-    saveData()
+    saveData(content)
   }
 
   private def waitForResponse(headers: Map[String, String], content: String) {
@@ -80,7 +80,6 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       requestData.timeInMillis = response.responseTimeInMillis
       requestData.status = response.status
       Client.processQueue(requestData)
-      requestData.request = content
       requestData.requestHeaders = headers
       requestData.response = response.body
       requestData.responseHeaders = response.headers
@@ -93,11 +92,12 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     }
   }
 
-  private def saveData() {
+  private def saveData(content: String) {
     try {
       // asynchronously writes data to the DB
       val writeStartTime = System.currentTimeMillis()
       Akka.future {
+        requestData.request = content
         requestData.storeSoapActionAndStatusInCache()
         val id = RequestData.insert(requestData)
         requestData.id = anorm.Id(id)
