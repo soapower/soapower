@@ -11,6 +11,9 @@ import anorm._
 import anorm.SqlParser._
 import java.sql.Connection
 import collection.mutable.Set
+import java.io.{ByteArrayOutputStream, BufferedOutputStream}
+import java.util.zip.{Deflater, Inflater, GZIPOutputStream}
+import java.nio.charset.Charset
 
 case class RequestData(
   var id: Pk[Long],
@@ -158,8 +161,8 @@ object RequestData {
    * @param requestData the requestData
    */
   def insert(requestData: RequestData) = {
-    var xmlRequest = ""
-    var xmlResponse = ""
+    var xmlRequest : Array[Byte] = null
+    var xmlResponse : Array[Byte] = null
 
     val environment = Environment.findById(requestData.environmentId).get
     val date = new Date()
@@ -169,12 +172,12 @@ object RequestData {
 
     if (environment.hourRecordXmlDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
       environment.hourRecordXmlDataMax > gcal.get(Calendar.HOUR_OF_DAY)) {
-      xmlRequest = requestData.request
-      xmlResponse = requestData.response
+      xmlRequest = compressString(requestData.request)
+      xmlResponse = compressString(requestData.response)
     } else {
       val msg = "Xml Data not recording. Record between " + environment.hourRecordXmlDataMin + "h to " + environment.hourRecordXmlDataMax + "h for this environment."
-      xmlRequest = msg
-      xmlResponse = msg
+      xmlRequest = compressString(msg)
+      xmlResponse = compressString(msg)
       Logger.debug(msg)
     }
 
@@ -493,6 +496,16 @@ object RequestData {
     }
   }
 
+  implicit def rowToByteArray: Column[Array[Byte]] = Column.nonNull { (value, meta) =>
+    val MetaDataItem(qualified, nullable, clazz) = meta
+    value match {
+    case data: Array[Byte] => Right(data)
+    case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Byte Array for column " + qualified))
+    }
+  }
+
+  def bytes(columnName: String): RowParser[Array[Byte]] = get[Array[Byte]](columnName)(implicitly[Column[Array[Byte]]])
+
   def load(id: Long): RequestData = {
     DB.withConnection { implicit connection =>
       SQL("select id, sender, soapAction, environmentId, serviceId, request, requestHeaders from request_data where id= {id}")
@@ -502,13 +515,16 @@ object RequestData {
 
   def loadRequest(id: Long): String = {
     DB.withConnection { implicit connection =>
-      SQL("select request from request_data where id= {id}").on('id -> id).as(str("request").single)
+      val request = SQL("select request from request_data where id= {id}").on('id -> id).as(bytes("request").singleOpt)
+      decompressString(request.get)
     }
   }
 
   def loadResponse(id: Long): Option[String] = {
     DB.withConnection { implicit connection =>
-      SQL("select response from request_data where id = {id}").on('id -> id).as(str("response").singleOpt)
+      val response = SQL("select response from request_data where id = {id}").on('id -> id).as(bytes("response").singleOpt)
+      // TODO Fix if no response
+      Some(decompressString(response.get))
     }
   }
 
@@ -627,4 +643,31 @@ object RequestData {
     }
   }
 
+  def compressString(data: String): Array[Byte] = {
+    val deflater = new Deflater()
+    deflater.setInput(data.getBytes(Charset.forName("utf-8")))
+    deflater.finish()
+    //TODO may oveflow, find better solution
+    var output = new Array[Byte](100000)
+    deflater.deflate(output, 0, output.length)
+    output
+  }
+
+  def decompressString(input: Array[Byte]): String = {
+
+    var result: String = null
+
+    val inflater = new Inflater()
+    inflater.setInput(input, 0, input.length)
+
+    //TODO may oveflow, find better solution
+    var output = new Array[Byte](100000)
+
+    val resultLength = inflater.inflate(output)
+    inflater.end()
+
+    result = new String(output, 0, resultLength, Charset.forName("utf-8"))
+
+    return result;
+  }
 }
