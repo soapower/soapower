@@ -11,9 +11,9 @@ import anorm._
 import anorm.SqlParser._
 import java.sql.Connection
 import collection.mutable.Set
-import java.io.{ByteArrayOutputStream, BufferedOutputStream}
-import java.util.zip.{Deflater, Inflater, GZIPOutputStream}
+import java.util.zip.{GZIPOutputStream, GZIPInputStream}
 import java.nio.charset.Charset
+import java.io.{ByteArrayOutputStream, BufferedReader, InputStreamReader, ByteArrayInputStream}
 
 case class RequestData(
   var id: Pk[Long],
@@ -55,6 +55,19 @@ object RequestData {
   val keyCacheSoapAction = "soapaction-options"
   val keyCacheStatusOptions = "status-options"
   val keyCacheMinStartTime = "minStartTime"
+
+  implicit def rowToByteArray: Column[Array[Byte]] = Column.nonNull { (value, meta) =>
+    val MetaDataItem(qualified, nullable, clazz) = meta
+    value match {
+      case data: Array[Byte] => Right(data)
+      case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Byte Array for column " + qualified))
+    }
+  }
+
+  /**
+   * Anorm Byte conversion
+   */
+  def bytes(columnName: String): RowParser[Array[Byte]] = get[Array[Byte]](columnName)(implicitly[Column[Array[Byte]]])
 
   /**
    * Parse a RequestData from a ResultSet
@@ -114,11 +127,11 @@ object RequestData {
       str("request_data.soapAction") ~
       long("request_data.environmentId") ~
       long("request_data.serviceId") ~
-      str("request_data.request") ~
+      bytes("request_data.request") ~
       str("request_data.requestHeaders") map {
         case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ request ~ requestHeaders =>
           val headers = headersFromString(requestHeaders)
-          new RequestData(id, sender, soapAction, environnmentId, serviceId, request, headers, null, null, null, -1, -1, false)
+          new RequestData(id, sender, soapAction, environnmentId, serviceId, uncompressString(request), headers, null, null, null, -1, -1, false)
       }
   }
 
@@ -496,16 +509,6 @@ object RequestData {
     }
   }
 
-  implicit def rowToByteArray: Column[Array[Byte]] = Column.nonNull { (value, meta) =>
-    val MetaDataItem(qualified, nullable, clazz) = meta
-    value match {
-    case data: Array[Byte] => Right(data)
-    case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Byte Array for column " + qualified))
-    }
-  }
-
-  def bytes(columnName: String): RowParser[Array[Byte]] = get[Array[Byte]](columnName)(implicitly[Column[Array[Byte]]])
-
   def load(id: Long): RequestData = {
     DB.withConnection { implicit connection =>
       SQL("select id, sender, soapAction, environmentId, serviceId, request, requestHeaders from request_data where id= {id}")
@@ -513,18 +516,25 @@ object RequestData {
     }
   }
 
-  def loadRequest(id: Long): String = {
+  def loadRequest(id: Long): Option[String] = {
     DB.withConnection { implicit connection =>
       val request = SQL("select request from request_data where id= {id}").on('id -> id).as(bytes("request").singleOpt)
-      decompressString(request.get)
+      if (request != None) {
+        Some(uncompressString(request.get))
+      } else {
+        None
+      }
     }
   }
 
   def loadResponse(id: Long): Option[String] = {
     DB.withConnection { implicit connection =>
       val response = SQL("select response from request_data where id = {id}").on('id -> id).as(bytes("response").singleOpt)
-      // TODO Fix if no response
-      Some(decompressString(response.get))
+      if (response != None) {
+        Some(uncompressString(response.get))
+      } else {
+        None
+      }
     }
   }
 
@@ -643,31 +653,52 @@ object RequestData {
     }
   }
 
-  def compressString(data: String): Array[Byte] = {
-    val deflater = new Deflater()
-    deflater.setInput(data.getBytes(Charset.forName("utf-8")))
-    deflater.finish()
-    //TODO may oveflow, find better solution
-    var output = new Array[Byte](100000)
-    deflater.deflate(output, 0, output.length)
-    output
+  /**
+   * Compress a string with Gzip
+   *
+   * @param inputString String to compress
+   * @return compressed string
+   */
+  def compressString(inputString: String): Array[Byte] = {
+    try {
+      val os = new ByteArrayOutputStream(inputString.length())
+      val gos = new GZIPOutputStream(os)
+      gos.write(inputString.getBytes(Charset.forName("utf-8")))
+      gos.close()
+      val compressed = os.toByteArray()
+      os.close()
+      compressed
+    } catch {
+      case e: Exception => Logger.error("compressString : Error during compress string")
+      inputString.getBytes(Charset.forName("utf-8"))
+    }
   }
 
-  def decompressString(input: Array[Byte]): String = {
-
-    var result: String = null
-
-    val inflater = new Inflater()
-    inflater.setInput(input, 0, input.length)
-
-    //TODO may oveflow, find better solution
-    var output = new Array[Byte](100000)
-
-    val resultLength = inflater.inflate(output)
-    inflater.end()
-
-    result = new String(output, 0, resultLength, Charset.forName("utf-8"))
-
-    return result;
+  /**
+   * Uncompress a String with gzip
+   *
+   * @param compressed compressed String
+   * @return clear String
+   */
+  def uncompressString(compressed: Array[Byte]): String = {
+    try {
+      val BUFFER_SIZE = 1000
+      val is = new ByteArrayInputStream(compressed)
+      val gis = new GZIPInputStream(is, BUFFER_SIZE)
+      val output = new StringBuilder()
+      val data = new Array[Byte](BUFFER_SIZE)
+      var ok = true
+      while (ok) {
+        val bytesRead = gis.read(data)
+        ok = bytesRead != -1
+        if( ok ) output.append(new String(data, 0, bytesRead))
+      }
+      gis.close()
+      is.close()
+      output.toString()
+    } catch {
+      case e: Exception => Logger.error("decompressString : Error during uncompress string:" + e.getStackTraceString)
+      new String(compressed, 0, compressed.length, Charset.forName("utf-8"))
+    }
   }
 }

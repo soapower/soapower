@@ -31,23 +31,29 @@ object Search extends Controller {
   def downloadRequest(id: Long, asFile: Boolean) = Action {
     val request = RequestData.loadRequest(id)
 
-    var formattedXml = ""
-    try {
-      formattedXml = new PrettyPrinter(250, 4).format(scala.xml.XML.loadString(request))
-    } catch {
-      case e:SAXParseException => formattedXml = request
-    }
-    val filename = "request-" + id + ".xml"
+    request match {
+      case Some(str: String) => {
+        var formattedXml = ""
+        try {
+          formattedXml = new PrettyPrinter(250, 4).format(scala.xml.XML.loadString(str))
+        } catch {
+          case e:SAXParseException => formattedXml = str
+        }
+        val filename = "request-" + id + ".xml"
 
-    var result = SimpleResult(
-      header = ResponseHeader(play.api.http.Status.OK),
-      body = Enumerator(formattedXml))
-    if (asFile) {
-      result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
-      result.as(XML)
-    } else {
-      result.as(TEXT)
+        var result = SimpleResult(
+          header = ResponseHeader(play.api.http.Status.OK),
+          body = Enumerator(formattedXml))
+        if (asFile) {
+          result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
+          result.as(XML)
+        } else {
+          result.as(TEXT)
+        }
+      }
+      case _ => NotFound("The request does not exist")
     }
+
   }
 
   def downloadResponse(id: Long, asFile: Boolean) = Action {
