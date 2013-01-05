@@ -1,10 +1,10 @@
-soapower
+soapower - Monitoring Webservices
 ========
 
 Soapower provides a GUI for 
- - viewing webservices requests, 
+ - viewing webservices requests (live and search page),
  - download the data from the request and response, 
- - getting response time, 
+ - getting response time,
  - viewing 90percentiles response times, etc ...
 
 Soapower allows monitoring several applications across multiple environments. 
@@ -33,7 +33,7 @@ Jenkins Integration
 
 Trello
 =======
-https://trello.com/board/soapower/
+https://trello.com/board/soapower/50b60bc54ff262d331000ee3
 
 Development
 =======
