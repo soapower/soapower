@@ -1,4 +1,4 @@
-@()(implicit request: RequestHeader)
+@(logFile: String)(implicit request: RequestHeader)
 
 @main {
 
@@ -18,13 +18,13 @@
         <div class="span4" id="cpu"></div>
         <div class="span4" id="memory"></div>
         <div class="span3" id="action">
-            <a class="btn" href="@routes.Monitor.downloadLogFile">Download Logs File</a>
+            <a class="btn" href="@routes.Monitor.downloadLogFile"><i class="icon-download"></i> Download Logs File</a>
             <hr>
-            <button class="btn btn-warning" id="btnGC">Run Garbarge Collect</button>
+            <button class="btn btn-warning" id="btnGC"><i class="icon-repeat"></i> Run Garbarge Collect</button>
         </div>
     </div>
 
-    <h3>Logs</h3>
+    <h3>Logs : tail -f @logFile </h3>
     <div class="row" id="logs">
         <ul>
             @* Intentionally left open, so logs can gradually append as they come *@

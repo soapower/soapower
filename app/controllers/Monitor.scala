@@ -20,13 +20,15 @@ import java.text.SimpleDateFormat
 */
 object Monitor extends Controller {
 
+  private val logFile = play.api.Play.current.configuration.getString("soapower.log.file").get
+
   def index = Action {
     implicit request =>
-      Ok(views.html.monitor.index())
+      Ok(views.html.monitor.index(logFile))
   }
 
   def downloadLogFile = Action {
-    Ok.sendFile(new java.io.File(play.api.Play.current.configuration.getString("soapower.log.file").get))
+    Ok.sendFile(new java.io.File(logFile))
   }
 
   def socket = WebSocket.using[String] {
