@@ -21,7 +21,7 @@ object Robot {
   def apply(room: ActorRef) {
     liveRoom = room
 
-    // Create an Iteratee that log all messages to the console.
+    // Create an Iteratee that logs all messages to the console.
     val loggerIteratee = Iteratee.foreach[JsValue](event => Logger("robot").info(event.toString))
 
     implicit val timeout = Timeout(1 second)

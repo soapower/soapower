@@ -14,7 +14,7 @@ var receiveEvent = function(event) {
     var data = event.data.split(":");
     var type = data[1];
     var value = parseFloat(data[0]);
-    //console.log("event:" + " " + type + ":"+ value)
+    //console.logs("event:" + " " + type + ":"+ value)
 
     if (type == "cpu") {
         chartCPU.series[0].points[0].update(value)
@@ -52,7 +52,9 @@ var receiveEvent = function(event) {
         chartMemory.yAxis[0].addPlotBand(plot1);
         chartMemory.yAxis[0].addPlotBand(plot2);
         chartMemory.yAxis[0].addPlotBand(plot3);
-
+    } else { // logs
+        $('#logs').append(event.data)
+        $('#logs').stop().animate({ scrollTop: $("#logs")[0].scrollHeight }, 800);
     }
 }
 

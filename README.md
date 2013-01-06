@@ -12,12 +12,12 @@ Soapower allows monitoring several applications across multiple environments.
 It is also possible to set a threshold response time on soapaction, 
 the alerts are rising if the receiver does not send the response back in time.
 
-
 Administration interface is available for
  - Configure environments and webservices (local / remote target / timeout)
  - Set the thresholds for response time for each soapaction
  - Import / export service configurations & settings
  - Set the purges data XML Data requests & Answers, All Data /  environment
+ - Monitoring CPU / Heap Memory / logs file
 
 <img src='https://raw.github.com/soapower/soapower/master/public/images/soapower/ucDiagram.png' display='float:left'>
 <img src='https://raw.github.com/soapower/soapower/master/public/images/soapower/seqDiagram.png' display='float:right'>

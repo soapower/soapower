@@ -84,6 +84,7 @@ GET     /download/response/:id     controllers.Search.downloadResponse(id:Long, 
 # Monitoring
 GET     /monitor/socket            controllers.Monitor.socket
 GET     /monitor                   controllers.Monitor.index
+GET     /monitor/downloadLogFile   controllers.Monitor.downloadLogFile
 POST    /gc!                       controllers.Monitor.gc
 
 # Map static resources from the /public folder to the /assets URL path

@@ -1,0 +1,11 @@
+@(time: String, event: ch.qos.logback.classic.spi.ILoggingEvent)
+<li class="@event.getLevel.toString.toLowerCase">
+    <span class="time">@time</span>
+    <span class="level">@event.getLevel.toString</span>
+    <span class="logger">@event.getLoggerName</span>
+    <span class="thread">@event.getThreadName</span>
+    <span class="message">@event.getFormattedMessage</span>
+    @if(event.getThrowableProxy != null) {
+        <pre class="exception">@{ ch.qos.logback.classic.spi.ThrowableProxyUtil.asString(event.getThrowableProxy) }</pre>
+    }
+</li>
