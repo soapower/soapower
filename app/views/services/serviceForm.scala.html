@@ -1,0 +1,38 @@
+@(serviceForm : Form[Service], environments : Seq[(String, String)])()
+
+@import helper._
+
+<fieldset>
+
+@inputText(serviceForm("description"),
+    '_label -> "Service Description",
+    'required -> true,
+    'class -> "input-xxlarge")
+
+@inputText(serviceForm("localTarget"),
+    '_label -> "Local Target",
+    '_help -> "Enter service1 to have http://<serverSoapower>:<port>/soap/<environment>/service1",
+    'class -> "input-xxlarge",
+    'required -> true)
+
+@inputText(serviceForm("remoteTarget"),
+    '_label -> "Remote Target",
+    'required -> true,
+    'class -> "input-xxlarge")
+
+@inputText(serviceForm("timeoutms"),
+    'required -> true,
+    'type -> "number",
+    '_label -> "Timeout ms")
+
+@select(
+    serviceForm("environment"),
+    environments,
+    'required -> true,
+    '_label -> "Environment", '_default -> "-- Choose a environment --",
+    '_showConstraints -> false
+)
+
+</fieldset>
+
+

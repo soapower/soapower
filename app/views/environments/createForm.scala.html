@@ -1,4 +1,4 @@
-@(environmentForm: Form[Environment])
+@(environment: Form[Environment])
 
 @import helper._
 
@@ -10,16 +10,8 @@
     
     @form(routes.Environments.save()) {
         
-        <fieldset>
-        
-            @inputText(environmentForm("name"), '_label -> "Environment name", '_showErrors -> true)
-            @inputText(environmentForm("hourRecordXmlDataMin"), '_label -> "Xml Data : Start Record Hour", '_showErrors -> true)
-            @inputText(environmentForm("hourRecordXmlDataMax"), '_label -> "Xml Data : End Record Hour", '_showErrors -> true)
-            @inputText(environmentForm("nbDayKeepXmlData"), '_label -> "Xml Data : Nb days keep", '_showErrors -> true)
-            @inputText(environmentForm("nbDayKeepAllData"), '_label -> "All Data : Nb days keep", '_showErrors -> true)
+        @environments.environmentForm(environment)
 
-        </fieldset>
-        
         <div class="actions">
             <input type="submit" value="Create this environment" class="btn primary"> or 
             <a href="@routes.Environments.index" class="btn">Cancel</a>

@@ -1,4 +1,4 @@
-@(id: Long, serviceForm: Form[Service], environments : Seq[(String, String)])
+@(id: Long, service: Form[Service], environments : Seq[(String, String)])
 
 @import helper._
 
@@ -9,40 +9,9 @@
     <h1>Edit service</h1>
     
     @form(routes.Services.update(id)) {
-        
-        <fieldset>
-        
-            @inputText(serviceForm("description"),
-                '_label -> "Service Description",
-                'required -> true,
-                'class -> "input-xxlarge")
 
-            @inputText(serviceForm("localTarget"),
-                '_label -> "Local Target",
-                '_help -> "Enter service1 to have http://<serverSoapower>:<port>/soap/<environment>/service1",
-                'class -> "input-xxlarge",
-                'required -> true)
+        @services.serviceForm(service, environments)
 
-            @inputText(serviceForm("remoteTarget"),
-                '_label -> "Remote Target",
-                'required -> true,
-                'class -> "input-xxlarge")
-
-            @inputText(serviceForm("timeoutms"),
-                'required -> true,
-                'type -> "number",
-                '_label -> "Timeout ms")
-            
-            @select(
-                serviceForm("environment"), 
-                environments,
-                'required -> true,
-                '_label -> "Environment", '_default -> "-- Choose a environment --",
-                '_showConstraints -> false
-            )
-        
-        </fieldset>
-        
         <div class="actions">
             <input type="submit" value="Save this service" class="btn btn-primary"> or 
             <a href="@routes.Services.index" class="btn">Cancel</a>

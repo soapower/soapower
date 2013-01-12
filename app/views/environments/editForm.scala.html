@@ -1,4 +1,4 @@
-@(id: Long, environmentForm: Form[Environment])
+@(id: Long, environment: Form[Environment])
 
 @import helper._
 
@@ -10,15 +10,7 @@
     
     @form(routes.Environments.update(id)) {
         
-        <fieldset>
-        
-            @inputText(environmentForm("name"), '_label -> "Environment name")
-            @inputText(environmentForm("hourRecordXmlDataMin"), '_label -> "Xml Data : Start Record Hour")
-            @inputText(environmentForm("hourRecordXmlDataMax"), '_label -> "Xml Data : End Record Hour")
-            @inputText(environmentForm("nbDayKeepXmlData"), '_label -> "Xml Data : Nb days keep")
-            @inputText(environmentForm("nbDayKeepAllData"), '_label -> "Alll Data : Nb days keep")
-                    
-        </fieldset>
+        @environments.environmentForm(environment)
         
         <div class="actions">
             <input type="submit" value="Save this environment" class="btn btn-primary"> or 

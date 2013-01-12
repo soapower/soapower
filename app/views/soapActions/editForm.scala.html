@@ -11,11 +11,8 @@
     @form(routes.SoapActions.update(id)) {
         
         <fieldset>
-        
             @inputText(soapActionForm("name"), 'type -> "hidden", '_label -> null, '_showConstraints -> false)
-
             @inputText(soapActionForm("thresholdms"), '_label -> "SoapAction Threshold in ms")
-                    
         </fieldset>
         
         <div class="actions">
