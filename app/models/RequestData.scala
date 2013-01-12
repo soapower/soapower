@@ -194,8 +194,11 @@ object RequestData {
       xmlRequest = compressString(msg)
       xmlResponse = compressString(msg)
       Logger.debug(msg)
-    } else if (environment.hourRecordXmlDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
-      environment.hourRecordXmlDataMax > gcal.get(Calendar.HOUR_OF_DAY)) {
+    } else if (requestData.status != 200 || (
+      environment.hourRecordXmlDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
+      environment.hourRecordXmlDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
+      // Record XML Data if it is a soap fault (status != 200) or
+      // if we can record data with environment's configuration (hours of recording)
       xmlRequest = compressString(requestData.request)
       xmlResponse = compressString(requestData.response)
     } else {
