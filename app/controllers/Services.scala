@@ -25,7 +25,8 @@ object Services extends Controller {
           "3" -> JsString(data._1.localTarget),
           "4" -> JsString(data._1.remoteTarget),
           "5" -> JsNumber(data._1.timeoutms),
-          "6" -> JsString("<a href=\"services/"+data._1.id+"\"><i class=\"icon-edit\"></i> Edit</a>")
+          "6" -> JsBoolean(data._1.recordXmlData),
+          "7" -> JsString("<a href=\"services/"+data._1.id+"\"><i class=\"icon-edit\"></i> Edit</a>")
         ))
     }
   }
@@ -45,6 +46,7 @@ object Services extends Controller {
       "localTarget" -> nonEmptyText,
       "remoteTarget" -> nonEmptyText,
       "timeoutms" -> longNumber,
+      "recordXmlData" -> boolean,
       "environment" -> longNumber)(Service.apply)(Service.unapply))
 
   /**

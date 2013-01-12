@@ -10,4 +10,9 @@
     @inputText(environmentForm("nbDayKeepXmlData"), '_label -> "Xml Data : Nb days keep", '_showErrors -> true)
     @inputText(environmentForm("nbDayKeepAllData"), '_label -> "All Data : Nb days keep", '_showErrors -> true)
 
+    @checkbox(
+        environmentForm("recordXmlData"),
+        '_label -> "Record Xml Data",
+        '_help -> "Check this if you want to record Xml Request and Xml Response for ALL services attached to this environment")
+
 </fieldset>

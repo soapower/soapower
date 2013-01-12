@@ -15,6 +15,7 @@ case class Service(
   localTarget: String,
   remoteTarget: String,
   timeoutms: Long,
+  recordXmlData: Boolean,
   environmentId: Long) {
 }
 
@@ -30,9 +31,10 @@ object Service {
     get[String]("service.localTarget") ~
     get[String]("service.remoteTarget") ~
     get[Long]("service.timeoutms") ~
+    get[String]("service.recordXmlData") ~
     get[Long]("service.environment_id") map {
-      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ environmentId =>
-        Service(id, description, localTarget, remoteTarget, timeoutms, environmentId)
+      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ environmentId =>
+        Service(id, description, localTarget, remoteTarget, timeoutms, (recordXmlData == "true"), environmentId)
     }
   }
 
@@ -52,9 +54,10 @@ object Service {
       get[String]("service.localTarget") ~
       get[String]("service.remoteTarget") ~
       get[Long]("service.timeoutms") ~
+      get[String]("service.recordXmlData") ~
       get[String]("environment.name") map {
-        case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ environmentName =>
-          id + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + environmentName + "\n"
+        case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ environmentName =>
+          id + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + recordXmlData + ";" + environmentName + "\n"
       }
   }
 
@@ -137,14 +140,15 @@ object Service {
           SQL(
             """
             insert into service 
-              (description, localTarget, remoteTarget, timeoutms, environment_id) values (
-              {description}, {localTarget}, {remoteTarget}, {timeoutms}, {environment_id}
+              (description, localTarget, remoteTarget, timeoutms, recordXmlData, environment_id) values (
+              {description}, {localTarget}, {remoteTarget}, {timeoutms}, {recordXmlData}, {environment_id}
             )
             """).on(
               'description -> service.description,
               'localTarget -> localTarget,
               'remoteTarget -> service.remoteTarget,
               'timeoutms -> service.timeoutms,
+              'recordXmlData -> service.recordXmlData.toString,
               'environment_id -> service.environmentId).executeUpdate()
       }
 
@@ -179,6 +183,7 @@ object Service {
           localTarget = {localTarget}, 
           remoteTarget = {remoteTarget}, 
           timeoutms = {timeoutms},
+          recordXmlData = {recordXmlData},
           environment_id = {environment_id} 
           where id = {id}
           """).on(
@@ -187,6 +192,7 @@ object Service {
             'localTarget -> checkLocalTarget(service.localTarget),
             'remoteTarget -> service.remoteTarget,
             'timeoutms -> service.timeoutms,
+            'recordXmlData -> service.recordXmlData.toString,
             'environment_id -> service.environmentId).executeUpdate()
     }
   }
@@ -203,9 +209,10 @@ object Service {
       Cache.remove(serviceKey.get.toString)
       Logger.debug("remove key cache 2 " + cacheKey + id + " from cache")
       Cache.remove(cacheKey + id)
+    }
+    if (Cache.get(cacheKeyServiceById + id) isDefined) {
       Logger.debug("remove key cache 3 " + cacheKeyServiceById + id + " from cache")
       Cache.remove(cacheKeyServiceById + id)
-
     }
   }
 
@@ -302,6 +309,7 @@ object Service {
         dataCsv(csvTitle.get("localTarget").get).trim,
         dataCsv(csvTitle.get("remoteTarget").get).trim,
         dataCsv(csvTitle.get("timeoutms").get).toLong,
+        (dataCsv(csvTitle.get("recordXmlData").get).trim == "true"),
         environment.id.get)
       Service.insert(service)
       Logger.info("Insert Service " + environment.name + "/" + localTarget)

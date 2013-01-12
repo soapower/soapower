@@ -20,11 +20,12 @@ object Environments extends Controller {
       JsObject(
         List(
           "0" -> JsString(data.name),
-          "1" -> JsNumber(data.hourRecordXmlDataMin),
-          "2" -> JsNumber(data.hourRecordXmlDataMax),
-          "3" -> JsNumber(data.nbDayKeepXmlData),
-          "4" -> JsNumber(data.nbDayKeepAllData),
-          "5" -> JsString("<a href=\"environments/"+data.id+"\"><i class=\"icon-edit\"></i> Edit</a>")
+          "1" -> JsString(data.hourRecordXmlDataMin + " h"),
+          "2" -> JsString(data.hourRecordXmlDataMax + " h"),
+          "3" -> JsString(data.nbDayKeepXmlData + " days"),
+          "4" -> JsString(data.nbDayKeepAllData + " days"),
+          "5" -> JsBoolean(data.recordXmlData),
+          "6" -> JsString("<a href=\"environments/"+data.id+"\"><i class=\"icon-edit\"></i> Edit</a>")
         ))
     }
   }
@@ -65,7 +66,8 @@ object Environments extends Controller {
       "hourRecordXmlDataMin" -> number(min=0, max=23),
       "hourRecordXmlDataMax" -> number(min=0, max=24),
       "nbDayKeepXmlData" -> number(min=0, max=10),
-      "nbDayKeepAllData" -> number(min=2, max=50)) (Environment.apply)(Environment.unapply))
+      "nbDayKeepAllData" -> number(min=2, max=50),
+      "recordXmlData" -> boolean) (Environment.apply)(Environment.unapply))
 
   /**
    * Display the 'edit form' of a existing Environment.

@@ -14,7 +14,8 @@ case class Environment(id: Pk[Long],
   hourRecordXmlDataMin: Int = 8,
   hourRecordXmlDataMax: Int = 22,
   nbDayKeepXmlData: Int = 2,
-  nbDayKeepAllData: Int = 5)
+  nbDayKeepAllData: Int = 5,
+  recordXmlData: Boolean = true)
 
 object ModePurge extends Enumeration {
   type ModePurge = Value
@@ -35,9 +36,10 @@ object Environment {
     get[Int]("hourRecordXmlDataMin") ~
     get[Int]("hourRecordXmlDataMax") ~
     get[Int]("nbDayKeepXmlData") ~
-    get[Int]("nbDayKeepAllData") map {
-        case id ~ name ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData
-          => Environment(id, name, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData, nbDayKeepAllData)
+    get[Int]("nbDayKeepAllData") ~
+    get[String]("recordXmlData") map {
+        case id ~ name ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData ~ recordXmlData
+          => Environment(id, name, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData, nbDayKeepAllData, (recordXmlData == "true"))
       }
   }
 
@@ -57,9 +59,10 @@ object Environment {
     get[Int]("hourRecordXmlDataMin") ~
     get[Int]("hourRecordXmlDataMax") ~
     get[Int]("nbDayKeepXmlData") ~
-    get[Int]("nbDayKeepAllData") map {
-      case id ~ name ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData =>
-        id + ";" + name + ";" + hourRecordXmlDataMin + ";" + hourRecordXmlDataMax + ";" + nbDayKeepXmlData + ";" + nbDayKeepAllData + "\n"
+    get[Int]("nbDayKeepAllData") ~
+    get[String]("recordXmlData") map {
+      case id ~ name ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData ~ recordXmlData =>
+        id + ";" + name + ";" + hourRecordXmlDataMin + ";" + hourRecordXmlDataMax + ";" + nbDayKeepXmlData + ";" + nbDayKeepAllData + ";" + recordXmlData + "\n"
     }
   }
 
@@ -157,14 +160,16 @@ object Environment {
           """
             insert into environment values (
               null, {name}, {hourRecordXmlDataMin},
-              {hourRecordXmlDataMax}, {nbDayKeepXmlData}, {nbDayKeepAllData}
+              {hourRecordXmlDataMax}, {nbDayKeepXmlData}, {nbDayKeepAllData}, {recordXmlData}
             )
           """).on(
             'name -> environment.name,
             'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
             'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
             'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
-            'nbDayKeepAllData -> environment.nbDayKeepAllData).executeUpdate()
+            'nbDayKeepAllData -> environment.nbDayKeepAllData,
+            'recordXmlData -> environment.recordXmlData.toString
+            ).executeUpdate()
     }
   }
 
@@ -186,7 +191,8 @@ object Environment {
           hourRecordXmlDataMin = {hourRecordXmlDataMin},
           hourRecordXmlDataMax = {hourRecordXmlDataMax},
           nbDayKeepXmlData = {nbDayKeepXmlData},
-          nbDayKeepAllData = {nbDayKeepAllData}
+          nbDayKeepAllData = {nbDayKeepAllData},
+          recordXmlData = {recordXmlData}
           where id = {id}
           """).on(
             'id -> id,
@@ -194,8 +200,9 @@ object Environment {
             'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
             'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
             'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
-            'nbDayKeepAllData -> environment.nbDayKeepAllData)
-          .executeUpdate()
+            'nbDayKeepAllData -> environment.nbDayKeepAllData,
+            'recordXmlData -> environment.recordXmlData.toString
+          ).executeUpdate()
     }
   }
 
@@ -348,7 +355,8 @@ object Environment {
         dataCsv(csvTitle.get("hourRecordXmlDataMin").get).toInt,
         dataCsv(csvTitle.get("hourRecordXmlDataMax").get).toInt,
         dataCsv(csvTitle.get("nbDayKeepXmlData").get).toInt,
-        dataCsv(csvTitle.get("nbDayKeepAllData").get).toInt)
+        dataCsv(csvTitle.get("nbDayKeepAllData").get).toInt,
+        (dataCsv(csvTitle.get("recordXmlData").get).trim == "true"))
       Environment.insert(environment)
       Logger.info("Insert Environment " + environment.name)
     }

@@ -178,12 +178,23 @@ object RequestData {
     var xmlResponse : Array[Byte] = null
 
     val environment = Environment.findById(requestData.environmentId).get
+    val service = Service.findById(requestData.serviceId).get
     val date = new Date()
     val gcal = new GregorianCalendar()
     gcal.setTime(date)
     gcal.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
 
-    if (environment.hourRecordXmlDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
+    if (!service.recordXmlData) {
+      val msg = "Xml Data not recording for this service. See Admin."
+      xmlRequest = compressString(msg)
+      xmlResponse = compressString(msg)
+      Logger.debug(msg)
+    } else if (!environment.recordXmlData) {
+      val msg = "Xml Data not recording for this environment. See Admin."
+      xmlRequest = compressString(msg)
+      xmlResponse = compressString(msg)
+      Logger.debug(msg)
+    } else if (environment.hourRecordXmlDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
       environment.hourRecordXmlDataMax > gcal.get(Calendar.HOUR_OF_DAY)) {
       xmlRequest = compressString(requestData.request)
       xmlResponse = compressString(requestData.response)

@@ -25,6 +25,11 @@
     'type -> "number",
     '_label -> "Timeout ms")
 
+@checkbox(
+    serviceForm("recordXmlData"),
+    '_label -> "Record Xml Data",
+    '_help -> "Check this if you want to record Xml Request and Xml Response for this service")
+
 @select(
     serviceForm("environment"),
     environments,
