@@ -59,14 +59,19 @@ object Service {
   }
 
   /**
-   * 2 Caches :
+   * 3 Caches :
    * - one with key "environmentName + localTarget" and value : service
    * -> fill in findByLocalTargetAndEnvironmentName
    * -> clear in update and delete
    * - another with key cacheKey + service.id and value : environmentName + localTarget
    * -> used to update and delete from first cache
+   * - another with key servicekeybyid
+   * -> fill in findById
+   * -> clear in update and delete
    */
   private val cacheKey = "servicekey-"
+
+  private val cacheKeyServiceById = "servicekeybyid-"
 
   // -- Queries
 
@@ -74,7 +79,7 @@ object Service {
    * Retrieve a Service from id.
    */
   def findById(id: Long): Option[Service] = {
-    Cache.getOrElse[Option[Service]](cacheKey + id) {
+    Cache.getOrElse[Option[Service]](cacheKeyServiceById + id) {
       Logger.debug("Service " + id + " not found in cache: loading from db")
       DB.withConnection {
         implicit connection =>
@@ -92,11 +97,11 @@ object Service {
    * @return service
    */
   def findByLocalTargetAndEnvironmentName(localTarget: String, environmentName: String): Option[Service] = {
-    val serviceKey = localTarget + environmentName
+    val serviceKey = environmentName + "/" + localTarget
     val service = Cache.getOrElse[Option[Service]](serviceKey) {
       Logger.debug("Service " + environmentName + "/" + localTarget + " not found in cache: loading from db")
 
-      var serviceInDb = DB.withConnection {
+      val serviceInDb = DB.withConnection {
         implicit connection =>
           SQL(
             """
@@ -110,7 +115,7 @@ object Service {
       }
       if (serviceInDb isDefined) {
         Cache.set(cacheKey + serviceInDb.get.id, serviceKey)
-        Logger.debug("Service: " + environmentName + "/" + localTarget + " put in cache")
+        Logger.debug("Service: " + environmentName + "/" + localTarget + " put in cache with key " + cacheKey + serviceInDb.get.id)
       }
       serviceInDb
     }
@@ -126,7 +131,7 @@ object Service {
    */
   def insert(service: Service) = {
     try {
-      var localTarget = checkLocalTarget(service.localTarget)
+      val localTarget = checkLocalTarget(service.localTarget)
       DB.withConnection {
         implicit connection =>
           SQL(
@@ -194,9 +199,13 @@ object Service {
   private def deleteFromCache(id: Long) {
     val serviceKey = Cache.get(cacheKey + id);
     if (serviceKey isDefined) {
-      Logger.debug("remove " + serviceKey.get.toString + " from cache")
+      Logger.debug("remove key cache 1 " + serviceKey.get.toString + " from cache")
       Cache.remove(serviceKey.get.toString)
+      Logger.debug("remove key cache 2 " + cacheKey + id + " from cache")
       Cache.remove(cacheKey + id)
+      Logger.debug("remove key cache 3 " + cacheKeyServiceById + id + " from cache")
+      Cache.remove(cacheKeyServiceById + id)
+
     }
   }
 
