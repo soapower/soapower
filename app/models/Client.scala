@@ -16,22 +16,27 @@ import java.io.PrintWriter
 import play.api.Play.current
 
 object Client {
-  val queue = new scala.collection.mutable.Queue[RequestData]
-  val maxQueueSize = 100
+  private val nbRequest = new java.util.concurrent.atomic.AtomicLong
+
+  var lock : AnyRef = new Object()
+
+  def getNbRequest : Long = {
+    Logger.debug("Size queue:" + nbRequest.get)
+    nbRequest.get
+  }
 
   def processQueue(requestData : RequestData) {
     val writeStartTime = System.currentTimeMillis()
     Akka.future {
-      Client.queue += requestData
-      if (Client.queue.size > maxQueueSize) {
-        val req = Client.queue.dequeue
-        Logger.debug("Request: " + req.toString)
+      lock.synchronized {
+        nbRequest.addAndGet(1)
       }
     }.map {
       result =>
         Logger.debug("Request Data store to queue in " + (System.currentTimeMillis() - writeStartTime) + " ms")
     }
   }
+
 }
 
 class Client(service: Service, sender: String, content: String, headers: Map[String, String]) {
@@ -100,7 +105,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
         requestData.request = content
         requestData.storeSoapActionAndStatusInCache()
         val id = RequestData.insert(requestData)
-        requestData.id = anorm.Id(id)
+        requestData.id = anorm.Id(id.toString.toLong)
         Robot.talk(requestData)
       }.map {
         result =>
@@ -110,8 +115,6 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       case e: Throwable => Logger.error("Error writing to DB", e)
     }
   }
-
-
 
   private def extractSoapAction(headers: Map[String, String]): String = {
     var soapAction = headers.get("SOAPAction").get

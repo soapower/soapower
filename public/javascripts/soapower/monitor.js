@@ -3,6 +3,9 @@
 var socket = null;
 var chartCPU = null;
 var chartMemory = null;
+var chartNbRequestsTotal = null;
+var chartNbRequests = null;
+var nbRequestLastRecieve = -1;
 
 $(document).ready(function() {
     graph();
@@ -52,6 +55,20 @@ var receiveEvent = function(event) {
         chartMemory.yAxis[0].addPlotBand(plot1);
         chartMemory.yAxis[0].addPlotBand(plot2);
         chartMemory.yAxis[0].addPlotBand(plot3);
+    } else if (type == "nbReq") {
+        var nbNewRequests = 0;
+        if (nbRequestLastRecieve == -1) { // first
+            nbRequestLastRecieve = value;
+            chartNbRequestsTotal.series[0].data[0].remove();
+        } else {
+            nbNewRequests = value - nbRequestLastRecieve;
+            nbRequestLastRecieve = value;
+        }
+        var x = (new Date()).getTime(), y = nbNewRequests;
+
+        chartNbRequests.series[0].addPoint([x, y]);
+        chartNbRequestsTotal.series[0].addPoint([x, value]);
+
     } else { // logs
         $('#logs').append(event.data)
         $('#logs').stop().animate({ scrollTop: $("#logs")[0].scrollHeight }, 800);
@@ -86,10 +103,12 @@ function startWS() {
 function graph() {
     chartCPU = makeGraph('cpu', 'CPU Usage in %', 100, 60, 80, '%');
     chartMemory = makeGraph('memory', 'Memory in MB', 400, 120, 250, 'MB');
+    chartNbRequestsTotal = makeRequestChart('nbRequestsSeconds', 'Nb Requests since Soapower Started');
+    chartNbRequests = makeRequestChart('nbRequests', 'Nb Requests / 5s');
 }
 
 function makeGraph(container, title, maxValue, range1, range2, valueSuffix) {
-       var ret = new Highcharts.Chart({
+   var ret = new Highcharts.Chart({
 
         chart: {
             renderTo: container,
@@ -186,11 +205,56 @@ function makeGraph(container, title, maxValue, range1, range2, valueSuffix) {
             }
         }]
 
-        }
-    );
+    });
     return ret;
 }
 
+
+function makeRequestChart(container, title) {
+
+    var ret = new Highcharts.Chart({
+        chart: {
+            renderTo: container,
+            type: 'spline'/*,
+            marginRight: 10*/
+        },
+        title: {
+            text: title
+        },
+        xAxis: {
+            type: 'datetime'
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'Nb Requests'
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }]
+        },
+        tooltip: {
+            formatter: function() {
+                return '<b>'+ this.series.name +'</b><br/>'+
+                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) +'<br/>'+
+                    Highcharts.numberFormat(this.y, 0);
+            }
+        },
+        legend: {
+            enabled: false
+        },
+        exporting: {
+            enabled: false
+        },
+        series: [{
+            name: 'Nb Requests',
+            data: [[(new Date()).getTime(), 0]]
+        }]
+    });
+    return ret;
+}
 
 $('#btnGC').click(function() {
     $.ajax({

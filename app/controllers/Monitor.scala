@@ -14,6 +14,7 @@ import play.api.Logger
 import java.util.Date
 import ch.qos.logback.classic.spi.ILoggingEvent
 import java.text.SimpleDateFormat
+import models.Client
 
 /*
 * Code inspired from https://github.com/playframework/Play20/tree/master/samples/scala/comet-live-monitoring
@@ -39,7 +40,8 @@ object Monitor extends Controller {
       val out = Streams.getCPU >-
         Streams.getHeap >-
         Streams.getTotalMemory >-
-        Streams.liveEnumerator
+        Streams.liveEnumerator >-
+        Streams.getNbRequests
 
       (in, out)
   }
@@ -52,18 +54,11 @@ object Monitor extends Controller {
 
 object Streams {
 
-  val timeRefreshMillis = 500
+  private val timeRefreshMillis = 500
 
-  val timeRefreshMillisLong = 2000
+  private val timeRefreshMillisLong = 5000
 
   private val dateFormat = new SimpleDateFormat("HH:mm:ss.SSSS")
-
-  val getRequestsPerSecond = Enumerator.generateM({
-    Promise.timeout({
-      Some(SpeedOMeter.getSpeed + ":rps")
-    },
-    timeRefreshMillis, TimeUnit.MILLISECONDS)
-  })
 
   val getHeap = Enumerator.generateM({
     Promise.timeout(
@@ -85,32 +80,13 @@ object Streams {
 
   val (liveEnumerator, channelLogs) = Concurrent.broadcast[String]
 
-  def pushLog(event: ILoggingEvent) = {
+  def pushLog(event: ILoggingEvent) {
     channelLogs.push(views.html.monitor.log.render(dateFormat.format(new Date(event.getTimeStamp)), event).toString)
   }
-}
 
-object SpeedOMeter {
-
-  val unit = 100
-
-  private val counter = Ref((0, (0, java.lang.System.currentTimeMillis())))
-
-  def countRequest() = {
-    val current = java.lang.System.currentTimeMillis()
-    counter.single.transform {
-      case (precedent, (count, millis)) if current > millis + unit => (0, (1, current))
-      case (precedent, (count, millis)) if current > millis + (unit / 2) => (count, (1, current))
-      case (precedent, (count, millis)) => (precedent, (count + 1, millis))
-    }
-  }
-
-  def getSpeed = {
-    val current = java.lang.System.currentTimeMillis()
-    val (precedent, (count, millis)) = counter.single()
-    val since = current - millis
-    if (since <= unit) ((count + precedent) * 1000) / (since + unit / 2)
-    else 0.toLong
-  }
+  val getNbRequests = Enumerator.generateM({
+    Promise.timeout(
+      Some(Client.getNbRequest + ":nbReq"), timeRefreshMillisLong, TimeUnit.MILLISECONDS)
+  })
 }
 

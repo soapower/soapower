@@ -17,11 +17,17 @@
     <div class="row">
         <div class="span4" id="cpu"></div>
         <div class="span4" id="memory"></div>
+
         <div class="span3" id="action">
             <a class="btn" href="@routes.Monitor.downloadLogFile"><i class="icon-download"></i> Download Logs File</a>
             <hr>
             <button class="btn btn-warning" id="btnGC"><i class="icon-repeat"></i> Run Garbarge Collect</button>
         </div>
+    </div>
+
+    <div class="row">
+        <div class="span6" id="nbRequestsSeconds"></div>
+        <div class="span6" id="nbRequests"></div>
     </div>
 
     <h3>Logs : tail -f @logFile </h3>

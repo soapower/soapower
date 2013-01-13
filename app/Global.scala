@@ -1,4 +1,4 @@
-import models.{Robot, LiveRoom, Environment}
+import models.{Client, Robot, LiveRoom, Environment}
 import play.api._
 
 import scala.concurrent.duration._
@@ -21,6 +21,7 @@ object Global extends GlobalSettings {
       Environment.purgeXmlData()
       Environment.purgeAllData()
     }
+
   }
 
   override def onStop(app: Application) {
