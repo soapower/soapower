@@ -2,13 +2,11 @@
 
 @import helper._
 
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
-
 @main {
     
     <h1>Edit service</h1>
     
-    @form(routes.Services.update(id)) {
+    @form(routes.Services.update(id), 'class -> "form-horizontal") {
 
         @services.serviceForm(service, environments)
 

@@ -8,7 +8,7 @@
     
     <h1>Edit @soapActionForm("name").value Threshold </h1>
     
-    @form(routes.SoapActions.update(id)) {
+    @form(routes.SoapActions.update(id), 'class -> "form-horizontal") {
         
         <fieldset>
             @inputText(soapActionForm("name"), 'type -> "hidden", '_label -> null, '_showConstraints -> false)

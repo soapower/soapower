@@ -25,7 +25,8 @@ object Environments extends Controller {
           "3" -> JsString(data.nbDayKeepXmlData + " days"),
           "4" -> JsString(data.nbDayKeepAllData + " days"),
           "5" -> JsBoolean(data.recordXmlData),
-          "6" -> JsString("<a href=\"environments/"+data.id+"\"><i class=\"icon-edit\"></i> Edit</a>")
+          "6" -> JsBoolean(data.recordData),
+          "7" -> JsString("<a href=\"environments/"+data.id+"\"><i class=\"icon-edit\"></i> Edit</a>")
         ))
     }
   }
@@ -67,7 +68,8 @@ object Environments extends Controller {
       "hourRecordXmlDataMax" -> number(min=0, max=24),
       "nbDayKeepXmlData" -> number(min=0, max=10),
       "nbDayKeepAllData" -> number(min=2, max=50),
-      "recordXmlData" -> boolean) (Environment.apply)(Environment.unapply))
+      "recordXmlData" -> boolean,
+      "recordData" -> boolean) (Environment.apply)(Environment.unapply))
 
   /**
    * Display the 'edit form' of a existing Environment.

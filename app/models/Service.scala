@@ -16,6 +16,7 @@ case class Service(
   remoteTarget: String,
   timeoutms: Long,
   recordXmlData: Boolean,
+  recordData: Boolean,
   environmentId: Long) {
 }
 
@@ -32,16 +33,17 @@ object Service {
     get[String]("service.remoteTarget") ~
     get[Long]("service.timeoutms") ~
     get[String]("service.recordXmlData") ~
+    get[String]("service.recordData") ~
     get[Long]("service.environment_id") map {
-      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ environmentId =>
-        Service(id, description, localTarget, remoteTarget, timeoutms, (recordXmlData == "true"), environmentId)
+      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ environmentId =>
+        Service(id, description, localTarget, remoteTarget, timeoutms, (recordXmlData == "true"), (recordData == "true"), environmentId)
     }
   }
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "description" -> 2, "localTarget" -> 3, "remoteTarget" -> 4, "timeoutms" -> 5, "recordXmlData" -> 6, "environmentName" -> 7)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "description" -> 2, "localTarget" -> 3, "remoteTarget" -> 4, "timeoutms" -> 5, "recordXmlData" -> 6, "recordData" -> 7, "environmentName" -> 8)
 
   val csvKey = "service";
 
@@ -55,9 +57,10 @@ object Service {
       get[String]("service.remoteTarget") ~
       get[Long]("service.timeoutms") ~
       get[String]("service.recordXmlData") ~
+      get[String]("service.recordData") ~
       get[String]("environment.name") map {
-        case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ environmentName =>
-          id + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + recordXmlData + ";" + environmentName + "\n"
+        case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ environmentName =>
+          id + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + recordXmlData + ";" + recordData + ";" + environmentName + "\n"
       }
   }
 
@@ -141,7 +144,7 @@ object Service {
             """
             insert into service 
               (description, localTarget, remoteTarget, timeoutms, recordXmlData, environment_id) values (
-              {description}, {localTarget}, {remoteTarget}, {timeoutms}, {recordXmlData}, {environment_id}
+              {description}, {localTarget}, {remoteTarget}, {timeoutms}, {recordXmlData}, {recordData}, {environment_id}
             )
             """).on(
               'description -> service.description,
@@ -149,6 +152,7 @@ object Service {
               'remoteTarget -> service.remoteTarget,
               'timeoutms -> service.timeoutms,
               'recordXmlData -> service.recordXmlData.toString,
+              'recordData -> service.recordData.toString,
               'environment_id -> service.environmentId).executeUpdate()
       }
 
@@ -184,6 +188,7 @@ object Service {
           remoteTarget = {remoteTarget}, 
           timeoutms = {timeoutms},
           recordXmlData = {recordXmlData},
+          recordData = {recordData},
           environment_id = {environment_id} 
           where id = {id}
           """).on(
@@ -193,6 +198,7 @@ object Service {
             'remoteTarget -> service.remoteTarget,
             'timeoutms -> service.timeoutms,
             'recordXmlData -> service.recordXmlData.toString,
+            'recordData -> service.recordData.toString,
             'environment_id -> service.environmentId).executeUpdate()
     }
   }
@@ -310,6 +316,7 @@ object Service {
         dataCsv(csvTitle.get("remoteTarget").get).trim,
         dataCsv(csvTitle.get("timeoutms").get).toLong,
         (dataCsv(csvTitle.get("recordXmlData").get).trim == "true"),
+        (dataCsv(csvTitle.get("recordData").get).trim == "true"),
         environment.id.get)
       Service.insert(service)
       Logger.info("Insert Service " + environment.name + "/" + localTarget)

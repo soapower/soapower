@@ -2,18 +2,16 @@
 
 @import helper._
 
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) } 
-
 @main {
     
     <h1>Add a service</h1>
     
-    @form(routes.Services.save()) {
+    @form(routes.Services.save(), 'class -> "form-horizontal") {
 
         @services.serviceForm(service, environments)
 
         <div class="actions">
-            <input type="submit" value="Create this service" class="btn primary"> or 
+            <input type="submit" value="Create this service" class="btn btn-primary"> or
             <a href="@routes.Services.index" class="btn">Cancel</a>
         </div>
         

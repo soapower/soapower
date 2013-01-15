@@ -184,7 +184,10 @@ object RequestData {
     gcal.setTime(date)
     gcal.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
 
-    if (!service.recordXmlData) {
+    if (!service.recordData || !environment.recordData) {
+      Logger.debug("Data not recording for this service or this environment")
+      -1
+    } else if (!service.recordXmlData) {
       val msg = "Xml Data not recording for this service. See Admin."
       xmlRequest = compressString(msg)
       xmlResponse = compressString(msg)

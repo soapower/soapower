@@ -2,6 +2,9 @@
 
 @import helper._
 
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) }
+
+
 <fieldset>
 
 @inputText(serviceForm("description"),
@@ -29,6 +32,12 @@
     serviceForm("recordXmlData"),
     '_label -> "Record Xml Data",
     '_help -> "Check this if you want to record Xml Request and Xml Response for this service")
+
+@checkbox(
+    serviceForm("recordData"),
+    '_label -> "Record Data",
+    '_help -> "Check this if you want to record Data (time, responseTime, etc...) on Request / Response for this service. If it is unchecked, you can see requests on live page only and no stats are computed for this service. You must check this if you want to record XML Data. "
+)
 
 @select(
     serviceForm("environment"),

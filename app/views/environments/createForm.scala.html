@@ -2,18 +2,16 @@
 
 @import helper._
 
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.f) } 
-
 @main {
     
     <h1>Add an environment</h1>
     
-    @form(routes.Environments.save()) {
+    @form(routes.Environments.save(), 'class -> "form-horizontal") {
         
         @environments.environmentForm(environment)
 
         <div class="actions">
-            <input type="submit" value="Create this environment" class="btn primary"> or 
+            <input type="submit" value="Create this environment" class="btn btn-primary"> or
             <a href="@routes.Environments.index" class="btn">Cancel</a>
         </div>
         
