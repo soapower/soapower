@@ -143,7 +143,7 @@ object Service {
           SQL(
             """
             insert into service 
-              (description, localTarget, remoteTarget, timeoutms, recordXmlData, environment_id) values (
+              (description, localTarget, remoteTarget, timeoutms, recordXmlData, recordData, environment_id) values (
               {description}, {localTarget}, {remoteTarget}, {timeoutms}, {recordXmlData}, {recordData}, {environment_id}
             )
             """).on(

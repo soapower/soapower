@@ -25,7 +25,7 @@ object Services extends Controller {
         List(
           "0" -> JsString(data._1.description),
           "1" -> JsString(data._2.name),
-          "2" -> JsString(url + data._1.localTarget),
+          "2" -> JsString(url + data._2.name + "/" + data._1.localTarget),
           "3" -> JsString(data._1.remoteTarget),
           "4" -> JsNumber(data._1.timeoutms),
           "5" -> JsBoolean(data._1.recordXmlData),

@@ -36,7 +36,7 @@ function prepareRequestsReplays() {
 	var callback = function() {
 		location.reload();
 	}
-	
+
 	$(".replay").click(function() {
 		var requestId = $(this).attr("data-request-id");
 		$.ajax({

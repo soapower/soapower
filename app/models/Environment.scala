@@ -163,7 +163,7 @@ object Environment {
           """
             insert into environment values (
               null, {name}, {hourRecordXmlDataMin},
-              {hourRecordXmlDataMax}, {nbDayKeepXmlData}, {nbDayKeepAllData}, {recordXmlData}
+              {hourRecordXmlDataMax}, {nbDayKeepXmlData}, {nbDayKeepAllData}, {recordXmlData}, {recordData}
             )
           """).on(
             'name -> environment.name,
