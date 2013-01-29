@@ -113,9 +113,7 @@ object RequestData {
    * @return List of RequestData, csv format
    */
   def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("select * " +
-      " from request_data left join environment on environmentId = environment.id " +
-      " where isStats = 'true' ").as(RequestData.csv. *)
+    implicit c => SQL("SELECT *  FROM  request_data, environment WHERE environmentId = environment.id and isStats = 'true';").as(RequestData.csv. *)
   }
 
   /**
@@ -259,7 +257,7 @@ object RequestData {
             """
             delete from request_data
             where isStats = 'true'
-            and startTime >= {startTime} and startTime < {startTime}
+            and startTime >= {startTime} and startTime <= {startTime}
             and soapAction = {soapAction}
             """
           ).on(
@@ -274,7 +272,7 @@ object RequestData {
             """
             insert into request_data
               (sender, soapAction, environmentId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status, isStats) values (
-              '', {soapAction}, {environmentId}, '', '', {startTime}, '', '', {timeInMillis}, 200, true
+              '', {soapAction}, {environmentId}, '', '', {startTime}, '', '', {timeInMillis}, 200, 'true'
             )
             """).on(
             'soapAction -> soapAction,

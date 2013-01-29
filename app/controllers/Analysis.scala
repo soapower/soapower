@@ -26,7 +26,7 @@ object Analysis extends Controller {
   }
 
   def load(environment: String, soapAction: String, minDate: String, maxDate : String, status: String, statsOnly: String) = Action {
-    val responsesTimesByDate = RequestData.findResponseTimes(environment, soapAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s).getTime, status, (statsOnly == "true"))
+    val responsesTimesByDate = RequestData.findResponseTimes(environment, soapAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s).getTime, status, true)
     Ok(Json.toJson(responsesTimesByDate)).as(JSON)
   }
 
