@@ -345,7 +345,7 @@ object RequestData {
         """
             delete from request_data
             where startTime >= {minDate} and startTime < {maxDate}
-            and isStats = false
+            and isStats = 'false'
         """
           + sqlAndEnvironnement(environmentIn)).on(
             'minDate -> minDate,
