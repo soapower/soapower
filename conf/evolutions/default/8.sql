@@ -13,7 +13,7 @@ alter table environment add column nbDayKeepAllData int not null default 10;
 alter table request_data add column isStats enum('true','false') NOT NULL DEFAULT 'false';
 
 delete from request_data where soapAction like '"%"';
-delete from soapAction where name like '"%"';
+delete from soapaction where name like '"%"';
 
 # --- !Downs
 
