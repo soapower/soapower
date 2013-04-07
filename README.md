@@ -35,6 +35,52 @@ Trello
 =======
 https://trello.com/b/Gd11S2zp
 
+Installation
+=======
+Requirements
+-----------
+* JDK >= 1.6, add JAVA_HOME to your path
+* Mysql 5 with a `soapower` user (with password `soapower`, associated to a `soapower` database. You can choose another
+name or password by editing the key `db.default.url` in `application.conf`
+* Play Framework 2.1.1
+** Download and unzip : http://downloads.typesafe.com/play/2.1.1/play-2.1.1.zip
+** Add PLAY_HOME to your path
+* Git
+
+Compilation / Development
+-----------
+* Make soapower directory : `mkdir -p /opt/soapower/build && cd /opt/soapower/build`
+* Checkout the source code : `git clone https://github.com/soapower/soapower.git`
+* Play Compilation : `cd /opt/soapower/build/soapower && play compile`
+
+You can ajust configuration by editing `/opt/soapower/build/soapower/conf/application.conf`
+
+* Play run on default port 9000 : `cd /opt/soapower/build/soapower && play run`
+* Go to http://localhost:9000/
+
+Run in Production with source code on master branch
+-----------
+* Set Soapower Home : `export SOAPOWER_HOME="/opt/soapower/"` (optional if your home is /opt/soapower/)
+* Set Soapower Http Listen Port : `export SOAPOWER_PORT=9010` (optional if your default port is 9010)
+* Run build.sh : `chmod +x /opt/soapower/build/soapower/build.sh && /opt/soapower/build/soapower/build.sh`
+* Run deploy.sh : `/opt/soapower/build/soapower/deploy.sh`
+
+build.sh : Git pull code from https://github.com/soapower/soapower, make shell script executable and build Soapower (play dist)
+
+deploy.sh : Get Soapower package (from build), create a directory SOAPOWER_HOME/date and unzip the package file into it, stop and start Soapower.
+The current Soapower is in directory /opt/soapower/current (symlink). Please clean manually old deployed directories in /opt/soapower/.
+
+restart.sh : stop and restart Soapower.
+
+Example :
+`/opt/soapower$ ls -l
+total 8
+drwxr-xr-x  4 yvonnickesnault  admin  136  7 avr 18:50 20130407_185006
+drwxr-xr-x  4 yvonnickesnault  admin  136  7 avr 18:50 20130407_185051
+drwxr-xr-x  3 yvonnickesnault  admin  102  7 avr 16:34 build
+lrwxr-xr-x  1 yvonnickesnault  admin   52  7 avr 18:47 current -> /opt/soapower/20130407_185051/soapower-1.0-SNAPSHOT/`
+
+
 Development
 =======
 Soapower developed with Play Framework 2, with scala / java / js / html5
