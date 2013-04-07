@@ -38,7 +38,7 @@ https://trello.com/b/Gd11S2zp
 Development
 =======
 Soapower developed with Play Framework 2, with scala / java / js / html5
-Current version build on Play Framework 2.1-RC2
+Current version build on Play Framework 2.1.1
 
 Licence
 =======
