@@ -106,6 +106,21 @@ drwxr-xr-x  5 yvonnickesnault  admin       170  8 avr 22:25 .
 drwxr-xr-x  8 yvonnickesnault  admin       272  8 avr 22:26 soapower-1.0
 ```
 
+With the current directory :`
+```
+/opt/soapower/current$ ls -lart
+total 32
+-rwxr-xr-x   1 yvonnickesnault  admin  2992  7 avr 19:33 start
+drwxr-xr-x  56 yvonnickesnault  admin  1904  7 avr 19:33 lib
+drwxr-xr-x   5 yvonnickesnault  admin   170  8 avr 22:25 ..
+drwxr-xr-x   3 yvonnickesnault  admin   102  8 avr 22:26 logs
+-rwxr-xr-x   1 yvonnickesnault  admin  1050  8 avr 22:26 restart.sh
+-rw-r--r--   1 yvonnickesnault  admin     4  8 avr 22:26 RUNNING_PID
+-rw-r--r--   1 yvonnickesnault  admin   921  8 avr 22:32 logger-prod.xml
+```
+
+The `RUNNING_PID` file contain the pid of Soapower (wich is running here)
+
 
 Run in Production with source code on master branch
 -----------
