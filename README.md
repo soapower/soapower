@@ -95,8 +95,6 @@ $ cd /opt/soapower/build/soapower && play run
 
 * Go to http://localhost:9000/
 
-You can ajust configuration by editing before run `/opt/soapower/build/soapower/conf/application.conf`
-
 
 Run in Production with source code on master branch
 -----------
@@ -117,6 +115,8 @@ $ chmod +x /opt/soapower/build/soapower/build.sh && /opt/soapower/build/soapower
 $ /opt/soapower/build/soapower/deploy.sh
 
 ```
+
+To avoid any conflicts with build.sh script, do not make any change in directory /opt/soapower/build/soapower.
 
 The current Soapower is in directory /opt/soapower/current (symlink). Please clean manually old deployed directories in /opt/soapower/.
 
