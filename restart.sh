@@ -15,9 +15,14 @@ export SOAPOWER_CURRENT="${SOAPOWER_HOME}/current"
 echo "Soapower Home: ${SOAPOWER_HOME}, port : ${SOAPOWER_HTTP_PORT}"
 echo "Soapower Current: ${SOAPOWER_CURRENT}"
 
-cd ${SOAPOWER_CURRENT} && chmod +x start
+chmod +x ${SOAPOWER_CURRENT}/start
 if [ $? -ne 0 ]; then
-    echo "Failed to chmod +x start, please use deploy.sh before"
+    echo "Failed to chmod +x start, please check your installation"
+    exit 1;
+fi
+
+if [ ! -f ${SOAPOWER_CURRENT}/logger-prod.xml ]; then
+    echo "${SOAPOWER_CURRENT}/logger-prod.xml not exist, please check your installation"
     exit 1;
 fi
 
