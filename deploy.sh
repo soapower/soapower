@@ -80,5 +80,5 @@ echo "Make link from ${DIR_DEPLOY} to ${SOAPOWER_HOME}/current"
 ln -s ${DIR_DEPLOY} ${SOAPOWER_HOME}/current
 
 echo "Starting Soapower on port 9010"
-cd ${SOAPOWER_HOME}/current && nohup start -Dlogger.file=logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT} >/dev/null 2>&1
+cd ${SOAPOWER_HOME}/current && nohup start -Dlogger.file=logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT} -DapplyEvolutions=true >/dev/null 2>&1
 
