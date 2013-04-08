@@ -59,6 +59,7 @@ wget http://dl.bintray.com/content/soapower/soapower/soapower-1.0.zip?direct -O 
 unzip soapower-1.0.zip
 ln -s soapower-1.0 current && cd current
 wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0-play2.1.1/restart.sh
+wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0-play2.1.1/conf/logger-prod.xml
 chmod +x restart.sh
 ./restart.sh
 ```
