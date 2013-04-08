@@ -189,6 +189,8 @@ If you don't know Git... go to http://try.github.io and read how to make a pull 
 
 Trello : https://trello.com/b/Gd11S2zp
 
+[![Build Status](https://buildhive.cloudbees.com/job/soapower/job/soapower/badge/icon)](https://buildhive.cloudbees.com/job/soapower/job/soapower/)
+
 Licence
 =======
 This software is licensed under the Apache 2 license, quoted below.
