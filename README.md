@@ -50,10 +50,13 @@ name or password by editing the key `db.default.url` in `application.conf` and a
 Installation & Run in Production with stable version
 -----------
 
-* Set Soapower Home : `export SOAPOWER_HOME="/opt/soapower/"` (optional if your home is /opt/soapower/)
-* Set Soapower Http Listen Port : `export SOAPOWER_PORT=9010` (optional if your default port is 9010)
-
 ```
+# Set Soapower Home (optional if your home is /opt/soapower/)
+$ export SOAPOWER_HOME="/opt/soapower/"
+
+# Set Soapower Http Listen Port (optional if your default port is 9010)
+$ export SOAPOWER_PORT=9010
+
 mkdir -p /opt/soapower && cd /opt/soapower
 wget http://dl.bintray.com/content/soapower/soapower/soapower-1.0.zip?direct -O soapower-1.0.zip
 unzip soapower-1.0.zip
@@ -63,6 +66,36 @@ wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0-play2.1
 chmod +x restart.sh
 ./restart.sh
 ```
+
+* Go to http://localhost:9010/
+
+
+Soapower Home directory after theses steps :
+```
+$ ls -lart
+total 64408
+-rw-r--r--  1 yvonnickesnault  admin  32970177  7 avr 19:36 soapower-1.0.zip
+drwxr-xr-x@ 4 yvonnickesnault  admin       136  8 avr 22:22 ..
+lrwxr-xr-x  1 yvonnickesnault  admin        12  8 avr 22:25 current -> soapower-1.0
+drwxr-xr-x  5 yvonnickesnault  admin       170  8 avr 22:25 .
+drwxr-xr-x  8 yvonnickesnault  admin       272  8 avr 22:26 soapower-1.0
+```
+
+With the current directory :`
+```
+/opt/soapower/current$ ls -lart
+total 32
+-rwxr-xr-x   1 yvonnickesnault  admin  2992  7 avr 19:33 start
+drwxr-xr-x  56 yvonnickesnault  admin  1904  7 avr 19:33 lib
+drwxr-xr-x   5 yvonnickesnault  admin   170  8 avr 22:25 ..
+drwxr-xr-x   3 yvonnickesnault  admin   102  8 avr 22:26 logs
+-rwxr-xr-x   1 yvonnickesnault  admin  1050  8 avr 22:26 restart.sh
+-rw-r--r--   1 yvonnickesnault  admin     4  8 avr 22:26 RUNNING_PID
+-rw-r--r--   1 yvonnickesnault  admin   921  8 avr 22:32 logger-prod.xml
+```
+
+The `RUNNING_PID` file contain the pid of Soapower (wich is running here)
+
 
 Installation & Run in Production with master branch
 =======
@@ -95,32 +128,6 @@ $ cd /opt/soapower/build/soapower && play run
 
 * Go to http://localhost:9000/
 
-Soapower Home directory after theses steps :
-```
-$ ls -lart
-total 64408
--rw-r--r--  1 yvonnickesnault  admin  32970177  7 avr 19:36 soapower-1.0.zip
-drwxr-xr-x@ 4 yvonnickesnault  admin       136  8 avr 22:22 ..
-lrwxr-xr-x  1 yvonnickesnault  admin        12  8 avr 22:25 current -> soapower-1.0
-drwxr-xr-x  5 yvonnickesnault  admin       170  8 avr 22:25 .
-drwxr-xr-x  8 yvonnickesnault  admin       272  8 avr 22:26 soapower-1.0
-```
-
-With the current directory :`
-```
-/opt/soapower/current$ ls -lart
-total 32
--rwxr-xr-x   1 yvonnickesnault  admin  2992  7 avr 19:33 start
-drwxr-xr-x  56 yvonnickesnault  admin  1904  7 avr 19:33 lib
-drwxr-xr-x   5 yvonnickesnault  admin   170  8 avr 22:25 ..
-drwxr-xr-x   3 yvonnickesnault  admin   102  8 avr 22:26 logs
--rwxr-xr-x   1 yvonnickesnault  admin  1050  8 avr 22:26 restart.sh
--rw-r--r--   1 yvonnickesnault  admin     4  8 avr 22:26 RUNNING_PID
--rw-r--r--   1 yvonnickesnault  admin   921  8 avr 22:32 logger-prod.xml
-```
-
-The `RUNNING_PID` file contain the pid of Soapower (wich is running here)
-
 
 Run in Production with source code on master branch
 -----------
@@ -141,6 +148,9 @@ $ chmod +x /opt/soapower/build/soapower/build.sh && /opt/soapower/build/soapower
 $ /opt/soapower/build/soapower/deploy.sh
 
 ```
+
+* Go to http://localhost:9010/
+
 
 To avoid any conflicts with build.sh script, do not make any change in directory /opt/soapower/build/soapower.
 
