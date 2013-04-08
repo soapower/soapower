@@ -45,7 +45,7 @@ Requirements
 -----------
 * JDK >= 1.6, add JAVA_HOME to your path
 * Mysql 5 with a `soapower` user (with password `soapower`, associated to a `soapower` database. You can choose another
-name or password by editing the key `db.default.url` in `application.conf`
+name or password by editing the key `db.default.url` in `application.conf` and add `-Dconfig.file=/full/path/to/conf/application-prod.conf` it to the restart.sh script (last line of file)
 
 Installation & Run in Production with stable version
 -----------
@@ -54,7 +54,7 @@ Installation & Run in Production with stable version
 * Set Soapower Http Listen Port : `export SOAPOWER_PORT=9010` (optional if your default port is 9010)
 
 ```
-mkdir -P /opt/soapower && cd /opt/soapower
+mkdir -p /opt/soapower && cd /opt/soapower
 wget http://dl.bintray.com/content/soapower/soapower/soapower-1.0.zip?direct -O soapower-1.0.zip
 unzip soapower-1.0.zip
 ln -s soapower-1.0 current && cd current
@@ -70,8 +70,7 @@ Installation & Run in Production with master branch
 Requirements
 -----------
 * JDK >= 1.6, add JAVA_HOME to your path
-* Mysql 5 with a `soapower` user (with password `soapower`, associated to a `soapower` database. You can choose another
-name or password by editing the key `db.default.url` in `application.conf`
+* Mysql 5 with a `soapower` user (with password `soapower`, associated to a `soapower` database.
 * Play Framework 2.1.1. Download and unzip : http://downloads.typesafe.com/play/2.1.1/play-2.1.1.zip, add PLAY_HOME to your path
 * Git
 
@@ -95,6 +94,17 @@ $ cd /opt/soapower/build/soapower && play run
 ```
 
 * Go to http://localhost:9000/
+
+Soapower Home directory after theses steps :
+```
+$ ls -lart
+total 64408
+-rw-r--r--  1 yvonnickesnault  admin  32970177  7 avr 19:36 soapower-1.0.zip
+drwxr-xr-x@ 4 yvonnickesnault  admin       136  8 avr 22:22 ..
+lrwxr-xr-x  1 yvonnickesnault  admin        12  8 avr 22:25 current -> soapower-1.0
+drwxr-xr-x  5 yvonnickesnault  admin       170  8 avr 22:25 .
+drwxr-xr-x  8 yvonnickesnault  admin       272  8 avr 22:26 soapower-1.0
+```
 
 
 Run in Production with source code on master branch
