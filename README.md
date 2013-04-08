@@ -24,67 +24,134 @@ Administration interface is available for
 <img src='https://raw.github.com/soapower/soapower/master/public/images/soapower/classDiagram.png' display='float:left'>
 
 
+Soapower developed with Play Framework 2, with scala / java / js / html5
+
+
 Jenkins Integration
 ===================
+If a SoapAction's response time is > threshold, a failed test is generate and visible on Jenkins.
+
 - Create a job, with a shell execution :
 `rm *.xml ; wget http://<server>:<port>/statsAsJunit/yesterday/yesterday/ -O result.xml`
-- Add a publish test Junit to view all SoapAction's result time. If a SoapAction's response time is > threshold, a failed test is generate.
+- Add a publish test Junit to view all SoapAction's result time. 
 - Url parameters : `http://<server>:<port>/statsAsJunit/<minDate>/<maxDate>/` with minDate / maxDate like : 2012-11-29, yesterday, today
 
-Trello
-=======
-https://trello.com/b/Gd11S2zp
 
-Installation
+Run in Production with a stable version
 =======
+Current stable version of Soapower : 1.0
+
 Requirements
 -----------
 * JDK >= 1.6, add JAVA_HOME to your path
 * Mysql 5 with a `soapower` user (with password `soapower`, associated to a `soapower` database. You can choose another
 name or password by editing the key `db.default.url` in `application.conf`
-* Play Framework 2.1.1
-** Download and unzip : http://downloads.typesafe.com/play/2.1.1/play-2.1.1.zip
-** Add PLAY_HOME to your path
+
+Installation & Run in Production with stable version
+-----------
+
+* Set Soapower Home : `export SOAPOWER_HOME="/opt/soapower/"` (optional if your home is /opt/soapower/)
+* Set Soapower Http Listen Port : `export SOAPOWER_PORT=9010` (optional if your default port is 9010)
+
+```
+mkdir -P /opt/soapower && cd /opt/soapower
+wget http://dl.bintray.com/content/soapower/soapower/soapower-1.0.zip?direct -O soapower-1.0.zip
+unzip soapower-1.0.zip
+ln -s soapower-1.0 current && cd current
+wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0-play2.1.1/restart.sh
+chmod +x restart.sh
+./restart.sh
+```
+
+Installation & Run in Production with master branch
+=======
+
+Requirements
+-----------
+* JDK >= 1.6, add JAVA_HOME to your path
+* Mysql 5 with a `soapower` user (with password `soapower`, associated to a `soapower` database. You can choose another
+name or password by editing the key `db.default.url` in `application.conf`
+* Play Framework 2.1.1. Download and unzip : http://downloads.typesafe.com/play/2.1.1/play-2.1.1.zip, add PLAY_HOME to your path
 * Git
 
-Compilation / Development
------------
-* Make soapower directory : `mkdir -p /opt/soapower/build && cd /opt/soapower/build`
-* Checkout the source code : `git clone https://github.com/soapower/soapower.git`
-* Play Compilation : `cd /opt/soapower/build/soapower && play compile`
 
-You can ajust configuration by editing `/opt/soapower/build/soapower/conf/application.conf`
+Init
+-----
 
-* Play run on default port 9000 : `cd /opt/soapower/build/soapower && play run`
+```
+# Make soapower directory : 
+$ mkdir -p /opt/soapower/build && cd /opt/soapower/build
+
+# Checkout the source code : 
+$ git clone https://github.com/soapower/soapower.git
+
+# Play Compilation : 
+$ cd /opt/soapower/build/soapower && play compile
+
+# Play run on default port 9000 : 
+$ cd /opt/soapower/build/soapower && play run
+
+```
+
 * Go to http://localhost:9000/
+
+You can ajust configuration by editing before run `/opt/soapower/build/soapower/conf/application.conf`
+
 
 Run in Production with source code on master branch
 -----------
-* Set Soapower Home : `export SOAPOWER_HOME="/opt/soapower/"` (optional if your home is /opt/soapower/)
-* Set Soapower Http Listen Port : `export SOAPOWER_PORT=9010` (optional if your default port is 9010)
-* Run build.sh : `chmod +x /opt/soapower/build/soapower/build.sh && /opt/soapower/build/soapower/build.sh`
-* Run deploy.sh : `/opt/soapower/build/soapower/deploy.sh`
 
-build.sh : Git pull code from https://github.com/soapower/soapower, make shell script executable and build Soapower (play dist)
+```
+# Set Soapower Home (optional if your home is /opt/soapower/)
+$ export SOAPOWER_HOME="/opt/soapower/"
 
-deploy.sh : Get Soapower package (from build), create a directory SOAPOWER_HOME/date and unzip the package file into it, stop and start Soapower.
+# Set Soapower Http Listen Port (optional if your default port is 9010)
+$ export SOAPOWER_PORT=9010
+
+# Run build.sh : Git pull code from https://github.com/soapower/soapower, 
+# then make shell script executable and build Soapower (play dist)
+$ chmod +x /opt/soapower/build/soapower/build.sh && /opt/soapower/build/soapower/build.sh
+
+# Run deploy.sh : Get Soapower package (from build), create a directory SOAPOWER_HOME/date 
+# and unzip the package file into it, stop and start Soapower.
+$ /opt/soapower/build/soapower/deploy.sh
+
+```
+
 The current Soapower is in directory /opt/soapower/current (symlink). Please clean manually old deployed directories in /opt/soapower/.
 
 restart.sh : stop and restart Soapower.
 
-Example :
-`/opt/soapower$ ls -l
+Example of Soapower Home directory :
+```
+/opt/soapower$ ls -l
 total 8
 drwxr-xr-x  4 yvonnickesnault  admin  136  7 avr 18:50 20130407_185006
 drwxr-xr-x  4 yvonnickesnault  admin  136  7 avr 18:50 20130407_185051
 drwxr-xr-x  3 yvonnickesnault  admin  102  7 avr 16:34 build
-lrwxr-xr-x  1 yvonnickesnault  admin   52  7 avr 18:47 current -> /opt/soapower/20130407_185051/soapower-1.0-SNAPSHOT/`
+lrwxr-xr-x  1 yvonnickesnault  admin   52  7 avr 18:47 current -> /opt/soapower/20130407_185051/soapower-1.0-SNAPSHOT/
+```
 
 
 Development
-=======
-Soapower developed with Play Framework 2, with scala / java / js / html5
-Current version build on Play Framework 2.1.1
+==========
+
+Requirements
+-----------
+* JDK >= 1.6, add JAVA_HOME to your path
+* Mysql 5 with a `soapower` user (with password `soapower`, associated to a `soapower` database. You can choose another
+name or password by editing the key `db.default.url` in `application.conf`
+* Play Framework 2.1.1. Download and unzip : http://downloads.typesafe.com/play/2.1.1/play-2.1.1.zip, add PLAY_HOME to your path
+* Git
+* An IDE (scala-ide, intellij), or an editor of your choice...
+
+If you are a java developer (and not scala), please read at least http://www.codecommit.com/blog/scala/scala-for-java-refugees-part-1 (part 1 to 6)
+
+If you don't know Play Framework, please read http://www.playframework.com/documentation/2.1.1/ScalaTodoList
+
+If you don't know Git... go to http://try.github.io and read how to make a pull request here : https://help.github.com/articles/using-pull-requests
+
+Trello : https://trello.com/b/Gd11S2zp
 
 Licence
 =======
