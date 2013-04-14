@@ -44,7 +44,7 @@ Current stable version of Soapower : 1.0
 Requirements
 -----------
 * JDK >= 1.6, add JAVA_HOME to your path
-* Mysql 5 with a `soapower` user (with password `soapower`, associated to a `soapower` database. You can choose another
+* Mysql 5 with a `soapower` user (with password `soapower`, associated to a `soapower` database). You can choose another
 name or password by editing the key `db.default.url` in `application.conf` and add `-Dconfig.file=/full/path/to/conf/application-prod.conf` it to the restart.sh script (last line of file)
 
 Installation & Run in Production with stable version
@@ -81,7 +81,7 @@ drwxr-xr-x  5 yvonnickesnault  admin       170  8 avr 22:25 .
 drwxr-xr-x  8 yvonnickesnault  admin       272  8 avr 22:26 soapower-1.0
 ```
 
-With the current directory :`
+With the current directory :
 ```
 /opt/soapower/current$ ls -lart
 total 32
@@ -103,7 +103,7 @@ Installation & Run in Production with master branch
 Requirements
 -----------
 * JDK >= 1.6, add JAVA_HOME to your path
-* Mysql 5 with a `soapower` user (with password `soapower`, associated to a `soapower` database.
+* Mysql 5 with a `soapower` user (with password `soapower`, associated to a `soapower` database).
 * Play Framework 2.1.1. Download and unzip : http://downloads.typesafe.com/play/2.1.1/play-2.1.1.zip, add PLAY_HOME to your path
 * Git
 

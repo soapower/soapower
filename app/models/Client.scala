@@ -21,7 +21,7 @@ object Client {
   var lock : AnyRef = new Object()
 
   def getNbRequest : Long = {
-    Logger.debug("Size queue (NbRequest):" + nbRequest.get)
+    //Logger.debug("Size queue (NbRequest):" + nbRequest.get)
     nbRequest.get
   }
 
