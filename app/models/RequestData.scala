@@ -171,7 +171,7 @@ object RequestData {
    *
    * @param requestData the requestData
    */
-  def insert(requestData: RequestData) = {
+  def insert(requestData: RequestData) : Long = {
     var xmlRequest : Array[Byte] = null
     var xmlResponse : Array[Byte] = null
 
@@ -184,7 +184,7 @@ object RequestData {
 
     if (!service.recordData || !environment.recordData) {
       Logger.debug("Data not recording for this service or this environment")
-      -1
+      return -1
     } else if (!service.recordXmlData) {
       val msg = "Xml Data not recording for this service. See Admin."
       xmlRequest = compressString(msg)

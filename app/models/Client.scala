@@ -20,10 +20,7 @@ object Client {
 
   var lock : AnyRef = new Object()
 
-  def getNbRequest : Long = {
-    //Logger.debug("Size queue (NbRequest):" + nbRequest.get)
-    nbRequest.get
-  }
+  def getNbRequest : Long = nbRequest.get
 
   def processQueue(requestData : RequestData) {
     val writeStartTime = System.currentTimeMillis()
@@ -68,7 +65,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       futureResponse = wsRequestHolder.post(content)
 
       // wait for the response
-      waitForResponse(headers, content)
+      waitForResponse(headers)
 
     } catch {
       case e: Throwable => processError("post", e)
@@ -78,7 +75,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     saveData(content)
   }
 
-  private def waitForResponse(headers: Map[String, String], content: String) {
+  private def waitForResponse(headers: Map[String, String]) = {
     try {
       val wsResponse: Response = Await.result(futureResponse, service.timeoutms.millis * 1000000)
       response = new ClientResponse(wsResponse, (System.currentTimeMillis - requestTimeInMillis))
@@ -86,23 +83,32 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       requestData.status = response.status
       Client.processQueue(requestData)
       requestData.requestHeaders = headers
-      requestData.response = response.body
+      requestData.response = checkNullOrEmpty(response.body)
       requestData.responseHeaders = response.headers
 
       if (Logger.isDebugEnabled) {
-        Logger.debug("Reponse in " + response.responseTimeInMillis + " ms")
+        Logger.debug("Response in " + response.responseTimeInMillis + " ms")
       }
     } catch {
       case e: Throwable => processError("waitForResponse", e)
     }
   }
 
-  private def saveData(content: String) {
+  /**
+   * If content is null or empty, return "[null or empty]"
+   * @param content a string
+   * @return [null or empty] or the content if not null (or empty!)
+   */
+  private def checkNullOrEmpty(content: String) : String = {
+    if (content == null || content.isEmpty) "[null or empty]" else content
+  }
+
+  private def saveData(content: String) = {
     try {
       // asynchronously writes data to the DB
       val writeStartTime = System.currentTimeMillis()
       Akka.future {
-        requestData.request = content
+        requestData.request = checkNullOrEmpty(content)
         requestData.storeSoapActionAndStatusInCache()
         val id = RequestData.insert(requestData)
         requestData.id = anorm.Id(id.toString.toLong)
