@@ -84,6 +84,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       Client.processQueue(requestData)
       requestData.requestHeaders = headers
       requestData.response = checkNullOrEmpty(response.body)
+      requestData.responseBytes = response.bodyBytes
       requestData.responseHeaders = response.headers
 
       if (Logger.isDebugEnabled) {
@@ -166,15 +167,15 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
 class ClientResponse(wsResponse: Response = null, val responseTimeInMillis: Long) {
 
   var body: String = if (wsResponse != null) wsResponse.body else ""
+  var bodyBytes = wsResponse.getAHCResponse.getResponseBodyAsBytes
   val status: Int = if (wsResponse != null) wsResponse.status else Status.INTERNAL_SERVER_ERROR
 
   private val headersNing: Map[String, Seq[String]] = if (wsResponse != null) ningHeadersToMap(wsResponse.getAHCResponse.getHeaders()) else Map()
 
   var headers: Map[String, String] = Map()
-  headersNing.foreach(header =>
-    if (header._1 != "Transfer-Encoding")
-      headers += header._1 -> header._2.last // if more than one value for one header, take the last only
-  )
+
+  // if more than one value for one header, take the last only
+  headersNing.foreach(header => headers += header._1 -> header._2.last)
 
   private def ningHeadersToMap(headersNing: FluentCaseInsensitiveStringsMap) = {
     import scala.collection.JavaConverters._

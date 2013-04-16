@@ -30,6 +30,8 @@ case class RequestData(
   var status: Int,
   var purged: Boolean) {
 
+  var responseBytes: Array[Byte] = null
+
   def this(sender: String, soapAction: String, environnmentId: Long, serviceId: Long) =
     this(null, sender, soapAction, environnmentId, serviceId, null, null, new Date, null, null, -1, -1, false)
 
@@ -201,7 +203,17 @@ object RequestData {
       // Record XML Data if it is a soap fault (status != 200) or
       // if we can record data with environment's configuration (hours of recording)
       xmlRequest = compressString(requestData.request)
-      xmlResponse = compressString(requestData.response)
+
+      def transferEncodingResponse = requestData.responseHeaders.filter { _._1 == HeaderNames.CONTENT_ENCODING }
+
+      transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
+        case Some("gzip") =>
+          Logger.debug("Response in gzip Format")
+          xmlResponse = requestData.responseBytes
+        case _ =>
+          Logger.debug("Response in plain Format")
+          xmlResponse = compressString(requestData.response)
+      }
     } else {
       val msg = "Xml Data not recording. Record between " + environment.hourRecordXmlDataMin + "h to " + environment.hourRecordXmlDataMax + "h for this environment."
       xmlRequest = compressString(msg)
