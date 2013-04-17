@@ -39,8 +39,8 @@ If a SoapAction's response time is > threshold, a failed test is generate and vi
 
 Run in Production with a stable version
 =======
-Current stable version of Soapower : 1.0
-You can download it here : http://dl.bintray.com/content/soapower/soapower/soapower-1.0.zip
+Current stable version of Soapower : 1.0.1
+You can download it here : http://dl.bintray.com/content/soapower/soapower/soapower-1.0.1.zip
 
 Requirements
 -----------
@@ -59,11 +59,11 @@ $ export SOAPOWER_HOME="/opt/soapower/"
 $ export SOAPOWER_PORT=9010
 
 mkdir -p /opt/soapower && cd /opt/soapower
-wget http://dl.bintray.com/content/soapower/soapower/soapower-1.0.zip?direct -O soapower-1.0.zip
-unzip soapower-1.0.zip
-ln -s soapower-1.0 current && cd current
-wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0-play2.1.1/restart.sh
-wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0-play2.1.1/conf/logger-prod.xml
+wget http://dl.bintray.com/content/soapower/soapower/soapower-1.0.1.zip?direct -O soapower-1.0.1.zip
+unzip soapower-1.0.1.zip
+ln -s soapower-1.0.1 current && cd current
+wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.1-play2.1.1/restart.sh
+wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.1-play2.1.1/conf/logger-prod.xml
 chmod +x restart.sh
 ./restart.sh
 ```
@@ -199,3 +199,17 @@ This software is licensed under the Apache 2 license, quoted below.
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this project except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+
+Release Notes
+=============
+
+### Version 1.0 : initial revision
+* Download it : http://dl.bintray.com/content/soapower/soapower/soapower-1.0.zip
+
+### Version 1.0.1
+* Download it : http://dl.bintray.com/content/soapower/soapower/soapower-1.0.1.zip
+* Fix Gzip stream ([Issue #10](https://github.com/soapower/soapower/issues/10))
+* Fix Cache refresh for new services ([Issue #13](https://github.com/soapower/soapower/issues/13))
+* Fix download link if no request is recorded ([Issue #14](https://github.com/soapower/soapower/issues/14))
+
