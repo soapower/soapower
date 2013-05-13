@@ -1,6 +1,8 @@
 soapower - Monitoring Webservices
 ========
 
+Current dev version 1.1-SNAPSHOT
+
 Soapower provides a GUI for 
  - viewing webservices requests (live and search page),
  - download the data from the request and response, 
