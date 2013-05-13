@@ -104,7 +104,11 @@ object Service {
    */
   def findByLocalTargetAndEnvironmentName(localTarget: String, environmentName: String): Option[Service] = {
     val serviceKey = environmentName + "/" + localTarget
-    val service = Cache.getOrElse[Option[Service]](serviceKey) {
+    val service = Cache.getAs[Service](serviceKey);
+
+    if (service nonEmpty) {
+      service
+    } else {
       Logger.debug("Service " + environmentName + "/" + localTarget + " not found in cache: loading from db")
 
       val serviceInDb = DB.withConnection {
@@ -120,13 +124,14 @@ object Service {
               'environmentName -> environmentName).as(Service.simple.singleOpt)
       }
       if (serviceInDb isDefined) {
+        Cache.set(serviceKey, serviceInDb.get)
         Cache.set(cacheKey + serviceInDb.get.id, serviceKey)
-        Logger.debug("Service: " + environmentName + "/" + localTarget + " put in cache with key " + cacheKey + serviceInDb.get.id)
+        Logger.debug("Service " + environmentName + "/" + localTarget + " put in cache with key " + cacheKey + serviceInDb.get.id)
+        serviceInDb
+      } else {
+        None
       }
-      serviceInDb
     }
-
-    return service
   }
   
 

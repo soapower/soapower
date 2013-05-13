@@ -5,6 +5,9 @@ import play.api.mvc._
 import play.api.libs.iteratee._
 import models._
 import scala.xml.NodeSeq
+import play.api.http.HeaderNames._
+import play.api.mvc.ChunkedResult
+import play.api.mvc.ResponseHeader
 
 object Soap extends Controller {
 
@@ -57,11 +60,9 @@ object Soap extends Controller {
         client.sendRequestAndWaitForResponse
 
         // forward the response to the client
-        Logger.debug("Return result")
-        SimpleResult(
-          header = ResponseHeader(client.response.status, client.response.headers),
-          body = Enumerator(client.response.body)) //
-          .withHeaders("ProxyVia" -> "soapower").as(XML)
+        new Results.Status(client.response.status).stream(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
+          .withHeaders("ProxyVia" -> "soapower")
+          .withHeaders(client.response.headers.toArray : _*).as(XML)
 
     }.getOrElse {
       val err = "environment " + environmentName + " with localTarget " + localTarget + " unknown"
