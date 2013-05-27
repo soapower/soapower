@@ -35,5 +35,5 @@ sleep 4
 ps -ef | grep java | grep soapower | grep -v grep | while read a b c; do kill -9 $b ; done
 
 echo "Starting Soapower"
-nohup start -Dlogger.file=logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT} -DapplyEvolutions.default=true >/dev/null 2>&1
+nohup ./start -Dlogger.file=logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT} -DapplyEvolutions.default=true >/dev/null 2>&1
 
