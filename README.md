@@ -39,7 +39,8 @@ If a SoapAction's response time is > threshold, a failed test is generate and vi
 Run in Production with a stable version
 =======
 Current stable version of Soapower : 1.0.2
-You can download it here : http://dl.bintray.com/content/soapower/soapower/soapower-1.0.2.zip
+
+You can download it here : http://dl.bintray.com/content/soapower/soapower/soapower-1.0.2.zip?direct
 
 Requirements
 -----------
