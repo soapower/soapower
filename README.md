@@ -25,7 +25,6 @@ Administration interface is available for
 <img src='https://raw.github.com/soapower/soapower/master/public/images/soapower/seqDiagram.png' display='float:right'>
 <img src='https://raw.github.com/soapower/soapower/master/public/images/soapower/classDiagram.png' display='float:left'>
 
-
 Soapower developed with Play Framework 2, with scala / java / js / html5
 
 
@@ -41,8 +40,9 @@ If a SoapAction's response time is > threshold, a failed test is generate and vi
 
 Run in Production with a stable version
 =======
-Current stable version of Soapower : 1.0.1
-You can download it here : http://dl.bintray.com/content/soapower/soapower/soapower-1.0.1.zip
+Current stable version of Soapower : 1.0.2
+
+You can download it here : http://dl.bintray.com/content/soapower/soapower/soapower-1.0.2.zip?direct
 
 Requirements
 -----------
@@ -61,11 +61,11 @@ $ export SOAPOWER_HOME="/opt/soapower/"
 $ export SOAPOWER_PORT=9010
 
 mkdir -p /opt/soapower && cd /opt/soapower
-wget http://dl.bintray.com/content/soapower/soapower/soapower-1.0.1.zip?direct -O soapower-1.0.1.zip
-unzip soapower-1.0.1.zip
-ln -s soapower-1.0.1 current && cd current
-wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.1-play2.1.1/restart.sh
-wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.1-play2.1.1/conf/logger-prod.xml
+wget http://dl.bintray.com/content/soapower/soapower/soapower-1.0.2.zip?direct -O soapower-1.0.2.zip
+unzip soapower-1.0.2.zip
+ln -s soapower-1.0.2 current && cd current
+wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.2-play2.1.1/restart.sh
+wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.2-play2.1.1/conf/logger-prod.xml
 chmod +x restart.sh
 ./restart.sh
 ```
@@ -206,8 +206,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 Release Notes
 =============
 
-### Version 1.0 : initial revision
-* Download it : http://dl.bintray.com/content/soapower/soapower/soapower-1.0.zip
+### Version 1.0.2
+* Download it : http://dl.bintray.com/content/soapower/soapower/soapower-1.0.2.zip
+* Fix script Restart.sh (https://github.com/soapower/soapower/commit/faf697e6a978eb975029f23a148d9a975b414286 and https://github.com/soapower/soapower/commit/b9040d89348a1b65ac592d63a3dbd1e929ff6c24 )
 
 ### Version 1.0.1
 * Download it : http://dl.bintray.com/content/soapower/soapower/soapower-1.0.1.zip
@@ -215,3 +216,5 @@ Release Notes
 * Fix Cache refresh for new services ([Issue #13](https://github.com/soapower/soapower/issues/13))
 * Fix download link if no request is recorded ([Issue #14](https://github.com/soapower/soapower/issues/14))
 
+### Version 1.0 : initial revision
+* Download it : http://dl.bintray.com/content/soapower/soapower/soapower-1.0.zip
