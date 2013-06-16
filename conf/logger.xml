@@ -16,8 +16,8 @@
   </appender>
 
     <!-- Work with `play start` and not `play run` -->
-  <appender name="SOAPOWER" class="models.SoapowerAppender">
-  </appender>
+  <!--<appender name="SOAPOWER" class="models.SoapowerAppender">
+  </appender>-->
 
     <!-- Activate log sql. See db.default.logStatements in application.conf
     <logger name="com.jolbox.bonecp" level="DEBUG">
@@ -28,10 +28,10 @@
   <logger name="play" level="INFO" />
   <logger name="application" level="DEBUG" />
 
-  <root level="ERROR">
+  <root level="DEBUG">
     <appender-ref ref="STDOUT" />
     <appender-ref ref="FILE" />
-    <appender-ref ref="SOAPOWER" />
+    <!--<appender-ref ref="SOAPOWER" />-->
   </root>
   
 </configuration>

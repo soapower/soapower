@@ -20,9 +20,9 @@ object SoapActions extends Controller {
     def writes(data: SoapAction): JsValue = {
       JsObject(
         List(
-          "0" -> JsString(data.name),
-          "1" -> JsNumber(data.thresholdms),
-          "2" -> JsString("<a href=\"soapActions/"+data.id+"\"><i class=\"icon-edit\"></i> Edit</a>")
+          "name" -> JsString(data.name),
+          "thresholdms" -> JsNumber(data.thresholdms),
+          "id" -> JsString(data.id.toString)
         ))
     }
   }
@@ -57,6 +57,14 @@ object SoapActions extends Controller {
       "iTotalDisplayRecords" -> Json.toJson(data.size),
       "aaData" -> Json.toJson(data)
     ))).as(JSON)
+  }
+
+  /**
+   * Return all soapAction in Json Format
+   * @return JSON
+   */
+  def findAll() = Action {
+    Ok(Json.toJson(SoapAction.list)).as(JSON)
   }
 
   /**

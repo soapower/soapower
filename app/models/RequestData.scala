@@ -149,11 +149,11 @@ object RequestData {
   /**
    * Construct the Map[String, String] needed to fill a select options set.
    */
-  def statusOptions: Seq[(String, String)] = DB.withConnection {
+  def statusOptions: Seq[(Int, Int)] = DB.withConnection {
     implicit connection =>
-      Cache.getOrElse[Seq[(String, String)]](keyCacheStatusOptions) {
+      Cache.getOrElse[Seq[(Int, Int)]](keyCacheStatusOptions) {
         Logger.debug("RequestData.status not found in cache: loading from db")
-        SQL("select distinct(status) from request_data").as(get[Int]("status") *).map(c => c.toString -> c.toString)
+        SQL("select distinct(status) from request_data").as(get[Int]("status") *).map(c => c -> c)
       }
   }
 
@@ -409,7 +409,7 @@ object RequestData {
 
     val params: Array[(Any, anorm.ParameterValue[_])] = Array(
       'pageSize -> pageSize,
-      'offset -> offset,
+      'offset -> offset * pageSize,
       'soapAction -> soapAction,
       //'minDate -> minDate,
       //'maxDate -> maxDate,
@@ -430,7 +430,7 @@ object RequestData {
 
         val totalRows = SQL(
           "select count(id) from request_data " + whereClause).on(params: _*).as(scalar[Long].single)
-        Logger.debug("End : "+ (System.currentTimeMillis - middle))
+        Logger.debug("End : "+ (System.currentTimeMillis - middle) + " totalrows:" + totalRows + " where:" + whereClause);
 
         Page(requests, -1, offset, totalRows)
     }
@@ -600,47 +600,16 @@ object RequestData {
   implicit object RequestDataWrites extends Writes[RequestData] {
 
     def writes(o: RequestData): JsValue = {
-      val dlRequestUrl = "/download/request/" + o.id
-      val dlResponseUrl = "/download/response/" + o.id
-
-      var requestDownloadLinks = "-"
-      var responseDownloadLinks = "-"
-      if (!o.purged) {
-        requestDownloadLinks =
-          "<a href='" + dlRequestUrl + "?asFile=true' title='Download'><i class='icon-file'></i></a> " +
-            "<a target='_blank' href='" + dlRequestUrl + "' title='Open in new tab'><i class='icon-eye-open'></i></a>"
-        responseDownloadLinks =
-          "<a href='" + dlResponseUrl + "?asFile=true' title='Download'><i class='icon-file'></i></a> " +
-            "<a target='_blank' href='" + dlResponseUrl + "' title='Open in new tab'><i class='icon-eye-open'></i></a>"
-      }
-
       JsObject(
-        List("0" -> JsString(status(o.status)),
-          "1" -> JsString(Environment.options.find(t => t._1 == o.environmentId.toString).get._2),
-          "2" -> JsString(o.sender),
-          "3" -> JsString(soapAction(o)),
-          "4" -> JsString(UtilDate.getDateFormatees(o.startTime)),
-          "5" -> JsString(o.timeInMillis.toString),
-          "6" -> JsString(requestDownloadLinks),
-          "7" -> JsString(responseDownloadLinks),
-          "8" -> JsString("<a href='#' class='replay' data-request-id='" + o.id + "'><i class='icon-refresh'></i></a>")))
-    }
-
-    private def status(status: Int): String = {
-      if (status == Status.OK) {
-        "<span class='label label-success'>" + status.toString + "</span>"
-      } else {
-        "<span class='label label-important'>" + status.toString + "</span>"
-      }
-    }
-
-    private def soapAction(o: RequestData): String = {
-      if (o.serviceId > 0) {
-        val s = Service.findById(o.serviceId).get
-        "<a class='popSoapAction' href='#' rel='tooltip' title='Local: " + s.localTarget + " Remote: " + s.remoteTarget + "'>" + o.soapAction + "</a>"
-      } else {
-        o.soapAction
-      }
+        List(
+          "id" -> JsString(o.id.toString),
+          "purged" -> JsString(o.purged.toString),
+          "status" -> JsString(o.status.toString),
+          "env" -> JsString(Environment.options.find(t => t._1 == o.environmentId.toString).get._2),
+          "sender" -> JsString(o.sender),
+          "soapAction" -> JsString(o.soapAction),
+          "startTime" -> JsString(UtilDate.getDateFormatees(o.startTime)),
+          "time" -> JsString(o.timeInMillis.toString)))
     }
   }
 

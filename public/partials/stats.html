@@ -1,0 +1,31 @@
+<div id="container" style="width: 100%; margin:auto">
+
+    <sp-criterias></sp-criterias>
+
+    <p id="tip" class="muted" onClick="$('#tips').toggle()" style="cursor:pointer" title="click to view help">
+        <span class="label label-info">Tips </span> You can bookmark this page
+    </p>
+
+    <div class="well" id="tips" style="display:none">
+        <ul>
+            <li>http://&lt;server:port&gt;/search/&lt;environment&gt;/&lt;soapAction&gt;/&lt;fromDate&gt;/&lt;toDate&gt;/</li>
+            <li>Default page : /stats/all/all/all/today/ : all requests</li>
+            <li>Change start date : /stats/all/all/2012-12-10/today/: all requests from 2012-12-10</li>
+            <li>Advanced : /stats/dev/login/yesterday/today/ : Results for environment dev, soapAction login from
+                yesterday, to today
+            </li>
+        </ul>
+    </div>
+
+    <table id='datas' class='table table-bordered table-condensed'>
+        <thead>
+        <tr>
+            <th>Environment</th>
+            <th>SoapAction</th>
+            <th>Avg Time In Millis</th>
+            <th>Threshold</th>
+        </tr>
+        </thead>
+    </table>
+
+</div>

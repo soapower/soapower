@@ -2,14 +2,18 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
+GET     /lib/require.js             controllers.WebJarAssets.requirejs
+
+# Enable webjar based resources to be returned
+GET     /webjars/*file              controllers.WebJarAssets.at(file)
+
 # Home page
-GET     /                               controllers.Application.index
+GET     /                           controllers.Assets.at(path="/public", file="index.html")
 
 # Live page
 GET     /live/socket                    controllers.Live.socket
 GET     /live                           controllers.Live.index(search ?= "")
 GET     /live/*search                   controllers.Live.index(search)
-
 
 # Admin page
 GET     /admin/                         controllers.Admin.index
@@ -20,7 +24,6 @@ POST    /admin/downloadRequestDataStatsEntries controllers.Admin.downloadRequest
 POST    /admin/uploadConfiguration      controllers.Admin.uploadConfiguration
 
 # Search page
-GET     /search/:environment/:soapAction/:minDate/:maxDate/:status/                   controllers.Search.index(environment, soapAction, minDate, maxDate, status)
 GET     /search/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable      controllers.Search.listDatatable(environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
@@ -47,6 +50,7 @@ POST    /services/:id              controllers.Services.update(id:Long)
 POST    /services/:id/delete       controllers.Services.delete(id:Long)
 
 # Environments list
+GET     /environments/findall          controllers.Environments.findAll
 GET     /environments/listDatatable    controllers.Environments.listDatatable
 GET     /environments                  controllers.Environments.index
 
@@ -62,6 +66,7 @@ POST    /environments/:id          controllers.Environments.update(id:Long)
 POST    /environments/:id/delete   controllers.Environments.delete(id:Long)
 
 # SoapActions list
+GET     /soapactions/findall          controllers.SoapActions.findAll
 GET     /soapActions/listDatatable    controllers.SoapActions.listDatatable
 GET     /soapActions                  controllers.SoapActions.index
 
@@ -71,6 +76,9 @@ GET     /soapActions/regenerate   controllers.SoapActions.regenerate
 # Edit existing soapAction
 GET     /soapActions/:id          controllers.SoapActions.edit(id:Long)
 POST    /soapActions/:id          controllers.SoapActions.update(id:Long)
+
+# Status list
+GET     /status/findall             controllers.Status.findAll
 
 # Statistics on SoapActions by environments
 GET     /statsAsJunit/:minDate/:maxDate/                                             controllers.Stats.statsAsJunit(minDate, maxDate)
@@ -89,3 +97,6 @@ POST    /gc!                       controllers.Monitor.gc
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file              controllers.Assets.at(path="/public", file)
+
+# Map the JS resource paths
+GET     /*file                      controllers.Assets.at(path="/public", file)

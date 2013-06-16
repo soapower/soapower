@@ -15,18 +15,18 @@ import play.api.libs.json.JsString
 object Environments extends Controller {
 
   // use by Json : from scala to json
-  private implicit object StatsDataWrites extends Writes[Environment] {
+  private implicit object EnvironmentsDataWrites extends Writes[Environment] {
     def writes(data: Environment): JsValue = {
       JsObject(
         List(
-          "0" -> JsString(data.name),
-          "1" -> JsString(data.hourRecordXmlDataMin + " h"),
-          "2" -> JsString(data.hourRecordXmlDataMax + " h"),
-          "3" -> JsString(data.nbDayKeepXmlData + " days"),
-          "4" -> JsString(data.nbDayKeepAllData + " days"),
-          "5" -> JsBoolean(data.recordXmlData),
-          "6" -> JsBoolean(data.recordData),
-          "7" -> JsString("<a href=\"environments/"+data.id+"\"><i class=\"icon-edit\"></i> Edit</a>")
+          "name" -> JsString(data.name),
+          "hourRecordXmlDataMin" -> JsString(data.hourRecordXmlDataMin + " h"),
+          "hourRecordXmlDataMax" -> JsString(data.hourRecordXmlDataMax + " h"),
+          "nbDayKeepXmlData" -> JsString(data.nbDayKeepXmlData + " days"),
+          "nbDayKeepAllData" -> JsString(data.nbDayKeepAllData + " days"),
+          "recordXmlData" -> JsBoolean(data.recordXmlData),
+          "recordData" -> JsBoolean(data.recordData),
+          "edit" -> JsString(data.id.toString)
         ))
     }
   }
@@ -55,6 +55,15 @@ object Environments extends Controller {
       "iTotalDisplayRecords" -> Json.toJson(data.size),
       "aaData" -> Json.toJson(data)
     ))).as(JSON)
+  }
+
+  /**
+   * Return all Environments in Json Format
+   * @return JSON
+   */
+  def findAll = Action { implicit request =>
+    val data = Environment.list
+    Ok(Json.toJson(data)).as(JSON)
   }
 
   /**
