@@ -57,7 +57,7 @@ define(['angular'], function (angular) {
                 }
             }
         })
-        .factory("UIService", function ($location, $filter) {
+        .factory("UIService",function ($location, $filter) {
             return {
                 reloadPage: function ($scope) {
                     var environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
@@ -72,8 +72,7 @@ define(['angular'], function (angular) {
                     }
                     if ($scope.code) code = $scope.code.name;
 
-                    // TODO retrieve first key in location (search / analysis / stats...)
-                    var path = 'search/'
+                    var path = $scope.ctrlPath + '/'
                         + environment + "/"
                         + soapaction + "/"
                         + mindate + "/"
@@ -89,9 +88,9 @@ define(['angular'], function (angular) {
                     }
                 }
             }
-        }).factory('ReplayService', function($http, $rootScope, $location, $window) {
+        }).factory('ReplayService',function ($http, $rootScope, $location, $window) {
             return {
-                replay: function(id) {
+                replay: function (id) {
                     $http.get('/replay/' + id)
                         .success(function (data) {
                             console.log("Success replay id" + id);
@@ -100,29 +99,33 @@ define(['angular'], function (angular) {
                         .error(function (resp) {
                             console.log("Error replay id" + id);
                             console.log("location:" + $location.path())
-                            //window.location.href = '/#' + $location.path();
                             $rootScope.$broadcast('refreshSearchTable');
-
                         });
+                }
+            }
+        }).factory("AdminService", function ($http) {
+            return {
+                downloadConfiguration: function () {
+
                 }
             }
         })
         /*
-        .factory('SharedService', function($rootScope) {
-            var sharedService = {};
+         .factory('SharedService', function($rootScope) {
+         var sharedService = {};
 
-            sharedService.message = '';
+         sharedService.message = '';
 
-            sharedService.prepForBroadcast = function(msg) {
-                this.message = msg;
-                this.broadcastItem();
-            };
+         sharedService.prepForBroadcast = function(msg) {
+         this.message = msg;
+         this.broadcastItem();
+         };
 
-            sharedService.broadcastItem = function() {
-                $rootScope.$broadcast('handleBroadcast');
-            };
+         sharedService.broadcastItem = function() {
+         $rootScope.$broadcast('handleBroadcast');
+         };
 
-            return sharedService;
-        })*/;
+         return sharedService;
+         })*/;
 
 });

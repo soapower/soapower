@@ -1,0 +1,72 @@
+<h2>Admin</h2>
+<hr>
+
+<h4>Download Configuration</h4>
+<a class="btn" href="{{urlDlConfig}}">Download configuration as csv File</a>
+
+<a href="{{urlDlRequestDataStatsEntries}}" class="btn">Download RequestData Stat Entries as csv File</a>
+<hr>
+
+<h4>Upload Configuration</h4>
+<p class="muted"><span class="label label-info">Tips </span>
+    Download the configuration above to have an example of csv file.</p>
+
+<div class="well">
+    <ul>
+        <li>A service is identified by localTarget and EnvironmentName. If the service already exist in db, it will be
+            ignored (no update)
+        </li>
+        <li>A environment is identified by his name, if an environment exist in db, it will be ignored</li>
+        <li>IDs in csv file uploaded are ignored</li>
+        <li>You can upload a RequestData Stats File</li>
+    </ul>
+</div>
+
+    <form action="{{urlUploadConfiguration}}" ng-upload>
+        <input type="file" name="fileUploaded"></input>
+        <input type="submit" value="Upload configuration" class="btn"
+               upload-submit="uploadComplete(content, completed)"></input>
+    </form>
+<div class="alert alert-{{response.code}}">Server Response: {{response.text}}</div>
+
+
+<hr>
+<h4>Deleting data</h4>
+
+@form(routes.Admin.delete()) {
+
+@select(
+adminForm("environment"),
+environments,
+'_label -> "Environment",
+'_default -> "All",
+'_showConstraints -> false
+)
+
+@inputText(adminForm("minDate"), 'required -> "required",
+'_label -> "Min Date",
+'size -> 40)
+
+@inputText(adminForm("maxDate"), 'required -> "required",
+'_label -> "Max Date",
+'size -> 40)
+
+@inputRadioGroup(
+adminForm("typeAction"),
+options = options("xml-data"->"Only XML Data","all-data"->"All Data"),
+'_label -> "Type Action for selected environment between min and max date",
+'required -> "required",
+'_class -> "radio inline",
+'_showConstraints -> false,
+'_error -> adminForm("typeAction").error.map(_.withMessage("select type action")))
+
+@form(routes.Admin.deleteAllRequestData()) {
+<input type="submit" value="Delete" class="btn btn-danger">
+}
+}
+
+<hr>
+<h4>Deleting All</h4>
+@form(routes.Admin.deleteAllRequestData()) {
+<input type="submit" value="Delete All Request Data !" class="btn btn-danger">
+}
