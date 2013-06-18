@@ -22,51 +22,97 @@
     </ul>
 </div>
 
-    <form action="{{urlUploadConfiguration}}" ng-upload>
-        <input type="file" name="fileUploaded"></input>
-        <input type="submit" value="Upload configuration" class="btn"
-               upload-submit="uploadComplete(content, completed)"></input>
-    </form>
-<div class="alert alert-{{response.code}}">Server Response: {{response.text}}</div>
+<form action="{{urlUploadConfiguration}}" ng-upload>
+    <input type="file" name="fileUploaded"/>
+    <input type="submit" value="Upload configuration" class="btn"
+           upload-submit="uploadComplete(content, completed)"/>
+</form>
+
+<div class="alert alert-info" ng-show="showUploadRunning">Wait... Uploading.</div>
+<div class="alert alert-{{response.code}}" ng-show="showResponseUpload">{{response.text}}</div>
 
 
 <hr>
 <h4>Deleting data</h4>
 
-@form(routes.Admin.delete()) {
+<form name="myForm" class="form-horizontal" novalidate>
 
-@select(
-adminForm("environment"),
-environments,
-'_label -> "Environment",
-'_default -> "All",
-'_showConstraints -> false
-)
+    <div class="control-group">
 
-@inputText(adminForm("minDate"), 'required -> "required",
-'_label -> "Min Date",
-'size -> 40)
+        <span ng-click="showmindate = !showmindate">
+            <label class="control-label"> From : </label>
 
-@inputText(adminForm("maxDate"), 'required -> "required",
-'_label -> "Max Date",
-'size -> 40)
+            <div class="controls">{{mindate | date:'yyyy-MM-dd'}}
+                <span class="alert alert-error" ng-show="myForm.mindate.$error.required">Click to select</span>
+            </div>
 
-@inputRadioGroup(
-adminForm("typeAction"),
-options = options("xml-data"->"Only XML Data","all-data"->"All Data"),
-'_label -> "Type Action for selected environment between min and max date",
-'required -> "required",
-'_class -> "radio inline",
-'_showConstraints -> false,
-'_error -> adminForm("typeAction").error.map(_.withMessage("select type action")))
+        </span>
 
-@form(routes.Admin.deleteAllRequestData()) {
-<input type="submit" value="Delete" class="btn btn-danger">
-}
-}
+        <div ng-show="showmindate">
+            <datepicker ng-model="mindate" starting-day="1"></datepicker>
+        </div>
+        <input name="mindate" type="hidden" ng-model="mindate" required>
+    </div>
 
-<hr>
-<h4>Deleting All</h4>
-@form(routes.Admin.deleteAllRequestData()) {
-<input type="submit" value="Delete All Request Data !" class="btn btn-danger">
-}
+    <div class="control-group">
+        <span ng-click="showmaxdate = !showmaxdate">
+        <label class="control-label"> To : </label>
+            <div class="controls">{{maxdate | date:'yyyy-MM-dd'}}
+                <span class="alert alert-error" ng-show="myForm.maxdate.$error.required">Click to select</span>
+            </div>
+        </span>
+
+        <div ng-show="showmaxdate">
+            <datepicker ng-model="maxdate" starting-day="1"></datepicker>
+        </div>
+        <input name="maxdate" type="hidden" ng-model="maxdate" required>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="environment"> Environment : </label>
+
+        <div class="controls">
+            <select ng-model="environment" id="environment"
+                    ng-options="environment.name for environment in environments"></select>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label"> Type Action for selected environment between min and max date : </label>
+
+        <div class="controls">
+            <label class="radio">
+                <span class="icons">
+                    <span class="first-icon fui-radio-unchecked"></span>
+                    <span class="second-icon fui-radio-checked"></span>
+                </span>
+                <input type="radio" name="typeAction" ng-model="typeAction" value="xml-data"> Only XML Data
+            </label>
+            <label class="radio">
+                <span class="icons">
+                    <span class="first-icon fui-radio-unchecked"></span>
+                    <span class="second-icon fui-radio-checked"></span>
+                </span>
+                <input type="radio" name="typeAction" ng-model="typeAction" value="all-data"> All Data
+            </label>
+        </div>
+    </div>
+
+    Gender: <input type="radio" ng-model="user.gender" value="male" />male
+    <input type="radio" ng-model="user.gender" value="female" />female<br />
+    
+    <input type="submit" value="Delete" class="btn btn-danger" ng-disabled="myForm.$invalid">
+<br>
+    <tt>userType = {{myForm | json}}</tt><br>
+
+    <tt>TypeAction : {{typeAction}}</tt><br>
+    <tt>MinDate : {{mindate}}</tt><br>
+    <tt>myForm.mindate.$error.required = {{myForm.mindate.$error.required}}</tt><br>
+    <tt>myForm.input.$valid = {{myForm.input.$valid}}</tt><br>
+    <tt>myForm.input.$error = {{myForm.input.$error}}</tt><br>
+    <tt>myForm.$valid = {{myForm.$valid}}</tt><br>
+    <tt>myForm.$error.required = {{!!myForm.$error.required}}</tt><br>
+</form>
+
+
+

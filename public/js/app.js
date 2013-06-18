@@ -7,7 +7,7 @@ define("angular", ['webjars!angular.js'], function () {
 });
 
 require(['angular', './controllers', './directives', './filters', './services',
-    './lib/jquery-1.10.1.min.js', './lib/ui-bootstrap-0.4.0-SNAPSHOT.js', './lib/ng-grid-2.0.6.min.js', './lib/ng-upload.min.js'],
+    './lib/jquery-1.10.1.min.js', './lib/ui-bootstrap-0.4.0-SNAPSHOT.js', './lib/ng-grid-2.0.6.min.js', './lib/ng-upload.min.js', './lib/flatui-radio.js'],
     function (angular, controllers) {
 
         var spApp = angular.module('spApp', ['spApp.filters', 'spApp.services', 'spApp.directives', 'ui.bootstrap', 'ngGrid', 'ngUpload']);

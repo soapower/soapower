@@ -52,12 +52,12 @@ object Admin extends Controller {
               }
           }
           if (err.size > 0) {
-            Ok(toJson("warning","warning Configuration uploaded partially. See Warn Logs")).as(JSON)
+            Ok(toJson("warning","Warning ! Configuration uploaded partially. See Warn Logs")).as(JSON)
           } else {
-            Ok(toJson("success", "success Configuration Uploaded")).as(JSON)
+            Ok(toJson("success", "Success ! Configuration Uploaded")).as(JSON)
           }
       }.getOrElse {
-        Ok(toJson("warning", "warning Failed to upload configuration")).as(JSON)
+        Ok(toJson("warning", "Warning ! Failed to upload configuration")).as(JSON)
       }
   }
 
