@@ -6,9 +6,15 @@ define("angular", ['webjars!angular.js'], function () {
     return angular;
 });
 
-require(['angular', './controllers', './directives', './filters', './services',
-    './lib/jquery-1.10.1.min.js', './lib/ui-bootstrap-0.4.0-SNAPSHOT.js', './lib/ng-grid-2.0.6.min.js', './lib/ng-upload.min.js', './lib/flatui-radio.js'],
-    function (angular, controllers) {
+require(['angular', './directives', './filters', './services',
+    './admin/adminController',
+    './analysis/analysisController',
+    './live/liveController',
+    './search/searchController',
+    './services/servicesController',
+    './stats/statsController',
+    './lib/jquery-1.10.1.min', './lib/ui-bootstrap-0.4.0-SNAPSHOT', './lib/ng-grid-2.0.6.min', './lib/ng-upload.min' ],
+    function (angular) {
 
         var spApp = angular.module('spApp', ['spApp.filters', 'spApp.services', 'spApp.directives', 'ui.bootstrap', 'ngGrid', 'ngUpload']);
 
@@ -19,31 +25,34 @@ require(['angular', './controllers', './directives', './filters', './services',
                 })
                 .when('/live', {
                     templateUrl: 'partials/live.html',
-                    controller: controllers.MyCtrl2
+                    controller: LiveCtrl
                 })
                 .when('/admin', {
                     templateUrl: 'partials/admin.html',
-                    controller: controllers.AdminCtrl
+                    controller: AdminCtrl
                 })
                 .when('/search', {
                     templateUrl: 'partials/search.html',
-                    controller: controllers.SearchCtrl
+                    controller: SearchCtrl
                 })
                 .when('/search/:environment/:soapaction/:mindate/:maxdate/:code', {
                     templateUrl: 'partials/search.html',
-                    controller: controllers.SearchCtrl
+                    controller: SearchCtrl
                 })
                 .when('/analysis', {
                     templateUrl: 'partials/analysis.html',
-                    controller: controllers.AnalysisCtrl
+                    controller: AnalysisCtrl
                 })
+                .when('/services', { controller: ServicesCtrl, templateUrl: 'js/services/views/list.html'})
+                .when('/services/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'js/services/views/detail.html'})
+                .when('/services/new', {controller: ServiceNewCtrl, templateUrl: 'js/services/views/detail.html'})
                 .when('/stats', {
                     templateUrl: 'partials/stats.html',
-                    controller: controllers.StatsCtrl
+                    controller: StatsCtrl
                 })
                 .when('/statistics/:environment/:soapaction/:mindate/:maxdate/:code', {
                     templateUrl: 'partials/stats.html',
-                    controller: controllers.StatsCtrl
+                    controller: StatsCtrl
                 })
                 .otherwise({
                     redirectTo: '/home'

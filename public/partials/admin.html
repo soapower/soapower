@@ -72,7 +72,7 @@
         <label class="control-label" for="environment"> Environment : </label>
 
         <div class="controls">
-            <select ng-model="environment" id="environment"
+            <select ng-model="environment" id="environment" ng-required
                     ng-options="environment.name for environment in environments"></select>
         </div>
     </div>
@@ -81,14 +81,14 @@
         <label class="control-label"> Type Action for selected environment between min and max date : </label>
 
         <div class="controls">
-            <label class="radio">
+            <label class="radio" ng-class="{checked: typeAction == 'xml-data'}">
                 <span class="icons">
                     <span class="first-icon fui-radio-unchecked"></span>
                     <span class="second-icon fui-radio-checked"></span>
                 </span>
                 <input type="radio" name="typeAction" ng-model="typeAction" value="xml-data"> Only XML Data
             </label>
-            <label class="radio">
+            <label class="radio" ng-class="{checked: typeAction == 'all-data'}">
                 <span class="icons">
                     <span class="first-icon fui-radio-unchecked"></span>
                     <span class="second-icon fui-radio-checked"></span>
@@ -97,21 +97,6 @@
             </label>
         </div>
     </div>
-
-    Gender: <input type="radio" ng-model="user.gender" value="male" />male
-    <input type="radio" ng-model="user.gender" value="female" />female<br />
-    
-    <input type="submit" value="Delete" class="btn btn-danger" ng-disabled="myForm.$invalid">
-<br>
-    <tt>userType = {{myForm | json}}</tt><br>
-
-    <tt>TypeAction : {{typeAction}}</tt><br>
-    <tt>MinDate : {{mindate}}</tt><br>
-    <tt>myForm.mindate.$error.required = {{myForm.mindate.$error.required}}</tt><br>
-    <tt>myForm.input.$valid = {{myForm.input.$valid}}</tt><br>
-    <tt>myForm.input.$error = {{myForm.input.$error}}</tt><br>
-    <tt>myForm.$valid = {{myForm.$valid}}</tt><br>
-    <tt>myForm.$error.required = {{!!myForm.$error.required}}</tt><br>
 </form>
 
 
