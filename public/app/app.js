@@ -21,37 +21,37 @@ require(['angular', './directives', './filters', './services',
         spApp.config(function ($routeProvider) {
             $routeProvider
                 .when('/home', {
-                    templateUrl: 'partials/home.html'
+                    templateUrl: 'app/home/views/home.html'
                 })
                 .when('/live', {
-                    templateUrl: 'partials/live.html',
+                    templateUrl: 'app/live/views/live.html',
                     controller: LiveCtrl
                 })
                 .when('/admin', {
-                    templateUrl: 'partials/admin.html',
+                    templateUrl: 'app/admin/views/admin.html',
                     controller: AdminCtrl
                 })
                 .when('/search', {
-                    templateUrl: 'partials/search.html',
+                    templateUrl: 'app/search/views/search.html',
                     controller: SearchCtrl
                 })
                 .when('/search/:environment/:soapaction/:mindate/:maxdate/:code', {
-                    templateUrl: 'partials/search.html',
+                    templateUrl: 'app/search/views/search.html',
                     controller: SearchCtrl
                 })
                 .when('/analysis', {
-                    templateUrl: 'partials/analysis.html',
+                    templateUrl: 'app/analysis/views/analysis.html',
                     controller: AnalysisCtrl
                 })
-                .when('/services', { controller: ServicesCtrl, templateUrl: 'js/services/views/list.html'})
-                .when('/services/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'js/services/views/detail.html'})
-                .when('/services/new', {controller: ServiceNewCtrl, templateUrl: 'js/services/views/detail.html'})
+                .when('/services', { controller: ServicesCtrl, templateUrl: 'app/services/views/list.html'})
+                .when('/services/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'app/services/views/detail.html'})
+                .when('/services/new', {controller: ServiceNewCtrl, templateUrl: 'app/services/views/detail.html'})
                 .when('/stats', {
-                    templateUrl: 'partials/stats.html',
+                    templateUrl: 'app/stats/views/stats.html',
                     controller: StatsCtrl
                 })
                 .when('/statistics/:environment/:soapaction/:mindate/:maxdate/:code', {
-                    templateUrl: 'partials/stats.html',
+                    templateUrl: 'app/stats/views/stats.html',
                     controller: StatsCtrl
                 })
                 .otherwise({

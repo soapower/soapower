@@ -103,16 +103,16 @@ function SearchCtrl ($scope, $http, $routeParams, $window, ReplayService) {
         pagingOptions: $scope.pagingOptions,
         filterOptions: $scope.filterOptions,
         columnDefs: [
-            {field: 'status', displayName: 'Status', cellTemplate: 'partials/cellStatusTemplate.html'},
+            {field: 'status', displayName: 'Status', cellTemplate: 'app/commons/views/cellStatusTemplate.html'},
             {field: 'env', displayName: 'Environment'},
             {field: 'sender', displayName: 'Sender'},
             {field: 'soapAction', displayName: 'SoapAction'},
             {field: 'startTime', displayName: 'StartTime'},
             {field: 'time', displayName: 'TimeInMillis'},
-            {field: 'purged', displayName: 'Request', cellTemplate: 'partials/cellRequestTemplate.html'},
-            {field: 'purged', displayName: 'Response', cellTemplate: 'partials/cellResponseTemplate.html'},
+            {field: 'purged', displayName: 'Request', cellTemplate: 'app/commons/views/cellRequestTemplate.html'},
+            {field: 'purged', displayName: 'Response', cellTemplate: 'app/commons/views/cellResponseTemplate.html'},
             //cellTemplate: '<div ng-class="{green: row.getProperty(col.field) > 30}"><div class="ngCellText">{{row.getProperty(col.field)}}</div></div>'},
-            {field: 'purged', displayName: 'Replay', cellTemplate: 'partials/cellReplayTemplate.html'}
+            {field: 'purged', displayName: 'Replay', cellTemplate: 'app/commons/views/cellReplayTemplate.html'}
         ]
 
     };
