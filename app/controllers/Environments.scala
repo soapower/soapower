@@ -31,6 +31,17 @@ object Environments extends Controller {
     }
   }
 
+  // use by Json : from scala to json
+  private implicit object EnvironmentsOptionsDataWrites extends Writes[(String, String)] {
+    def writes(data : (String, String)): JsValue = {
+      JsObject(
+        List(
+          "id" -> JsString(data._1),
+          "name" -> JsString(data._2)
+        ))
+    }
+  }
+
   /**
    * This result directly redirect to the application home.
    */
@@ -63,6 +74,15 @@ object Environments extends Controller {
    */
   def findAll = Action { implicit request =>
     val data = Environment.list
+    Ok(Json.toJson(data)).as(JSON)
+  }
+
+  /**
+   * Return all Environments in Json Format
+   * @return JSON
+   */
+  def options = Action { implicit request =>
+    val data = Environment.options
     Ok(Json.toJson(data)).as(JSON)
   }
 

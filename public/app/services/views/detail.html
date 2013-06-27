@@ -30,11 +30,55 @@
 
     <div class="control-group" ng-class="{error: myForm.environment.$invalid}">
         <label>Environment </label>
-        <input type="number" name="timeoutms" ng-model="service.timeoutms" required>
-        <span ng-show="myForm.timeoutms.$error.required" class="help-inline">Required</span>
+        <select ng-model="environment" ng-options="environment.name for environment in environments" required></select>
+        <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
     </div>
 
-    <select ng-model="environment" ng-options="environment.name for environment in environments"></select>
+    <div class="control-group">
+        <label class="control-label"> Record Xml Data, Check this if you want to record Xml Request and Xml Response for this service: </label>
+
+        <div class="controls">
+            <label class="radio" ng-class="{checked: service.recordXmlData == 'true'}">
+                <span class="icons">
+                    <span class="first-icon fui-radio-unchecked"></span>
+                    <span class="second-icon fui-radio-checked"></span>
+                </span>
+                <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="true"> Yes
+            </label>
+            <label class="radio" ng-class="{checked: service.recordXmlData == 'false'}">
+                <span class="icons">
+                    <span class="first-icon fui-radio-unchecked"></span>
+                    <span class="second-icon fui-radio-checked"></span>
+                </span>
+                <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="false"> No
+            </label>
+        </div>
+
+    </div>
+
+    <div class="control-group">
+        <label class="control-label"> Record Data, Check Yes this if you want to record Data (time, responseTime, etc...) on Request / Response for this
+            service. If it is unchecked, you can see requests on live page only and no stats are computed for this
+            service. You must check this if you want to record XML Data : </label>
+
+        <div class="controls">
+            <label class="radio" ng-class="{checked: service.recordData == 'true'}">
+                <span class="icons">
+                    <span class="first-icon fui-radio-unchecked"></span>
+                    <span class="second-icon fui-radio-checked"></span>
+                </span>
+                <input type="radio" name="recordData" ng-model="service.recordData" value="true"> Yes
+            </label>
+            <label class="radio" ng-class="{checked: service.recordData == 'false'}">
+                <span class="icons">
+                    <span class="first-icon fui-radio-unchecked"></span>
+                    <span class="second-icon fui-radio-checked"></span>
+                </span>
+                <input type="radio" name="recordData" ng-model="service.recordData" value="false"> No
+            </label>
+        </div>
+
+    </div>
 
     <br>
     <a href="#/services" class="btn">Cancel</a>
@@ -45,25 +89,3 @@
             ng-show="service._id" class="btn btn-danger">Delete
     </button>
 </form>
-
-
-@checkbox(
-serviceForm("recordXmlData"),
-'_label -> "Record Xml Data",
-'_help -> "Check this if you want to record Xml Request and Xml Response for this service")
-
-@checkbox(
-serviceForm("recordData"),
-'_label -> "Record Data",
-'_help -> "Check this if you want to record Data (time, responseTime, etc...) on Request / Response for this
-service. If it is unchecked, you can see requests on live page only and no stats are computed for this
-service. You must check this if you want to record XML Data. "
-)
-
-@select(
-serviceForm("environment"),
-environments,
-'required -> true,
-'_label -> "Environment", '_default -> "-- Choose a environment --",
-'_showConstraints -> false
-)

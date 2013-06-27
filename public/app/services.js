@@ -5,16 +5,45 @@
 define(['angular'], function (angular) {
 
     /* Services */
-    angular.module('spApp.services', [])
+    angular.module('spApp.services', ['ngResource'])
+
+        .factory('Service', function ($resource) {
+            var Service = $resource('/services/:id',
+                { serviceId: '@id'},
+                { update: {method: 'POST'} }
+            );
+
+            Service.prototype.update = function (cb) {
+                return Service.update({id: this._id.$oid},
+                    angular.extend({}, this, {_id: undefined}), cb);
+            };
+
+            Service.prototype.destroy = function (cb) {
+                return Service.remove({id: this._id.$oid}, cb);
+            };
+
+            return Service;
+        })
+
+
+        .factory("ServicesService", function ($http) {
+            return {
+                findAll: function () {
+                    return $http.get('/services/listDatatable');
+                }
+            }
+        })
         .factory("EnvironmentsService", function ($http) {
             return {
                 findAllAndSelect: function ($scope, $routeParams) {
-                    $http.get('/environments/findall')
+                    $http.get('/environments/options')
                         .success(function (environments) {
                             $scope.environments = environments;
-                            angular.forEach($scope.environments, function (value, key) {
-                                if (value.name == $routeParams.environment) $scope.environment = value;
-                            });
+                            if ($routeParams != null) {
+                                angular.forEach($scope.environments, function (value, key) {
+                                    if (value.name == $routeParams.environment) $scope.environment = value;
+                                });
+                            }
 
                         })
                         .error(function (resp) {

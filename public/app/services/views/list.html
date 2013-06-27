@@ -4,32 +4,8 @@
 
 <a class="btn btn-primary" href="#/services/new">Add a new service</a>
 
-<input type="text" ng-model="search" class="search-query" placeholder="Search">
-
 <div id="container" style="width: 100%; margin:auto">
 
-    <table id='datas' class='table table-bordered table-condensed'>
-        <thead>
-        <tr>
-            <th>Description</th>
-            <th>Environment</th>
-            <th>Local Target</th>
-            <th>Remote Target</th>
-            <th>Timeout</th>
-            <th>Record Xml Data</th>
-            <th>Record Data</th>
-            <th>Edit</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr ng-repeat="project in projects | filter:search | orderBy:'name'">
-            <td><a href="{{project.site}}" target="_blank">{{project.name}}</a></td>
-            <td>{{project.description}}</td>
-            <td>
-                <a href="#/edit/{{project._id.$oid}}"><i class="icon-pencil"></i></a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+    <div class="gridStyle" ng-grid="gridOptions"></div>
 
 </div>

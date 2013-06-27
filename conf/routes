@@ -34,10 +34,8 @@ GET     /replay/:id                                      controllers.Soap.replay
 
 # Services list
 GET     /services/listDatatable    controllers.Services.listDatatable
-GET     /services                  controllers.Services.index
 
 # Add service
-GET     /services/new              controllers.Services.create
 POST    /services                  controllers.Services.save
 
 # Edit existing service
@@ -45,10 +43,10 @@ GET     /services/:id              controllers.Services.edit(id:Long)
 POST    /services/:id              controllers.Services.update(id:Long)
 
 # Delete a service
-POST    /services/:id/delete       controllers.Services.delete(id:Long)
+DELETE    /services/:id            controllers.Services.delete(id:Long)
 
 # Environments list
-GET     /environments/findall          controllers.Environments.findAll
+GET     /environments/options          controllers.Environments.options
 GET     /environments/listDatatable    controllers.Environments.listDatatable
 GET     /environments                  controllers.Environments.index
 

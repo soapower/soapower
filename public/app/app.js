@@ -13,10 +13,14 @@ require(['angular', './directives', './filters', './services',
     './search/searchController',
     './services/servicesController',
     './stats/statsController',
-    './lib/jquery-1.10.1.min', './lib/ui-bootstrap-0.4.0-SNAPSHOT', './lib/ng-grid-2.0.6.min', './lib/ng-upload.min' ],
+    './lib/jquery-1.10.1.min',
+    './lib/ui-bootstrap-0.4.0-SNAPSHOT',
+    './lib/ng-grid-2.0.6.min',
+    './lib/ng-upload.min',
+    './lib/angular-resource.min'],
     function (angular) {
 
-        var spApp = angular.module('spApp', ['spApp.filters', 'spApp.services', 'spApp.directives', 'ui.bootstrap', 'ngGrid', 'ngUpload']);
+        var spApp = angular.module('spApp', [ 'ngResource', 'spApp.filters', 'spApp.services', 'spApp.directives', 'ui.bootstrap', 'ngGrid', 'ngUpload']);
 
         spApp.config(function ($routeProvider) {
             $routeProvider
@@ -44,8 +48,8 @@ require(['angular', './directives', './filters', './services',
                     controller: AnalysisCtrl
                 })
                 .when('/services', { controller: ServicesCtrl, templateUrl: 'app/services/views/list.html'})
-                .when('/services/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'app/services/views/detail.html'})
                 .when('/services/new', {controller: ServiceNewCtrl, templateUrl: 'app/services/views/detail.html'})
+                .when('/services/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'app/services/views/detail.html'})
                 .when('/stats', {
                     templateUrl: 'app/stats/views/stats.html',
                     controller: StatsCtrl
