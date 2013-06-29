@@ -26,13 +26,13 @@ function ServicesCtrl($scope, ServicesService) {
     };
 }
 
-function ServiceEditCtrl($scope, $routeParams, Service, EnvironmentsService) {
+function ServiceEditCtrl($scope, $routeParams, $location, Service, EnvironmentsService) {
 
     var self = this;
 
     EnvironmentsService.findAllAndSelect($scope);
 
-    Service.get({id: $routeParams.serviceId}, function (service) {
+    Service.get({serviceId: $routeParams.serviceId}, function (service) {
         self.original = service;
         $scope.service = new Service(self.original);
     });
@@ -54,16 +54,16 @@ function ServiceEditCtrl($scope, $routeParams, Service, EnvironmentsService) {
     };
 }
 
-function ServiceNewCtrl($scope, Service, EnvironmentsService) {
+function ServiceNewCtrl($scope, $location, Service, EnvironmentsService) {
 
     EnvironmentsService.findAllAndSelect($scope);
 
-    $scope.save = function () {
-        console.log("Call save A");
+    $scope.service = new Service({id:'-2'});
 
-        Service.save($scope.service, function (service) {
-            console.log("Call save");
-            $location.path('/services/' + service._id.$oid);
+    $scope.save = function () {
+        $scope.service.update(function () {
+            $location.path('/services/');
         });
     }
+
 }

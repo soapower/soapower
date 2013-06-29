@@ -36,11 +36,10 @@ GET     /replay/:id                                      controllers.Soap.replay
 GET     /services/listDatatable    controllers.Services.listDatatable
 
 # Add service
-POST    /services                  controllers.Services.save
+POST    /services/:id                  controllers.Services.save(id:Long)
 
 # Edit existing service
 GET     /services/:id              controllers.Services.edit(id:Long)
-POST    /services/:id              controllers.Services.update(id:Long)
 
 # Delete a service
 DELETE    /services/:id            controllers.Services.delete(id:Long)

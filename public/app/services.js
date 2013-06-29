@@ -8,18 +8,33 @@ define(['angular'], function (angular) {
     angular.module('spApp.services', ['ngResource'])
 
         .factory('Service', function ($resource) {
-            var Service = $resource('/services/:id',
+            var Service = $resource('/services/:serviceId',
                 { serviceId: '@id'},
                 { update: {method: 'POST'} }
             );
 
             Service.prototype.update = function (cb) {
-                return Service.update({id: this._id.$oid},
-                    angular.extend({}, this, {_id: undefined}), cb);
+                console.log(this);
+                if (this.recordXmlData == "true" || this.recordXmlData == true) {
+                    this.recordXmlData = true;
+                } else {
+                    this.recordXmlData = false;
+                }
+
+                if (this.recordData == "true" || this.recordData == true) {
+                    this.recordData = true;
+                } else {
+                    this.recordData = false;
+                }
+                this.environmentId = parseInt(this.environment.id);
+                this.id = parseInt(this.id);
+
+                return Service.update({serviceId: this.id},
+                    angular.extend({}, this, {serviceId: undefined}), cb);
             };
 
             Service.prototype.destroy = function (cb) {
-                return Service.remove({id: this._id.$oid}, cb);
+                return Service.remove({serviceId: this.id}, cb);
             };
 
             return Service;
@@ -139,22 +154,4 @@ define(['angular'], function (angular) {
                 }
             }
         })
-        /*
-         .factory('SharedService', function($rootScope) {
-         var sharedService = {};
-
-         sharedService.message = '';
-
-         sharedService.prepForBroadcast = function(msg) {
-         this.message = msg;
-         this.broadcastItem();
-         };
-
-         sharedService.broadcastItem = function() {
-         $rootScope.$broadcast('handleBroadcast');
-         };
-
-         return sharedService;
-         })*/;
-
 });

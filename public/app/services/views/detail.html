@@ -1,4 +1,6 @@
 <form name="myForm">
+    <input type="hidden" name="description" ng-model="service.id">
+
     <div class="control-group" ng-class="{error: myForm.description.$invalid}">
         <label>Service Description</label>
         <input type="text" name="description" ng-model="service.description" class="input-xxlarge" required>
@@ -30,7 +32,7 @@
 
     <div class="control-group" ng-class="{error: myForm.environment.$invalid}">
         <label>Environment </label>
-        <select ng-model="environment" ng-options="environment.name for environment in environments" required></select>
+        <select ng-model="service.environment" ng-options="environment.name for environment in environments" required></select>
         <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
     </div>
 
@@ -38,14 +40,14 @@
         <label class="control-label"> Record Xml Data, Check this if you want to record Xml Request and Xml Response for this service: </label>
 
         <div class="controls">
-            <label class="radio" ng-class="{checked: service.recordXmlData == 'true'}">
+            <label class="radio" ng-class="{checked: (service.recordXmlData == true || service.recordXmlData == 'true')}">
                 <span class="icons">
                     <span class="first-icon fui-radio-unchecked"></span>
                     <span class="second-icon fui-radio-checked"></span>
                 </span>
                 <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="true"> Yes
             </label>
-            <label class="radio" ng-class="{checked: service.recordXmlData == 'false'}">
+            <label class="radio" ng-class="{checked: (service.recordXmlData == false || service.recordXmlData == 'false')}" value='true'>
                 <span class="icons">
                     <span class="first-icon fui-radio-unchecked"></span>
                     <span class="second-icon fui-radio-checked"></span>
@@ -62,19 +64,19 @@
             service. You must check this if you want to record XML Data : </label>
 
         <div class="controls">
-            <label class="radio" ng-class="{checked: service.recordData == 'true'}">
+            <label class="radio" ng-class="{checked: (service.recordData == true || service.recordData == 'true')}">
                 <span class="icons">
                     <span class="first-icon fui-radio-unchecked"></span>
                     <span class="second-icon fui-radio-checked"></span>
                 </span>
-                <input type="radio" name="recordData" ng-model="service.recordData" value="true"> Yes
+                <input type="radio" name="recordData" ng-model="service.recordData" value='true'> Yes
             </label>
-            <label class="radio" ng-class="{checked: service.recordData == 'false'}">
+            <label class="radio" ng-class="{checked: service.recordData == false || service.recordData == 'false'}">
                 <span class="icons">
                     <span class="first-icon fui-radio-unchecked"></span>
                     <span class="second-icon fui-radio-checked"></span>
                 </span>
-                <input type="radio" name="recordData" ng-model="service.recordData" value="false"> No
+                <input type="radio" name="recordData" ng-model="service.recordData" value='false'> No
             </label>
         </div>
 

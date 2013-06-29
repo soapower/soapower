@@ -10,7 +10,7 @@ import anorm.SqlParser._
 import scala.collection.mutable.{ Map, HashMap }
 
 case class Service(
-  id: Pk[Long],
+  id: Long,
   description: String,
   localTarget: String,
   remoteTarget: String,
@@ -27,7 +27,7 @@ object Service {
    * Parse a Service from a ResultSet
    */
   val simple = {
-    get[Pk[Long]]("service.id") ~
+    get[Long]("service.id") ~
     get[String]("service.description") ~
     get[String]("service.localTarget") ~
     get[String]("service.remoteTarget") ~
@@ -51,7 +51,7 @@ object Service {
    * Csv format.
    */
   val csv = {
-    get[Pk[Long]]("service.id") ~
+    get[Long]("service.id") ~
       get[String]("service.description") ~
       get[String]("service.localTarget") ~
       get[String]("service.remoteTarget") ~
@@ -178,11 +178,10 @@ object Service {
   /**
    * Update a service.
    *
-   * @param id The service id
    * @param service The service values.
    */
-  def update(id: Long, service: Service) = {
-    deleteFromCache(id)
+  def update(service: Service) = {
+    deleteFromCache(service.id)
     DB.withConnection {
       implicit connection =>
         SQL(
@@ -197,7 +196,7 @@ object Service {
           environment_id = {environment_id} 
           where id = {id}
           """).on(
-            'id -> id,
+            'id -> service.id,
             'description -> service.description,
             'localTarget -> checkLocalTarget(service.localTarget),
             'remoteTarget -> service.remoteTarget,
@@ -258,19 +257,16 @@ object Service {
   }
 
   /**
-   * Return a list of (Service, Environment).
+   * Return a list of Service.
    */
-  def list: List[(Service, Environment)] = {
+  def list: List[Service] = {
     DB.withConnection {
       implicit connection =>
-
         val services = SQL(
           """
           select * from service
-          left join environment on service.environment_id = environment.id
-          order by environment_id asc, description asc
-          """).as(Service.withEnvironment *)
-
+          order by description asc
+          """).as(Service.simple *)
         services
     }
   }
@@ -315,7 +311,7 @@ object Service {
     }.getOrElse {
 
       val service = new Service(
-        NotAssigned,
+        -1,
         dataCsv(csvTitle.get("description").get).trim,
         dataCsv(csvTitle.get("localTarget").get).trim,
         dataCsv(csvTitle.get("remoteTarget").get).trim,
