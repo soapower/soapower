@@ -46,19 +46,19 @@ DELETE    /services/:id            controllers.Services.delete(id:Long)
 
 # Environments list
 GET     /environments/options          controllers.Environments.options
-GET     /environments/listDatatable    controllers.Environments.listDatatable
-GET     /environments                  controllers.Environments.index
 
-# Add environment
-GET     /environments/new          controllers.Environments.create
-POST    /environments              controllers.Environments.save
+# Environments list
+GET     /environments/listDatatable    controllers.Environments.listDatatable
+
+# Add service
+POST    /environments/:id              controllers.Environments.save(id:Long)
 
 # Edit existing environment
-GET     /environments/:id          controllers.Environments.edit(id:Long)
-POST    /environments/:id          controllers.Environments.update(id:Long)
+GET     /environments/:id              controllers.Environments.edit(id:Long)
 
 # Delete a environment
-POST    /environments/:id/delete   controllers.Environments.delete(id:Long)
+DELETE    /environments/:id            controllers.Environments.delete(id:Long)
+
 
 # SoapActions list
 GET     /soapactions/findall          controllers.SoapActions.findAll

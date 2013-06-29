@@ -43,7 +43,7 @@ function ServiceEditCtrl($scope, $routeParams, $location, Service, EnvironmentsS
 
     $scope.destroy = function () {
         self.original.destroy(function () {
-            $location.path('/services/list');
+            $location.path('/services');
         });
     };
 

@@ -318,7 +318,7 @@ object Service {
         dataCsv(csvTitle.get("timeoutms").get).toLong,
         (dataCsv(csvTitle.get("recordXmlData").get).trim == "true"),
         (dataCsv(csvTitle.get("recordData").get).trim == "true"),
-        environment.id.get)
+        environment.id)
       Service.insert(service)
       Logger.info("Insert Service " + environment.name + "/" + localTarget)
     }
@@ -337,7 +337,7 @@ object Service {
     var environment = Environment.findByName(environmentName)
     if (environment == None) {
       Logger.debug("Insert Environment " + environmentName)
-      Environment.insert(new Environment(NotAssigned, environmentName))
+      Environment.insert(new Environment(-1, environmentName))
       environment = Environment.findByName(environmentName)
       if (environment.get == null) Logger.error("Environment insert failed : " + environmentName)
     } else {

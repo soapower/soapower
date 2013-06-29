@@ -40,6 +40,37 @@ define(['angular'], function (angular) {
             return Service;
         })
 
+        .factory('Environment', function ($resource) {
+            var Environment = $resource('/environments/:environmentId',
+                { environmentId: '@id'},
+                { update: {method: 'POST'} }
+            );
+
+            Environment.prototype.update = function (cb) {
+                if (this.recordXmlData == "true" || this.recordXmlData == true) {
+                    this.recordXmlData = true;
+                } else {
+                    this.recordXmlData = false;
+                }
+
+                if (this.recordData == "true" || this.recordData == true) {
+                    this.recordData = true;
+                } else {
+                    this.recordData = false;
+                }
+                this.id = parseInt(this.id);
+
+                return Environment.update({environmentId: this.id},
+                    angular.extend({}, this, {environmentId: undefined}), cb);
+            };
+
+            Environment.prototype.destroy = function (cb) {
+                return Environment.remove({environmentId: this.id}, cb);
+            };
+
+            return Environment;
+        })
+
 
         .factory("ServicesService", function ($http) {
             return {
@@ -49,7 +80,11 @@ define(['angular'], function (angular) {
             }
         })
         .factory("EnvironmentsService", function ($http) {
+
             return {
+                findAll: function () {
+                    return $http.get('/environments/listDatatable');
+                },
                 findAllAndSelect: function ($scope, $routeParams) {
                     $http.get('/environments/options')
                         .success(function (environments) {

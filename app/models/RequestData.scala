@@ -641,7 +641,7 @@ object RequestData {
 
       e.map {
         environment =>
-          insertStats(environment.id.get, dataCsv(csvTitle.get("soapAction").get).trim, UtilDate.parse(dataCsv(csvTitle.get("startTime").get).trim), dataCsv(csvTitle.get("timeInMillis").get).toLong)
+          insertStats(environment.id, dataCsv(csvTitle.get("soapAction").get).trim, UtilDate.parse(dataCsv(csvTitle.get("startTime").get).trim), dataCsv(csvTitle.get("timeInMillis").get).toLong)
       }.getOrElse {
         Logger.warn("Warning : Environment " + environmentName + " unknown")
         throw new Exception("Warning : Environment " + environmentName + " already exist")

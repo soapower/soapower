@@ -1,8 +1,5 @@
 package controllers
 
-import play.api.data._
-import play.api.data.Forms._
-
 import play.api.mvc._
 import models._
 import play.api.libs.json._
@@ -10,21 +7,6 @@ import play.api.libs.json._
 object Services extends Controller {
 
   implicit val serviceFormat = Json.format[Service]
-
-
-  /**
-   * Describe the service form (used in both edit and create screens).
-   */
-  val serviceForm = Form(
-    mapping(
-      "id" -> longNumber,
-      "description" -> nonEmptyText,
-      "localTarget" -> nonEmptyText,
-      "remoteTarget" -> nonEmptyText,
-      "timeoutms" -> longNumber,
-      "recordXmlData" -> boolean,
-      "recordData" -> boolean,
-      "environment" -> longNumber)(Service.apply)(Service.unapply))
 
   /**
    * List to Datable table.

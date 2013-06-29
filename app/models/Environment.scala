@@ -9,7 +9,7 @@ import anorm._
 import anorm.SqlParser._
 import java.util.{Date, Calendar, GregorianCalendar}
 
-case class Environment(id: Pk[Long],
+case class Environment(id: Long,
   name: String,
   hourRecordXmlDataMin: Int = 8,
   hourRecordXmlDataMax: Int = 22,
@@ -32,7 +32,7 @@ object Environment {
    * Parse a Environment from a ResultSet
    */
   val simple = {
-    get[Pk[Long]]("id") ~
+    get[Long]("id") ~
     get[String]("name") ~
     get[Int]("hourRecordXmlDataMin") ~
     get[Int]("hourRecordXmlDataMax") ~
@@ -180,12 +180,11 @@ object Environment {
   /**
    * Update a environment.
    *
-   * @param id The environment id
    * @param environment The environment values.
    */
-  def update(id: Long, environment: Environment) = {
+  def update(environment: Environment) = {
     clearCache
-    Cache.remove(keyCacheById + id)
+    Cache.remove(keyCacheById + environment.id)
     DB.withConnection {
       implicit connection =>
         SQL(
@@ -200,7 +199,7 @@ object Environment {
           recordData = {recordData}
           where id = {id}
           """).on(
-            'id -> id,
+            'id -> environment.id,
             'name -> environment.name,
             'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
             'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
@@ -356,7 +355,7 @@ object Environment {
     }.getOrElse {
 
       val environment = new Environment(
-        NotAssigned,
+        -1,
         dataCsv(csvTitle.get("name").get).trim,
         dataCsv(csvTitle.get("hourRecordXmlDataMin").get).toInt,
         dataCsv(csvTitle.get("hourRecordXmlDataMax").get).toInt,

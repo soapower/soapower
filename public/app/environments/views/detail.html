@@ -1,0 +1,98 @@
+<form name="myForm">
+    <input type="hidden" name="name" ng-model="environment.id">
+
+    <div class="control-group" ng-class="{error: myForm.name.$invalid}">
+        <label>Name</label>
+        <input type="text" name="name" ng-model="environment.name" class="input-xxlarge" required>
+        <span ng-show="myForm.name.$error.required" class="help-inline">Required</span>
+    </div>
+
+    <div class="control-group" ng-class="{error: myForm.hourRecordXmlDataMin.$invalid}">
+        <label>Start Record Hour</label>
+        <input type="number" name="hourRecordXmlDataMin" ng-model="environment.hourRecordXmlDataMin"
+               class="input-xxlarge" required>
+        <span ng-show="myForm.hourRecordXmlDataMin.$error.required" class="help-inline">Required</span>
+    </div>
+
+    <div class="control-group" ng-class="{error: myForm.hourRecordXmlDataMax.$invalid}">
+        <label>End Record Hour</label>
+        <input type="number" name="hourRecordXmlDataMax" ng-model="environment.hourRecordXmlDataMax"
+               class="input-xxlarge" required>
+        <span ng-show="myForm.hourRecordXmlDataMax.$error.required" class="help-inline">Required</span>
+        <span ng-show="myForm.hourRecordXmlDataMax.$error.url" class="help-inline">Not a URL</span>
+    </div>
+
+    <div class="control-group" ng-class="{error: myForm.nbDayKeepXmlData.$invalid}">
+        <label>Xml Data : Nb days keep</label>
+        <input type="number" name="nbDayKeepXmlData" ng-model="environment.nbDayKeepXmlData" required>
+        <span ng-show="myForm.nbDayKeepXmlData.$error.required" class="help-inline">Required</span>
+    </div>
+
+    <div class="control-group" ng-class="{error: myForm.nbDayKeepAllData.$invalid}">
+        <label>All Data : Nb days keep</label>
+        <input type="number" name="nbDayKeepAllData" ng-model="environment.nbDayKeepAllData" required>
+        <span ng-show="myForm.nbDayKeepAllData.$error.required" class="help-inline">Required</span>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label"> Record Xml Data, Check this if you want to record Xml Request and Xml Response for
+            ALL services attached to this environment: </label>
+
+        <div class="controls">
+            <label class="radio"
+                   ng-class="{checked: (environment.recordXmlData == true || environment.recordXmlData == 'true')}">
+                <span class="icons">
+                    <span class="first-icon fui-radio-unchecked"></span>
+                    <span class="second-icon fui-radio-checked"></span>
+                </span>
+                <input type="radio" name="recordXmlData" ng-model="environment.recordXmlData" value="true"> Yes
+            </label>
+            <label class="radio"
+                   ng-class="{checked: (environment.recordXmlData == false || environment.recordXmlData == 'false')}"
+                   value='true'>
+                <span class="icons">
+                    <span class="first-icon fui-radio-unchecked"></span>
+                    <span class="second-icon fui-radio-checked"></span>
+                </span>
+                <input type="radio" name="recordXmlData" ng-model="environment.recordXmlData" value="false"> No
+            </label>
+        </div>
+
+    </div>
+
+    <div class="control-group">
+        <label class="control-label"> Record Data, Check this if you want to record Data (startTime, responseTime,
+            etc...) on Request for ALL services attached to this environment. If it is unchecked, you can see requests
+            on live page only and no stats are computed for this environment. You must check this if you want to record
+            XML Data : </label>
+
+        <div class="controls">
+            <label class="radio"
+                   ng-class="{checked: (environment.recordData == true || environment.recordData == 'true')}">
+                <span class="icons">
+                    <span class="first-icon fui-radio-unchecked"></span>
+                    <span class="second-icon fui-radio-checked"></span>
+                </span>
+                <input type="radio" name="recordData" ng-model="environment.recordData" value='true'> Yes
+            </label>
+            <label class="radio"
+                   ng-class="{checked: environment.recordData == false || environment.recordData == 'false'}">
+                <span class="icons">
+                    <span class="first-icon fui-radio-unchecked"></span>
+                    <span class="second-icon fui-radio-checked"></span>
+                </span>
+                <input type="radio" name="recordData" ng-model="environment.recordData" value='false'> No
+            </label>
+        </div>
+
+    </div>
+
+    <br>
+    <a href="#/environments" class="btn">Cancel</a>
+    <button ng-click="save()" ng-disabled="isClean() || myForm.$invalid"
+            class="btn btn-primary">Save
+    </button>
+    <button ng-click="destroy()"
+            ng-show="environment.id > 0" class="btn btn-danger">Delete
+    </button>
+</form>

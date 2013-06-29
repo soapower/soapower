@@ -12,6 +12,7 @@ require(['angular', './directives', './filters', './services',
     './live/liveController',
     './search/searchController',
     './services/servicesController',
+    './environments/environmentsController',
     './stats/statsController',
     './lib/jquery-1.10.1.min',
     './lib/ui-bootstrap-0.4.0-SNAPSHOT',
@@ -50,6 +51,9 @@ require(['angular', './directives', './filters', './services',
                 .when('/services', { controller: ServicesCtrl, templateUrl: 'app/services/views/list.html'})
                 .when('/services/new', {controller: ServiceNewCtrl, templateUrl: 'app/services/views/detail.html'})
                 .when('/services/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'app/services/views/detail.html'})
+                .when('/environments', { controller: EnvironmentsCtrl, templateUrl: 'app/environments/views/list.html'})
+                .when('/environemnts/new', {controller: EnvironmentNewCtrl, templateUrl: 'app/environments/views/detail.html'})
+                .when('/environments/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'app/environments/views/detail.html'})
                 .when('/stats', {
                     templateUrl: 'app/stats/views/stats.html',
                     controller: StatsCtrl
