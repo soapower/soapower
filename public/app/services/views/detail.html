@@ -32,7 +32,7 @@
 
     <div class="control-group" ng-class="{error: myForm.environment.$invalid}">
         <label>Environment </label>
-        <select ng-model="service.environment" ng-options="environment.name for environment in environments" required></select>
+        <select ng-model="service.environment" ng-options="environment.name for environment in environments" required ng-selected="{{ service.environmentId == environment.id }}"></select>
         <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
     </div>
 

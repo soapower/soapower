@@ -91,13 +91,14 @@ define(['angular'], function (angular) {
                 findAll: function () {
                     return $http.get('/environments/listDatatable');
                 },
-                findAllAndSelect: function ($scope, $routeParams) {
+                findAllAndSelect: function ($scope, environmentName, service) {
                     $http.get('/environments/options')
                         .success(function (environments) {
                             $scope.environments = environments;
-                            if ($routeParams != null) {
+                            if (environmentName != null || service != null) {
                                 angular.forEach($scope.environments, function (value, key) {
-                                    if (value.name == $routeParams.environment) $scope.environment = value;
+                                    if (value.name == environmentName) $scope.environment = value;
+                                    if (value.id == service.environmentId) service.environment = value;
                                 });
                             }
 

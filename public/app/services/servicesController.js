@@ -30,11 +30,13 @@ function ServiceEditCtrl($scope, $routeParams, $location, Service, EnvironmentsS
 
     var self = this;
 
-    EnvironmentsService.findAllAndSelect($scope);
+
 
     Service.get({serviceId: $routeParams.serviceId}, function (service) {
         self.original = service;
         $scope.service = new Service(self.original);
+        EnvironmentsService.findAllAndSelect($scope, null, $scope.service);
+
     });
 
     $scope.isClean = function () {

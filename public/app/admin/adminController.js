@@ -33,5 +33,5 @@ function AdminCtrl ($scope, $routeParams, EnvironmentsService) {
         }
     });
 
-    EnvironmentsService.findAllAndSelect($scope, $routeParams);
+    EnvironmentsService.findAllAndSelect($scope);
 }
