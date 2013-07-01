@@ -2,27 +2,58 @@
 
 'use strict';
 
-define("angular", ['webjars!angular.js'], function () {
+
+define("angular", ['/assets/javascripts/angular.js'], function () {
     return angular;
 });
 
-require(['angular', './directives', './filters', './services',
-    './admin/adminController',
-    './analysis/analysisController',
-    './live/liveController',
-    './search/searchController',
-    './services/servicesController',
-    './environments/environmentsController',
-    './soapactions/soapactionsController',
-    './stats/statsController',
-    './lib/jquery-1.10.1.min',
-    './lib/ui-bootstrap-0.4.0-SNAPSHOT',
-    './lib/ng-grid-2.0.6.min',
-    './lib/ng-upload.min',
-    './lib/angular-resource.min'],
-    function (angular) {
+define("$", ['/assets/javascripts/lib/jquery-1.10.1.min.js'], function () {
+    return $;
+});
+// make global var
+requirejs.config({
+    shim: {
+        'd3': {
+            exports: 'd3'
+        },
+        'nv': {
+            deps: ['d3'],
+            exports: 'nv'
+        }
+    }
+});
 
-        var spApp = angular.module('spApp', [ 'ngResource', 'spApp.filters', 'spApp.services', 'spApp.directives', 'ui.bootstrap', 'ngGrid', 'ngUpload']);
+define("d3", ['/assets/javascripts/lib/d3/d3.v3.js'], function () {
+    return d3;
+});
+define("nv", ['/assets/javascripts/lib/d3/nv.d3.js'], function () {
+    return nv;
+});
+
+
+
+
+
+require(['angular', 'app/directives', 'app/services', //'app/filters',
+    'app/controllers/adminController',
+    'app/controllers/analysisController',
+    'app/controllers/environmentsController',
+    'app/controllers/liveController',
+    'app/controllers/searchController',
+    'app/controllers/servicesController',
+    'app/controllers/soapactionsController',
+    'app/controllers/statsController',
+    'lib/angular-resource.min',
+    'lib/ui-bootstrap-0.4.0-SNAPSHOT',
+    'lib/ng-grid-2.0.7.yesnault',
+    'lib/ng-upload.min',
+    'main',
+    'd3'
+    ], function (angular) {
+
+    console.log(angular);
+
+        var spApp = angular.module('spApp', [ 'ngResource', 'spApp.services', 'spApp.directives', 'ui.bootstrap', 'ngGrid', 'ngUpload']);
 
         spApp.config(function ($routeProvider) {
             $routeProvider

@@ -2,11 +2,6 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET     /lib/require.js             controllers.WebJarAssets.requirejs
-
-# Enable webjar based resources to be returned
-GET     /webjars/*file              controllers.WebJarAssets.at(file)
-
 # Home page
 GET     /                           controllers.Assets.at(path="/public", file="index.html")
 

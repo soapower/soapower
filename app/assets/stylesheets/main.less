@@ -1,3 +1,4 @@
+/* app css stylesheet */
 
 #warningIE {
   display:none;
@@ -63,3 +64,37 @@
   height:600px;
   overflow:auto;
 }
+
+.gridStyle {
+  border: 1px solid rgb(212,212,212);
+  width: 100%;
+  height: 400px;
+}
+
+.label-500, .label-401, .label-301{
+  background-color: #b94a48;
+}
+
+.label-200 {
+  background-color: #468847;
+}
+
+.data-purged-false {
+  display:block;
+}
+
+.data-purged-true {
+  display:none;
+}
+
+#chart1 svg {
+  height: 500px;
+  margin: 10px;
+  min-width: 100px;
+  min-height: 100px;
+}
+/*
+  Minimum height and width is a good idea to prevent negative SVG dimensions...
+  For example width should be =< margin.left + margin.right + 1,
+  of course 1 pixel for the entire chart would not be very useful, BUT should not have errors
+*/
