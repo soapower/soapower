@@ -259,14 +259,15 @@ object Service {
   /**
    * Return a list of Service.
    */
-  def list: List[Service] = {
+  def list: List[(Service, Environment)] = {
     DB.withConnection {
       implicit connection =>
         val services = SQL(
           """
           select * from service
-          order by description asc
-          """).as(Service.simple *)
+          left join environment on service.environment_id = environment.id
+          order by name asc, description asc
+          """).as(Service.withEnvironment *)
         services
     }
   }

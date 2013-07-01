@@ -6,6 +6,23 @@ import play.api.libs.json._
 
 object Services extends Controller {
 
+
+  private implicit object ServicesDataWrites extends Writes[(Service, Environment)] {
+    def writes(data: (Service, Environment)): JsValue = {
+      JsObject(
+        List(
+          "id" -> JsString(data._1.id.toString),
+          "description" -> JsString(data._1.description),
+          "env" -> JsString(data._2.name),
+          "localTarget" -> JsString("/soap/" + data._2.name + "/" + data._1.localTarget),
+          "remoteTarget" -> JsString(data._1.remoteTarget),
+          "timeoutInMs" -> JsNumber(data._1.timeoutms),
+          "recordXmlData" -> JsBoolean(data._1.recordXmlData),
+          "recordData" -> JsBoolean(data._1.recordData)
+        ))
+    }
+  }
+
   implicit val serviceFormat = Json.format[Service]
 
   /**

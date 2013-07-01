@@ -13,6 +13,7 @@ require(['angular', './directives', './filters', './services',
     './search/searchController',
     './services/servicesController',
     './environments/environmentsController',
+    './soapactions/soapactionsController',
     './stats/statsController',
     './lib/jquery-1.10.1.min',
     './lib/ui-bootstrap-0.4.0-SNAPSHOT',
@@ -54,6 +55,8 @@ require(['angular', './directives', './filters', './services',
                 .when('/environments', { controller: EnvironmentsCtrl, templateUrl: 'app/environments/views/list.html'})
                 .when('/environemnts/new', {controller: EnvironmentNewCtrl, templateUrl: 'app/environments/views/detail.html'})
                 .when('/environments/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'app/environments/views/detail.html'})
+                .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'app/soapactions/views/list.html'})
+                .when('/soapactions/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'app/soapactions/views/detail.html'})
                 .when('/stats', {
                     templateUrl: 'app/stats/views/stats.html',
                     controller: StatsCtrl

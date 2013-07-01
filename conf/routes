@@ -25,8 +25,7 @@ POST    /admin/uploadConfiguration      controllers.Admin.uploadConfiguration
 GET     /search/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable      controllers.Search.listDatatable(environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
-GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load/    controllers.Analysis.load(environment, soapAction, minDate, maxDate, status, statsOnly)
-GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/         controllers.Analysis.index(environment, soapAction, minDate, maxDate, status, statsOnly)
+GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load    controllers.Analysis.load(environment, soapAction, minDate, maxDate, status, statsOnly)
 
 # Soap
 POST    /soap/:environment/*localTarget                  controllers.Soap.index(environment, localTarget)
@@ -62,15 +61,14 @@ DELETE    /environments/:id            controllers.Environments.delete(id:Long)
 
 # SoapActions list
 GET     /soapactions/findall          controllers.SoapActions.findAll
-GET     /soapActions/listDatatable    controllers.SoapActions.listDatatable
-GET     /soapActions                  controllers.SoapActions.index
+GET     /soapactions/listDatatable    controllers.SoapActions.listDatatable
 
 # Regeneration soapAction listDatatable
-GET     /soapActions/regenerate   controllers.SoapActions.regenerate
+GET     /soapactions/regenerate   controllers.SoapActions.regenerate
 
 # Edit existing soapAction
-GET     /soapActions/:id          controllers.SoapActions.edit(id:Long)
-POST    /soapActions/:id          controllers.SoapActions.update(id:Long)
+GET     /soapactions/:id          controllers.SoapActions.edit(id:Long)
+POST    /soapactions/:id          controllers.SoapActions.save(id:Long)
 
 # Status list
 GET     /status/findall             controllers.Status.findAll

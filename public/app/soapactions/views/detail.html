@@ -1,0 +1,20 @@
+<form name="myForm">
+    <input type="hidden" name="name" ng-model="soapAction.id">
+
+    <div class="control-group" ng-class="{error: myForm.name.$invalid}">
+        <label>SoapAction Name : {{ soapAction.name }}</label>
+    </div>
+
+    <div class="control-group" ng-class="{error: myForm.thresholdms.$invalid}">
+        <label>SoapAction Threshold in ms</label>
+        <input type="number" name="thresholdms" ng-model="soapAction.thresholdms"
+               class="input-xxlarge" required>
+        <span ng-show="myForm.thresholdms.$error.required" class="help-inline">Required</span>
+    </div>
+
+    <br>
+    <a href="#/soapActions" class="btn">Cancel</a>
+    <button ng-click="save()" ng-disabled="isClean() || myForm.$invalid"
+            class="btn btn-primary">Save
+    </button>
+</form>

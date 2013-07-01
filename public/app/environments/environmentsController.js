@@ -25,11 +25,9 @@ function EnvironmentsCtrl($scope, EnvironmentsService) {
     };
 }
 
-function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, EnvironmentsEnvironment) {
+function EnvironmentEditCtrl($scope, $routeParams, $location, Environment) {
 
     var self = this;
-
-    EnvironmentsEnvironment.findAllAndSelect($scope);
 
     Environment.get({environmentId: $routeParams.environmentId}, function (environment) {
         self.original = environment;
@@ -57,7 +55,7 @@ function EnvironmentNewCtrl($scope, $location, Environment, EnvironmentsEnvironm
 
     EnvironmentsEnvironment.findAllAndSelect($scope);
 
-    $scope.environment = new Environment({id:'-2'});
+    $scope.environment = new Environment({id:'-1'});
 
     $scope.save = function () {
         $scope.environment.update(function () {

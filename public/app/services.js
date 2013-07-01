@@ -7,25 +7,15 @@ define(['angular'], function (angular) {
     /* Services */
     angular.module('spApp.services', ['ngResource'])
 
-        .factory('Service', function ($resource) {
+        .factory('Service', function ($resource, UIService) {
             var Service = $resource('/services/:serviceId',
                 { serviceId: '@id'},
                 { update: {method: 'POST'} }
             );
 
             Service.prototype.update = function (cb) {
-                console.log(this);
-                if (this.recordXmlData == "true" || this.recordXmlData == true) {
-                    this.recordXmlData = true;
-                } else {
-                    this.recordXmlData = false;
-                }
-
-                if (this.recordData == "true" || this.recordData == true) {
-                    this.recordData = true;
-                } else {
-                    this.recordData = false;
-                }
+                this.recordXmlData = UIService.fixBoolean(this.recordXmlData);
+                this.recordData = UIService.fixBoolean(this.recordData);
                 this.environmentId = parseInt(this.environment.id);
                 this.id = parseInt(this.id);
 
@@ -40,24 +30,15 @@ define(['angular'], function (angular) {
             return Service;
         })
 
-        .factory('Environment', function ($resource) {
+        .factory('Environment', function ($resource, UIService) {
             var Environment = $resource('/environments/:environmentId',
                 { environmentId: '@id'},
                 { update: {method: 'POST'} }
             );
 
             Environment.prototype.update = function (cb) {
-                if (this.recordXmlData == "true" || this.recordXmlData == true) {
-                    this.recordXmlData = true;
-                } else {
-                    this.recordXmlData = false;
-                }
-
-                if (this.recordData == "true" || this.recordData == true) {
-                    this.recordData = true;
-                } else {
-                    this.recordData = false;
-                }
+                this.recordXmlData = UIService.fixBoolean(this.recordXmlData);
+                this.recordData = UIService.fixBoolean(this.recordData);
                 this.id = parseInt(this.id);
 
                 return Environment.update({environmentId: this.id},
@@ -70,8 +51,34 @@ define(['angular'], function (angular) {
 
             return Environment;
         })
+        .factory('SoapAction', function ($resource) {
+            var SoapAction = $resource('/soapactions/:soapActionId',
+                { soapActionId: '@id'},
+                { update: {method: 'POST'} }
+            );
 
+            SoapAction.prototype.update = function (cb) {
+                this.id = parseInt(this.id);
+                return SoapAction.update({soapActionId: this.id},
+                    angular.extend({}, this, {soapActionId: undefined}), cb);
+            };
 
+            return SoapAction;
+        })
+        .factory("SoapactionsService", function ($http) {
+            return {
+                findAll: function () {
+                    return $http.get('/soapactions/listDatatable');
+                }
+            }
+        })
+        .factory("AnalysisService", function ($http) {
+            return {
+                findAll: function () {
+                    return $http.get('/soapactions/listDatatable');
+                }
+            }
+        })
         .factory("ServicesService", function ($http) {
             return {
                 findAll: function () {
@@ -80,7 +87,6 @@ define(['angular'], function (angular) {
             }
         })
         .factory("EnvironmentsService", function ($http) {
-
             return {
                 findAll: function () {
                     return $http.get('/environments/listDatatable');
@@ -165,9 +171,12 @@ define(['angular'], function (angular) {
                         var elem = indate.split('-');
                         return new Date(elem[0], elem[1] - 1, elem[2]);
                     }
+                },
+                fixBoolean: function (val) {
+                    return (val == "true" || val == true) ? true : false;
                 }
             }
-        }).factory('ReplayService',function ($http, $rootScope, $location, $window) {
+        }).factory('ReplayService',function ($http, $rootScope, $location) {
             return {
                 replay: function (id) {
                     $http.get('/replay/' + id)
@@ -180,12 +189,6 @@ define(['angular'], function (angular) {
                             console.log("location:" + $location.path())
                             $rootScope.$broadcast('refreshSearchTable');
                         });
-                }
-            }
-        }).factory("AdminService", function ($http) {
-            return {
-                downloadConfiguration: function () {
-
                 }
             }
         })

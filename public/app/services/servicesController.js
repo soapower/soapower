@@ -18,7 +18,7 @@ function ServicesCtrl($scope, ServicesService) {
             {field: 'description', displayName: 'Description'},
             {field: 'localTarget', displayName: 'Local Target'},
             {field: 'remoteTarget', displayName: 'Remote Target'},
-            {field: 'timoutInMs', displayName: 'Timeout in ms'},
+            {field: 'timeoutInMs', displayName: 'Timeout in ms'},
             {field: 'recordXmlData', displayName: 'Record Xml Data'},
             {field: 'recordData', displayName: 'Record Data'},
             {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/services/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
