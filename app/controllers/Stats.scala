@@ -16,7 +16,7 @@ object Stats extends Controller {
           "env" -> JsString(data._1),
           "soapAction" -> JsString(data._2),
           "avgTime" -> JsNumber(data._3),
-          "treshold" -> JsNumber(data._4)))
+          "threshold" -> JsNumber(data._4)))
     }
   }
 

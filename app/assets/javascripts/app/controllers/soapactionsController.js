@@ -18,6 +18,10 @@ function SoapActionsCtrl($scope, SoapactionsService) {
             {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/soapactions/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
         ]
     };
+
+    $scope.regenerate = function () {
+        console.log("TODO");
+    }
 }
 
 function SoapActionEditCtrl($scope, $routeParams, $location, SoapAction) {
