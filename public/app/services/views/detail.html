@@ -11,8 +11,7 @@
         <label>Local Target </label>
         <input type="text" name="localTarget" ng-model="service.localTarget" class="input-xxlarge" required>
         <span ng-show="myForm.localTarget.$error.required" class="help-inline">Required</span>
-        <span class="help-block">Enter service1 to have http://
-            &lt;serverSoapower&gt;:&lt;port&gt;/soap/&lt;environment&gt;/service1
+        <span class="help-block">Enter service1 to have http://{{ hostname }}:{{ port }}/soap/&lt;environment&gt;/<b>service1</b>
         </span>
     </div>
 
@@ -40,19 +39,11 @@
         <label class="control-label"> Record Xml Data, Check this if you want to record Xml Request and Xml Response for this service: </label>
 
         <div class="controls">
-            <label class="radio" ng-class="{checked: (service.recordXmlData == true || service.recordXmlData == 'true')}">
-                <span class="icons">
-                    <span class="first-icon fui-radio-unchecked"></span>
-                    <span class="second-icon fui-radio-checked"></span>
-                </span>
-                <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="true"> Yes
+            <label class="radio">
+                <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="yes" ng-checked="service.recordXmlData == 'yes'"> Yes
             </label>
-            <label class="radio" ng-class="{checked: (service.recordXmlData == false || service.recordXmlData == 'false')}" value='true'>
-                <span class="icons">
-                    <span class="first-icon fui-radio-unchecked"></span>
-                    <span class="second-icon fui-radio-checked"></span>
-                </span>
-                <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="false"> No
+            <label class="radio">
+                <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="no" ng-checked="service.recordXmlData == 'no'"> No
             </label>
         </div>
 
@@ -62,21 +53,12 @@
         <label class="control-label"> Record Data, Check Yes this if you want to record Data (time, responseTime, etc...) on Request / Response for this
             service. If it is unchecked, you can see requests on live page only and no stats are computed for this
             service. You must check this if you want to record XML Data : </label>
-
         <div class="controls">
-            <label class="radio" ng-class="{checked: (service.recordData == true || service.recordData == 'true')}">
-                <span class="icons">
-                    <span class="first-icon fui-radio-unchecked"></span>
-                    <span class="second-icon fui-radio-checked"></span>
-                </span>
-                <input type="radio" name="recordData" ng-model="service.recordData" value='true'> Yes
+            <label class="radio">
+                <input type="radio" name="recordData" ng-model="service.recordData" value="yes" ng-checked="service.recordData == 'yes'"> Yes
             </label>
-            <label class="radio" ng-class="{checked: service.recordData == false || service.recordData == 'false'}">
-                <span class="icons">
-                    <span class="first-icon fui-radio-unchecked"></span>
-                    <span class="second-icon fui-radio-checked"></span>
-                </span>
-                <input type="radio" name="recordData" ng-model="service.recordData" value='false'> No
+            <label class="radio">
+                <input type="radio" name="recordData" ng-model="service.recordData" value="no" ng-checked="service.recordData == 'no'"> No
             </label>
         </div>
 

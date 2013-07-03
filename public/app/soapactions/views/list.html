@@ -1,10 +1,12 @@
-
-
 <h2>SoapActions</h2>
 
 <div id="container" style="width: 100%; margin:auto">
 
-    <a class="btn btn-primary" ng-click="regenerate()"><i class="icon-refresh"></i>  Regenerate List</a>
+    <button class="btn btn-primary" ng-click="regenerate()" ng-disabled="btnRegenerateDisabled">
+        <i class="icon-refresh"></i> Generate List
+    </button>
+
+    {{ info }}
 
     <div class="gridStyle" ng-grid="gridOptions"></div>
 

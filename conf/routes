@@ -7,8 +7,6 @@ GET     /                           controllers.Assets.at(path="/public", file="
 
 # Live page
 GET     /live/socket                    controllers.Live.socket
-GET     /live                           controllers.Live.index(search ?= "")
-GET     /live/*search                   controllers.Live.index(search)
 
 # Admin page
 POST    /admin/delete                   controllers.Admin.delete
@@ -59,11 +57,11 @@ GET     /soapactions/findall          controllers.SoapActions.findAll
 GET     /soapactions/listDatatable    controllers.SoapActions.listDatatable
 
 # Regeneration soapAction listDatatable
-GET     /soapactions/regenerate   controllers.SoapActions.regenerate
+GET     /soapactions/regenerate     controllers.SoapActions.regenerate
 
 # Edit existing soapAction
-GET     /soapactions/:id          controllers.SoapActions.edit(id:Long)
-POST    /soapactions/:id          controllers.SoapActions.save(id:Long)
+GET     /soapactions/:id            controllers.SoapActions.edit(id:Long)
+POST    /soapactions/:id            controllers.SoapActions.save(id:Long)
 
 # Status list
 GET     /status/findall             controllers.Status.findAll

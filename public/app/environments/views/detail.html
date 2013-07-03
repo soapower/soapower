@@ -39,22 +39,11 @@
             ALL services attached to this environment: </label>
 
         <div class="controls">
-            <label class="radio"
-                   ng-class="{checked: (environment.recordXmlData == true || environment.recordXmlData == 'true')}">
-                <span class="icons">
-                    <span class="first-icon fui-radio-unchecked"></span>
-                    <span class="second-icon fui-radio-checked"></span>
-                </span>
-                <input type="radio" name="recordXmlData" ng-model="environment.recordXmlData" value="true"> Yes
+            <label class="radio">
+                <input type="radio" name="recordXmlData" ng-model="environment.recordXmlData" value="yes" ng-checked="environment.recordXmlData == 'yes'"> Yes
             </label>
-            <label class="radio"
-                   ng-class="{checked: (environment.recordXmlData == false || environment.recordXmlData == 'false')}"
-                   value='true'>
-                <span class="icons">
-                    <span class="first-icon fui-radio-unchecked"></span>
-                    <span class="second-icon fui-radio-checked"></span>
-                </span>
-                <input type="radio" name="recordXmlData" ng-model="environment.recordXmlData" value="false"> No
+            <label class="radio">
+                <input type="radio" name="recordXmlData" ng-model="environment.recordXmlData" value="no" ng-checked="environment.recordXmlData == 'no'"> No
             </label>
         </div>
 
@@ -67,21 +56,11 @@
             XML Data : </label>
 
         <div class="controls">
-            <label class="radio"
-                   ng-class="{checked: (environment.recordData == true || environment.recordData == 'true')}">
-                <span class="icons">
-                    <span class="first-icon fui-radio-unchecked"></span>
-                    <span class="second-icon fui-radio-checked"></span>
-                </span>
-                <input type="radio" name="recordData" ng-model="environment.recordData" value='true'> Yes
+            <label class="radio">
+                <input type="radio" name="recordData" ng-model="environment.recordData" value='yes' ng-checked="environment.recordData == 'yes'"> Yes
             </label>
-            <label class="radio"
-                   ng-class="{checked: environment.recordData == false || environment.recordData == 'false'}">
-                <span class="icons">
-                    <span class="first-icon fui-radio-unchecked"></span>
-                    <span class="second-icon fui-radio-checked"></span>
-                </span>
-                <input type="radio" name="recordData" ng-model="environment.recordData" value='false'> No
+            <label class="radio">
+                <input type="radio" name="recordData" ng-model="environment.recordData" value='no' ng-checked="environment.recordData == 'no'"> No
             </label>
         </div>
 

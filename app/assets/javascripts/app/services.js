@@ -69,6 +69,23 @@ define(['angular'], function (angular) {
             return {
                 findAll: function () {
                     return $http.get('/soapactions/listDatatable');
+                },
+                findAllAndSelect: function ($scope, $routeParams) {
+                    $http.get('/soapactions/findall')
+                        .success(function (soapactions) {
+                            $scope.soapactions = soapactions;
+                            angular.forEach($scope.soapactions, function (value, key) {
+                                if (value.name == $routeParams.soapaction) $scope.soapaction = value;
+                            });
+
+                        })
+                        .error(function (resp) {
+                            console.log("Error with SoapActionsService.findAllAndSelect" + resp);
+                        });
+                },
+                regenerate: function() {
+                    return $http.get('/soapactions/regenerate');
+
                 }
             }
         })
@@ -105,23 +122,6 @@ define(['angular'], function (angular) {
                         })
                         .error(function (resp) {
                             console.log("Error with EnvironmentsService.findAllAndSelect" + resp);
-                        });
-                }
-            }
-        })
-        .factory("SoapActionsService", function ($http) {
-            return {
-                findAllAndSelect: function ($scope, $routeParams) {
-                    $http.get('/soapactions/findall')
-                        .success(function (soapactions) {
-                            $scope.soapactions = soapactions;
-                            angular.forEach($scope.soapactions, function (value, key) {
-                                if (value.name == $routeParams.soapaction) $scope.soapaction = value;
-                            });
-
-                        })
-                        .error(function (resp) {
-                            console.log("Error with SoapActionsService.findAllAndSelect" + resp);
                         });
                 }
             }
@@ -174,7 +174,10 @@ define(['angular'], function (angular) {
                     }
                 },
                 fixBoolean: function (val) {
-                    return (val == "true" || val == true) ? true : false;
+                    return (val == "yes" || val == true) ? true : false;
+                },
+                fixBooleanReverse: function (val) {
+                    return (val == "true" || val == true) ? "yes" : "no";
                 }
             }
         }).factory('ReplayService',function ($http, $rootScope, $location) {

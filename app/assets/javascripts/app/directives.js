@@ -11,10 +11,10 @@ define(['angular'], function (angular) {
             return {
                 restrict: 'E',
                 scope: false,
-                controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, SoapActionsService, CodesService, UIService) {
+                controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, SoapactionsService, CodesService, UIService) {
 
                     EnvironmentsService.findAllAndSelect($scope, $routeParams);
-                    SoapActionsService.findAllAndSelect($scope, $routeParams);
+                    SoapactionsService.findAllAndSelect($scope, $routeParams);
                     CodesService.findAllAndSelect($scope, $routeParams);
 
                     $scope.mindate = UIService.getDateFromParam($routeParams.mindate);

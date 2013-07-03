@@ -1,5 +1,9 @@
 function SoapActionsCtrl($scope, SoapactionsService) {
 
+
+    $scope.btnRegenerateDisabled = false;
+    $scope.info = "";
+
     SoapactionsService.findAll().
         success(function (soapActions) {
             $scope.soapActions = soapActions.data;
@@ -20,8 +24,21 @@ function SoapActionsCtrl($scope, SoapactionsService) {
     };
 
     $scope.regenerate = function () {
-        console.log("TODO");
+        $scope.info = "Running Generation...";
+        $scope.btnRegenerateDisabled = true;
+
+        SoapactionsService.regenerate().success(function (resp) {
+            $scope.info = "Success generate SoapAction list";
+            $scope.btnRegenerateDisabled = false;
+        })
+            .error(function (resp) {
+                console.log("Error with SoapActionsService.regenerate" + resp);
+                $scope.info = "Error with generate SoapAction list. See server logs.";
+            });
+
+        //$scope.btnRegenerate = "Running Generation...";
     }
+
 }
 
 function SoapActionEditCtrl($scope, $routeParams, $location, SoapAction) {

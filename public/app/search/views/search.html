@@ -3,18 +3,20 @@
 
     <sp-criterias></sp-criterias>
 
-    <p class="muted" onClick="$('#tips').toggle()" style="cursor:pointer" title="click to view help"><span class="label label-info">Tips </span>
-        You can bookmark this page</p>
+    <i class="icon-info-sign pointer" title="click to view help" ng-click="showTips=showTips==false">Tips </i>
 
-    <div class="well" id="tips" style="display:none">
+    <div class="well" ng-show="showTips">
         <ul>
-            <li>http://&lt;server:port&gt;/search/&lt;environment&gt;/&lt;soapAction&gt;/&lt;fromDate&gt;/&lt;toDate&gt;/</li>
+            <li>You can bookmark this page</li>
+            <li>http://{{ hostname }}:{{ port }}/search/&lt;environment&gt;/&lt;soapAction&gt;/&lt;fromDate&gt;/&lt;toDate&gt;/</li>
             <li>Default page : /search/all/all/all/today/ : all requests</li>
             <li>Change start date : /search/all/all/2012-12-10/today/: all requests from 2012-12-10</li>
-            <li>Advanced : /search/dev/login/yesterday/today/ : Results for environment dev, soapAction login from yesterday, to today</li>
+            <li>Advanced : /search/dev/login/yesterday/today/ : Results for environment dev, soapAction login from
+                yesterday, to today
+            </li>
         </ul>
     </div>
 
-    <div class="gridStyle" ng-grid="gridOptions"> </div>
+    <div class="gridStyle" ng-grid="gridOptions"></div>
 
 </div>

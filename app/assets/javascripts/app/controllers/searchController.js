@@ -1,6 +1,9 @@
 
-function SearchCtrl ($scope, $http, $routeParams, $window, ReplayService) {
+function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayService) {
     $scope.ctrlPath = "search";
+    $scope.showTips = false;
+    $scope.hostname = $location.host();
+    $scope.port = $location.port();
 
     $scope.filterOptions = {
         filterText: "",

@@ -1,7 +1,12 @@
 
 
-function StatsCtrl ($scope, $http, $routeParams) {
+function StatsCtrl ($scope, $http, $location, $routeParams) {
     $scope.ctrlPath = "stats";
+
+    $scope.showTips = false;
+
+    $scope.hostname = $location.host();
+    $scope.port = $location.port();
 
     $scope.filterOptions = {
         filterText: "",
