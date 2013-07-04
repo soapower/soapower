@@ -1,0 +1,37 @@
+<h2>Work in progress - DEV</h2>
+
+<div id="onError" class="alert alert-error" ng-show="isError">
+    <p>
+        <span><strong> {{ errorInfo }} </strong> </span>
+    </p>
+</div>
+
+<span class="label label-success liveOnAir" ng-show="isLiveOn">On Air <i class="icon-bullhorn"></i></span>
+<span class="label label-important liveOff" ng-show="!isLiveOn">Off <i class="icon-ban-circle"></i></span>
+
+<button type="button" class="btn btn-warning liveOnAir" ng-show="isLiveOn" ng-click="stopWS()"><i class="icon-stop"></i></button>
+<button type="button" class="btn btn-success liveOff"  ng-show="!isLiveOn" ng-click="startWS()"><i class="icon-play"></i></button>
+
+
+<div class="row">
+    <div class="span4" id="cpu"></div>
+    <div class="span4" id="memory"></div>
+
+    <div class="span3" id="action">
+        <a class="btn" href="@routes.Monitor.downloadLogFile"><i class="icon-download"></i> Download Logs File</a>
+        <hr>
+        <button class="btn btn-warning" id="btnGC"><i class="icon-repeat"></i> Run Garbarge Collect</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="span6" id="nbRequestsSeconds"></div>
+    <div class="span6" id="nbRequests"></div>
+</div>
+
+<h3>Logs : tail -f @logFile </h3>
+<div class="row" id="logs">
+    <ul>
+        @* Intentionally left open, so logs can gradually append as they come *@
+</div>
+

@@ -38,7 +38,6 @@ function SoapActionsCtrl($scope, SoapactionsService) {
 
         //$scope.btnRegenerate = "Running Generation...";
     }
-
 }
 
 function SoapActionEditCtrl($scope, $routeParams, $location, SoapAction) {

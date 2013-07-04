@@ -10,6 +10,7 @@ define("angular", ['/assets/javascripts/angular.js'], function () {
 define("$", ['/assets/javascripts/lib/jquery-1.10.1.min.js'], function () {
     return $;
 });
+
 // make global var
 requirejs.config({
     shim: {
@@ -30,15 +31,12 @@ define("nv", ['/assets/javascripts/lib/d3/nv.d3.js'], function () {
     return nv;
 });
 
-
-
-
-
 require(['angular', 'app/directives', 'app/services', //'app/filters',
     'app/controllers/adminController',
     'app/controllers/analysisController',
     'app/controllers/environmentsController',
     'app/controllers/liveController',
+    'app/controllers/monitorController',
     'app/controllers/searchController',
     'app/controllers/servicesController',
     'app/controllers/soapactionsController',
@@ -64,10 +62,6 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
                     templateUrl: 'partials/live/live.html',
                     controller: LiveCtrl
                 })
-                .when('/admin', {
-                    templateUrl: 'partials/admin/admin.html',
-                    controller: AdminCtrl
-                })
                 .when('/search', {
                     templateUrl: 'partials/search/search.html',
                     controller: SearchCtrl
@@ -76,9 +70,19 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
                     templateUrl: 'partials/search/search.html',
                     controller: SearchCtrl
                 })
+                .when('/analysis/:environment/:soapaction/:mindate/:maxdate/:code', {
+                    templateUrl: 'partials/analysis/analysis.html', controller: AnalysisCtrl
+                })
                 .when('/analysis', {
-                    templateUrl: 'partials/analysis/analysis.html',
-                    controller: AnalysisCtrl
+                    templateUrl: 'partials/analysis/analysis.html', controller: AnalysisCtrl
+                })
+                .when('/monitor', {
+                    templateUrl: 'partials/monitor/monitor.html',
+                    controller: MonitorCtrl
+                })
+                .when('/admin', {
+                    templateUrl: 'partials/admin/admin.html',
+                    controller: AdminCtrl
                 })
                 .when('/services', { controller: ServicesCtrl, templateUrl: 'partials/services/list.html'})
                 .when('/services/new', {controller: ServiceNewCtrl, templateUrl: 'partials/services/detail.html'})

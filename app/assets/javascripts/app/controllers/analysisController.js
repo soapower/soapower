@@ -1,6 +1,4 @@
-//require(['nv', 'd3'], function (nv, d3) {
-
-function AnalysisCtrl($scope, $routeParams, $http) {
+function AnalysisCtrl ($scope, $routeParams, $http) {
     $scope.ctrlPath = "analysis";
 
     var environment = $routeParams.environment ? $routeParams.environment : 'all';

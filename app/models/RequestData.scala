@@ -407,6 +407,8 @@ object RequestData {
 
     whereClause += sqlAndEnvironnement(environmentIn)
 
+    Logger.debug("Offset:" + offset + " pageSize x pageSize:" + (offset * pageSize) + " offset:" + offset);
+
     val params: Array[(Any, anorm.ParameterValue[_])] = Array(
       'pageSize -> pageSize,
       'offset -> offset * pageSize,

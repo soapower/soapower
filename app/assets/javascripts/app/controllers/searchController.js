@@ -1,6 +1,7 @@
 
 function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayService) {
     $scope.ctrlPath = "search";
+
     $scope.showTips = false;
     $scope.hostname = $location.host();
     $scope.port = $location.port();
@@ -37,7 +38,7 @@ function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayServ
             '/' + code +
             '/listDatatable?' +
             'sSearch=' +
-            '&iDisplayStart=' + (page - 1) +
+            '&iDisplayStart=' + (page) +
             '&iDisplayLength=' + pageSize +
             '&call=' + new Date();
 

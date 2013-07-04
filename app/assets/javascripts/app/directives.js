@@ -13,7 +13,7 @@ define(['angular'], function (angular) {
                 scope: false,
                 controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, SoapactionsService, CodesService, UIService) {
 
-                    EnvironmentsService.findAllAndSelect($scope, $routeParams);
+                    EnvironmentsService.findAllAndSelect($scope, $routeParams.environment);
                     SoapactionsService.findAllAndSelect($scope, $routeParams);
                     CodesService.findAllAndSelect($scope, $routeParams);
 

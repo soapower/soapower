@@ -114,8 +114,12 @@ define(['angular'], function (angular) {
                             $scope.environments = environments;
                             if (environmentName != null || myService != null) {
                                 angular.forEach($scope.environments, function (value, key) {
-                                    if (environmentName != null && value.name == environmentName) $scope.environment = value;
-                                    if (myService != null && value.id == myService.environmentId) myService.environment = value;
+                                    if (environmentName != null && value.name == environmentName) {
+                                        $scope.environment = value;
+                                    }
+                                    if (myService != null && value.id == myService.environmentId) {
+                                        myService.environment = value;
+                                    }
                                 });
                             }
 
