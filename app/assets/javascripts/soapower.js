@@ -58,42 +58,42 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
         spApp.config(function ($routeProvider) {
             $routeProvider
                 .when('/home', {
-                    templateUrl: 'app/home/views/home.html'
+                    templateUrl: 'partials/home/home.html'
                 })
                 .when('/live', {
-                    templateUrl: 'app/live/views/live.html',
+                    templateUrl: 'partials/live/live.html',
                     controller: LiveCtrl
                 })
                 .when('/admin', {
-                    templateUrl: 'app/admin/views/admin.html',
+                    templateUrl: 'partials/admin/admin.html',
                     controller: AdminCtrl
                 })
                 .when('/search', {
-                    templateUrl: 'app/search/views/search.html',
+                    templateUrl: 'partials/search/search.html',
                     controller: SearchCtrl
                 })
                 .when('/search/:environment/:soapaction/:mindate/:maxdate/:code', {
-                    templateUrl: 'app/search/views/search.html',
+                    templateUrl: 'partials/search/search.html',
                     controller: SearchCtrl
                 })
                 .when('/analysis', {
-                    templateUrl: 'app/analysis/views/analysis.html',
+                    templateUrl: 'partials/analysis/analysis.html',
                     controller: AnalysisCtrl
                 })
-                .when('/services', { controller: ServicesCtrl, templateUrl: 'app/services/views/list.html'})
-                .when('/services/new', {controller: ServiceNewCtrl, templateUrl: 'app/services/views/detail.html'})
-                .when('/services/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'app/services/views/detail.html'})
-                .when('/environments', { controller: EnvironmentsCtrl, templateUrl: 'app/environments/views/list.html'})
-                .when('/environemnts/new', {controller: EnvironmentNewCtrl, templateUrl: 'app/environments/views/detail.html'})
-                .when('/environments/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'app/environments/views/detail.html'})
-                .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'app/soapactions/views/list.html'})
-                .when('/soapactions/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'app/soapactions/views/detail.html'})
+                .when('/services', { controller: ServicesCtrl, templateUrl: 'partials/services/list.html'})
+                .when('/services/new', {controller: ServiceNewCtrl, templateUrl: 'partials/services/detail.html'})
+                .when('/services/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'partials/services/detail.html'})
+                .when('/environments', { controller: EnvironmentsCtrl, templateUrl: 'partials/environments/list.html'})
+                .when('/environments/new', {controller: EnvironmentNewCtrl, templateUrl: 'partials/environments/detail.html'})
+                .when('/environments/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'partials/environments/detail.html'})
+                .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
+                .when('/soapactions/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
                 .when('/stats', {
-                    templateUrl: 'app/stats/views/stats.html',
+                    templateUrl: 'partials/stats/stats.html',
                     controller: StatsCtrl
                 })
                 .when('/statistics/:environment/:soapaction/:mindate/:maxdate/:code', {
-                    templateUrl: 'app/stats/views/stats.html',
+                    templateUrl: 'partials/stats/stats.html',
                     controller: StatsCtrl
                 })
                 .otherwise({

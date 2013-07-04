@@ -46,9 +46,9 @@ function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayServ
             url: url,
             cache: false
         }).success(function (largeLoad) {
-                console.log("setPagingData");
-                $scope.setPagingData(largeLoad, page, pageSize);
-            });
+            console.log("setPagingData");
+            $scope.setPagingData(largeLoad, page, pageSize);
+        });
     };
 
     $scope.reloadTable = function () {
@@ -105,16 +105,15 @@ function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayServ
         pagingOptions: $scope.pagingOptions,
         filterOptions: $scope.filterOptions,
         columnDefs: [
-            {field: 'status', displayName: 'Status', cellTemplate: 'app/common/views/cellStatusTemplate.html'},
-            {field: 'env', displayName: 'Environment'},
-            {field: 'sender', displayName: 'Sender'},
+            {field: 'status', displayName: 'Status', width: '60px', cellTemplate: 'partials/common/cellStatusTemplate.html'},
+            {field: 'env', displayName: 'Environment', width: '100px'},
+            {field: 'sender', displayName: 'Sender',  width: '100px'},
             {field: 'soapAction', displayName: 'SoapAction'},
-            {field: 'startTime', displayName: 'StartTime'},
-            {field: 'time', displayName: 'TimeInMillis'},
-            {field: 'purged', displayName: 'Request', cellTemplate: 'app/common/views/cellRequestTemplate.html'},
-            {field: 'purged', displayName: 'Response', cellTemplate: 'app/common/views/cellResponseTemplate.html'},
-            //cellTemplate: '<div ng-class="{green: row.getProperty(col.field) > 30}"><div class="ngCellText">{{row.getProperty(col.field)}}</div></div>'},
-            {field: 'purged', displayName: 'Replay', cellTemplate: 'app/common/views/cellReplayTemplate.html'}
+            {field: 'startTime', displayName: 'StartTime', width: '200px' },
+            {field: 'time', displayName: 'TimeInMillis', width: '100px'},
+            {field: 'purged', displayName: 'Request', width: '80px', cellTemplate: 'partials/common/cellRequestTemplate.html'},
+            {field: 'purged', displayName: 'Response', width: '80px', cellTemplate: 'partials/common/cellResponseTemplate.html'},
+            {field: 'purged', displayName: 'Replay', width: '80px', cellTemplate: 'partials/common/cellReplayTemplate.html'}
         ]
 
     };

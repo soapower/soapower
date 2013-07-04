@@ -41,7 +41,7 @@ define(['angular'], function (angular) {
                         }
                     });
                 },
-                templateUrl: 'app/common/views/criterias.html',
+                templateUrl: 'partials/common/criterias.html',
                 replace: true
             }
         });
