@@ -18,11 +18,11 @@ import play.api.Play.current
 object Client {
   private val nbRequest = new java.util.concurrent.atomic.AtomicLong
 
-  var lock : AnyRef = new Object()
+  var lock: AnyRef = new Object()
 
-  def getNbRequest : Long = nbRequest.get
+  def getNbRequest: Long = nbRequest.get
 
-  def processQueue(requestData : RequestData) {
+  def processQueue(requestData: RequestData) {
     val writeStartTime = System.currentTimeMillis()
     Akka.future {
       lock.synchronized {
@@ -56,8 +56,10 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.X_FORWARDED_FOR -> sender))
 
     // add headers
-    def filteredHeaders = headers.filterNot { _._1 == HeaderNames.TRANSFER_ENCODING }
-    wsRequestHolder = wsRequestHolder.withHeaders(filteredHeaders.toArray : _*)
+    def filteredHeaders = headers.filterNot {
+      _._1 == HeaderNames.TRANSFER_ENCODING
+    }
+    wsRequestHolder = wsRequestHolder.withHeaders(filteredHeaders.toArray: _*)
     wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.CONTENT_LENGTH -> content.getBytes.size.toString))
 
     try {
@@ -100,7 +102,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
    * @param content a string
    * @return [null or empty] or the content if not null (or empty!)
    */
-  private def checkNullOrEmpty(content: String) : String = {
+  private def checkNullOrEmpty(content: String): String = {
     if (content == null || content.isEmpty) "[null or empty]" else content
   }
 
@@ -167,7 +169,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
 class ClientResponse(wsResponse: Response = null, val responseTimeInMillis: Long) {
 
   var body: String = if (wsResponse != null) wsResponse.body else ""
-  var bodyBytes = wsResponse.getAHCResponse.getResponseBodyAsBytes
+  var bodyBytes = if (wsResponse != null && wsResponse.getAHCResponse != null) wsResponse.getAHCResponse.getResponseBodyAsBytes else null
   val status: Int = if (wsResponse != null) wsResponse.status else Status.INTERNAL_SERVER_ERROR
 
   private val headersNing: Map[String, Seq[String]] = if (wsResponse != null) ningHeadersToMap(wsResponse.getAHCResponse.getHeaders()) else Map()
