@@ -1,0 +1,28 @@
+<section>
+
+    <div id="onError" class="alert alert-error" ng-show="isError">
+        <p>
+            <span><strong> {{ errorInfo }} </strong> </span>
+        </p>
+    </div>
+
+    <span>Users connected on live page : {{ nbConnected }}</span>
+
+    Live status :
+    <span class="label label-success liveOnAir" ng-show="isLiveOn">On Air <i class="icon-bullhorn"></i></span>
+    <span class="label label-important liveOff" ng-show="!isLiveOn">Off <i class="icon-ban-circle"></i></span>
+
+    <button type="button" class="btn btn-warning liveOnAir" ng-show="isLiveOn" ng-click="stopWS()"><i class="icon-stop"></i></button>
+    <button type="button" class="btn btn-success liveOff"  ng-show="!isLiveOn" ng-click="startWS()"><i class="icon-play"></i></button>
+
+    <i class="icon-info-sign pointer" ng-click="showTips=showTips==false">Tips </i>
+
+    <div class="well" id="tips" ng-show="showTips">
+        <ul>
+            <li>http://{{ hostname }}:{{ port }}/live/&lt;search&gt; : use a default search </li>
+        </ul>
+    </div>
+
+    <div class="gridStyle" ng-grid="gridOptions"> </div>
+
+</section>

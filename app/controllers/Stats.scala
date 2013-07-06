@@ -13,17 +13,11 @@ object Stats extends Controller {
     def writes(data: (String, String, Long, Long)): JsValue = {
       JsObject(
         List(
-          "0" -> JsString(data._1),
-          "1" -> JsString(data._2),
-          "2" -> JsNumber(data._3),
-          "3" -> JsNumber(data._4)))
+          "env" -> JsString(data._1),
+          "soapAction" -> JsString(data._2),
+          "avgTime" -> JsNumber(data._3),
+          "threshold" -> JsNumber(data._4)))
     }
-  }
-
-  def index(environment: String, minDateAsStr: String, maxDateAsStr: String, soapAction: String, status: String) = Action { implicit request =>
-    val minDate = getDate(minDateAsStr)
-    val maxDate = getDate(maxDateAsStr)
-    Ok(views.html.stats.index(environment, soapAction, formatDate(minDate), formatDate(maxDate), status, Environment.options, RequestData.soapActionOptions, RequestData.statusOptions))
   }
 
   def listDataTable(environmentName: String, minDateAsStr: String, maxDateAsStr: String, soapAction: String, status: String) = Action { implicit request =>
@@ -40,7 +34,7 @@ object Stats extends Controller {
     Ok(Json.toJson(Map(
       "iTotalRecords" -> Json.toJson(data.size),
       "iTotalDisplayRecords" -> Json.toJson(data.size),
-      "aaData" -> Json.toJson(data)))).as(JSON)
+      "data" -> Json.toJson(data)))).as(JSON)
   }
 
   def statsAsJunit(minDateAsStr: String, maxDateAsStr: String) = Action {

@@ -3,29 +3,22 @@
 # ~~~~
 
 # Home page
-GET     /                               controllers.Application.index
+GET     /                           controllers.Assets.at(path="/public", file="index.html")
 
 # Live page
 GET     /live/socket                    controllers.Live.socket
-GET     /live                           controllers.Live.index(search ?= "")
-GET     /live/*search                   controllers.Live.index(search)
-
 
 # Admin page
-GET     /admin/                         controllers.Admin.index
-POST    /admin/deleteAll                controllers.Admin.deleteAllRequestData
 POST    /admin/delete                   controllers.Admin.delete
-POST    /admin/downloadConfiguration    controllers.Admin.downloadConfiguration
-POST    /admin/downloadRequestDataStatsEntries controllers.Admin.downloadRequestDataStatsEntries
+GET     /admin/downloadConfiguration    controllers.Admin.downloadConfiguration
+GET     /admin/downloadRequestDataStatsEntries controllers.Admin.downloadRequestDataStatsEntries
 POST    /admin/uploadConfiguration      controllers.Admin.uploadConfiguration
 
 # Search page
-GET     /search/:environment/:soapAction/:minDate/:maxDate/:status/                   controllers.Search.index(environment, soapAction, minDate, maxDate, status)
 GET     /search/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable      controllers.Search.listDatatable(environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
-GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load/    controllers.Analysis.load(environment, soapAction, minDate, maxDate, status, statsOnly)
-GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/         controllers.Analysis.index(environment, soapAction, minDate, maxDate, status, statsOnly)
+GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load    controllers.Analysis.load(environment, soapAction, minDate, maxDate, status, statsOnly)
 
 # Soap
 POST    /soap/:environment/*localTarget                  controllers.Soap.index(environment, localTarget)
@@ -33,59 +26,62 @@ GET     /replay/:id                                      controllers.Soap.replay
 
 # Services list
 GET     /services/listDatatable    controllers.Services.listDatatable
-GET     /services                  controllers.Services.index
 
 # Add service
-GET     /services/new              controllers.Services.create
-POST    /services                  controllers.Services.save
+POST    /services/:id                  controllers.Services.save(id:Long)
 
 # Edit existing service
 GET     /services/:id              controllers.Services.edit(id:Long)
-POST    /services/:id              controllers.Services.update(id:Long)
 
 # Delete a service
-POST    /services/:id/delete       controllers.Services.delete(id:Long)
+DELETE    /services/:id            controllers.Services.delete(id:Long)
+
+# Environments list
+GET     /environments/options          controllers.Environments.options
 
 # Environments list
 GET     /environments/listDatatable    controllers.Environments.listDatatable
-GET     /environments                  controllers.Environments.index
 
-# Add environment
-GET     /environments/new          controllers.Environments.create
-POST    /environments              controllers.Environments.save
+# Add service
+POST    /environments/:id              controllers.Environments.save(id:Long)
 
 # Edit existing environment
-GET     /environments/:id          controllers.Environments.edit(id:Long)
-POST    /environments/:id          controllers.Environments.update(id:Long)
+GET     /environments/:id              controllers.Environments.edit(id:Long)
 
 # Delete a environment
-POST    /environments/:id/delete   controllers.Environments.delete(id:Long)
+DELETE    /environments/:id            controllers.Environments.delete(id:Long)
+
 
 # SoapActions list
-GET     /soapActions/listDatatable    controllers.SoapActions.listDatatable
-GET     /soapActions                  controllers.SoapActions.index
+GET     /soapactions/findall          controllers.SoapActions.findAll
+GET     /soapactions/listDatatable    controllers.SoapActions.listDatatable
 
 # Regeneration soapAction listDatatable
-GET     /soapActions/regenerate   controllers.SoapActions.regenerate
+GET     /soapactions/regenerate     controllers.SoapActions.regenerate
 
 # Edit existing soapAction
-GET     /soapActions/:id          controllers.SoapActions.edit(id:Long)
-POST    /soapActions/:id          controllers.SoapActions.update(id:Long)
+GET     /soapactions/:id            controllers.SoapActions.edit(id:Long)
+POST    /soapactions/:id            controllers.SoapActions.save(id:Long)
+
+# Status list
+GET     /status/findall             controllers.Status.findAll
 
 # Statistics on SoapActions by environments
 GET     /statsAsJunit/:minDate/:maxDate/                                             controllers.Stats.statsAsJunit(minDate, maxDate)
-GET     /stats/:environment/:soapAction/:minDate/:maxDate/:status/                   controllers.Stats.index(environment, minDate, maxDate, soapAction, status)
-GET     /stats/:environment/:soapAction/:minDate/:maxDate/:status/listDataTable      controllers.Stats.listDataTable(environment, minDate, maxDate, soapAction, status)
+GET     /stats/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable      controllers.Stats.listDataTable(environment, minDate, maxDate, soapAction, status)
 
 # Download SOAP request and response
 GET     /download/request/:id      controllers.Search.downloadRequest(id:Long, asFile: Boolean ?= false)
 GET     /download/response/:id     controllers.Search.downloadResponse(id:Long, asFile: Boolean ?= false)
 
 # Monitoring
+GET     /monitor/logfile           controllers.Monitor.logfile
 GET     /monitor/socket            controllers.Monitor.socket
-GET     /monitor                   controllers.Monitor.index
 GET     /monitor/downloadLogFile   controllers.Monitor.downloadLogFile
 POST    /gc!                       controllers.Monitor.gc
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file              controllers.Assets.at(path="/public", file)
+
+# Map the JS resource paths
+GET     /*file                      controllers.Assets.at(path="/public", file)

@@ -8,7 +8,7 @@ import play.api._
 import anorm._
 import anorm.SqlParser._
 
-case class SoapAction(id: Pk[Long], name: String, thresholdms: Long)
+case class SoapAction(id: Long, name: String, thresholdms: Long)
 
 object SoapAction {
   // -- Parsers
@@ -17,7 +17,7 @@ object SoapAction {
    * Parse a SoapAction from a ResultSet
    */
   val simple = {
-    get[Pk[Long]]("soapaction.id") ~
+    get[Long]("soapaction.id") ~
     get[String]("soapaction.name") ~
     get[Long]("soapaction.thresholdms") map {
       case id ~ name ~ thresholdms =>
@@ -96,10 +96,9 @@ object SoapAction {
   /**
    * Update a SoapAction : update only threshold
    *
-   * @param id The SoapAction id
    * @param soapAction The SoapAction values.
    */
-  def update(id: Long, soapAction: SoapAction) = {
+  def update(soapAction: SoapAction) = {
     DB.withConnection {
       implicit connection =>
         SQL(
@@ -108,7 +107,7 @@ object SoapAction {
           set thresholdms = {thresholdms}
           where id = {id}
           """).on(
-          'id -> id,
+          'id -> soapAction.id,
           'thresholdms -> soapAction.thresholdms).executeUpdate()
     }
   }
@@ -175,7 +174,7 @@ object SoapAction {
     }.getOrElse {
 
       val soapAction = new SoapAction(
-        NotAssigned,
+        -1,
         dataCsv(csvTitle.get("name").get).trim,
         dataCsv(csvTitle.get("thresholdms").get).toInt)
       SoapAction.insert(soapAction)

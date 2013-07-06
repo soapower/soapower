@@ -1,11 +1,6 @@
 package controllers
 
 import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
-import play.api.data.validation.Constraints._
-
-import anorm._
 
 import models._
 import play.api.libs.json._
@@ -15,61 +10,51 @@ import play.api.libs.json.JsString
 object Environments extends Controller {
 
   // use by Json : from scala to json
-  private implicit object StatsDataWrites extends Writes[Environment] {
-    def writes(data: Environment): JsValue = {
+  private implicit object EnvironmentsOptionsDataWrites extends Writes[(String, String)] {
+    def writes(data : (String, String)): JsValue = {
       JsObject(
         List(
-          "0" -> JsString(data.name),
-          "1" -> JsString(data.hourRecordXmlDataMin + " h"),
-          "2" -> JsString(data.hourRecordXmlDataMax + " h"),
-          "3" -> JsString(data.nbDayKeepXmlData + " days"),
-          "4" -> JsString(data.nbDayKeepAllData + " days"),
-          "5" -> JsBoolean(data.recordXmlData),
-          "6" -> JsBoolean(data.recordData),
-          "7" -> JsString("<a href=\"environments/"+data.id+"\"><i class=\"icon-edit\"></i> Edit</a>")
+          "id" -> JsString(data._1),
+          "name" -> JsString(data._2)
         ))
     }
   }
 
-  /**
-   * This result directly redirect to the application home.
-   */
-  val Home = Redirect(routes.Environments.index)
+  implicit val environmentFormat = Json.format[Environment]
 
   /**
-   * Display the list of services.
+   * Return all Environments in Json Format
+   * @return JSON
    */
-  def index = Action { implicit request =>
-    Ok(views.html.environments.index())
+  def findAll = Action { implicit request =>
+    val data = Environment.list
+    Ok(Json.toJson(data)).as(JSON)
   }
+
+  /**
+   * Return all Environments in Json Format
+   * @return JSON
+   */
+  def options = Action { implicit request =>
+    val data = Environment.options
+    Ok(Json.toJson(data)).as(JSON)
+  }
+
 
   /**
    * List to Datable table.
    *
    * @return JSON
    */
-  def listDatatable = Action { implicit request =>
-    val data = Environment.list
-    Ok(Json.toJson(Map(
-      "iTotalRecords" -> Json.toJson(data.size),
-      "iTotalDisplayRecords" -> Json.toJson(data.size),
-      "aaData" -> Json.toJson(data)
-    ))).as(JSON)
+  def listDatatable = Action {
+    implicit request =>
+      val data = Environment.list
+      Ok(Json.toJson(Map(
+        "iTotalRecords" -> Json.toJson(data.size),
+        "iTotalDisplayRecords" -> Json.toJson(data.size),
+        "data" -> Json.toJson(data)
+      ))).as(JSON)
   }
-
-  /**
-   * Describe the environment form (used in both edit and create screens).
-   */
-  val environmentForm = Form(
-    mapping(
-      "id" -> ignored(NotAssigned: Pk[Long]),
-      "name" -> nonEmptyText,
-      "hourRecordXmlDataMin" -> number(min=0, max=23),
-      "hourRecordXmlDataMax" -> number(min=0, max=24),
-      "nbDayKeepXmlData" -> number(min=0, max=10),
-      "nbDayKeepAllData" -> number(min=2, max=50),
-      "recordXmlData" -> boolean,
-      "recordData" -> boolean) (Environment.apply)(Environment.unapply))
 
   /**
    * Display the 'edit form' of a existing Environment.
@@ -77,42 +62,23 @@ object Environments extends Controller {
    * @param id Id of the environment to edit
    */
   def edit(id: Long) = Action {
-    Environment.findById(id).map { environment =>
-      Ok(views.html.environments.editForm(id, environmentForm.fill(environment)))
+    Environment.findById(id).map {
+      environment =>
+        Ok(Json.toJson(environment)).as(JSON)
     }.getOrElse(NotFound)
   }
 
   /**
-   * Handle the 'edit form' submission
-   *
-   * @param id Id of the environment to edit
+   * Insert or update a environment.
    */
-  def update(id: Long) = Action { implicit request =>
-    environmentForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html.environments.editForm(id, formWithErrors)),
-      environment => {
-        Environment.update(id, environment)
-        Home.flashing("success" -> "Environment %s has been updated".format(environment.name))
-      })
-  }
-
-  /**
-   * Display the 'new environment form'.
-   */
-  def create = Action {
-    Ok(views.html.environments.createForm(environmentForm.fill(new Environment(NotAssigned, "", 6, 22, 2, 5))))
-  }
-
-  /**
-   * Handle the 'new environment form' submission.
-   */
-  def save = Action { implicit request =>
-    environmentForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html.environments.createForm(formWithErrors)),
-      environment => {
-        Environment.insert(environment)
-        Home.flashing("success" -> "Environment %s has been created".format(environment.name))
-      })
+  def save(id: Long) = Action(parse.json) { request =>
+    request.body.validate(environmentFormat).map { environment =>
+      if (id < 0) Environment.insert(environment)
+      else Environment.update(environment)
+      Ok(Json.toJson("Succesfully save environment."))
+    }.recoverTotal{
+      e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
+    }
   }
 
   /**
@@ -120,7 +86,6 @@ object Environments extends Controller {
    */
   def delete(id: Long) = Action {
     Environment.delete(id)
-    Home.flashing("success" -> "Environment has been deleted")
+    Ok("deleted");
   }
-
 }

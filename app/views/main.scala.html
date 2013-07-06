@@ -1,81 +1,13 @@
-@(content: Html)
+@(content: Html)(implicit request: RequestHeader)
 
 @import helper._
 
 <!DOCTYPE html>
 
 <html>
-    <head>
-        <title>Soapower</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/jquery.dataTables.css")">
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.min.css")">
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.min.css")">
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/jquery-ui-1.8.16.custom.css")">
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/power.png")">
-        <script src="@routes.Assets.at("javascripts/jquery-1.8.3.min.js")" type="text/javascript"></script>
-        <script src="@routes.Assets.at("javascripts/jquery-ui-1.8.16.custom.min.js")" type="text/javascript"></script>
-    </head>
-    <body>
+    main.scala.html affiché !
 
-    <!--[if lt IE 10]>
-        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/iespecific.css")"/>
-    <![endif]-->
+    <input type="text" id="urlWS" value="@routes.Live.socket().webSocketURL()">
+    <input type="text" id="urlWS" value="@routes.Monitor.socket().webSocketURL()">
 
-    <div id="warningIE" class="alert alert-error">
-        <i class="icon-warning-sign"></i>
-        Soapower use HTML5 websocket, it is not compatible with Internet Exporer < 10
-    </div>
-
-        <div class="navbar">
-            <div class="navbar-inner">
-                <div class="container">
-                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    </a>
-                    <a class="brand" href="@routes.Application.index()">
-                    <img src="@routes.Assets.at("images/power.png")"> Soapower
-                    </a>
-                    <div class="nav-collapse collapse navbar-responsive-collapse">
-                        <ul class="nav">
-                            <li><a href="@routes.Live.index("")"><i class="icon-bullhorn"></i> Live</a></li>
-                            <li><a id="menu-search" href="#"><i class="icon-search"></i> Search</a></li>
-                            <li><a id="menu-analysis" href="#"><i class="icon-eye-open"></i> Analysis</a></li>
-                            <li><a id="menu-statistics" href="#"><i class="icon-barcode"></i> Statistics</a></li>
-                        </ul>
-                        <ul class="nav pull-right">
-                            <li><a href="@routes.Monitor.index()"><i class="icon-wrench"></i> Monitoring </a></li>
-                            <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin <b class="caret"></b></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="@routes.Services.index"><i class="icon-pencil"></i> Services</a></li>
-                                    <li><a href="@routes.Environments.index"><i class="icon-pencil"></i> Environments</a></li>
-                                    <li><a href="@routes.SoapActions.index"><i class="icon-pencil"></i> SoapActions Threshold</a></li>
-                                    <li class="divider"></li>
-                                    <li><a href="@routes.Admin.index()"><i class="icon-tasks"></i> Admin</a></li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div><!-- /.nav-collapse -->
-                </div>
-            </div><!-- /navbar-inner -->
-        </div>
-
-        <div class="container-fluid">
-        @content
-        </div>
-
-        <hr>
-        <div class="footer">
-            Hello! I'm your friendly footer. If you're actually reading this, I'm impressed....
-            <a href="https://github.com/soapower/soapower">Fork me on Github</a>
-        </div>
-        <script src="@routes.Assets.at("javascripts/bootstrap.min.js")" type="text/javascript"></script>
-
-        @monitoring()
-        <script src="@routes.Assets.at("javascripts/soapower/criterias.js")" type="text/javascript"></script>
-        <script src="@routes.Assets.at("javascripts/main.js")" type="text/javascript"></script>
-
-    </body>
 </html>
