@@ -1,34 +1,37 @@
 <!DOCTYPE html>
 <html>
+
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Soapower : Soapower - Monitoring Webservices" />
 
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
-    <title>Soapower by soapower</title>
+    <title>Soapower</title>
   </head>
 
   <body>
-    <header>
-      <div class="inner">
-        <h1>Soapower</h1>
-        <h2>Soapower - Monitoring Webservices</h2>
-        <a href="https://github.com/soapower/soapower" class="button"><small>View project on</small>GitHub</a>
-      </div>
-    </header>
 
-    <div id="content-wrapper">
-      <div class="inner clearfix">
-        <section id="main-content">
-          <h3>
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/soapower/soapower">View on GitHub</a>
+
+          <h1 id="project_title">Soapower</h1>
+          <h2 id="project_tagline">Soapower - Monitoring Webservices</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/soapower/soapower/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/soapower/soapower/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h3>
 <a name="whats-soapower-" class="anchor" href="#whats-soapower-"><span class="octicon octicon-link"></span></a>What's Soapower ?</h3>
 
 <p>Soapower provides a GUI for </p>
@@ -69,9 +72,9 @@ the alerts are rising if the receiver does not send the response back in time.</
 </ul><h1>
 <a name="run-in-production-with-a-stable-version" class="anchor" href="#run-in-production-with-a-stable-version"><span class="octicon octicon-link"></span></a>Run in Production with a stable version</h1>
 
-<p>Current stable version of Soapower : 1.0.3</p>
+<p>Current stable version of Soapower : 1.0.2</p>
 
-<p>You can download it here : <a href="http://dl.bintray.com/content/soapower/soapower/soapower-1.0.3.zip?direct">http://dl.bintray.com/content/soapower/soapower/soapower-1.0.3.zip?direct</a></p>
+<p>You can download it here : <a href="http://dl.bintray.com/content/soapower/soapower/soapower-1.0.2.zip?direct">http://dl.bintray.com/content/soapower/soapower/soapower-1.0.2.zip?direct</a></p>
 
 <h2>
 <a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h2>
@@ -90,11 +93,11 @@ $ export SOAPOWER_HOME="/opt/soapower/"
 $ export SOAPOWER_PORT=9010
 
 mkdir -p /opt/soapower &amp;&amp; cd /opt/soapower
-wget http://dl.bintray.com/content/soapower/soapower/soapower-1.0.3.zip?direct -O soapower-1.0.3.zip
-unzip soapower-1.0.3.zip
-ln -s soapower-1.0.3 current &amp;&amp; cd current
-wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.3-play2.1.2/restart.sh
-wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.3-play2.1.2/conf/logger-prod.xml
+wget http://dl.bintray.com/content/soapower/soapower/soapower-1.0.2.zip?direct -O soapower-1.0.2.zip
+unzip soapower-1.0.2.zip
+ln -s soapower-1.0.2 current &amp;&amp; cd current
+wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.2-play2.1.1/restart.sh
+wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.2-play2.1.1/conf/logger-prod.xml
 chmod +x restart.sh
 ./restart.sh
 </code></pre>
@@ -126,26 +129,18 @@ drwxr-xr-x   3 yvonnickesnault  admin   102  8 avr 22:26 logs
 </code></pre>
 
 <p>The <code>RUNNING_PID</code> file contain the pid of Soapower (wich is running here)</p>
-        </section>
-
-        <aside id="sidebar">
-          <a href="https://github.com/soapower/soapower/zipball/master" class="button">
-            <small>Download</small>
-            .zip file
-          </a>
-          <a href="https://github.com/soapower/soapower/tarball/master" class="button">
-            <small>Download</small>
-            .tar.gz file
-          </a>
-
-          <p class="repo-owner"><a href="https://github.com/soapower/soapower"></a> is maintained by <a href="https://github.com/soapower">soapower</a>.</p>
-
-          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
-        </aside>
-      </div>
+      </section>
     </div>
 
-            <script type="text/javascript">
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Soapower maintained by <a href="https://github.com/soapower">soapower</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+              <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
           </script>
@@ -155,6 +150,7 @@ drwxr-xr-x   3 yvonnickesnault  admin   102  8 avr 22:26 logs
             pageTracker._trackPageview();
             } catch(err) {}
           </script>
+
 
   </body>
 </html>
