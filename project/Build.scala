@@ -5,7 +5,7 @@ import play.Project._
 object ApplicationBuild extends Build {
 
     val appName         = "soapower"
-    val appVersion      = "1.1.0"
+    val appVersion      = "1.0.3"
 
     val appDependencies = Seq(
         jdbc,
