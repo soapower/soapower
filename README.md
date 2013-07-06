@@ -19,7 +19,7 @@ Release Notes
 =============
 
 ### Version 1.0.3
-* Download it : http://dl.bintray.com/content/soapower/soapower/soapower-1.0.3.zip
+* Download it : https://github.com/soapower/soapower/releases/v1.0.3-beta.1/2087/soapower-1.0.3-beta.1.zip
 * Compiled with java version "1.6.0_51"
 * Using Angular JS (http://angularjs.org/), D3 (http://d3js.org/) and NVD3 (http://nvd3.org/)
 * Using Play Framework 2.1.2 (http://downloads.typesafe.com/play/2.1.2/play-2.1.2.zip)
