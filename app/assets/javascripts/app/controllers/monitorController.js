@@ -1,10 +1,19 @@
-function MonitorCtrl($scope, $location, $window) {
+function MonitorCtrl($scope, $location, $window, $http) {
     $scope.ctrlPath = "live";
     $scope.isLiveOn = false;
     $scope.isError = false;
 
     $scope.hostname = $location.host();
     $scope.port = $location.port();
+
+    var initVal = d3.range(243).map(function () {
+        return 0;
+    });
+
+    $scope.cpu = initVal;
+    $scope.memory = initVal;
+    $scope.totalRequests = 0;
+    $scope.nbRequests = null;
 
     // leave the page -> close websocket
     $scope.$on('$locationChangeStart', function (event, next, current) {
@@ -14,16 +23,38 @@ function MonitorCtrl($scope, $location, $window) {
         }
     });
 
+    $http.get('/monitor/logfile')
+        .success(function (response) {
+            $scope.logfile = response;
+        })
+        .error(function (resp) {
+            $scope.errorInfo = "Failed to load logfile";
+        });
+
     var receiveEvent = function (event) {
-        console.log("new event");
-        console.log(event);
+        //console.log(event);
 
         var data = event.data.split(":");
         var type = data[1];
-        var value = parseFloat(data[0]);
+        var newValue = parseFloat(data[0]);
 
-        //var data = JSON.parse(event.data)
-        //console.log(data);
+        if (type == "cpu" || type == "memory") {
+            $scope.$broadcast(type, newValue);
+        }
+
+        if (type == "cpu") $scope.cpuCurrentVal = newValue;
+        if (type == "memory") $scope.memoryCurrentVal = newValue;
+        if (type == "totalMemory") $scope.totalMemory = newValue;
+
+        if (type == "nbReq") {
+            if ($scope.nbRequests == null) {
+                $scope.nbRequests = 0;
+            } else {
+                $scope.nbRequests = newValue - $scope.totalRequests;
+            }
+            $scope.totalRequests = newValue;
+        }
+        $scope.$broadcast("nbrequests", $scope.nbRequests);
 
         // Handle errors
         if (data.error || data.kind == "error") {
@@ -38,9 +69,9 @@ function MonitorCtrl($scope, $location, $window) {
             return
         }
 
-        if (data.kind == "talkRequestData") {
-            //$scope.myData.push(data.message["0"])
-            console.log("DATA:"+ data);
+        if (type != "cpu" && type != "memory" && type != "totalMemory" && type != "nbReq") {
+            $('#logs').append(event.data)
+            $('#logs').stop().animate({ scrollTop: $("#logs")[0].scrollHeight }, 800);
         }
 
         $scope.$apply();
@@ -68,16 +99,22 @@ function MonitorCtrl($scope, $location, $window) {
         }
     }
 
-    $scope.dlLogs = function (asFile, row) {
-        /*if (row.getProperty("purged") == "true") {
-            $window.alert("Sorry, Response already purged...");
-        } else {
-            var url = "/download/request/" + row.getProperty("id");
-            if (asFile) url += "?asFile=true";
-            $window.open(url);
-        }*/
+    $scope.downloadLogFile = function () {
+        var url = "/monitor/downloadLogFile";
+        $window.open(url);
+    };
+
+    $scope.garbage = function () {
+        $http({
+            url: '/gc!',
+            method: 'POST'
+        }).success(function (data) {
+                alert("Garbage Collect : " + data);
+            }).error(function (data) {
+                alert("Error Garbage Collect : " + data);
+            });
+
     };
 
     $scope.startWS();
-
 }

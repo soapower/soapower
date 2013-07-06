@@ -75,6 +75,7 @@ GET     /download/request/:id      controllers.Search.downloadRequest(id:Long, a
 GET     /download/response/:id     controllers.Search.downloadResponse(id:Long, asFile: Boolean ?= false)
 
 # Monitoring
+GET     /monitor/logfile           controllers.Monitor.logfile
 GET     /monitor/socket            controllers.Monitor.socket
 GET     /monitor/downloadLogFile   controllers.Monitor.downloadLogFile
 POST    /gc!                       controllers.Monitor.gc

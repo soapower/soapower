@@ -1,7 +1,7 @@
 /* app css stylesheet */
 
 .navbar-inner {
-  border-radius:0;
+  border-radius: 0;
 }
 
 .ngHeaderContainer {
@@ -9,7 +9,7 @@
 }
 
 #warningIE {
-  display:none;
+  display: none;
 }
 
 .footer {
@@ -24,45 +24,56 @@
   float: left;
   color: white;
 }
+
 .level {
   min-width: 50px;
   display: block;
   float: left;
 }
+
 .fatal .level {
   color: #ff4500;
 }
+
 .error .level {
   color: red;
 }
+
 .warn .level {
   color: yellow;
 }
+
 .info .level {
   color: #87ceeb;
 }
+
 .debug .level {
   color: purple;
 }
+
 .logger {
   min-width: 100px;
   color: #6b8e23;
   display: block;
   float: left;
 }
+
 .thread {
   min-width: 300px;
   color: gray;
   display: block;
   float: left;
 }
+
 .message {
 }
+
 .exception {
   font-family: Monaco, monospace;
 }
+
 .pointer {
-  cursor:pointer;
+  cursor: pointer;
 }
 
 #logs {
@@ -72,17 +83,17 @@
   color: lime;
   font-family: Monaco, monospace;
   font-size: 11px;
-  height:600px;
-  overflow:auto;
+  height: 600px;
+  overflow: auto;
 }
 
 .gridStyle {
-  border: 1px solid rgb(212,212,212);
+  border: 1px solid rgb(212, 212, 212);
   width: 100%;
   height: 400px;
 }
 
-.label-500, .label-401, .label-301{
+.label-500, .label-401, .label-301 {
   background-color: #b94a48;
 }
 
@@ -91,11 +102,11 @@
 }
 
 .data-purged-false {
-  display:block;
+  display: block;
 }
 
 .data-purged-true {
-  display:none;
+  display: none;
 }
 
 #chart1 svg {
@@ -104,8 +115,31 @@
   min-width: 100px;
   min-height: 100px;
 }
+
 /*
   Minimum height and width is a good idea to prevent negative SVG dimensions...
   For example width should be =< margin.left + margin.right + 1,
   of course 1 pixel for the entire chart would not be very useful, BUT should not have errors
 */
+
+svg {
+  font: 10px sans-serif;
+}
+
+.line {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.spGraph {
+  height: 130px;
+  margin-left: 30px;
+  min-width: 100px;
+}

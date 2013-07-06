@@ -2,7 +2,7 @@ package controllers
 
 import play.api.mvc._
 import play.api.libs._
-import json.JsValue
+import play.api.libs.json.{Json, JsValue}
 import play.api.libs.iteratee._
 import play.api.libs.concurrent.Promise
 import java.util.concurrent.TimeUnit
@@ -41,6 +41,10 @@ object Monitor extends Controller {
       (in, out)
   }
 
+  def logfile = Action {
+    Ok(Json.toJson(logFile)).as(JSON)
+  }
+
   def gc = Action {
     Runtime.getRuntime().gc()
     Ok("Done")
@@ -49,7 +53,7 @@ object Monitor extends Controller {
 
 object Streams {
 
-  private val timeRefreshMillis = 500
+  private val timeRefreshMillis = 800
 
   private val timeRefreshMillisLong = 5000
 

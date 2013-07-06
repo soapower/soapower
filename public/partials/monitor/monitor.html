@@ -9,19 +9,46 @@
 <span class="label label-success liveOnAir" ng-show="isLiveOn">On Air <i class="icon-bullhorn"></i></span>
 <span class="label label-important liveOff" ng-show="!isLiveOn">Off <i class="icon-ban-circle"></i></span>
 
-<button type="button" class="btn btn-warning liveOnAir" ng-show="isLiveOn" ng-click="stopWS()"><i class="icon-stop"></i></button>
-<button type="button" class="btn btn-success liveOff"  ng-show="!isLiveOn" ng-click="startWS()"><i class="icon-play"></i></button>
+<button type="button" class="btn btn-warning liveOnAir" ng-show="isLiveOn" ng-click="stopWS()">
+    <i class="icon-stop"></i>
+</button>
+<button type="button" class="btn btn-success liveOff" ng-show="!isLiveOn" ng-click="startWS()">
+    <i class="icon-play"></i>
+</button>
+
+<button class="btn btn-primary" ng-click="downloadLogFile()">
+    <i class="icon-download"></i> Download Logs File
+</button>
+<button class="btn btn-warning" ng-click="garbage()" id="btnGC">
+    <i class="icon-repeat"></i> Run Garbarge Collect
+</button>
 
 
 <div class="row">
-    <div class="span4" id="cpu"></div>
-    <div class="span4" id="memory"></div>
+    <span class="span10 spGraph">
+        <sp-graphtimes graph="cpu"></sp-graphtimes>
+    </span>
+    <span class="span3">CPU : {{ cpuCurrentVal }} %</span>
+</div>
 
-    <div class="span3" id="action">
-        <a class="btn" href="@routes.Monitor.downloadLogFile"><i class="icon-download"></i> Download Logs File</a>
-        <hr>
-        <button class="btn btn-warning" id="btnGC"><i class="icon-repeat"></i> Run Garbarge Collect</button>
-    </div>
+<div class="row">
+    <span class="span10 spGraph">
+        <sp-graphtimes graph="memory"></sp-graphtimes>
+    </span>
+    <span class="span3">Memory : {{ memoryCurrentVal }} Mo / {{ totalMemory }} Mo</span>
+</div>
+
+<div class="row">
+    <span class="span10 spGraph">
+        <sp-graphtimes graph="nbrequests"></sp-graphtimes>
+    </span>
+    <span class="span3">Requests :
+        <ul>
+            <li>Last 5 seconds : {{ nbRequests }}</li>
+            <li>Since Soapower started : {{ totalRequests }}</li>
+        </ul>
+
+    </span>
 </div>
 
 <div class="row">
@@ -29,9 +56,9 @@
     <div class="span6" id="nbRequests"></div>
 </div>
 
-<h3>Logs : tail -f @logFile </h3>
+<h3>Logs : tail -f {{ logfile }} </h3>
 <div class="row" id="logs">
     <ul>
-        @* Intentionally left open, so logs can gradually append as they come *@
+        <!--@* Intentionally left open, so logs can gradually append as they come *@-->
 </div>
 

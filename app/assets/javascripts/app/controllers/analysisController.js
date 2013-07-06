@@ -63,6 +63,7 @@ function AnalysisCtrl ($scope, $routeParams, $http) {
                         nv.log('New State:', JSON.stringify(e));
                     });
 
+                    $scope.$apply();
                     return chart;
                 });
 

@@ -18,10 +18,7 @@ function LiveCtrl($scope, $location, $window) {
     });
 
     var receiveEvent = function (event) {
-        console.log("new event");
-        console.log(event);
         var data = JSON.parse(event.data)
-        console.log(data);
 
         // Handle errors
         if (data.error || data.kind == "error") {
@@ -76,6 +73,7 @@ function LiveCtrl($scope, $location, $window) {
         data: 'myData',
         enablePaging: false,
         showFooter: false,
+        sortInfo : { fields: ['startTime'], directions: ['desc']},
         filterOptions: $scope.filterOptions,
         columnDefs: [
             {field: 'status', displayName: 'Status', width: '60px', cellTemplate: 'partials/common/cellStatusTemplate.html'},
