@@ -19,6 +19,7 @@ function MonitorCtrl($scope, $location, $window, $http) {
     $scope.$on('$locationChangeStart', function (event, next, current) {
         if ($scope.isLiveOn == true && angular.isDefined($scope.socketLive)) {
             console.log("Websocket force closed")
+            $scope.$broadcast("stopMonitor", true);
             $scope.socketLive.close();
         }
     });

@@ -72,16 +72,25 @@ define(['angular'], function (angular) {
                         width = 760 - margin.right,
                         height = 120 - margin.top - margin.bottom;
 
+                    $scope.$on("stopMonitor", function (event, value) {
+                        console.log("stopping monitor");
+                        svg.remove();
+                        svg = null;
+                    });
+
                     $scope.$on(attrs.graph, function (event, newValue) {
                         tick(newValue);
                     });
 
                     function tick(newValue) {
+                        if (svg == null) {
+                            console.log("exit tick, svg is already removed");
+                            return;
+                        }
                         // update the domains
                         now = new Date();
                         x.domain([now - (n - 2) * duration, now - duration]);
                         y.domain([0, d3.max(data)]);
-                        //y.domain([0, 100]);
 
                         // push the accumulated count onto the back, and reset the count
                         //data.push(Math.min(30, count));
