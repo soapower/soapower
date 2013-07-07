@@ -1,36 +1,33 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-
   <head>
-    <meta charset='utf-8' />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Soapower : Soapower - Monitoring Webservices" />
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Soapower by soapower</title>
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
-
-    <title>Soapower</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
   </head>
-
   <body>
+    <div class="wrapper">
+      <header>
+        <h1>Soapower</h1>
+        <p>Soapower - Monitoring Webservices</p>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/soapower/soapower">View on GitHub</a>
+        <p class="view"><a href="https://github.com/soapower/soapower">View the Project on GitHub <small>soapower/soapower</small></a></p>
 
-          <h1 id="project_title">Soapower</h1>
-          <h2 id="project_tagline">Soapower - Monitoring Webservices</h2>
 
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/soapower/soapower/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/soapower/soapower/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
+        <ul>
+          <li><a href="https://github.com/soapower/soapower/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/soapower/soapower/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/soapower/soapower">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
         <h3>
 <a name="whats-soapower-" class="anchor" href="#whats-soapower-"><span class="octicon octicon-link"></span></a>What's Soapower ?</h3>
 
@@ -59,17 +56,6 @@ the alerts are rising if the receiver does not send the response back in time.</
 <p>Soapower developed with Play Framework 2, with scala / java / js / html5</p>
 
 <h1>
-<a name="jenkins-integration" class="anchor" href="#jenkins-integration"><span class="octicon octicon-link"></span></a>Jenkins Integration</h1>
-
-<p>If a SoapAction's response time is &gt; threshold, a failed test is generate and visible on Jenkins.</p>
-
-<ul>
-<li>Create a job, with a shell execution :
-<code>rm *.xml ; wget http://&lt;server&gt;:&lt;port&gt;/statsAsJunit/yesterday/yesterday/ -O result.xml</code>
-</li>
-<li>Add a publish test Junit to view all SoapAction's result time. </li>
-<li>Url parameters : <code>http://&lt;server&gt;:&lt;port&gt;/statsAsJunit/&lt;minDate&gt;/&lt;maxDate&gt;/</code> with minDate / maxDate like : 2012-11-29, yesterday, today</li>
-</ul><h1>
 <a name="run-in-production-with-a-stable-version" class="anchor" href="#run-in-production-with-a-stable-version"><span class="octicon octicon-link"></span></a>Run in Production with a stable version</h1>
 
 <p>Current stable version of Soapower : 1.0.2</p>
@@ -129,17 +115,26 @@ drwxr-xr-x   3 yvonnickesnault  admin   102  8 avr 22:26 logs
 </code></pre>
 
 <p>The <code>RUNNING_PID</code> file contain the pid of Soapower (wich is running here)</p>
-      </section>
-    </div>
 
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Soapower maintained by <a href="https://github.com/soapower">soapower</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+<h1>
+<a name="jenkins-integration" class="anchor" href="#jenkins-integration"><span class="octicon octicon-link"></span></a>Jenkins Integration</h1>
+
+<p>If a SoapAction's response time is &gt; threshold, a failed test is generate and visible on Jenkins.</p>
+
+<ul>
+<li>Create a job, with a shell execution :
+<code>rm *.xml ; wget http://&lt;server&gt;:&lt;port&gt;/statsAsJunit/yesterday/yesterday/ -O result.xml</code>
+</li>
+<li>Add a publish test Junit to view all SoapAction's result time. </li>
+<li>Url parameters : <code>http://&lt;server&gt;:&lt;port&gt;/statsAsJunit/&lt;minDate&gt;/&lt;maxDate&gt;/</code> with minDate / maxDate like : 2012-11-29, yesterday, today</li>
+</ul>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/soapower">soapower</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
       </footer>
     </div>
-
+    <script src="javascripts/scale.fix.js"></script>
               <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
@@ -150,7 +145,6 @@ drwxr-xr-x   3 yvonnickesnault  admin   102  8 avr 22:26 logs
             pageTracker._trackPageview();
             } catch(err) {}
           </script>
-
 
   </body>
 </html>
