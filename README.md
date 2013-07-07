@@ -1,4 +1,4 @@
-soapower - Monitoring Webservices
+Soapower - Monitoring Webservices
 ========
 
 What it is and how to install it ?

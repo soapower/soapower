@@ -6,20 +6,21 @@ function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayServ
     $scope.hostname = $location.host();
     $scope.port = $location.port();
 
+    $scope.totalServerItems = 0;
+
     $scope.filterOptions = {
         filterText: "",
         useExternalFilter: true
     };
     $scope.pagingOptions = {
-        pageSizes: [5, 50, 100, 250, 500, 1000],
-        pageSize: 5,
-        totalServerItems: 0,
+        pageSizes: [5, 25, 50, 100, 250, 500, 1000],
+        pageSize: 50,
         currentPage: 1
     };
-    $scope.setPagingData = function (data, page, pageSize) {
+    $scope.setPagingData = function (data) {
         var pagedData = data.data;
         $scope.myData = pagedData;
-        $scope.pagingOptions.totalServerItems = data.iTotalDisplayRecords;
+        $scope.totalServerItems = data.iTotalDisplayRecords;
         if (!$scope.$$phase) {
             $scope.$apply();
         }
@@ -38,7 +39,7 @@ function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayServ
             '/' + code +
             '/listDatatable?' +
             'sSearch=' +
-            '&iDisplayStart=' + (page) +
+            '&iDisplayStart=' + page +
             '&iDisplayLength=' + pageSize +
             '&call=' + new Date();
 
@@ -47,7 +48,7 @@ function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayServ
             url: url,
             cache: false
         }).success(function (largeLoad) {
-            $scope.setPagingData(largeLoad, page, pageSize);
+            $scope.setPagingData(largeLoad);
         });
     };
 
@@ -102,6 +103,7 @@ function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayServ
         data: 'myData',
         enablePaging: true,
         showFooter: true,
+        totalServerItems: 'totalServerItems',
         pagingOptions: $scope.pagingOptions,
         filterOptions: $scope.filterOptions,
         sortInfo : { fields: ['startTime'], directions: ['desc']},
