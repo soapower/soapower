@@ -33,8 +33,6 @@ function MonitorCtrl($scope, $location, $window, $http) {
         });
 
     var receiveEvent = function (event) {
-        //console.log(event);
-
         var data = event.data.split(":");
         var type = data[1];
         var newValue = parseFloat(data[0]);
@@ -106,15 +104,12 @@ function MonitorCtrl($scope, $location, $window, $http) {
     };
 
     $scope.garbage = function () {
-        $http({
-            url: '/gc!',
-            method: 'POST'
-        }).success(function (data) {
-                alert("Garbage Collect : " + data);
+        $http({ url: '/gc!', method: 'POST' })
+            .success(function (data) {
+                alert("Garbage Collect " + data);
             }).error(function (data) {
-                alert("Error Garbage Collect : " + data);
+                alert("Error Garbage Collect" + data);
             });
-
     };
 
     $scope.startWS();

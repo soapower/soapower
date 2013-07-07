@@ -61,7 +61,7 @@ define(['angular'], function (angular) {
                 },
                 link: function ($scope, element, attrs) {
 
-                    var n = 243,
+                    var n = 120,
                         duration = 1200,
                         now = new Date(Date.now() - duration),
                         data = d3.range(n).map(function () {
@@ -129,10 +129,20 @@ define(['angular'], function (angular) {
                     var line = d3.svg.line()
                         .interpolate("basis")
                         .x(function (d, i) {
-                            return x(now - (n - 1 - i) * duration);
+                            if (isNaN(i)) {
+                                return 0;
+                            } else {
+                                return x(now - (n - 1 - i) * duration);
+                            }
+
                         })
                         .y(function (d, i) {
-                            return y(d);
+                            if (isNaN(d)) {
+                                return 0;
+                            } else {
+                                return y(d);
+                            }
+
                         });
 
                     var svg = d3.select(element[0])

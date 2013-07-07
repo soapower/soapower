@@ -53,7 +53,7 @@ object Monitor extends Controller {
 
 object Streams {
 
-  private val timeRefreshMillis = 800
+  private val timeRefreshMillis = 1100
 
   private val timeRefreshMillisLong = 5000
 
