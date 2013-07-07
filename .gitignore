@@ -1,0 +1,16 @@
+# Ignore all dotfiles...
+.*
+# except for .gitignore
+!.gitignore
+
+logs
+project/project
+project/target
+target
+tmp
+db
+out
+conf/mail.conf
+documentation/
+bin
+dist
