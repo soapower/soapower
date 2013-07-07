@@ -74,6 +74,7 @@ define(['angular'], function (angular) {
                     $http.get('/soapactions/findall')
                         .success(function (soapactions) {
                             $scope.soapactions = soapactions;
+                            $scope.soapactions.unshift({id: "all", name: "all"});
                             angular.forEach($scope.soapactions, function (value, key) {
                                 if (value.name == $routeParams.soapaction) $scope.soapaction = value;
                             });
@@ -83,7 +84,7 @@ define(['angular'], function (angular) {
                             console.log("Error with SoapActionsService.findAllAndSelect" + resp);
                         });
                 },
-                regenerate: function() {
+                regenerate: function () {
                     return $http.get('/soapactions/regenerate');
 
                 }
@@ -112,6 +113,7 @@ define(['angular'], function (angular) {
                     $http.get('/environments/options')
                         .success(function (environments) {
                             $scope.environments = environments;
+                            $scope.environments.unshift({id: "all", name: "all"});
                             if (environmentName != null || myService != null) {
                                 angular.forEach($scope.environments, function (value, key) {
                                     if (environmentName != null && value.name == environmentName) {
@@ -136,6 +138,7 @@ define(['angular'], function (angular) {
                     $http.get('/status/findall')
                         .success(function (codes) {
                             $scope.codes = codes;
+                            $scope.codes.unshift({id: "all", name: "all"});
                             angular.forEach($scope.codes, function (value, key) {
                                 if (value.name == $routeParams.code) $scope.code = value;
                             });
@@ -153,7 +156,9 @@ define(['angular'], function (angular) {
                     var environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
 
                     if ($scope.environment) environment = $scope.environment.name;
-                    if ($scope.soapaction) soapaction = $scope.soapaction.name;
+                    if ($scope.showSoapactions) {
+                        if ($scope.soapaction) soapaction = $scope.soapaction.name;
+                    }
                     if ($scope.mindate && $scope.mindate != "" && $scope.mindate != "All") {
                         mindate = $filter('date')($scope.mindate, 'yyyy-MM-dd');
                     }
@@ -162,12 +167,12 @@ define(['angular'], function (angular) {
                     }
                     if ($scope.code) code = $scope.code.name;
 
-                    var path = $scope.ctrlPath + '/'
-                        + environment + "/"
-                        + soapaction + "/"
-                        + mindate + "/"
-                        + maxdate + "/"
-                        + code;
+                    var path = $scope.ctrlPath + '/' + environment + "/";
+
+                    if ($scope.showSoapactions) path = path + soapaction + "/";
+
+                    path = path + mindate + "/" + maxdate + "/" + code;
+
                     console.log("UIService.reloadPage : Go to " + path);
                     $location.path(path);
                 },
@@ -184,7 +189,7 @@ define(['angular'], function (angular) {
                     return (val == "true" || val == true) ? "yes" : "no";
                 }
             }
-        }).factory('ReplayService',function ($http, $rootScope, $location) {
+        }).factory('ReplayService', function ($http, $rootScope, $location) {
             return {
                 replay: function (id) {
                     $http.get('/replay/' + id)

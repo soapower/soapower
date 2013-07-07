@@ -10,12 +10,20 @@ define(['angular'], function (angular) {
         directive('spCriterias', function () {
             return {
                 restrict: 'E',
-                scope: false,
+                scope: {
+                    soapactions: '='
+                },
                 controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, SoapactionsService, CodesService, UIService) {
 
                     EnvironmentsService.findAllAndSelect($scope, $routeParams.environment);
-                    SoapactionsService.findAllAndSelect($scope, $routeParams);
                     CodesService.findAllAndSelect($scope, $routeParams);
+                    $scope.ctrlPath = $scope.$parent.ctrlPath;
+
+                    $scope.showSoapactions = false;
+                    if ($attrs.soapactions == "yes") {
+                        $scope.showSoapactions = true;
+                        SoapactionsService.findAllAndSelect($scope, $routeParams);
+                    }
 
                     $scope.mindate = UIService.getDateFromParam($routeParams.mindate);
                     $scope.maxdate = UIService.getDateFromParam($routeParams.maxdate);

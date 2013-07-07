@@ -1,6 +1,4 @@
-
-
-function StatsCtrl ($scope, $http, $location, $routeParams) {
+function StatsCtrl($scope, $http, $location, $routeParams) {
     $scope.ctrlPath = "stats";
 
     $scope.showTips = false;
@@ -29,12 +27,10 @@ function StatsCtrl ($scope, $http, $location, $routeParams) {
 
     $scope.getPagedDataAsync = function (pageSize, page) {
         var environment = $routeParams.environment ? $routeParams.environment : 'all';
-        var soapaction = $routeParams.soapaction ? $routeParams.soapaction : 'all';
         var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
         var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
         var code = $routeParams.code ? $routeParams.code : 'all';
         var url = $scope.ctrlPath + '/' + environment +
-            '/' + soapaction +
             '/' + mindate +
             '/' + maxdate +
             '/' + code +
@@ -43,14 +39,9 @@ function StatsCtrl ($scope, $http, $location, $routeParams) {
             '&iDisplayStart=' + (page - 1) +
             '&iDisplayLength=' + pageSize +
             '&call=' + new Date();
-        console.log("URL:" + url);
 
-        $http({
-            method: 'GET',
-            url: url,
-            cache: false
-        }).success(function (largeLoad) {
-                console.log("setPagingData");
+        $http({ method: 'GET', url: url, cache: false })
+            .success(function (largeLoad) {
                 $scope.setPagingData(largeLoad, page, pageSize);
             });
     };
@@ -88,4 +79,3 @@ function StatsCtrl ($scope, $http, $location, $routeParams) {
     };
 
 }
-//controllers.StatsCtrl.$inject = [ '$scope', '$http', '$routeParams', '$window', 'ReplayService', 'UIService'];

@@ -20,7 +20,7 @@ object Stats extends Controller {
     }
   }
 
-  def listDataTable(environmentName: String, minDateAsStr: String, maxDateAsStr: String, soapAction: String, status: String) = Action { implicit request =>
+  def listDataTable(environmentName: String, minDateAsStr: String, maxDateAsStr: String, status: String) = Action { implicit request =>
     // load thresholds
     val thresholdsBySoapActions = SoapAction.loadAll().map(action => (action.name, action.thresholdms)).toMap
 

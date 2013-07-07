@@ -47,62 +47,60 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
     'lib/ng-upload.min',
     'main',
     'd3'
-    ], function (angular) {
+], function (angular) {
 
-    console.log(angular);
+    var spApp = angular.module('spApp', [ 'ngResource', 'spApp.services', 'spApp.directives', 'ui.bootstrap', 'ngGrid', 'ngUpload']);
 
-        var spApp = angular.module('spApp', [ 'ngResource', 'spApp.services', 'spApp.directives', 'ui.bootstrap', 'ngGrid', 'ngUpload']);
-
-        spApp.config(function ($routeProvider) {
-            $routeProvider
-                .when('/home', {
-                    templateUrl: 'partials/home/home.html'
-                })
-                .when('/live', {
-                    templateUrl: 'partials/live/live.html',
-                    controller: LiveCtrl
-                })
-                .when('/search', {
-                    templateUrl: 'partials/search/search.html',
-                    controller: SearchCtrl
-                })
-                .when('/search/:environment/:soapaction/:mindate/:maxdate/:code', {
-                    templateUrl: 'partials/search/search.html',
-                    controller: SearchCtrl
-                })
-                .when('/analysis/:environment/:soapaction/:mindate/:maxdate/:code', {
-                    templateUrl: 'partials/analysis/analysis.html', controller: AnalysisCtrl
-                })
-                .when('/analysis', {
-                    templateUrl: 'partials/analysis/analysis.html', controller: AnalysisCtrl
-                })
-                .when('/monitor', {
-                    templateUrl: 'partials/monitor/monitor.html',
-                    controller: MonitorCtrl
-                })
-                .when('/admin', {
-                    templateUrl: 'partials/admin/admin.html',
-                    controller: AdminCtrl
-                })
-                .when('/services', { controller: ServicesCtrl, templateUrl: 'partials/services/list.html'})
-                .when('/services/new', {controller: ServiceNewCtrl, templateUrl: 'partials/services/detail.html'})
-                .when('/services/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'partials/services/detail.html'})
-                .when('/environments', { controller: EnvironmentsCtrl, templateUrl: 'partials/environments/list.html'})
-                .when('/environments/new', {controller: EnvironmentNewCtrl, templateUrl: 'partials/environments/detail.html'})
-                .when('/environments/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'partials/environments/detail.html'})
-                .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
-                .when('/soapactions/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
-                .when('/stats', {
-                    templateUrl: 'partials/stats/stats.html',
-                    controller: StatsCtrl
-                })
-                .when('/statistics/:environment/:soapaction/:mindate/:maxdate/:code', {
-                    templateUrl: 'partials/stats/stats.html',
-                    controller: StatsCtrl
-                })
-                .otherwise({
-                    redirectTo: '/home'
-                });
-        });
-        angular.bootstrap(document, ['spApp']);
+    spApp.config(function ($routeProvider) {
+        $routeProvider
+            .when('/home', {
+                templateUrl: 'partials/home/home.html'
+            })
+            .when('/live', {
+                templateUrl: 'partials/live/live.html',
+                controller: LiveCtrl
+            })
+            .when('/search', {
+                templateUrl: 'partials/search/search.html',
+                controller: SearchCtrl
+            })
+            .when('/search/:environment/:soapaction/:mindate/:maxdate/:code', {
+                templateUrl: 'partials/search/search.html',
+                controller: SearchCtrl
+            })
+            .when('/analysis/:environment/:soapaction/:mindate/:maxdate/:code', {
+                templateUrl: 'partials/analysis/analysis.html', controller: AnalysisCtrl
+            })
+            .when('/analysis', {
+                templateUrl: 'partials/analysis/analysis.html', controller: AnalysisCtrl
+            })
+            .when('/monitor', {
+                templateUrl: 'partials/monitor/monitor.html',
+                controller: MonitorCtrl
+            })
+            .when('/admin', {
+                templateUrl: 'partials/admin/admin.html',
+                controller: AdminCtrl
+            })
+            .when('/services', { controller: ServicesCtrl, templateUrl: 'partials/services/list.html'})
+            .when('/services/new', {controller: ServiceNewCtrl, templateUrl: 'partials/services/detail.html'})
+            .when('/services/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'partials/services/detail.html'})
+            .when('/environments', { controller: EnvironmentsCtrl, templateUrl: 'partials/environments/list.html'})
+            .when('/environments/new', {controller: EnvironmentNewCtrl, templateUrl: 'partials/environments/detail.html'})
+            .when('/environments/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'partials/environments/detail.html'})
+            .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
+            .when('/soapactions/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
+            .when('/stats', {
+                templateUrl: 'partials/stats/stats.html',
+                controller: StatsCtrl
+            })
+            .when('/stats/:environment/:mindate/:maxdate/:code', {
+                templateUrl: 'partials/stats/stats.html',
+                controller: StatsCtrl
+            })
+            .otherwise({
+                redirectTo: '/home'
+            });
     });
+    angular.bootstrap(document, ['spApp']);
+});

@@ -47,7 +47,6 @@ function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayServ
             url: url,
             cache: false
         }).success(function (largeLoad) {
-            console.log("setPagingData");
             $scope.setPagingData(largeLoad, page, pageSize);
         });
     };
@@ -105,6 +104,7 @@ function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayServ
         showFooter: true,
         pagingOptions: $scope.pagingOptions,
         filterOptions: $scope.filterOptions,
+        sortInfo : { fields: ['startTime'], directions: ['desc']},
         columnDefs: [
             {field: 'status', displayName: 'Status', width: '60px', cellTemplate: 'partials/common/cellStatusTemplate.html'},
             {field: 'env', displayName: 'Environment', width: '100px'},
