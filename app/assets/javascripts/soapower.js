@@ -3,16 +3,8 @@
 'use strict';
 
 
-define("angular", ['/assets/javascripts/angular.js'], function () {
-    return angular;
-});
-
-define("$", ['/assets/javascripts/lib/jquery-1.10.1.min.js'], function () {
-    return $;
-});
-
 // make global var
-requirejs.config({
+require.config({
     shim: {
         'd3': {
             exports: 'd3'
@@ -22,6 +14,10 @@ requirejs.config({
             exports: 'nv'
         }
     }
+});
+
+define("angular", ['/assets/javascripts/angular.js'], function () {
+    return angular;
 });
 
 define("d3", ['/assets/javascripts/lib/d3/d3.v3.js'], function () {

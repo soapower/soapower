@@ -4,7 +4,7 @@
 * License: MIT (http://www.opensource.org/licenses/mit-license.php)
 * Compiled At: 06/03/2013 21:19
 ***********************************************/
-define(['angular', '$'], function (angular, $) {
+define(['angular'], function (angular) {
 
     /***********************************************
      * ng-grid JavaScript Library

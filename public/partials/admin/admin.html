@@ -24,13 +24,11 @@
 
 <form action="{{urlUploadConfiguration}}" ng-upload>
     <input type="file" name="fileUploaded"/>
-    <input type="submit" value="Upload configuration" class="btn"
-           upload-submit="uploadComplete(content, completed)"/>
+    <input type="submit" value="Upload configuration" class="btn" upload-submit="uploadComplete(content, completed)"/>
 </form>
 
 <div class="alert alert-info" ng-show="showUploadRunning">Wait... Uploading.</div>
 <div class="alert alert-{{response.code}}" ng-show="showResponseUpload">{{response.text}}</div>
-
 
 <hr>
 <h4>Deleting data</h4>

@@ -1,4 +1,4 @@
-function AdminCtrl ($scope, $routeParams, EnvironmentsService) {
+function AdminCtrl ($scope, EnvironmentsService) {
     $scope.urlDlConfig = "/admin/downloadConfiguration";
     $scope.urlDlRequestDataStatsEntries = "/admin/downloadRequestDataStatsEntries";
     $scope.urlUploadConfiguration = "/admin/uploadConfiguration";
@@ -7,8 +7,8 @@ function AdminCtrl ($scope, $routeParams, EnvironmentsService) {
     $scope.showResponseUpload = false;
     $scope.showUploadRunning = false;
     $scope.uploadComplete = function (content, completed) {
-        if (completed && content.length > 0) {
-            $scope.response =  JSON.parse(content);
+        if (completed) {
+            $scope.response = content;
             $scope.showUploadRunning = false;
             $scope.showResponseUpload = true;
         } else {
