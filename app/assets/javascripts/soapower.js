@@ -61,17 +61,16 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
                 controller: LiveCtrl
             })
             .when('/search', {
-                templateUrl: 'partials/search/search.html',
-                controller: SearchCtrl
+                redirectTo: '/search/all/all/yesterday/today/all'
             })
             .when('/search/:environment/:soapaction/:mindate/:maxdate/:code', {
                 templateUrl: 'partials/search/search.html',
                 controller: SearchCtrl
             })
-            .when('/analysis/:environment/:soapaction/:mindate/:maxdate/:code', {
-                templateUrl: 'partials/analysis/analysis.html', controller: AnalysisCtrl
-            })
             .when('/analysis', {
+                redirectTo: '/analysis/all/all/yesterday/today/all'
+            })
+            .when('/analysis/:environment/:soapaction/:mindate/:maxdate/:code', {
                 templateUrl: 'partials/analysis/analysis.html', controller: AnalysisCtrl
             })
             .when('/monitor', {

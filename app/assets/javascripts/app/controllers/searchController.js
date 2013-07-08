@@ -1,4 +1,3 @@
-
 function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayService) {
     $scope.ctrlPath = "search";
 

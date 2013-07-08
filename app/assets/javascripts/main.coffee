@@ -1,18 +1,3 @@
-
-#$(document).ready ->
-#  window.App = {}
-#  window.App.totalMemory = 400
-
-#  $("#today").click ->
-#    today = getToday()
-#    $("#to").val(today)
-#    localStorage["to"] = "today"
-#    document.location.href = makeUrl("search")
-
-#  $("#menu-analysis").attr("href", makeUrl("analysis"))
-#  $("#menu-statistics").attr("href", makeUrl("stats"))
-#  $("#menu-search").attr("href", makeUrl("search"))
-
   # Hehe.
   if window.addEventListener
     kkeys = []

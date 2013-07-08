@@ -178,9 +178,33 @@ define(['angular'], function (angular) {
                 },
                 getDateFromParam: function (indate) {
                     if (indate && indate != "all") {
+                        if (indate == "yesterday" || indate == "today") {
+                            indate = this.getDay(indate);
+                        }
                         var elem = indate.split('-');
                         return new Date(elem[0], elem[1] - 1, elem[2]);
                     }
+                },
+                getDay: function (sDay) {
+                    var mDate = new Date();
+                    var month = mDate.getMonth() + 1;
+                    var nb = -1;
+                    switch (sDay) {
+                        case "today" :
+                            nb = 0;
+                            break;
+                        case "yesterday" :
+                        default :
+                            nb = -1;
+                    }
+                    var day = mDate.getDate() + nb;
+                    if (month < 10) {
+                        month = "0" + month;
+                    }
+                    if (day < 10) {
+                        day = "0" + day;
+                    }
+                    return mDate.getFullYear() + "-" + month + "-" + day;
                 },
                 fixBoolean: function (val) {
                     return (val == "yes" || val == true) ? true : false;
