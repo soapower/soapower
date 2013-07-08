@@ -1,0 +1,24 @@
+@(id: Long, environment: Form[Environment])
+
+@import helper._
+
+@main {
+    
+    <h1>Edit environment</h1>
+    
+    @form(routes.Environments.update(id), 'class -> "form-horizontal") {
+        
+        @environments.environmentForm(environment)
+        
+        <div class="actions">
+            <input type="submit" value="Save this environment" class="btn btn-primary"> or 
+            <a href="@routes.Environments.index" class="btn">Cancel</a>
+        </div>
+        
+    }
+    
+    @form(routes.Environments.delete(id), 'class -> "topRight") {
+        <input type="submit" value="Delete this environment" class="btn btn-danger">
+    }
+    
+}
