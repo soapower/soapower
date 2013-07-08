@@ -10,7 +10,7 @@ function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayServ
 
     $scope.filterOptions = {
         filterText: "",
-        useExternalFilter: true
+        useExternalFilter: false
     };
     $scope.pagingOptions = {
         pageSizes: [5, 25, 50, 100, 250, 500, 1000],
@@ -103,6 +103,7 @@ function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayServ
         data: 'myData',
         enablePaging: true,
         showFooter: true,
+        showFilter: false,
         totalServerItems: 'totalServerItems',
         pagingOptions: $scope.pagingOptions,
         filterOptions: $scope.filterOptions,

@@ -12,10 +12,16 @@ function SoapActionsCtrl($scope, SoapactionsService) {
             console.log("Error with SoapActionsService.findAll" + resp);
         });
 
+    $scope.filterOptions = {
+        filterText: "",
+        useExternalFilter: false
+    };
+
     $scope.gridOptions = {
         data: 'soapActions',
         showGroupPanel: true,
-        showFilter: true,
+        showFilter: false,
+        filterOptions: $scope.filterOptions,
         columnDefs: [
             {field: 'name', displayName: 'SoapAction Name'},
             {field: 'thresholdms', displayName: 'SoapAction Threshold in ms'},

@@ -56,6 +56,10 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
                 templateUrl: 'partials/live/live.html',
                 controller: LiveCtrl
             })
+            .when('/live/:search', {
+                templateUrl: 'partials/live/live.html',
+                controller: LiveCtrl
+            })
             .when('/search', {
                 templateUrl: 'partials/search/search.html',
                 controller: SearchCtrl

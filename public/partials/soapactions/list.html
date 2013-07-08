@@ -1,13 +1,11 @@
 <h2>SoapActions</h2>
 
-<div id="container" style="width: 100%; margin:auto">
+<button class="btn btn-primary" ng-click="regenerate()" ng-disabled="btnRegenerateDisabled">
+    <i class="icon-refresh"></i> Generate List
+</button>
 
-    <button class="btn btn-primary" ng-click="regenerate()" ng-disabled="btnRegenerateDisabled">
-        <i class="icon-refresh"></i> Generate List
-    </button>
+{{ info }}
 
-    {{ info }}
-
-    <div class="gridStyle" ng-grid="gridOptions"></div>
-
-</div>
+<input placeholder="Search... " type="text" ng-model="gridOptions.filterOptions.filterText"
+       class="ng-valid ng-dirty pull-right">
+<div class="gridStyle" ng-grid="gridOptions"></div>

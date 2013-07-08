@@ -5,8 +5,8 @@
     <i class="icon-info-sign pointer" title="click to view help" ng-click="showTips=showTips==false">Tips </i>
 
     <div class="well" ng-show="showTips">
+        You can bookmark this page :
         <ul>
-            <li>You can bookmark this page</li>
             <li>http://{{ hostname }}:{{ port }}/search/&lt;environment&gt;/&lt;soapAction&gt;/&lt;fromDate&gt;/&lt;toDate&gt;/</li>
             <li>Default page : /search/all/all/all/today/ : all requests</li>
             <li>Change start date : /search/all/all/2012-12-10/today/: all requests from 2012-12-10</li>
@@ -14,7 +14,15 @@
                 yesterday, to today
             </li>
         </ul>
+        You can use advanced search :
+        <ul>
+            <li>Search at least two words, word1 or word2 : "word1|word2"</li>
+            <li>Search a word with unknown character : "wo.d1"</li>
+        </ul>
     </div>
+
+    <input placeholder="Search... see Tips" type="text" ng-model="gridOptions.filterOptions.filterText"
+           class="ng-valid ng-dirty">
 
     <div class="gridStyle" ng-grid="gridOptions"></div>
 

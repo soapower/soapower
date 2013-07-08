@@ -10,10 +10,16 @@ function ServicesCtrl($scope, ServicesService) {
             console.log("Error with ServicesService.findAll" + resp);
         });
 
+    $scope.filterOptions = {
+        filterText: "",
+        useExternalFilter: false
+    };
+
     $scope.gridOptions = {
         data: 'services',
         showGroupPanel: true,
-        showFilter: true,
+        showFilter: false,
+        filterOptions: $scope.filterOptions,
         columnDefs: [
             {field: 'env', displayName: 'Environment'},
             {field: 'description', displayName: 'Description'},

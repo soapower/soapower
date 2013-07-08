@@ -8,10 +8,16 @@ function EnvironmentsCtrl($scope, EnvironmentsService) {
             console.log("Error with EnvironmentsService.findAll" + resp);
         });
 
+    $scope.filterOptions = {
+        filterText: "",
+        useExternalFilter: false
+    };
+
     $scope.gridOptions = {
         data: 'environments',
         showGroupPanel: true,
-        showFilter: true,
+        showFilter: false,
+        filterOptions: $scope.filterOptions,
         columnDefs: [
             {field: 'name', displayName: 'Name'},
             {field: 'hourRecordXmlDataMin', displayName: 'Xml Data : Start Record Hour'},

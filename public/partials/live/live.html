@@ -12,17 +12,29 @@
     <span class="label label-success liveOnAir" ng-show="isLiveOn">On Air <i class="icon-bullhorn"></i></span>
     <span class="label label-important liveOff" ng-show="!isLiveOn">Off <i class="icon-ban-circle"></i></span>
 
-    <button type="button" class="btn btn-warning liveOnAir" ng-show="isLiveOn" ng-click="stopWS()"><i class="icon-stop"></i></button>
-    <button type="button" class="btn btn-success liveOff"  ng-show="!isLiveOn" ng-click="startWS()"><i class="icon-play"></i></button>
+    <button type="button" class="btn btn-warning liveOnAir" ng-show="isLiveOn" ng-click="stopWS()">
+        <i class="icon-stop"></i></button>
+    <button type="button" class="btn btn-success liveOff" ng-show="!isLiveOn" ng-click="startWS()">
+        <i class="icon-play"></i></button>
 
     <i class="icon-info-sign pointer" ng-click="showTips=showTips==false">Tips </i>
 
     <div class="well" id="tips" ng-show="showTips">
+        You can use a default search :
         <ul>
-            <li>http://{{ hostname }}:{{ port }}/live/&lt;search&gt; : use a default search </li>
+            <li>http://{{ hostname }}:{{ port }}/live/&lt;search&gt; : use a default search</li>
+        </ul>
+
+        You can use advanced search :
+        <ul>
+            <li>Search at least two words, word1 or word2 : "word1|word2"</li>
+            <li>Search a word with unknown character : "wo.d1"</li>
         </ul>
     </div>
 
-    <div class="gridStyle" ng-grid="gridOptions"> </div>
+    <input placeholder="Search... see Tips" type="text" ng-model="gridOptions.filterOptions.filterText"
+           class="ng-valid ng-dirty">
+
+    <div class="gridStyle" ng-grid="gridOptions"></div>
 
 </section>

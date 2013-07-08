@@ -1,4 +1,4 @@
-function LiveCtrl($scope, $location, $window) {
+function LiveCtrl($scope, $location, $window, $routeParams) {
     $scope.ctrlPath = "live";
     $scope.isLiveOn = false;
     $scope.isError = false;
@@ -66,13 +66,14 @@ function LiveCtrl($scope, $location, $window) {
 
     $scope.filterOptions = {
         filterText: "",
-        useExternalFilter: true
+        useExternalFilter: false
     };
 
     $scope.gridOptions = {
         data: 'myData',
         enablePaging: false,
         showFooter: false,
+        showFilter: false,
         sortInfo : { fields: ['startTime'], directions: ['desc']},
         filterOptions: $scope.filterOptions,
         columnDefs: [
@@ -89,6 +90,9 @@ function LiveCtrl($scope, $location, $window) {
 
     };
 
+    if ($routeParams.search) {
+        $scope.gridOptions.filterOptions.filterText = $routeParams.search;
+    }
 
     $scope.dlRequest = function (asFile, row) {
         if (row.getProperty("purged") == "true") {
