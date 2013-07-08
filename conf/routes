@@ -61,6 +61,24 @@ POST    /environments/:id          controllers.Environments.update(id:Long)
 # Delete a environment
 POST    /environments/:id/delete   controllers.Environments.delete(id:Long)
 
+
+# Groups list
+GET     /groups/listDatatable    controllers.Groups.listDatatable
+GET     /groups                  controllers.Groups.index
+
+# Add group
+GET     /groups/new          controllers.Groups.create
+POST    /groups              controllers.Groups.save
+
+# Edit existing group
+GET     /groups/:id          controllers.Groups.edit(id:Long)
+POST    /groups/:id          controllers.Groups.update(id:Long)
+
+# Delete a group
+POST    /groups/:id/delete   controllers.Groups.delete(id:Long)
+
+
+
 # SoapActions list
 GET     /soapActions/listDatatable    controllers.SoapActions.listDatatable
 GET     /soapActions                  controllers.SoapActions.index

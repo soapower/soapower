@@ -83,10 +83,17 @@ object Groups extends Controller {
   def update(id: Long) = Action { implicit request =>
     groupForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.groups.editForm(id, formWithErrors)),
-      group => {
-        group.update(group)
-        Home.flashing("success" -> "Group %s has been updated".format(group.name))
-      })
+      groupId => {
+    	    val groupOption = Group.findById(id)
+    	    groupOption match{
+			    case Some(group) =>
+			    	Group.delete(group)
+			        Home.flashing("success" -> "Group has been updated")
+			      case None =>
+			         Home.flashing("failure" -> "Group doesn't exist")
+			    }
+      }
+        )
   }
 
   /**

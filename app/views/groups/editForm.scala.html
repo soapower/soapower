@@ -1,24 +1,24 @@
-@(id: Long, environment: Form[Environment])
+@(id: Long, group: Form[Group])
 
 @import helper._
 
 @main {
     
-    <h1>Edit environment</h1>
+    <h1>Edit group</h1>
     
-    @form(routes.Environments.update(id), 'class -> "form-horizontal") {
+    @form(routes.Groups.update(id), 'class -> "form-horizontal") {
         
-        @environments.environmentForm(environment)
+        @groups.groupForm(group)
         
         <div class="actions">
-            <input type="submit" value="Save this environment" class="btn btn-primary"> or 
-            <a href="@routes.Environments.index" class="btn">Cancel</a>
+            <input type="submit" value="Save this group" class="btn btn-primary"> or 
+            <a href="@routes.Groups.index" class="btn">Cancel</a>
         </div>
         
     }
     
-    @form(routes.Environments.delete(id), 'class -> "topRight") {
-        <input type="submit" value="Delete this environment" class="btn btn-danger">
+    @form(routes.Groups.delete(id), 'class -> "topRight") {
+        <input type="submit" value="Delete this group" class="btn btn-danger">
     }
     
 }

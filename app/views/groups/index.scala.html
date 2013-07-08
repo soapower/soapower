@@ -5,21 +5,15 @@
 
 @main {
 
-    <h2>Environments</h2>
-    <a class="btn btn-success" id="add" href="@routes.Environments.create()">Add a new environment</a>
+    <h2>Groups</h2>
+    <a class="btn btn-success" id="add" href="@routes.Groups.create()">Add a new group</a>
 
     <div id="container" style="width: 100%; margin:auto">
 
         <table id='datas' class='table table-bordered table-condensed'>
             <thead>
                 <tr>
-                    <th>Environment Name</th>
-                    <th>Xml Data : Start Record Hour</th>
-                    <th>Xml Data : End Record Hour</th>
-                    <th>Xml Data : nb days keep</th>
-                    <th>All Data : nb days keep</th>
-                    <th>Record Xml Data</th>
-                    <th>Record Data</th>
+                    <th>Group Name</th>                   
                     <th>Edit</th>
                 </tr>
             </thead>
@@ -29,5 +23,5 @@
 
     <script src="@routes.Assets.at("javascripts/jquery.dataTables.min.js")" type="text/javascript"></script>
     <script src="@routes.Assets.at("javascripts/dataTable.bootstrap.js")" type="text/javascript"></script>
-    <script src="@routes.Assets.at("javascripts/soapower/environments.js")" type="text/javascript"></script>
+    <script src="@routes.Assets.at("javascripts/soapower/groups.js")" type="text/javascript"></script>
 }
