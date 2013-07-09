@@ -1,4 +1,4 @@
-@(environmentForm : Form[Environment])()
+@(environmentForm : Form[Environment], groups : Seq[(String, String)])()
 
 @import helper._
 
@@ -22,4 +22,12 @@
         '_label -> "Record Data",
         '_help -> "Check this if you want to record Data (startTime, responseTime, etc...) on Request for ALL services attached to this environment. If it is unchecked, you can see requests on live page only and no stats are computed for this environment. You must check this if you want to record XML Data.")
 
+		@select(
+	    environmentForm("groupId"),
+	    groups,
+	    'required -> true,
+	    '_label -> "Group", '_default -> "-- Choose a environment --",
+	    '_showConstraints -> false
+	)
+	
 </fieldset>

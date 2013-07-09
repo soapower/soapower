@@ -1,4 +1,4 @@
-@(environment: Form[Environment])
+@(environment: Form[Environment], groups : Seq[(String, String)])
 
 @import helper._
 
@@ -8,7 +8,7 @@
     
     @form(routes.Environments.save(), 'class -> "form-horizontal") {
         
-        @environments.environmentForm(environment)
+        @environments.environmentForm(environment, groups)
 
         <div class="actions">
             <input type="submit" value="Create this environment" class="btn btn-primary"> or

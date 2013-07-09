@@ -23,8 +23,8 @@ object Groups extends Controller {
     def writes(groupToWrite: Group): JsValue = {
       JsObject(
         List(
-          "0" -> JsString(groupToWrite.name),
-          "1" -> JsString("<a href=\"groups/"+groupToWrite.id+"\"><i class=\"icon-edit\"></i> Edit</a>")
+          "0" -> JsString(groupToWrite.groupName),
+          "1" -> JsString("<a href=\"groups/"+groupToWrite.groupId+"\"><i class=\"icon-edit\"></i> Edit</a>")
         ))
     }
   }
@@ -60,8 +60,8 @@ object Groups extends Controller {
    */
   val groupForm = Form(
     mapping(
-      "id" -> ignored(NotAssigned: Pk[Long]),
-      "name" -> nonEmptyText)
+      "groupId" -> ignored(NotAssigned: Pk[Long]),
+      "groupName" -> nonEmptyText)
       (Group.apply)(Group.unapply))
 
   /**
@@ -85,7 +85,7 @@ object Groups extends Controller {
       formWithErrors => BadRequest(views.html.groups.createForm(formWithErrors)),
       group => {
         Group.update(id, group)
-        Home.flashing("success" -> "Group %s has been updated".format(group.name))
+        Home.flashing("success" -> "Group %s has been updated".format(group.groupName))
       })
   }
 
@@ -104,7 +104,7 @@ object Groups extends Controller {
       formWithErrors => BadRequest(views.html.groups.createForm(formWithErrors)),
       group => {
         Group.insert(group)
-        Home.flashing("success" -> "Group %s has been created".format(group.name))
+        Home.flashing("success" -> "Group %s has been created".format(group.groupName))
       }
       
     )

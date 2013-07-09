@@ -1,4 +1,4 @@
-@(id: Long, group: Form[Group])
+@(groupId: Long, group: Form[Group])
 
 @import helper._
 
@@ -6,7 +6,7 @@
     
     <h1>Edit group</h1>
     
-    @form(routes.Groups.update(id), 'class -> "form-horizontal") {
+    @form(routes.Groups.update(groupId), 'class -> "form-horizontal") {
         
         @groups.groupForm(group)
         
@@ -17,7 +17,7 @@
         
     }
     
-    @form(routes.Groups.delete(id), 'class -> "topRight") {
+    @form(routes.Groups.delete(groupId), 'class -> "topRight") {
         <input type="submit" value="Delete this group" class="btn btn-danger">
     }
     

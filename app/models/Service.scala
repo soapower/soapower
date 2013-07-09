@@ -340,8 +340,12 @@ object Service {
 
     var environment = Environment.findByName(environmentName)
     if (environment == None) {
+      
       Logger.debug("Insert Environment " + environmentName)
-      Environment.insert(new Environment(NotAssigned, environmentName))
+      
+      // Insert a new group which is linked to the default group
+      Environment.insert(Environment.createEnvironmentWithDefaultValues(environmentName, Group.getDefaultGroup.groupId.get))
+      
       environment = Environment.findByName(environmentName)
       if (environment.get == null) Logger.error("Environment insert failed : " + environmentName)
     } else {
