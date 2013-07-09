@@ -64,13 +64,14 @@
 
         <h1>
             <a name="run-in-production-with-a-stable-version" class="anchor"
-               href="#run-in-production-with-a-stable-version"><span class="octicon octicon-link"></span></a>Run in
-            Production with a stable version</h1>
+               href="#run-in-production-with-a-stable-version">
+                <span class="octicon octicon-link"></span></a>
+            Run in Production with a stable version</h1>
 
-        <p>Current stable version of Soapower : 1.0.2</p>
+        <p>Current stable version of Soapower : 1.0.3</p>
 
-        <p>You can download it here : <a
-                href="http://dl.bintray.com/content/soapower/soapower/soapower-1.0.2.zip?direct">http://dl.bintray.com/content/soapower/soapower/soapower-1.0.2.zip?direct</a>
+        <p>You can download it here :
+            <a href="https://github.com/soapower/soapower/releases/v1.0.3/XXX/soapower-1.0.3.zip">https://github.com/soapower/soapower/releases/v1.0.3/XXX/soapower-1.0.3.zip</a>
         </p>
 
         <h2>
@@ -92,28 +93,29 @@
                     class="octicon octicon-link"></span></a>Installation &amp; Run in Production with stable version
         </h2>
 
-<pre><code># Set Soapower Home (optional if your home is /opt/soapower/)
+<pre><code>
+    # Set Soapower Home (optional if your home is /opt/soapower/)
     $ export SOAPOWER_HOME="/opt/soapower/"
 
     # Set Soapower Http Listen Port (optional if your default port is 9010)
     $ export SOAPOWER_PORT=9010
 
     mkdir -p /opt/soapower &amp;&amp; cd /opt/soapower
-    wget http://dl.bintray.com/content/soapower/soapower/soapower-1.0.2.zip?direct -O soapower-1.0.2.zip
-    unzip soapower-1.0.2.zip
-    ln -s soapower-1.0.2 current &amp;&amp; cd current
-    wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.2-play2.1.1/restart.sh
-    wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.2-play2.1.1/conf/logger-prod.xml
+    wget https://github.com/soapower/soapower/releases/v1.0.3/XXX/soapower-1.0.3.zip -O soapower-1.0.3.zip
+    unzip soapower-1.0.3.zip
+    ln -s soapower-1.0.3 current &amp;&amp; cd current
+    wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.3/restart.sh
+    wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.3/conf/logger-prod.xml
     chmod +x restart.sh
     ./restart.sh
 </code></pre>
 
         <ul>
-            <li>Go to http://localhost:9010/</li>
+            <li>Go to <a href='http://localhost:9010'>http://localhost:9010</a></li>
         </ul>
         <p>Soapower Home directory after theses steps :</p>
 
-<pre><code>$ ls -lart
+<pre><code>/opt/soapower$ ls -lart
     total 64408
     -rw-r--r-- 1 yvonnickesnault admin 32970177 7 avr 19:36 soapower-1.0.zip
     drwxr-xr-x@ 4 yvonnickesnault admin 136 8 avr 22:22 ..
