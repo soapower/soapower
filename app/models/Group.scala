@@ -20,7 +20,7 @@ import java.util.{Date, Calendar, GregorianCalendar}
 
 
 // Defining a case class
-case class Group(id: Long, name: String) 
+case class Group(id: Pk[Long], name: String) 
 
 
 
@@ -41,7 +41,7 @@ object Group{
 		get[Pk[Long]]("id") ~
 		get[String]("name") map {
 			case id ~ name 
-			=> Group(id.get, name)
+			=> Group(id, name)
 		}
 	}
 
@@ -163,14 +163,13 @@ object Group{
 		 *
 		 * @param group The group group.
 		 */
-		def update(group: Group) = {
-			System.out.println(group.name);
+		def update(id: Long, group: Group) = {
 			clearCache
 			Cache.remove(keyCacheById + group.id)
 			DB.withConnection {
 				implicit connection =>
 				SQL("""update environment_group set name = {name} where id = {id}""").on(
-								'id -> group.id,
+								'id -> id,
 								'name -> group.name
 								).executeUpdate()
 			}

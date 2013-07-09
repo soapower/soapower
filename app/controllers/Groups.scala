@@ -60,7 +60,7 @@ object Groups extends Controller {
    */
   val groupForm = Form(
     mapping(
-      "id" -> longNumber,
+      "id" -> ignored(NotAssigned: Pk[Long]),
       "name" -> nonEmptyText)
       (Group.apply)(Group.unapply))
 
@@ -84,8 +84,7 @@ object Groups extends Controller {
     groupForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.groups.createForm(formWithErrors)),
       group => {
-        var groupToModify = Group(id, group.name)
-        Group.update(groupToModify)
+        Group.update(id, group)
         Home.flashing("success" -> "Group %s has been updated".format(group.name))
       })
   }
@@ -94,18 +93,16 @@ object Groups extends Controller {
    * Display the 'new group form'.
    */
   def create = Action {
-    Ok(views.html.groups.createForm(groupForm.fill(new Group(-1, ""))))
+    Ok(views.html.groups.createForm(groupForm.fill(new Group(NotAssigned, ""))))
   }
 
   /**
    * Handle the 'new group form' submission.
    */
   def save = Action { implicit request =>
-    println("Je suis chez moi")
     groupForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.groups.createForm(formWithErrors)),
       group => {
-        println(group.name)
         Group.insert(group)
         Home.flashing("success" -> "Group %s has been created".format(group.name))
       }
