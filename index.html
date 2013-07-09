@@ -7,6 +7,7 @@
 
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <link rel="shortcut icon" type="image/png" href="images/soapower.png">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -71,7 +72,7 @@
         <p>Current stable version of Soapower : 1.0.3</p>
 
         <p>You can download it here :
-            <a href="https://github.com/soapower/soapower/releases/v1.0.3/XXX/soapower-1.0.3.zip">https://github.com/soapower/soapower/releases/v1.0.3/XXX/soapower-1.0.3.zip</a>
+            <a href="https://github.com/soapower/soapower/releases/v1.0.3/2915/soapower-1.0.3.zip">https://github.com/soapower/soapower/releases/v1.0.3/2915/soapower-1.0.3.zip</a>
         </p>
 
         <h2>
@@ -100,14 +101,14 @@
     # Set Soapower Http Listen Port (optional if your default port is 9010)
     $ export SOAPOWER_PORT=9010
 
-    mkdir -p /opt/soapower &amp;&amp; cd /opt/soapower
-    wget https://github.com/soapower/soapower/releases/v1.0.3/XXX/soapower-1.0.3.zip -O soapower-1.0.3.zip
-    unzip soapower-1.0.3.zip
-    ln -s soapower-1.0.3 current &amp;&amp; cd current
-    wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.3/restart.sh
-    wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.3/conf/logger-prod.xml
-    chmod +x restart.sh
-    ./restart.sh
+    $ mkdir -p /opt/soapower &amp;&amp; cd /opt/soapower
+    $ wget --no-check-certificate https://github.com/soapower/soapower/releases/v1.0.3/2915/soapower-1.0.3.zip -O soapower-1.0.3.zip
+    $ unzip soapower-1.0.3.zip
+    $ ln -s soapower-1.0.3 current &amp;&amp; cd current
+    $ wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.3/restart.sh
+    $ wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.3/conf/logger-prod.xml
+    $ chmod +x restart.sh
+    $ ./restart.sh
 </code></pre>
 
         <ul>
@@ -116,25 +117,25 @@
         <p>Soapower Home directory after theses steps :</p>
 
 <pre><code>/opt/soapower$ ls -lart
-    total 64408
-    -rw-r--r-- 1 yvonnickesnault admin 32970177 7 avr 19:36 soapower-1.0.zip
-    drwxr-xr-x@ 4 yvonnickesnault admin 136 8 avr 22:22 ..
-    lrwxr-xr-x 1 yvonnickesnault admin 12 8 avr 22:25 current -&gt; soapower-1.0
-    drwxr-xr-x 5 yvonnickesnault admin 170 8 avr 22:25 .
-    drwxr-xr-x 8 yvonnickesnault admin 272 8 avr 22:26 soapower-1.0
+    total 65552
+    -rw-r--r--  1 yvonnickesnault  admin  33554849  9 jul 23:30 soapower-1.0.3.zip
+    drwxr-xr-x@ 4 yvonnickesnault  admin       136  9 jul 23:35 ..
+    lrwxr-xr-x  1 yvonnickesnault  admin        14  9 jul 23:36 current -> soapower-1.0.3
+    drwxr-xr-x  5 yvonnickesnault  admin       170  9 jul 23:36 .
+    drwxr-xr-x  7 yvonnickesnault  admin       238  9 jul 23:37 soapower-1.0.3
 </code></pre>
 
         <p>With the current directory :</p>
 
 <pre><code>/opt/soapower/current$ ls -lart
-    total 32
-    -rwxr-xr-x 1 yvonnickesnault admin 2992 7 avr 19:33 start
-    drwxr-xr-x 56 yvonnickesnault admin 1904 7 avr 19:33 lib
-    drwxr-xr-x 5 yvonnickesnault admin 170 8 avr 22:25 ..
-    drwxr-xr-x 3 yvonnickesnault admin 102 8 avr 22:26 logs
-    -rwxr-xr-x 1 yvonnickesnault admin 1050 8 avr 22:26 restart.sh
-    -rw-r--r-- 1 yvonnickesnault admin 4 8 avr 22:26 RUNNING_PID
-    -rw-r--r-- 1 yvonnickesnault admin 921 8 avr 22:32 logger-prod.xml
+    total 24
+    -rwxr-xr-x   1 yvonnickesnault  admin  3146  9 jul 23:29 start
+    drwxr-xr-x  59 yvonnickesnault  admin  2006  9 jul 23:29 lib
+    drwxr-xr-x   5 yvonnickesnault  admin   170  9 jul 23:36 ..
+    -rwxr-xr-x   1 yvonnickesnault  admin  1058  9 jul 23:36 restart.sh
+    -rw-r--r--   1 yvonnickesnault  admin   921  9 jul 23:36 logger-prod.xml
+    drwxr-xr-x   3 yvonnickesnault  admin   102  9 jul 23:36 logs
+    drwxr-xr-x   7 yvonnickesnault  admin   238  9 jul 23:37 .
 </code></pre>
 
         <p>The <code>RUNNING_PID</code> file contain the pid of Soapower (wich is running here)</p>
@@ -170,9 +171,6 @@
         <p>See <a href="https://github.com/soapower/soapower/wiki">https://github.com/soapower/soapower/wiki</a></p>
 
     </section>
-    <footer>
-        <p>This project is maintained by <a href="https://github.com/soapower">soapower</a></p>
-    </footer>
 </div>
 <script src="javascripts/scale.fix.js"></script>
 <script type="text/javascript">
