@@ -15,8 +15,6 @@ function AnalysisCtrl ($scope, $routeParams, $http) {
 
     ///analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load
 
-    console.log("URL:" + url);
-
     require(['nv'], function (nv) {
         $http({
             method: 'GET',

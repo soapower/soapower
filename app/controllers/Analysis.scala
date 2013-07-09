@@ -12,8 +12,6 @@ import play.Logger
 
 object Analysis extends Controller {
 
-//      Ok(views.html.analysis.index(environment, soapAction, formatDate(getDate(minDate)), formatDate(getDate(maxDate)), status, Environment.options, RequestData.soapActionOptions, RequestData.statusOptions, (statsOnly == "true")))
-
   // use by Json : from scala to json
   implicit object ReponseTimeWrites extends Writes[(Long, String, Date, Long)] {
     def writes(data: (Long, String, Date, Long)): JsValue = JsObject(
@@ -32,20 +30,12 @@ object Analysis extends Controller {
     )
   }
 
-  /*implicit object TupleWrites extends Writes[(Long, Long)] {
-    def writes(data: (Long, Long)): JsValue = JsArray(
-      Seq(JsNumber(data._1), JsNumber(data._2))
-    )
-  }*/
-
-
   implicit object formatWrites extends Writes[Map[String, Entity]] {
     def writes(data: Map[String, Entity]): JsValue = {
 
       var x = JsArray()
 
       data.foreach{ d =>
-        Logger.debug("Dd")
         x ++= Json.arr(
           Json.obj(
             "key" -> d._1,
@@ -64,15 +54,14 @@ object Analysis extends Controller {
   def load(environment: String, soapAction: String, minDate: String, maxDate : String, status: String, statsOnly: String) = Action {
     val responsesTimesByDate = RequestData.findResponseTimes(environment, soapAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s).getTime, status, true)
 
-    var a:Map[String, Entity] = Map()
+    val a:Map[String, Entity] = Map()
 
     responsesTimesByDate.foreach{ r =>
       if (a.contains(r._2)) {
-        (a.get(r._2).get).tuples ++ List((r._3.getTime, r._4))
+        (a.get(r._2).get).tuples ++= List((r._3.getTime, r._4))
       } else {
         (a.put(r._2, new Entity(r._2, List((r._3.getTime, r._4)))))
       }
-
     }
 
     Ok(Json.toJson(a)).as(JSON)
