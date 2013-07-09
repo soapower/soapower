@@ -33,44 +33,44 @@
 <hr>
 <h4>Deleting data</h4>
 
-<form name="myForm" class="form-horizontal" novalidate>
+<form name="deleteForm" class="form-horizontal" novalidate>
 
     <div class="control-group">
 
-        <span ng-click="showmindate = !showmindate">
+        <span ng-click="showminDate = !showminDate">
             <label class="control-label"> From : </label>
 
-            <div class="controls">{{mindate | date:'yyyy-MM-dd'}}
-                <span class="alert alert-error" ng-show="myForm.mindate.$error.required">Click to select</span>
+            <div class="controls">{{minDate | date:'yyyy-MM-dd'}}
+                <span class="alert alert-error" ng-show="deleteForm.minDate.$error.required">Click to select</span>
             </div>
 
         </span>
 
-        <div ng-show="showmindate">
-            <datepicker ng-model="mindate" starting-day="1"></datepicker>
+        <div ng-show="showminDate">
+            <datepicker ng-model="minDate" starting-day="1"></datepicker>
         </div>
-        <input name="mindate" type="hidden" ng-model="mindate" required>
+        <input name="minDate" type="hidden" ng-model="minDate" required>
     </div>
 
     <div class="control-group">
-        <span ng-click="showmaxdate = !showmaxdate">
-        <label class="control-label"> To : </label>
-            <div class="controls">{{maxdate | date:'yyyy-MM-dd'}}
-                <span class="alert alert-error" ng-show="myForm.maxdate.$error.required">Click to select</span>
+        <span ng-click="showmaxDate = !showmaxDate">
+        <label class="control-label">To : </label>
+            <div class="controls">{{maxDate | date:'yyyy-MM-dd'}}
+                <span class="alert alert-error" ng-show="deleteForm.maxDate.$error.required">Click to select</span>
             </div>
         </span>
 
-        <div ng-show="showmaxdate">
-            <datepicker ng-model="maxdate" starting-day="1"></datepicker>
+        <div ng-show="showmaxDate">
+            <datepicker ng-model="maxDate" starting-day="1"></datepicker>
         </div>
-        <input name="maxdate" type="hidden" ng-model="maxdate" required>
+        <input name="maxDate" type="hidden" ng-model="maxDate" required>
     </div>
 
     <div class="control-group">
         <label class="control-label" for="environment"> Environment : </label>
 
         <div class="controls">
-            <select ng-model="environment" id="environment" ng-required
+            <select ng-model="deleteForm.environment" id="environment" ng-required
                     ng-options="environment.name for environment in environments"></select>
         </div>
     </div>
@@ -79,22 +79,20 @@
         <label class="control-label"> Type Action for selected environment between min and max date : </label>
 
         <div class="controls">
-            <label class="radio" ng-class="{checked: typeAction == 'xml-data'}">
-                <span class="icons">
-                    <span class="first-icon fui-radio-unchecked"></span>
-                    <span class="second-icon fui-radio-checked"></span>
-                </span>
-                <input type="radio" name="typeAction" ng-model="typeAction" value="xml-data"> Only XML Data
+            <label class="radio" ng-class="{checked: deleteForm.typeAction == 'xml-data'}">
+                <input type="radio" ng-model="deleteForm.typeAction" value="xml-data"> Only XML Data
             </label>
-            <label class="radio" ng-class="{checked: typeAction == 'all-data'}">
-                <span class="icons">
-                    <span class="first-icon fui-radio-unchecked"></span>
-                    <span class="second-icon fui-radio-checked"></span>
-                </span>
-                <input type="radio" name="typeAction" ng-model="typeAction" value="all-data"> All Data
+            <label class="radio" ng-class="{checked: deleteForm.typeAction == 'all-data'}">
+                <input type="radio" ng-model="deleteForm.typeAction" value="all-data"> All Data
             </label>
         </div>
     </div>
+
+    <button ng-click="submitDelete()" ng-disabled="deleteForm.$invalid" class="btn btn-danger">Delete</button>
+
+    <div class="alert alert-info" ng-show="showRunningDelete">Wait... Deleting...</div>
+    <div class="alert alert-{{responseDelete.code}}" ng-show="showResponseDelete">{{responseDelete.text}}</div>
+
 </form>
 
 

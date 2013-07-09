@@ -1,4 +1,4 @@
-function AdminCtrl ($scope, EnvironmentsService) {
+function AdminCtrl ($scope, EnvironmentsService, $http) {
     $scope.urlDlConfig = "/admin/downloadConfiguration";
     $scope.urlDlRequestDataStatsEntries = "/admin/downloadRequestDataStatsEntries";
     $scope.urlUploadConfiguration = "/admin/uploadConfiguration";
@@ -16,22 +16,42 @@ function AdminCtrl ($scope, EnvironmentsService) {
         }
     };
 
-    $scope.$watch('mindate', function () {
-        if ($scope.mindate) {
-            $scope.showmindate = false;
-            if ($scope.mindate > $scope.maxdate) {
-                $scope.maxdate = $scope.mindate;
+    $scope.$watch('minDate', function () {
+        if ($scope.minDate) {
+            $scope.showminDate = false;
+            if ($scope.minDate > $scope.maxDate) {
+                $scope.maxDate = $scope.minDate;
             }
         }
     });
-    $scope.$watch('maxdate', function () {
-        if ($scope.maxdate) {
-            $scope.showmaxdate = false;
-            if ($scope.mindate > $scope.maxdate) {
-                $scope.maxdate = $scope.mindate;
+    $scope.$watch('maxDate', function () {
+        if ($scope.maxDate) {
+            $scope.showmaxDate = false;
+            if ($scope.minDate > $scope.maxDate) {
+                $scope.maxDate = $scope.minDate;
             }
         }
     });
+
+    $scope.submitDelete = function () {
+        $scope.showRunningDelete = true;
+        $scope.showResponseDelete = false;
+        $scope.deleteForm.environmentName = $scope.deleteForm.environment.name;
+        $scope.deleteForm.minDate = $scope.minDate;
+        $scope.deleteForm.maxDate = $scope.maxDate;
+
+        $http.post('/admin/delete', $scope.deleteForm)
+            .success(function (resp) {
+                $scope.responseDelete = resp;
+                $scope.showRunningDelete = false;
+                $scope.showResponseDelete = true;
+            })
+            .error(function (resp) {
+                $scope.responseDelete = resp;
+                $scope.showRunningDelete = false;
+                $scope.showResponseDelete = true;
+            });
+    }
 
     EnvironmentsService.findAllAndSelect($scope);
 }
