@@ -60,7 +60,7 @@ object Groups extends Controller {
    */
   val groupForm = Form(
     mapping(
-      "id" -> ignored(NotAssigned: Pk[Long]),
+      "id" -> longNumber,
       "name" -> nonEmptyText)
       (Group.apply)(Group.unapply))
 
@@ -82,37 +82,35 @@ object Groups extends Controller {
    */
   def update(id: Long) = Action { implicit request =>
     groupForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html.groups.editForm(id, formWithErrors)),
-      groupId => {
-    	    val groupOption = Group.findById(id)
-    	    groupOption match{
-			    case Some(group) =>
-			    	Group.delete(group)
-			        Home.flashing("success" -> "Group has been updated")
-			      case None =>
-			         Home.flashing("failure" -> "Group doesn't exist")
-			    }
-      }
-        )
+      formWithErrors => BadRequest(views.html.groups.createForm(formWithErrors)),
+      group => {
+        var groupToModify = Group(id, group.name)
+        Group.update(groupToModify)
+        Home.flashing("success" -> "Group %s has been updated".format(group.name))
+      })
   }
 
   /**
    * Display the 'new group form'.
    */
   def create = Action {
-    Ok(views.html.groups.createForm(groupForm.fill(new Group(NotAssigned, ""))))
+    Ok(views.html.groups.createForm(groupForm.fill(new Group(-1, ""))))
   }
 
   /**
    * Handle the 'new group form' submission.
    */
   def save = Action { implicit request =>
+    println("Je suis chez moi")
     groupForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.groups.createForm(formWithErrors)),
       group => {
+        println(group.name)
         Group.insert(group)
         Home.flashing("success" -> "Group %s has been created".format(group.name))
-      })
+      }
+      
+    )
   }
 
   /**

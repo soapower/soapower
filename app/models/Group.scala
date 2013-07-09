@@ -20,7 +20,8 @@ import java.util.{Date, Calendar, GregorianCalendar}
 
 
 // Defining a case class
-case class Group(id: Pk[Long], name: String) 
+case class Group(id: Long, name: String) 
+
 
 
 
@@ -40,7 +41,7 @@ object Group{
 		get[Pk[Long]]("id") ~
 		get[String]("name") map {
 			case id ~ name 
-			=> Group(id, name)
+			=> Group(id.get, name)
 		}
 	}
 
@@ -80,7 +81,7 @@ object Group{
 			implicit connection =>
 			val groups = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
 				Logger.debug("Groups not found in cache: loading from db")
-				SQL("select * from group order by name").as(Group.simple *).map(c => c.id.toString -> c.name)
+				SQL("select * from environment_group order by name").as(Group.simple *).map(c => c.id.toString -> c.name)
 			}
 
 			val sortedGroups = groups.sortWith { (a, b) =>
@@ -127,7 +128,7 @@ object Group{
 				DB.withConnection {
 					implicit connection =>
 					Cache.getOrElse[Option[Group]](keyCacheById + id) {
-						SQL("select * from group where id = {id}").on('id -> id).as(Group.simple.singleOpt)
+						SQL("select * from environment_group where id = {id}").on('id -> id).as(Group.simple.singleOpt)
 					}
 				}
 		}
@@ -138,7 +139,7 @@ object Group{
 		def findByName(name: String): Option[Group] = DB.withConnection {
 			implicit connection =>
 			Cache.getOrElse[Option[Group]](keyCacheByName + name) {
-			SQL("select * from group where name = {name}").on('name -> name).as(Group.simple.singleOpt)
+			SQL("select * from environment_group where name = {name}").on('name -> name).as(Group.simple.singleOpt)
 			}
 		}
 
@@ -153,7 +154,7 @@ object Group{
 			// Insert the new group
 			DB.withConnection {
 				implicit connection =>
-				SQL("""	insert into group values (null, {name}""").on('name -> group.name).executeUpdate()
+				SQL("""	insert into environment_group values (null, {name})""").on('name -> group.name).executeUpdate()
 			}
 		}
 
@@ -163,12 +164,12 @@ object Group{
 		 * @param group The group group.
 		 */
 		def update(group: Group) = {
+			System.out.println(group.name);
 			clearCache
 			Cache.remove(keyCacheById + group.id)
 			DB.withConnection {
 				implicit connection =>
-				SQL(
-						"""update group set name = {name}	where id = {id}	""").on(
+				SQL("""update environment_group set name = {name} where id = {id}""").on(
 								'id -> group.id,
 								'name -> group.name
 								).executeUpdate()
@@ -185,7 +186,7 @@ object Group{
 			Cache.remove(keyCacheById + group.id)
 			DB.withConnection {
 				implicit connection =>
-				SQL("delete from group where id = {id}").on('id -> group.id).executeUpdate()
+				SQL("delete from environment_group where id = {id}").on('id -> group.id).executeUpdate()
 			}
 		}
 		
@@ -208,8 +209,8 @@ object Group{
 
 					val groups = SQL(
 							"""
-							select * from group
-							order by group.name
+							select * from environment_group
+							order by environment_group.name
 							""").as(Group.simple *)
 
 							groups
