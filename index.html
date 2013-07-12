@@ -99,7 +99,7 @@
     $ export SOAPOWER_HOME="/opt/soapower/"
 
     # Set Soapower Http Listen Port (optional if your default port is 9010)
-    $ export SOAPOWER_PORT=9010
+    $ export SOAPOWER_HTTP_PORT=9010
 
     $ mkdir -p /opt/soapower &amp;&amp; cd /opt/soapower
     $ wget --no-check-certificate https://github.com/soapower/soapower/releases/v1.0.4/2915/soapower-1.0.4.zip -O soapower-1.0.4.zip
@@ -107,6 +107,7 @@
     $ ln -s soapower-1.0.4 current &amp;&amp; cd current
     $ wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.4/restart.sh
     $ wget --no-check-certificate http://raw.github.com/soapower/soapower/v1.0.4/conf/logger-prod.xml
+    $ chmod +x start
     $ chmod +x restart.sh
     $ ./restart.sh
 </code></pre>
@@ -187,4 +188,4 @@
 
 </body>
 </html>
-
+        
