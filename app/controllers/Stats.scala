@@ -20,10 +20,10 @@ object Stats extends Controller {
     }
   }
 
-  def index(environment: String, minDateAsStr: String, maxDateAsStr: String, soapAction: String, status: String) = Action { implicit request =>
+  def index(group : String, environment: String, minDateAsStr: String, maxDateAsStr: String, soapAction: String, status: String) = Action { implicit request =>
     val minDate = getDate(minDateAsStr)
     val maxDate = getDate(maxDateAsStr)
-    Ok(views.html.stats.index(environment, soapAction, formatDate(minDate), formatDate(maxDate), status, Environment.options, RequestData.soapActionOptions, RequestData.statusOptions))
+    Ok(views.html.stats.index(group, environment, soapAction, formatDate(minDate), formatDate(maxDate), status, Group.options, Environment.options(group), RequestData.soapActionOptions, RequestData.statusOptions))
   }
 
   def listDataTable(environmentName: String, minDateAsStr: String, maxDateAsStr: String, soapAction: String, status: String) = Action { implicit request =>

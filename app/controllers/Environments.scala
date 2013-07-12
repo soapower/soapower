@@ -15,18 +15,19 @@ import play.api.libs.json.JsString
 object Environments extends Controller {
 
   // use by Json : from scala to json
-  private implicit object StatsDataWrites extends Writes[Environment] {
-    def writes(data: Environment): JsValue = {
+  private implicit object StatsDataWrites extends Writes[(Environment, Group)] {
+    def writes(data: (Environment, Group)): JsValue = {
       JsObject(
         List(
-          "0" -> JsString(data.name),
-          "1" -> JsString(data.hourRecordXmlDataMin + " h"),
-          "2" -> JsString(data.hourRecordXmlDataMax + " h"),
-          "3" -> JsString(data.nbDayKeepXmlData + " days"),
-          "4" -> JsString(data.nbDayKeepAllData + " days"),
-          "5" -> JsBoolean(data.recordXmlData),
-          "6" -> JsBoolean(data.recordData),
-          "7" -> JsString("<a href=\"environments/"+data.id+"\"><i class=\"icon-edit\"></i> Edit</a>")
+          "0" -> JsString(data._1.name),
+          "1" -> JsString(data._1.hourRecordXmlDataMin + " h"),
+          "2" -> JsString(data._1.hourRecordXmlDataMax + " h"),
+          "3" -> JsString(data._1.nbDayKeepXmlData + " days"),
+          "4" -> JsString(data._1.nbDayKeepAllData + " days"),
+          "5" -> JsBoolean(data._1.recordXmlData),
+          "6" -> JsBoolean(data._1.recordData),
+          "7" -> JsString(data._2.groupName),
+          "8" -> JsString("<a href=\"environments/"+data._1.id+"\"><i class=\"icon-edit\"></i> Edit</a>")
         ))
     }
   }
@@ -69,7 +70,9 @@ object Environments extends Controller {
       "nbDayKeepXmlData" -> number(min=0, max=10),
       "nbDayKeepAllData" -> number(min=2, max=50),
       "recordXmlData" -> boolean,
-      "recordData" -> boolean) (Environment.apply)(Environment.unapply))
+      "recordData" -> boolean,
+      "groupId" -> longNumber  
+    ) (Environment.apply)(Environment.unapply))
 
   /**
    * Display the 'edit form' of a existing Environment.
@@ -78,7 +81,7 @@ object Environments extends Controller {
    */
   def edit(id: Long) = Action {
     Environment.findById(id).map { environment =>
-      Ok(views.html.environments.editForm(id, environmentForm.fill(environment)))
+      Ok(views.html.environments.editForm(id, environmentForm.fill(environment), Group.options))
     }.getOrElse(NotFound)
   }
 
@@ -89,7 +92,7 @@ object Environments extends Controller {
    */
   def update(id: Long) = Action { implicit request =>
     environmentForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html.environments.editForm(id, formWithErrors)),
+      formWithErrors => BadRequest(views.html.environments.editForm(id, formWithErrors, Group.options)),
       environment => {
         Environment.update(id, environment)
         Home.flashing("success" -> "Environment %s has been updated".format(environment.name))
@@ -100,7 +103,7 @@ object Environments extends Controller {
    * Display the 'new environment form'.
    */
   def create = Action {
-    Ok(views.html.environments.createForm(environmentForm.fill(new Environment(NotAssigned, "", 6, 22, 2, 5))))
+    Ok(views.html.environments.createForm(environmentForm.fill(new Environment(NotAssigned, "", 6, 22, 2, 5, true, true, Group.getDefaultGroup.groupId.get)), Group.options))
   }
 
   /**
@@ -108,7 +111,7 @@ object Environments extends Controller {
    */
   def save = Action { implicit request =>
     environmentForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html.environments.createForm(formWithErrors)),
+      formWithErrors => BadRequest(views.html.environments.createForm(formWithErrors, Group.options)),
       environment => {
         Environment.insert(environment)
         Home.flashing("success" -> "Environment %s has been created".format(environment.name))

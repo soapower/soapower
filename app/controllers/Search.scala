@@ -13,12 +13,16 @@ case class Search(environmentId: Long)
 
 object Search extends Controller {
 
-  def index(environment: String, soapAction: String, minDate: String, maxDate: String, status: String) = Action {
+  /**
+   * Index of the search page. Retrieve all information from the given group
+   */
+  def index(group: String, environment: String, soapAction: String, minDate: String, maxDate: String, status: String) = Action {
     implicit request =>
-      Ok(views.html.search.index(environment, soapAction, formatDate(getDate(minDate)), formatDate(getDate(maxDate)), status, Environment.options, RequestData.soapActionOptions, RequestData.statusOptions))
+      Ok(views.html.search.index(group, environment, soapAction, formatDate(getDate(minDate)), formatDate(getDate(maxDate)), status,  Group.options, Environment.options(group), RequestData.soapActionOptions, RequestData.statusOptions))
   }
 
-  def listDatatable(environment: String, soapAction: String, minDate: String, maxDate: String, status: String, sSearch: String, iDisplayStart: Int, iDisplayLength: Int) = Action {
+  def listDatatable(group: String, environment: String, soapAction: String, minDate: String, maxDate: String, status: String, sSearch: String, iDisplayStart: Int, iDisplayLength: Int) = Action {
+   println("listDatatable ok")
     val page: Page[(RequestData)] = RequestData.list(environment, soapAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s).getTime, status, iDisplayStart, iDisplayLength, sSearch)
 
     Ok(Json.toJson(Map(

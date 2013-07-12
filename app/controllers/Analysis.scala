@@ -10,9 +10,9 @@ import java.util.Date
 
 object Analysis extends Controller {
 
-  def index(environment: String, soapAction: String, minDate: String, maxDate : String, status : String, statsOnly: String) = Action {
+  def index(group:String, environment: String, soapAction: String, minDate: String, maxDate : String, status : String, statsOnly: String) = Action {
     implicit request =>
-      Ok(views.html.analysis.index(environment, soapAction, formatDate(getDate(minDate)), formatDate(getDate(maxDate)), status, Environment.options, RequestData.soapActionOptions, RequestData.statusOptions, (statsOnly == "true")))
+      Ok(views.html.analysis.index(group, environment, soapAction, formatDate(getDate(minDate)), formatDate(getDate(maxDate)), status,  Group.options, Environment.options(group), RequestData.soapActionOptions, RequestData.statusOptions, (statsOnly == "true")))
   }
 
   // use by Json : from scala to json

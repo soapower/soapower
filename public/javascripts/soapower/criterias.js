@@ -1,4 +1,10 @@
 function initCriterias(action) {
+	
+	$('#groupSelect').change(function() {
+        document.location.href=makeUrl(action);
+    });
+
+
     $('#environmentSelect').change(function() {
         document.location.href=makeUrl(action);
     });
@@ -44,6 +50,7 @@ function initCriterias(action) {
 }
 
 function storeLocalStorage() {
+	initValToStore('groupSelect', "all");
     initValToStore('environmentSelect', "all");
     initValToStore('soapActionSelect', "all");
     initValToStore('statusSelect', "all");
@@ -114,7 +121,8 @@ function makeUrl(action) {
             }
         }
     }
-    return "/"+ action +"/" + localStorage['environmentSelect']
+    return "/"+ action +"/" + localStorage['groupSelect']
+   		  +"/" + localStorage['environmentSelect']
         + "/"+ localStorage['soapActionSelect']
         + "/"+ localStorage['from']
         + "/"+ localStorage['to']

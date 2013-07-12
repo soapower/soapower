@@ -1,4 +1,4 @@
-@(environment: String, soapAction: String, minDate: String, maxDate : String, status: String, environments : Seq[(String, String)], soapActions:Seq[(String, String)], statusList: Seq[(String, String)])
+@(group : String, environment: String, soapAction: String, minDate: String, maxDate : String, status: String, groups : Seq[(String, String)], environments : Seq[(String, String)],soapActions:Seq[(String, String)], statusList: Seq[(String, String)])
 
 @import helper._
 
@@ -7,17 +7,17 @@
 @main {
   <div id="container" style="width: 100%; margin:auto">
 
-      @criterias(minDate, maxDate, environment, soapAction, status, environments, soapActions, statusList)
+      @criterias(minDate, maxDate, group, environment, soapAction, status, groups,environments,  soapActions, statusList)
 
       <p class="muted" onClick="$('#tips').toggle()" style="cursor:pointer" title="click to view help"><span class="label label-info">Tips </span>
           You can bookmark this page</p>
 
       <div class="well" id="tips" style="display:none">
           <ul>
-              <li>http://&lt;server:port&gt;/search/&lt;environment&gt;/&lt;soapAction&gt;/&lt;fromDate&gt;/&lt;toDate&gt;/</li>
-              <li>Default page : /search/all/all/all/today/ : all requests</li>
-              <li>Change start date : /search/all/all/2012-12-10/today/: all requests from 2012-12-10</li>
-              <li>Advanced : /search/dev/login/yesterday/today/ : Results for environment dev, soapAction login from yesterday, to today</li>
+              <li>http://&lt;server:port&gt;/search/&lt;group&gt;/&lt;environment&gt;/&lt;soapAction&gt;/&lt;fromDate&gt;/&lt;toDate&gt;/</li>
+              <li>Default page : /search/all/all/all/all/today/ : all requests</li>
+              <li>Change start date : /search/all/all/all/2012-12-10/today/: all requests from 2012-12-10</li>
+              <li>Advanced : /search/soProject/dev/login/yesterday/today/ : Results for group soProject, environment dev, soapAction login from yesterday, to today</li>
           </ul>
       </div>
 
