@@ -1,4 +1,4 @@
-@(environment: String, soapAction: String, minDate: String, maxDate : String, status: String, environments : Seq[(String, String)], soapActions:Seq[(String, String)], statusList: Seq[(String, String)], isStatsOnly : Boolean)
+@(group : String, environment: String, soapAction: String, minDate: String, maxDate : String, status: String, groups : Seq[(String, String)], environments : Seq[(String, String)], soapActions:Seq[(String, String)], statusList: Seq[(String, String)], isStatsOnly : Boolean)
 
 @import helper._
 
@@ -6,7 +6,7 @@
 
 @main {
 
- @criterias(minDate, maxDate, environment, soapAction, status, environments, soapActions, statusList)
+ @criterias(minDate, maxDate, group, environment, soapAction, status, groups, environments, soapActions, statusList)
 
  Only 90percentiles stats are showned on this graph.
 

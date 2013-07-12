@@ -20,12 +20,12 @@ POST    /admin/downloadRequestDataStatsEntries controllers.Admin.downloadRequest
 POST    /admin/uploadConfiguration      controllers.Admin.uploadConfiguration
 
 # Search page
-GET     /search/:environment/:soapAction/:minDate/:maxDate/:status/                   controllers.Search.index(environment, soapAction, minDate, maxDate, status)
-GET     /search/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable      controllers.Search.listDatatable(environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
+GET     /search/:group/:environment/:soapAction/:minDate/:maxDate/:status/                   controllers.Search.index(group, environment, soapAction, minDate, maxDate, status)
+GET     /search/:group/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable      controllers.Search.listDatatable(group, environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
 GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load/    controllers.Analysis.load(environment, soapAction, minDate, maxDate, status, statsOnly)
-GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/         controllers.Analysis.index(environment, soapAction, minDate, maxDate, status, statsOnly)
+GET     /analysis/:group/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/         controllers.Analysis.index(group, environment, soapAction, minDate, maxDate, status, statsOnly)
 
 # Soap
 POST    /soap/:environment/*localTarget                  controllers.Soap.index(environment, localTarget)
@@ -92,7 +92,7 @@ POST    /soapActions/:id          controllers.SoapActions.update(id:Long)
 
 # Statistics on SoapActions by environments
 GET     /statsAsJunit/:minDate/:maxDate/                                             controllers.Stats.statsAsJunit(minDate, maxDate)
-GET     /stats/:environment/:soapAction/:minDate/:maxDate/:status/                   controllers.Stats.index(environment, minDate, maxDate, soapAction, status)
+GET     /stats/:group/:environment/:soapAction/:minDate/:maxDate/:status/                   controllers.Stats.index(group, environment, minDate, maxDate, soapAction, status)
 GET     /stats/:environment/:soapAction/:minDate/:maxDate/:status/listDataTable      controllers.Stats.listDataTable(environment, minDate, maxDate, soapAction, status)
 
 # Download SOAP request and response

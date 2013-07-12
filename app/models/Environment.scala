@@ -88,6 +88,22 @@ object Environment {
     implicit c => SQL("select * from environment left join environment_group on environment.groupId = environment_group.groupId").as(Environment.csv *)
   }
 
+  
+  /**
+   * Construct the Map[String,String] needed to fill a select options set. Only environments which are into the given group name are retrieved
+   */
+  def options(group : String): Seq[(String, String)] = DB.withConnection {
+    implicit connection =>
+      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions+group) {
+        Logger.debug("Environments not found in cache: loading from db")
+        SQL("select * from environment, environment_group where environment.groupId = environment_group.groupId and environment_group.groupName = {groupName} order by environment.name").on(
+        'groupName -> group).as(Environment.simple *).map(c => c.id.toString -> c.name)
+      }
+      sortEnvs(envs)
+  }
+
+  
+  
   /**
    * Construct the Map[String,String] needed to fill a select options set.
    */
@@ -97,8 +113,15 @@ object Environment {
         Logger.debug("Environments not found in cache: loading from db")
         SQL("select * from environment order by name").as(Environment.simple *).map(c => c.id.toString -> c.name)
       }
-
-      val sortedEnvs = envs.sortWith { (a, b) =>
+      sortEnvs(envs)
+  }
+  
+  
+  /**
+   * Sort the given env option seq
+   */
+  private def sortEnvs(envs : Seq[(String, String)]) : Seq[(String, String)] = {
+		val sortedEnvs = envs.sortWith { (a, b) =>
         val pattern = """^(.+?)([0-9]+)$""".r
 
         val matchA = pattern.findAllIn(a._2)
@@ -133,7 +156,7 @@ object Environment {
       }
 
       sortedEnvs
-  }
+  } 
 
   /**
    * Retrieve an Environment from id.

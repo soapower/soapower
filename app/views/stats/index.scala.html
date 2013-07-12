@@ -1,4 +1,4 @@
-@(environment: String, soapAction: String, minDate: String, maxDate : String, status: String, environments : Seq[(String, String)], soapActions:Seq[(String, String)], statusList: Seq[(String, String)])
+@(group : String, environment: String, soapAction: String, minDate: String, maxDate : String, status: String, groups : Seq[(String, String)], environments : Seq[(String, String)], soapActions:Seq[(String, String)], statusList: Seq[(String, String)])
 
 @import helper._
 
@@ -7,7 +7,7 @@
 @main {
   <div id="container" style="width: 100%; margin:auto">
 
-    @criterias(minDate, maxDate, environment, soapAction, status, environments, soapActions, statusList)
+    @criterias(minDate, maxDate, group, environment, soapAction, status, groups, environments, soapActions, statusList)
 
     <p id="tip" class="muted" onClick="$('#tips').toggle()" style="cursor:pointer" title="click to view help">
         <span class="label label-info">Tips </span> You can bookmark this page
