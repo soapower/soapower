@@ -160,10 +160,11 @@ define(['angular'], function (angular) {
                         if ($scope.soapaction) soapaction = $scope.soapaction.name;
                     }
                     if ($scope.mindate && $scope.mindate != "" && $scope.mindate != "All") {
-                        mindate = $filter('date')($scope.mindate, 'yyyy-MM-dd');
+                        mindate = this.initDayToUrl($filter('date')($scope.mindate, 'yyyy-MM-dd'));
+
                     }
                     if ($scope.maxdate && $scope.maxdate != "" && $scope.maxdate != "All") {
-                        maxdate = $filter('date')($scope.maxdate, 'yyyy-MM-dd');
+                        maxdate = this.initDayToUrl($filter('date')($scope.maxdate, 'yyyy-MM-dd'));
                     }
                     if ($scope.code) code = $scope.code.name;
 
@@ -184,6 +185,21 @@ define(['angular'], function (angular) {
                         var elem = indate.split('-');
                         return new Date(elem[0], elem[1] - 1, elem[2]);
                     }
+                },
+                initDayToUrl: function(val, defaultValue) {
+                    var dayInit = null;
+                    if (val == defaultValue) return val;
+                    if (val == "")  return defaultValue;
+
+                    if (val == this.getDay("today")) {
+                        dayInit = "today";
+                    } else if (val == this.getDay("yesterday")) {
+                        dayInit = "yesterday";
+                    } else {
+                        dayInit = val;
+                    }
+
+                    return dayInit;
                 },
                 getDay: function (sDay) {
                     var mDate = new Date();

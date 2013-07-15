@@ -2,6 +2,7 @@ package models
 
 import java.util.{ Calendar, Date, GregorianCalendar }
 import java.text.SimpleDateFormat
+import play.Logger
 
 object UtilDate {
 
@@ -13,6 +14,9 @@ object UtilDate {
 
   def getDate(sDate: String, addInMillis: Long = 0, isMax : Boolean = false): GregorianCalendar = {
     val gCal = new GregorianCalendar()
+    gCal.set(Calendar.HOUR_OF_DAY, 0)
+    gCal.set(Calendar.MINUTE, 0)
+    gCal.set(Calendar.SECOND, 0)
 
     val mDate: GregorianCalendar = sDate match {
       case "all" => if (isMax) gCal else { gCal.setTime(RequestData.getMinStartTime.getOrElse(new Date)); gCal}
@@ -26,12 +30,16 @@ object UtilDate {
     }
     mDate.setTimeInMillis(mDate.getTimeInMillis + addInMillis)
     mDate
+
   }
 
   def formatDate(gCal: GregorianCalendar): String = {
     var rDate = gCal.get(Calendar.YEAR) + "-"
     rDate += addZero(gCal.get(Calendar.MONTH) + 1) + "-"
-    rDate += addZero(gCal.get(Calendar.DATE)) + ""
+    rDate += addZero(gCal.get(Calendar.DATE)) + " "
+    rDate += addZero(gCal.get(Calendar.HOUR_OF_DAY)) + ":"
+    rDate += addZero(gCal.get(Calendar.MINUTE)) + ":"
+    rDate += addZero(gCal.get(Calendar.SECOND))
     rDate
   }
 
