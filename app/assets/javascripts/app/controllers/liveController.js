@@ -108,7 +108,7 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
         if (row.getProperty("purged") == "true") {
             $window.alert("Sorry, Response already purged...");
         } else {
-            var url = "/download/request/" + row.getProperty("id");
+            var url = "/download/response/" + row.getProperty("id");
             if (asFile) url += "?asFile=true";
             $window.open(url);
         }
