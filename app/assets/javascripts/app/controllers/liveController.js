@@ -22,7 +22,7 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
 
         // Handle errors
         if (data.error || data.kind == "error") {
-            if (socket) {
+            if (typeof socket != 'undefined') {
                 socket.close()
             }
 
