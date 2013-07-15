@@ -11,11 +11,11 @@ object UtilDate {
   val longFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
   val defaultGCal = new GregorianCalendar()
 
-  def getDate(sDate: String, addInMillis: Long = 0): GregorianCalendar = {
+  def getDate(sDate: String, addInMillis: Long = 0, isMax : Boolean = false): GregorianCalendar = {
     val gCal = new GregorianCalendar()
 
     val mDate: GregorianCalendar = sDate match {
-      case "all" => gCal.setTime(RequestData.getMinStartTime.getOrElse(new Date)); gCal
+      case "all" => if (isMax) gCal else { gCal.setTime(RequestData.getMinStartTime.getOrElse(new Date)); gCal}
       case "today" => gCal
       case "yesterday" => gCal.add(Calendar.DATE, -1); gCal
       case pattern(days) => gCal.add(Calendar.DATE, -(days.toInt)); gCal

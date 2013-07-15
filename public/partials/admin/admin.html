@@ -1,0 +1,96 @@
+<h3>Download Configuration</h3>
+<a class="btn" href="{{urlDlConfig}}">Download configuration as csv File</a>
+
+<a href="{{urlDlRequestDataStatsEntries}}" class="btn">Download RequestData Stat Entries as csv File</a>
+<hr>
+
+<h3>Upload Configuration</h3>
+<p class="muted"><span class="label label-info">Tips </span>
+    Download the configuration above to have an example of csv file.</p>
+
+<div class="well">
+    <ul>
+        <li>A service is identified by localTarget and EnvironmentName. If the service already exist in db, it will be
+            ignored (no update)
+        </li>
+        <li>A environment is identified by his name, if an environment exist in db, it will be ignored</li>
+        <li>IDs in csv file uploaded are ignored</li>
+        <li>You can upload a RequestData Stats File</li>
+    </ul>
+</div>
+
+<form action="{{urlUploadConfiguration}}" ng-upload>
+    <input type="file" name="fileUploaded"/>
+    <input type="submit" value="Upload configuration" class="btn" upload-submit="uploadComplete(content, completed)"/>
+</form>
+
+<div class="alert alert-info" ng-show="showUploadRunning">Wait... Uploading.</div>
+<div class="alert alert-{{response.code}}" ng-show="showResponseUpload">{{response.text}}</div>
+
+<hr>
+<h3>Deleting data</h3>
+
+<form name="deleteForm" class="form-horizontal" novalidate>
+
+    <div class="control-group">
+
+        <span ng-click="showminDate = !showminDate">
+            <label class="control-label"> From : </label>
+
+            <div class="controls">{{minDate | date:'yyyy-MM-dd'}}
+                <span class="alert alert-error" ng-show="deleteForm.minDate.$error.required">Click to select</span>
+            </div>
+
+        </span>
+
+        <div ng-show="showminDate">
+            <datepicker ng-model="minDate" starting-day="1"></datepicker>
+        </div>
+        <input name="minDate" type="hidden" ng-model="minDate" required>
+    </div>
+
+    <div class="control-group">
+        <span ng-click="showmaxDate = !showmaxDate">
+        <label class="control-label">To : </label>
+            <div class="controls">{{maxDate | date:'yyyy-MM-dd'}}
+                <span class="alert alert-error" ng-show="deleteForm.maxDate.$error.required">Click to select</span>
+            </div>
+        </span>
+
+        <div ng-show="showmaxDate">
+            <datepicker ng-model="maxDate" starting-day="1"></datepicker>
+        </div>
+        <input name="maxDate" type="hidden" ng-model="maxDate" required>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="environment"> Environment : </label>
+
+        <div class="controls">
+            <select ng-model="deleteForm.environment" id="environment" ng-required
+                    ng-options="environment.name for environment in environments"></select>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label"> Type Action for selected environment between min and max date : </label>
+
+        <div class="controls">
+            <label class="radio" ng-class="{checked: deleteForm.typeAction == 'xml-data'}">
+                <input type="radio" ng-model="deleteForm.typeAction" value="xml-data"> Only XML Data
+            </label>
+            <label class="radio" ng-class="{checked: deleteForm.typeAction == 'all-data'}">
+                <input type="radio" ng-model="deleteForm.typeAction" value="all-data"> All Data
+            </label>
+        </div>
+    </div>
+
+    <button ng-click="submitDelete()" ng-disabled="deleteForm.$invalid" class="btn btn-danger">Delete</button>
+
+    <div class="alert alert-info" ng-show="showRunningDelete">Wait... Deleting...</div>
+    <div class="alert alert-{{responseDelete.code}}" ng-show="showResponseDelete">{{responseDelete.text}}</div>
+
+</form>
+
+
+

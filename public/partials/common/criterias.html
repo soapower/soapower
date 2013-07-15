@@ -1,0 +1,27 @@
+<div>
+
+    <form class="form-inline">
+
+        <label for="from"> From : </label>
+        <input class="input-small" type="text" value="{{mindate | date:'yyyy-MM-dd'}}" ng-click="showmindate = !showmindate"/>
+        <div ng-show="showmindate" >
+            <datepicker name="mindate" ng-model="mindate" starting-day="1"></datepicker>
+        </div>
+        <input class="input-small" type="hidden" id="from" ng-model="mindate" ng-click="showmindate = !showmindate"/>
+
+        <label for="To"> To : </label>
+        <input class="input-small" type="text" value="{{maxdate | date:'yyyy-MM-dd'}}" ng-click="showmaxdate = !showmaxdate"/>
+        <div ng-show="showmaxdate" >
+            <datepicker name="maxdate" ng-model="maxdate" starting-day="1"></datepicker>
+        </div>
+        <input class="input-small" type="hidden" id="to" ng-model="maxdate" ng-click="showmaxdate = !showmaxdate"/>
+
+        <select ng-model="environment" ng-options="environment.name for environment in environments"></select>
+        <select ng-model="soapaction" ng-options="s.name for s in soapactions" ng-show="showSoapactions"></select>
+        <select ng-model="code" ng-options="c.name for c in codes"></select>
+        <button class="btn" ng-click="changeCriteria()">Filter</button>
+        <br>
+
+    </form>
+
+</div>
