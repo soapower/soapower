@@ -57,7 +57,9 @@ function MonitorCtrl($scope, $location, $window, $http) {
 
         // Handle errors
         if (data.error || data.kind == "error") {
-            socket.close()
+            if (typeof socket != 'undefined') {
+                socket.close()
+            }
             if (data.error) {
                 $scope.errorInfo = data.error;
             } else if (data.kind == "error") {
