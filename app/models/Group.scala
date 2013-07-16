@@ -53,7 +53,7 @@ object Group{
 	 * Csv format.
 	 */
 	val csv = {
-			get[Pk[Long]]("groupId") ~
+			get[Long]("groupId") ~
 			get[String]("groupName")  map {
 			case groupId ~ groupName  =>
 			groupId + ";" + groupName + ";" + "\n"
@@ -226,7 +226,7 @@ object Group{
 		 *
 		 */
 		def allGroups: List[Group] = {
-
+				println("allGroups")
 				DB.withConnection {
 					implicit connection =>
 

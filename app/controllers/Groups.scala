@@ -18,17 +18,18 @@ import play.api.libs.json.JsString
 
 object Groups extends Controller {
 
-	// use by Json : from scala to json
-	private implicit object StatsDataWrites extends Writes[(String, String)] {
-		def writes(groupToWrite: (String, String)): JsValue = {
-				JsObject(
-						List(
-								"0" -> JsString(groupToWrite._1),
-								"1" -> JsString("<a href=\"groups/"+groupToWrite._2+"\"><i class=\"icon-edit\"></i> Edit</a>")
-								))
-		}
-	}
-
+  
+  
+  // use by Json : from scala to json
+  private implicit object GroupsOptionsDataWrites extends Writes[(String, String)] {
+    def writes(data : (String, String)): JsValue = {
+      JsObject(
+        List(
+          "groupId" -> JsString(data._1),
+          "groupName" -> JsString(data._2)
+        ))
+    }
+  }
 
 	/**
 	 * Group format
@@ -41,12 +42,19 @@ object Groups extends Controller {
 	 * @return A group JSON datatable data
 	 */
 	def listDatatable = Action { implicit request =>
+	  	println("listDatatable")
+	  	
 		val data = Group.allGroups
+		val dataIterator = data.iterator
+		while(dataIterator.hasNext){
+		  val dataIterated = dataIterator.next
+		  println(dataIterated.groupId.toString + " " + dataIterated.groupName)
+		}
 		Ok(Json.toJson(Map(
-					"iTotalRecords" -> Json.toJson(data.size),
-					"iTotalDisplayRecords" -> Json.toJson(data.size),
-					"aaData" -> Json.toJson(data)
-					))).as(JSON)
+				"iTotalRecords" -> Json.toJson(data.size),
+				"iTotalDisplayRecords" -> Json.toJson(data.size),
+				"data" -> Json.toJson(data)
+				))).as(JSON)
 	}
 
 
@@ -54,17 +62,16 @@ object Groups extends Controller {
 
 
 	/**
-	 * Return all Groups in Json Format
-	 * @return JSON
-	 */
+	* Return all Groups in Json Format
+	* @return JSON
+	*/
 	def findAll = Action { implicit request =>
-		val data = Group.allGroups
-		Ok(Json.toJson(data)).as(JSON)
+	val data = Group.allGroups
+	Ok(Json.toJson(data)).as(JSON)
 	}
-
+	
 	/**
-	 * Return all Environments in Json Format
-	 * @return JSON
+	 * Return all groups options
 	 */
 	def options = Action { implicit request =>
 	val data = Group.options
@@ -73,12 +80,24 @@ object Groups extends Controller {
 
 
 
+	/**
+	 * Display the 'edit form' of a existing Group.
+	 *
+	 * @param id Id of the group to edit
+	 */
+	def edit(id: Long) = Action {
+		Group.findById(id).map {
+			group =>
+			Ok(Json.toJson(group)).as(JSON)
+		}.getOrElse(NotFound)
+	}
 
 
 	/**
-	 * Insert or update a environment.
+	 * Insert or update a group.
 	 */
 	def save(id: Long) = Action(parse.json) { request =>
+	println("save")
 	request.body.validate(groupFormat).map { group =>
 	if (id < 0) Group.insert(group)
 	else Group.update(group)
@@ -92,7 +111,7 @@ object Groups extends Controller {
 
 
 	/**
-	 * Handle environment deletion.
+	 * Handle group deletion.
 	 */
 	def delete(id: Long) = Action {
 		val groupOption = Group.findById(id)

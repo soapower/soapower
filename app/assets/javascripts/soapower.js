@@ -31,13 +31,14 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
     'app/controllers/adminController',
     'app/controllers/analysisController',
     'app/controllers/environmentsController',
+    'app/controllers/groupsController',
     'app/controllers/liveController',
     'app/controllers/monitorController',
     'app/controllers/searchController',
     'app/controllers/servicesController',
     'app/controllers/soapactionsController',
     'app/controllers/statsController',
-    'lib/angular-resource.min',
+    'lib/angular-resource.min',	
     'lib/ui-bootstrap-0.4.0-SNAPSHOT',
     'lib/ng-grid-2.0.7.yesnault',
     'lib/ng-upload.min',
@@ -87,6 +88,9 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
             .when('/environments', { controller: EnvironmentsCtrl, templateUrl: 'partials/environments/list.html'})
             .when('/environments/new', {controller: EnvironmentNewCtrl, templateUrl: 'partials/environments/detail.html'})
             .when('/environments/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'partials/environments/detail.html'})
+            .when('/groups', { controller: GroupsCtrl, templateUrl: 'partials/groups/list.html'})
+            .when('/groups/new', {controller: GroupNewCtrl, templateUrl: 'partials/groups/detail.html'})
+            .when('/groups/:groupId', {controller: GroupEditCtrl, templateUrl: 'partials/groups/detail.html'})
             .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
             .when('/soapactions/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
             .when('/stats', {

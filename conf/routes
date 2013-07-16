@@ -42,7 +42,8 @@ GET /environments/options controllers.Environments.options
 # Environments list
 GET /environments/listDatatable controllers.Environments.listDatatable
 
-# Add service
+
+# Add environment
 POST /environments/:id controllers.Environments.save(id:Long)
 
 # Edit existing environment
@@ -50,6 +51,32 @@ GET /environments/:id controllers.Environments.edit(id:Long)
 
 # Delete a environment
 DELETE /environments/:id controllers.Environments.delete(id:Long)
+
+
+#
+# Groups
+#
+
+
+# Groups list
+GET /groups/options controllers.Groups.options
+
+# Groups list
+GET /groups/listDatatable controllers.Groups.listDatatable
+
+# Add group
+POST /groups/:id controllers.Groups.save(id:Long)
+
+# Edit existing group
+GET /groups/:id controllers.Groups.edit(id:Long)
+
+# Delete a group
+DELETE /groups/:id controllers.Groups.delete(id:Long)
+
+
+#
+# End groups
+#
 
 
 # SoapActions list

@@ -54,4 +54,7 @@ function AdminCtrl ($scope, EnvironmentsService, $http) {
     }
 
     EnvironmentsService.findAllAndSelect($scope);
+	
+
+
 }

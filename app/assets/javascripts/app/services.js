@@ -51,6 +51,25 @@ define(['angular'], function (angular) {
 
             return Environment;
         })
+        .factory('Group', function ($resource, UIService) {
+            var Group = $resource('/groups/:groupId',
+                { groupId: '@groupId'},
+                { update: {method: 'POST'} }
+            );
+
+            Group.prototype.update = function (cb) {
+                this.id = parseInt(this.id);
+
+                return Group.update({groupId: this.id},
+                    angular.extend({}, this, {groupId: undefined}), cb);
+            };
+
+            Group.prototype.destroy = function (cb) {
+                return Group.remove({groupId: this.id}, cb);
+            };
+
+            return Group;
+        })
         .factory('SoapAction', function ($resource) {
             var SoapAction = $resource('/soapactions/:soapActionId',
                 { soapActionId: '@id'},
@@ -132,6 +151,34 @@ define(['angular'], function (angular) {
                 }
             }
         })
+        .factory("GroupsService", function ($http) {
+            return {
+                findAll: function () {
+                    return $http.get('/groups/listDatatable');
+                },
+                findAllAndSelect: function ($scope, groupName, myService) {
+                    $http.get('/groups/options')
+                        .success(function (groups) {
+                            $scope.groups = groups;
+                            $scope.groups.unshift({id: "all", name: "all"});
+                            if (groupName != null || myService != null) {
+                                angular.forEach($scope.groups, function (value, key) {
+                                    if (groupName != null && value.name == groupName) {
+                                        $scope.group = value;
+                                    }
+                                    if (myService != null && value.groupId == myService.groupId) {
+                                        myService.group = value;
+                                    }
+                                });
+                            }
+
+                        })
+                        .error(function (resp) {
+                            console.log("Error with GroupsService.findAllAndSelect" + resp);
+                        });
+                }
+            }
+        })
         .factory("CodesService", function ($http) {
             return {
                 findAllAndSelect: function ($scope, $routeParams) {
@@ -156,6 +203,9 @@ define(['angular'], function (angular) {
                     var environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
 
                     if ($scope.environment) environment = $scope.environment.name;
+                    
+                    
+                    
                     if ($scope.showSoapactions) {
                         if ($scope.soapaction) soapaction = $scope.soapaction.name;
                     }
