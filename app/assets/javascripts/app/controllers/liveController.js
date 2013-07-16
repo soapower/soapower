@@ -22,7 +22,10 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
 
         // Handle errors
         if (data.error || data.kind == "error") {
-            socket.close()
+            if (typeof socket != 'undefined') {
+                socket.close()
+            }
+
             if (data.error) {
                 $scope.errorInfo = data.error;
             } else if (data.kind == "error") {
@@ -108,7 +111,7 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
         if (row.getProperty("purged") == "true") {
             $window.alert("Sorry, Response already purged...");
         } else {
-            var url = "/download/request/" + row.getProperty("id");
+            var url = "/download/response/" + row.getProperty("id");
             if (asFile) url += "?asFile=true";
             $window.open(url);
         }
