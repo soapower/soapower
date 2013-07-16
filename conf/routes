@@ -3,112 +3,85 @@
 # ~~~~
 
 # Home page
-GET     /                               controllers.Application.index
-GET     /                           controllers.Assets.at(path="/public", file="index.html")
+GET / controllers.Assets.at(path="/public", file="index.html")
 
 # Live page
-GET     /live/socket                    controllers.Live.socket
+GET /live/socket controllers.Live.socket
 
 # Admin page
-POST    /admin/delete                   controllers.Admin.delete
-GET     /admin/downloadConfiguration    controllers.Admin.downloadConfiguration
-GET     /admin/downloadRequestDataStatsEntries controllers.Admin.downloadRequestDataStatsEntries
-POST    /admin/uploadConfiguration      controllers.Admin.uploadConfiguration
+POST /admin/delete controllers.Admin.delete
+GET /admin/downloadConfiguration controllers.Admin.downloadConfiguration
+GET /admin/downloadRequestDataStatsEntries controllers.Admin.downloadRequestDataStatsEntries
+POST /admin/uploadConfiguration controllers.Admin.uploadConfiguration
 
 # Search page
-GET     /search/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable      controllers.Search.listDatatable(environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
-GET     /search/:group/:environment/:soapAction/:minDate/:maxDate/:status/                   controllers.Search.index(group, environment, soapAction, minDate, maxDate, status)
-GET     /search/:group/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable      controllers.Search.listDatatable(group, environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
+GET /search/:group/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable controllers.Search.listDatatable(group ,environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
-GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load    controllers.Analysis.load(environment, soapAction, minDate, maxDate, status, statsOnly)
-GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load/    controllers.Analysis.load(environment, soapAction, minDate, maxDate, status, statsOnly)
-GET     /analysis/:group/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/         controllers.Analysis.index(group, environment, soapAction, minDate, maxDate, status, statsOnly)
+GET /analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load controllers.Analysis.load(environment, soapAction, minDate, maxDate, status, statsOnly)
 
 # Soap
-POST    /soap/:environment/*localTarget                  controllers.Soap.index(environment, localTarget)
-GET     /replay/:id                                      controllers.Soap.replay(id:Long)
+POST /soap/:environment/*localTarget controllers.Soap.index(environment, localTarget)
+GET /replay/:id controllers.Soap.replay(id:Long)
 
 # Services list
-GET     /services/listDatatable    controllers.Services.listDatatable
+GET /services/listDatatable controllers.Services.listDatatable
 
 # Add service
-POST    /services/:id                  controllers.Services.save(id:Long)
+POST /services/:id controllers.Services.save(id:Long)
 
 # Edit existing service
-GET     /services/:id              controllers.Services.edit(id:Long)
+GET /services/:id controllers.Services.edit(id:Long)
 
 # Delete a service
-DELETE    /services/:id            controllers.Services.delete(id:Long)
+DELETE /services/:id controllers.Services.delete(id:Long)
 
 # Environments list
-GET     /environments/options          controllers.Environments.options
+GET /environments/options controllers.Environments.options
 
 # Environments list
-GET     /environments/listDatatable    controllers.Environments.listDatatable
+GET /environments/listDatatable controllers.Environments.listDatatable
 
 # Add service
-POST    /environments/:id              controllers.Environments.save(id:Long)
+POST /environments/:id controllers.Environments.save(id:Long)
 
 # Edit existing environment
-GET     /environments/:id              controllers.Environments.edit(id:Long)
+GET /environments/:id controllers.Environments.edit(id:Long)
 
 # Delete a environment
-DELETE    /environments/:id            controllers.Environments.delete(id:Long)
-
-
-
-# Groups list
-GET     /groups/listDatatable    controllers.Groups.listDatatable
-GET     /groups                  controllers.Groups.index
-
-# Add group
-GET     /groups/new          controllers.Groups.create
-POST    /groups              controllers.Groups.save
-
-# Edit existing group
-GET     /groups/:id          controllers.Groups.edit(id:Long)
-POST    /groups/:id          controllers.Groups.update(id:Long)
-
-# Delete a group
-POST    /groups/:id/delete   controllers.Groups.delete(id:Long)
-
+DELETE /environments/:id controllers.Environments.delete(id:Long)
 
 
 # SoapActions list
-GET     /soapactions/findall          controllers.SoapActions.findAll
-GET     /soapactions/listDatatable    controllers.SoapActions.listDatatable
+GET /soapactions/findall controllers.SoapActions.findAll
+GET /soapactions/listDatatable controllers.SoapActions.listDatatable
 
 # Regeneration soapAction listDatatable
-GET     /soapactions/regenerate     controllers.SoapActions.regenerate
+GET /soapactions/regenerate controllers.SoapActions.regenerate
 
 # Edit existing soapAction
-GET     /soapactions/:id            controllers.SoapActions.edit(id:Long)
-POST    /soapactions/:id            controllers.SoapActions.save(id:Long)
+GET /soapactions/:id controllers.SoapActions.edit(id:Long)
+POST /soapactions/:id controllers.SoapActions.save(id:Long)
 
 # Status list
-GET     /status/findall             controllers.Status.findAll
+GET /status/findall controllers.Status.findAll
 
 # Statistics on SoapActions by environments
-GET     /statsAsJunit/:minDate/:maxDate/                                 controllers.Stats.statsAsJunit(minDate, maxDate)
-GET     /stats/:environment/:minDate/:maxDate/:status/listDatatable      controllers.Stats.listDataTable(environment, minDate, maxDate, status)
-GET     /statsAsJunit/:minDate/:maxDate/                                             controllers.Stats.statsAsJunit(minDate, maxDate)
-GET     /stats/:group/:environment/:soapAction/:minDate/:maxDate/:status/                   controllers.Stats.index(group, environment, minDate, maxDate, soapAction, status)
-
-GET     /stats/:environment/:soapAction/:minDate/:maxDate/:status/listDataTable      controllers.Stats.listDataTable(environment, minDate, maxDate, soapAction, status)
+GET /statsAsJunit/:minDate/:maxDate/ controllers.Stats.statsAsJunit(minDate, maxDate)
+GET /stats/:environment/:minDate/:maxDate/:status/listDatatable controllers.Stats.listDataTable(environment, minDate, maxDate, status)
 
 # Download SOAP request and response
-GET     /download/request/:id      controllers.Search.downloadRequest(id:Long, asFile: Boolean ?= false)
-GET     /download/response/:id     controllers.Search.downloadResponse(id:Long, asFile: Boolean ?= false)
+GET /download/request/:id controllers.Search.downloadRequest(id:Long, asFile: Boolean ?= false)
+GET /download/response/:id controllers.Search.downloadResponse(id:Long, asFile: Boolean ?= false)
 
 # Monitoring
-GET     /monitor/logfile           controllers.Monitor.logfile
-GET     /monitor/socket            controllers.Monitor.socket
-GET     /monitor/downloadLogFile   controllers.Monitor.downloadLogFile
-POST    /gc!                       controllers.Monitor.gc
+GET /monitor/logfile controllers.Monitor.logfile
+GET /monitor/socket controllers.Monitor.socket
+GET /monitor/downloadLogFile controllers.Monitor.downloadLogFile
+POST /gc! controllers.Monitor.gc
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file              controllers.Assets.at(path="/public", file)
+GET /assets/*file controllers.Assets.at(path="/public", file)
 
 # Map the JS resource paths
-GET     /*file                      controllers.Assets.at(path="/public", file)
+GET /*file controllers.Assets.at(path="/public", file)

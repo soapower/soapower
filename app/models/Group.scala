@@ -3,14 +3,12 @@
  */
 package models
 
-import play.api.db._
-import play.api.Play.current
-import play.api.cache._
-import play.api._
-
 import anorm._
 import anorm.SqlParser._
-import java.util.{Date, Calendar, GregorianCalendar}
+import play.api._
+import play.api.Play.current
+import play.api.cache._
+import play.api.db._
 
 /**
  * @author Ronan Quintin - ronan.quintin@gmail.com
@@ -20,7 +18,7 @@ import java.util.{Date, Calendar, GregorianCalendar}
 
 
 // Defining a case class
-case class Group(groupId: Pk[Long], groupName: String) 
+case class Group(groupId: Long, groupName: String) 
 
 
 
@@ -37,7 +35,7 @@ object Group{
 	 * SQL anorm row parser. This operation indicate how to parse a sql row.
 	 */
 	val simple = {
-		get[Pk[Long]]("groupId") ~
+		get[Long]("groupId") ~
 		get[String]("groupName") map {
 			case groupId ~ groupName 
 			=> Group(groupId, groupName)
@@ -152,7 +150,7 @@ object Group{
 			var defaultGroup = Group.findById(defaultGroupId)
 			if(defaultGroup == None){
 			  // The default group doesn't exist then it's created
-			  Group.insert(new Group(new Id(defaultGroupId), defaultGroupName))
+			  Group.insert(new Group(defaultGroupId, defaultGroupName))
 			  
 			  // Then get it
 			  defaultGroup = Group.findByName(defaultGroupName)
@@ -189,13 +187,13 @@ object Group{
 		 *
 		 * @param group The group group.
 		 */
-		def update(id: Long, group: Group) = {
+		def update(group: Group) = {
 			clearCache
-			Cache.remove(keyCacheById + id)
+			Cache.remove(keyCacheById + group.groupId)
 			DB.withConnection {
 				implicit connection =>
 				SQL("""update environment_group set name = {name} where id = {id}""").on(
-								'id -> id,
+								'id -> group.groupId,
 								'name -> group.groupName
 								).executeUpdate()
 			}

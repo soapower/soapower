@@ -33,7 +33,7 @@ object Environment {
    * Create an environment with the classical default values and the given name and group id.
    */
   def createEnvironmentWithDefaultValues(name: String, groupId: Long): Environment = {
-    return new Environment(NotAssigned, name, 8, 22, 2, 5, true, true, groupId)
+    return new Environment(-1, name, 8, 22, 2, 5, true, true, groupId)
   }
     
   /**
@@ -279,7 +279,7 @@ object Environment {
    * Return a list of (Environment, Group).
    *
    */
-  def list: List[(Environment, Group)] = {
+  def listWithGroup: List[(Environment, Group)] = {
 
     DB.withConnection {
       implicit connection =>
@@ -295,6 +295,28 @@ object Environment {
     }
   }
 
+  
+    /**
+   * Return a list of all Environment.
+   *
+   */
+  def list: List[Environment] = {
+
+    DB.withConnection {
+      implicit connection =>
+
+        val environments = SQL(
+          """
+          select * from environment
+          left join environment_group on environment.groupId = environment_group.groupId
+          order by environment.groupId asc, environment.name
+          """).as(Environment.simple *)
+
+        environments
+    }
+  }
+  
+    
   /*
    * Compile stats for each env / day
    */
@@ -398,7 +420,7 @@ object Environment {
     var group = Group.findByName(groupName)
     if (group == None) {
       Logger.debug("Insert Environment " + groupName)
-      Group.insert(new Group(NotAssigned, groupName))
+      Group.insert(new Group(0, groupName))
       group = Group.findByName(groupName)
       if (group.get == null) Logger.error("Group insert failed : " + groupName)
     } else {
@@ -433,7 +455,7 @@ object Environment {
         dataCsv(csvTitle.get("nbDayKeepAllData").get).toInt,
         (dataCsv(csvTitle.get("recordXmlData").get).trim == "true"),
         (dataCsv(csvTitle.get("recordData").get).trim == "true"),
-        group.groupId.get
+        group.groupId
       )
       Environment.insert(environment)
       Logger.info("Insert Environment " + environment.name)

@@ -10,7 +10,6 @@ import anorm.SqlParser._
 import scala.collection.mutable.{ Map, HashMap }
 
 case class Service(
-  id: Pk[Long],
   id: Long,
   description: String,
   localTarget: String,
@@ -52,7 +51,7 @@ object Service {
    * Csv format.
    */
   val csv = {
-    get[Long]("service.id") ~
+		  get[Long]("service.id") ~
       get[String]("service.description") ~
       get[String]("service.localTarget") ~
       get[String]("service.remoteTarget") ~
@@ -340,10 +339,10 @@ object Service {
     if (environment == None) {
       
       Logger.debug("Insert Environment " + environmentName)
-      Environment.insert(new Environment(-1, environmentName))
+
       
       // Insert a new group which is linked to the default group
-      Environment.insert(Environment.createEnvironmentWithDefaultValues(environmentName, Group.getDefaultGroup.groupId.get))
+      Environment.insert(Environment.createEnvironmentWithDefaultValues(environmentName, Group.getDefaultGroup.groupId))
       
       environment = Environment.findByName(environmentName)
       if (environment.get == null) Logger.error("Environment insert failed : " + environmentName)
@@ -360,5 +359,4 @@ object Service {
     if (localTarget.startsWith("/")) localTarget.substring(1) else localTarget
   }
 
-}
 }

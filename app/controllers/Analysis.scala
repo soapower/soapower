@@ -12,10 +12,6 @@ import play.Logger
 
 object Analysis extends Controller {
 
-  def index(group:String, environment: String, soapAction: String, minDate: String, maxDate : String, status : String, statsOnly: String) = Action {
-    implicit request =>
-      Ok(views.html.analysis.index(group, environment, soapAction, formatDate(getDate(minDate)), formatDate(getDate(maxDate)), status,  Group.options, Environment.options(group), RequestData.soapActionOptions, RequestData.statusOptions, (statsOnly == "true")))
-  }
 
   // use by Json : from scala to json
   implicit object ReponseTimeWrites extends Writes[(Long, String, Date, Long)] {
@@ -73,4 +69,4 @@ object Analysis extends Controller {
   }
 
 }
-}
+
