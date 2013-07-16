@@ -15,7 +15,7 @@ object Environments extends Controller {
 
   // use by Json : from scala to json
   private implicit object EnvironmentsOptionsDataWrites extends Writes[(String, String)] {
-    def writes(data : (String, String)): JsValue = {
+    def writes(data: (String, String)): JsValue = {
       JsObject(
         List(
           "id" -> JsString(data._1),
@@ -24,48 +24,50 @@ object Environments extends Controller {
     }
   }
 
-	implicit val environmentFormat = Json.format[Environment]
+  implicit val environmentFormat = Json.format[Environment]
 
-			/**
-			 * Return all Environments in Json Format
-			 * @return JSON
-			 */
-  def findAll = Action { implicit request =>
-    val data = Environment.list
-    Ok(Json.toJson(data)).as(JSON)
+  /**
+   * Return all Environments in Json Format
+   * @return JSON
+   */
+  def findAll = Action {
+    implicit request =>
+      val data = Environment.list
+      Ok(Json.toJson(data)).as(JSON)
   }
 
-	/**
-	 * Return all Environments in Json Format
-	 * @return JSON
-	 */
-	def options = Action { implicit request =>
-	val data = Environment.options
-	Ok(Json.toJson(data)).as(JSON)
-	}
+  /**
+   * Return all Environments in Json Format
+   * @return JSON
+   */
+  def options = Action {
+    implicit request =>
+      val data = Environment.optionsAll
+      Ok(Json.toJson(data)).as(JSON)
+  }
 
 
-	/**
-	 * List to Datable table.
-	 *
-	 * @return JSON
-	 */
-	def listDatatable = Action {
-		implicit request =>
-		val data = Environment.list
-		Ok(Json.toJson(Map(
-				"iTotalRecords" -> Json.toJson(data.size),
-				"iTotalDisplayRecords" -> Json.toJson(data.size),
-				"data" -> Json.toJson(data)
-				))).as(JSON)
-	}
+  /**
+   * List to Datable table.
+   *
+   * @return JSON
+   */
+  def listDatatable = Action {
+    implicit request =>
+      val data = Environment.list
+      Ok(Json.toJson(Map(
+        "iTotalRecords" -> Json.toJson(data.size),
+        "iTotalDisplayRecords" -> Json.toJson(data.size),
+        "data" -> Json.toJson(data)
+      ))).as(JSON)
+  }
 
-	
-	  /**
-* Display the 'edit form' of a existing Environment.
-*
-* @param id Id of the environment to edit
-*/
+
+  /**
+   * Display the 'edit form' of a existing Environment.
+   *
+   * @param id Id of the environment to edit
+   */
   def edit(id: Long) = Action {
     Environment.findById(id).map {
       environment =>
@@ -74,29 +76,29 @@ object Environments extends Controller {
   }
 
 
-	/**
-	 * Insert or update a environment.
-	 */
-	def save(id: Long) = Action(parse.json) { request =>
-		request.body.validate(environmentFormat).map { environment =>
-		if (id < 0) Environment.insert(environment)
-		else Environment.update(environment)
-		Ok(Json.toJson("Succesfully save environment."))
-		}.recoverTotal{
-			e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
-		}
-	}
+  /**
+   * Insert or update a environment.
+   */
+  def save(id: Long) = Action(parse.json) {
+    request =>
+      request.body.validate(environmentFormat).map {
+        environment =>
+          if (id < 0) Environment.insert(environment)
+          else Environment.update(environment)
+          Ok(Json.toJson("Succesfully save environment."))
+      }.recoverTotal {
+        e => BadRequest("Detected error:" + JsError.toFlatJson(e))
+      }
+  }
 
 
-
-
-	/**
-	 * Handle environment deletion.
-	 */
-	def delete(id: Long) = Action {
-		Environment.delete(id)
-		Ok("deleted");
-	}
+  /**
+   * Handle environment deletion.
+   */
+  def delete(id: Long) = Action {
+    Environment.delete(id)
+    Ok("deleted");
+  }
 
 }
 

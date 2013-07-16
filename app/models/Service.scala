@@ -161,7 +161,7 @@ object Service {
               'environment_id -> service.environmentId).executeUpdate()
       }
 
-      val serviceKey = localTarget + Environment.options.find(t => t._1 == service.environmentId.toString).get._2
+      val serviceKey = localTarget + Environment.optionsAll.find(t => t._1 == service.environmentId.toString).get._2
       val inst = Cache.get(serviceKey)
       if (inst isDefined) {
         Logger.debug("Insert new service - Delete from cache key:" + serviceKey)
@@ -340,9 +340,8 @@ object Service {
       
       Logger.debug("Insert Environment " + environmentName)
 
-      
       // Insert a new group which is linked to the default group
-      Environment.insert(Environment.createEnvironmentWithDefaultValues(environmentName, Group.getDefaultGroup.groupId))
+      Environment.insert(new Environment(-1, environmentName))
       
       environment = Environment.findByName(environmentName)
       if (environment.get == null) Logger.error("Environment insert failed : " + environmentName)

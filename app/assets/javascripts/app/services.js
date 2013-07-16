@@ -53,7 +53,7 @@ define(['angular'], function (angular) {
         })
         .factory('Group', function ($resource, UIService) {
             var Group = $resource('/groups/:groupId',
-                { groupId: '@groupId'},
+                { groupId: '@id'},
                 { update: {method: 'POST'} }
             );
 

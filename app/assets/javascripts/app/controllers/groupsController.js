@@ -51,12 +51,11 @@ function GroupEditCtrl($scope, $routeParams, $location, Group, UIService) {
     };
 }
 
-function GroupNewCtrl($scope, $location, Group, GroupsController) {
+function GroupNewCtrl($scope, $location, Group, GroupsService) {
 
-    GroupsController.findAllAndSelect($scope);
+    GroupsService.findAllAndSelect($scope);
 
     $scope.group = new Group({id:'-1'});
-
 
     $scope.save = function () {
         $scope.group.update(function () {

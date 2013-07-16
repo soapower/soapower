@@ -30,7 +30,7 @@ object SoapAction {
    */
   val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "thresholdms" -> 3)
 
-  val csvKey = "soapaction";
+  val csvKey = "soapaction"
 
   /**
    * Csv format.
