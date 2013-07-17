@@ -78,7 +78,7 @@ object Environment {
    * @return List of Environements, csv format
    */
   def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("select * from environment left join environment_group on environment.groupId = environment_group.groupId").as(Environment.csv *)
+    implicit c => SQL("select * from environment left join environment_group on environment.groupId = environment_group.id").as(Environment.csv *)
   }
 
 
@@ -89,7 +89,7 @@ object Environment {
     implicit connection =>
       val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
         Logger.debug("Environments not found in cache: loading from db")
-        SQL("select * from environment, environment_group where environment.groupId = environment_group.groupId and environment_group.groupName = {groupName} order by environment.name").on(
+        SQL("select * from environment, environment_group where environment.groupId = environment_group.id and environment_group.name = {groupName} order by environment.name").on(
           'groupName -> group).as(Environment.simple *).map(c => c.id.toString -> c.name)
       }
       sortEnvs(envs)
@@ -280,7 +280,7 @@ object Environment {
         val environments = SQL(
           """
           select * from environment
-          left join environment_group on environment.groupId = environment_group.groupId
+          left join environment_group on environment.groupId = environment_group.id
           order by environment.groupId asc, environment.name
           """).as(Environment.withGroup *)
 
@@ -300,7 +300,7 @@ object Environment {
         val environments = SQL(
           """
           select * from environment
-          left join environment_group on environment.groupId = environment_group.groupId
+          left join environment_group on environment.groupId = environment_group.id
           order by environment.groupId asc, environment.name
           """).as(Environment.simple *)
 
