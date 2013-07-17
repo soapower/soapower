@@ -19,8 +19,8 @@ function GroupsCtrl($scope, GroupsService) {
         showFilter: false,
         filterOptions: $scope.filterOptions,
         columnDefs: [
-            {field: 'groupName', displayName: 'Name'},
-            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/groups/{{ row.getProperty(\'groupId\') }}"><i class="icon-pencil"></i></a></span></div>'}
+            {field: 'name', displayName: 'Name'},
+            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/groups/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
         ]
     };
 }

@@ -23,8 +23,8 @@ object Groups extends Controller {
     def writes(data: (String, String)): JsValue = {
       JsObject(
         List(
-          "groupId" -> JsString(data._1),
-          "groupName" -> JsString(data._2)
+          "id" -> JsString(data._1),
+          "name" -> JsString(data._2)
         ))
     }
   }
@@ -87,6 +87,7 @@ object Groups extends Controller {
    */
   def save(id: Long) = Action(parse.json) {
     request =>
+      println("save" + request.body)
       request.body.validate(groupFormat).map {
         group =>
           if (id < 0) Group.insert(group)

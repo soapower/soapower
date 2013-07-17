@@ -31,17 +31,17 @@ object Group {
    * SQL anorm row parser. This operation indicate how to parse a sql row.
    */
   val simple = {
-    get[Long]("groupId") ~
-      get[String]("groupName") map {
-      case groupId ~ groupName
-      => Group(groupId, groupName)
+    get[Long]("id") ~
+      get[String]("name") map {
+      case id ~ name
+      => Group(id, name)
     }
   }
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "groupId" -> 1, "groupName" -> 2)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2)
 
   val csvKey = "group";
 
@@ -49,10 +49,10 @@ object Group {
    * Csv format.
    */
   val csv = {
-    get[Long]("groupId") ~
-      get[String]("groupName") map {
-      case groupId ~ groupName =>
-        groupId + ";" + groupName + ";" + "\n"
+    get[Long]("id") ~
+      get[String]("name") map {
+      case id ~ name =>
+        id + ";" + name + ";" + "\n"
     }
   }
 
@@ -62,7 +62,7 @@ object Group {
    * @return List of groups, csv format
    */
   def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("select * from group").as(Group.csv *)
+    implicit c => SQL("select * from environment_group").as(Group.csv *)
   }
 
 
@@ -73,7 +73,7 @@ object Group {
     implicit connection =>
       val groups = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
         Logger.debug("Groups not found in cache: loading from db")
-        SQL("select * from environment_group order by groupName").as(Group.simple *).map(c => c.id.toString -> c.name)
+        SQL("select * from environment_group order by name").as(Group.simple *).map(c => c.id.toString -> c.name)
       }
 
       val sortedGroups = groups.sortWith {
@@ -121,7 +121,7 @@ object Group {
     DB.withConnection {
       implicit connection =>
         Cache.getOrElse[Option[Group]](keyCacheById + id) {
-          SQL("select * from environment_group where groupId = {id}").on('id -> id).as(Group.simple.singleOpt)
+          SQL("select * from environment_group where id = {id}").on('id -> id).as(Group.simple.singleOpt)
         }
     }
   }
@@ -132,7 +132,7 @@ object Group {
   def findByName(name: String): Option[Group] = DB.withConnection {
     implicit connection =>
       Cache.getOrElse[Option[Group]](keyCacheByName + name) {
-        SQL("select * from environment_group where groupName = {name}").on('name -> name).as(Group.simple.singleOpt)
+        SQL("select * from environment_group where name = {name}").on('name -> name).as(Group.simple.singleOpt)
       }
   }
 
@@ -200,7 +200,7 @@ object Group {
         val groups = SQL(
           """
 							select * from environment_group
-							order by environment_group.groupName
+							order by environment_group.name
           							""").as(Group.simple *)
 
         groups
