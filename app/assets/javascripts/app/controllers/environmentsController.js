@@ -20,6 +20,7 @@ function EnvironmentsCtrl($scope, EnvironmentsService) {
         filterOptions: $scope.filterOptions,
         columnDefs: [
             {field: 'name', displayName: 'Name'},
+            {field: 'groupName', displayName: 'Group Name'},
             {field: 'hourRecordXmlDataMin', displayName: 'Xml Data : Start Record Hour'},
             {field: 'hourRecordXmlDataMax', displayName: 'Xml Data : End Record Hour'},
             {field: 'nbDayKeepXmlData', displayName: 'Xml Data : nb days keep'},
