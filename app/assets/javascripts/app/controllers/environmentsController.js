@@ -8,6 +8,7 @@ function EnvironmentsCtrl($scope, EnvironmentsService) {
             console.log("Error with EnvironmentsService.findAll" + resp);
         });
 
+
     $scope.filterOptions = {
         filterText: "",
         useExternalFilter: false

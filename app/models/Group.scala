@@ -31,8 +31,8 @@ object Group {
    * SQL anorm row parser. This operation indicate how to parse a sql row.
    */
   val simple = {
-    get[Long]("id") ~
-      get[String]("name") map {
+    get[Long]("environment_group.id") ~
+      get[String]("environment_group.name") map {
       case id ~ name
       => Group(id, name)
     }
@@ -49,8 +49,8 @@ object Group {
    * Csv format.
    */
   val csv = {
-    get[Long]("id") ~
-      get[String]("name") map {
+    get[Long]("environment_group.id") ~
+      get[String]("environment_group.name") map {
       case id ~ name =>
         id + ";" + name + ";" + "\n"
     }
