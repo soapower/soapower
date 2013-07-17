@@ -36,7 +36,7 @@ object Environment {
   val simple = {
     get[Long]("environment.id") ~
       get[String]("environment.name") ~
-      get[Long]("environment_group.id") ~
+      get[Long]("environment.groupId") ~
       get[Int]("environment.hourRecordXmlDataMin") ~
       get[Int]("environment.hourRecordXmlDataMax") ~
       get[Int]("environment.nbDayKeepXmlData") ~

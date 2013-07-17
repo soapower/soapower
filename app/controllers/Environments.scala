@@ -58,6 +58,7 @@ object Environments extends Controller {
           "id" -> JsString(data._1.id.toString),
           "name" -> JsString(data._1.name),
           "groupName" -> JsString(data._2.name),
+          "hourRecordXmlDataMin" -> JsString(data._1.hourRecordXmlDataMin.toString),
           "hourRecordXmlDataMax" -> JsString(data._1.hourRecordXmlDataMax.toString),
           "nbDayKeepXmlData" -> JsString(data._1.nbDayKeepXmlData.toString),
           "nbDayKeepAllData" -> JsString(data._1.nbDayKeepAllData.toString),
@@ -80,7 +81,6 @@ object Environments extends Controller {
         "iTotalRecords" -> Json.toJson(data.size),
         "iTotalDisplayRecords" -> Json.toJson(data.size),
         "data" -> {
-          println(Json.toJson(data))
           Json.toJson(data)
         }
       ))).as(JSON)

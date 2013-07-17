@@ -1,5 +1,6 @@
 function EnvironmentsCtrl($scope, EnvironmentsService) {
 
+    // Looking for environments with their groups and adding all informations to $scope.environments var
     EnvironmentsService.findAll().
         success(function (environments) {
             $scope.environments = environments.data;
