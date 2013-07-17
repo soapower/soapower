@@ -34,15 +34,15 @@ object Environment {
    * Parse a Environment from a ResultSet
    */
   val simple = {
-    get[Long]("id") ~
-      get[String]("name") ~
-      get[Long]("groupId") ~
-      get[Int]("hourRecordXmlDataMin") ~
-      get[Int]("hourRecordXmlDataMax") ~
-      get[Int]("nbDayKeepXmlData") ~
-      get[Int]("nbDayKeepAllData") ~
-      get[String]("recordXmlData") ~
-      get[String]("recordData") map {
+    get[Long]("environment.id") ~
+      get[String]("environment.name") ~
+      get[Long]("environment_group.id") ~
+      get[Int]("environment.hourRecordXmlDataMin") ~
+      get[Int]("environment.hourRecordXmlDataMax") ~
+      get[Int]("environment.nbDayKeepXmlData") ~
+      get[Int]("environment.nbDayKeepAllData") ~
+      get[String]("environment.recordXmlData") ~
+      get[String]("environment.recordData") map {
       case id ~ name ~ groupId ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData ~ recordXmlData ~ recordData
       => Environment(id, name, groupId, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData, nbDayKeepAllData, (recordXmlData == "true"), (recordData == "true"))
     }
