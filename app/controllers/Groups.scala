@@ -87,7 +87,6 @@ object Groups extends Controller {
    */
   def save(id: Long) = Action(parse.json) {
     request =>
-      println("save" + request.body)
       request.body.validate(groupFormat).map {
         group =>
           if (id < 0) Group.insert(group)
