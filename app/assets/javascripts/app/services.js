@@ -218,7 +218,7 @@ define(['angular'], function (angular) {
                     }
                     if ($scope.code) code = $scope.code.name;
 
-                    var path = $scope.ctrlPath + '/' + environment + "/";
+                    var path = $scope.ctrlPath + '/' + group + "/" + environment + "/";
 
                     if ($scope.showSoapactions) path = path + soapaction + "/";
 
@@ -231,7 +231,7 @@ define(['angular'], function (angular) {
                                     var group ="all";
                                     if ($scope.group) group = $scope.group.name;
 
-                                    var path = $scope.ctrlPath + '/' + group ;
+                                    var path = $scope.adminPath + '/' + group ;
 
                                     console.log("UIService.reloadAdminPage : Go to " + path);
                                     $location.path(path);

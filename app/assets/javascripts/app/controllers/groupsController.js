@@ -1,6 +1,6 @@
 function GroupsCtrl($scope, GroupsService) {
 
-    $scope.ctrlPath = "groups";
+    $scope.adminPath = "groups";
 
 
     GroupsService.findAll().

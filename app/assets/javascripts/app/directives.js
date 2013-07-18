@@ -56,17 +56,33 @@ define(['angular'], function (angular) {
                   .directive('spGroups', function () {
                               return {
                                   restrict: 'E',
-                                  scope: {
-                                      groups: '='
-                                  },
+                                  scope: true,
+                                  // Check if it's an admin path
                                   controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, GroupsService, UIService) {
-                                      $scope.ctrlPath = $scope.$parent.ctrlPath;
-                                      GroupsService.findAllAndSelect($scope, $routeParams.group);
+                                      if($scope.$parent.adminPath) {
+                                          $scope.adminPath = $scope.$parent.adminPath;
+                                          GroupsService.findAllAndSelect($scope, $routeParams.group);
 
-                                      $scope.changeGroup = function () {
-                                          UIService.reloadAdminPage($scope);
-                                      };
+                                          $scope.changeGroup = function () {
+                                              UIService.reloadAdminPage($scope);
+                                          };
+                                      }
+                                      //Check if it's a search path
+                                      if($scope.$parent.ctrlPath){
 
+
+                                          $scope.showSoapactions = true; // Use in order to produce right URL into search forms
+                                          $scope.mindate = "yesterday"
+                                          $scope.maxdate = "today"
+
+
+                                          $scope.ctrlPath = $scope.$parent.ctrlPath;
+                                          GroupsService.findAllAndSelect($scope, $routeParams.group);
+
+                                          $scope.changeGroup = function () {
+                                              UIService.reloadPage($scope);
+                                          };
+                                      }
 
                                   },
                                   templateUrl: 'partials/common/group.html',

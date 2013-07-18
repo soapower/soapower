@@ -1,6 +1,6 @@
 function ServicesCtrl($scope, $routeParams, ServicesService) {
 
-    $scope.ctrlPath = "services";
+    $scope.adminPath = "services";
 
     console.log("fetch services");
 

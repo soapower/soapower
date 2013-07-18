@@ -62,9 +62,9 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
                 controller: LiveCtrl
             })
             .when('/search', {
-                redirectTo: '/search/all/all/yesterday/today/all'
+                redirectTo: '/search/all/all/all/yesterday/today/all'
             })
-            .when('/search/:environment/:soapaction/:mindate/:maxdate/:code', {
+            .when('/search/:group/:environment/:soapaction/:mindate/:maxdate/:code', {
                 templateUrl: 'partials/search/search.html',
                 controller: SearchCtrl
             })
