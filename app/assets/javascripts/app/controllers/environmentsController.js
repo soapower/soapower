@@ -10,6 +10,8 @@ function EnvironmentsCtrl($scope, EnvironmentsService) {
         });
 
 
+
+
     $scope.filterOptions = {
         filterText: "",
         useExternalFilter: false
