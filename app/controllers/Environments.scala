@@ -50,25 +50,6 @@ object Environments extends Controller {
   }
 
 
-  // use by Json : from scala to json
-  private implicit object EnvironmentsWithGroupOptionsDataWrites extends Writes[(Environment, Group)] {
-    def writes(data: (Environment, Group)): JsValue = {
-      JsObject(
-        List(
-          "id" -> JsString(data._1.id.toString),
-          "name" -> JsString(data._1.name),
-          "groupName" -> JsString(data._2.name),
-          "hourRecordXmlDataMin" -> JsString(data._1.hourRecordXmlDataMin.toString),
-          "hourRecordXmlDataMax" -> JsString(data._1.hourRecordXmlDataMax.toString),
-          "nbDayKeepXmlData" -> JsString(data._1.nbDayKeepXmlData.toString),
-          "nbDayKeepAllData" -> JsString(data._1.nbDayKeepAllData.toString),
-          "recordXmlData" -> JsString(data._1.recordXmlData.toString),
-          "recordData" -> JsString(data._1.recordData.toString)
-        ))
-    }
-  }
-
-
   /**
    * List to Datable table.
    *
@@ -76,7 +57,7 @@ object Environments extends Controller {
    */
   def listDatatable = Action {
     implicit request =>
-      val data = Environment.listWithGroup
+      val data = Environment.list
       Ok(Json.toJson(Map(
         "iTotalRecords" -> Json.toJson(data.size),
         "iTotalDisplayRecords" -> Json.toJson(data.size),

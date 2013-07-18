@@ -8,51 +8,71 @@ define(['angular'], function (angular) {
 
     angular.module('spApp.directives', []).
         directive('spCriterias', function () {
-            return {
-                restrict: 'E',
-                scope: {
-                    soapactions: '='
-                },
-                controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, SoapactionsService, CodesService, UIService) {
+                      return {
+                          restrict: 'E',
+                          scope: {
+                              soapactions: '='
+                          },
+                          controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, SoapactionsService, CodesService, UIService) {
 
-                    EnvironmentsService.findAllAndSelect($scope, $routeParams.environment);
-                    CodesService.findAllAndSelect($scope, $routeParams);
-                    $scope.ctrlPath = $scope.$parent.ctrlPath;
+                              EnvironmentsService.findAllAndSelect($scope, $routeParams.environment);
+                              CodesService.findAllAndSelect($scope, $routeParams);
+                              $scope.ctrlPath = $scope.$parent.ctrlPath;
 
-                    $scope.showSoapactions = false;
-                    if ($attrs.soapactions == "yes") {
-                        $scope.showSoapactions = true;
-                        SoapactionsService.findAllAndSelect($scope, $routeParams);
-                    }
+                              $scope.showSoapactions = false;
+                              if ($attrs.soapactions == "yes") {
+                                  $scope.showSoapactions = true;
+                                  SoapactionsService.findAllAndSelect($scope, $routeParams);
+                              }
 
-                    $scope.mindate = UIService.getDateFromParam($routeParams.mindate);
-                    $scope.maxdate = UIService.getDateFromParam($routeParams.maxdate);
+                              $scope.mindate = UIService.getDateFromParam($routeParams.mindate);
+                              $scope.maxdate = UIService.getDateFromParam($routeParams.maxdate);
 
-                    $scope.changeCriteria = function () {
-                        UIService.reloadPage($scope);
-                    };
+                              $scope.changeCriteria = function () {
+                                  UIService.reloadPage($scope);
+                              };
 
-                    $scope.$watch('mindate', function () {
-                        if ($scope.mindate) {
-                            $scope.showmindate = false;
-                            if ($scope.mindate > $scope.maxdate) {
-                                $scope.maxdate = $scope.mindate;
-                            }
-                        }
-                    });
-                    $scope.$watch('maxdate', function () {
-                        if ($scope.maxdate) {
-                            $scope.showmaxdate = false;
-                            if ($scope.mindate > $scope.maxdate) {
-                                $scope.maxdate = $scope.mindate;
-                            }
-                        }
-                    });
-                },
-                templateUrl: 'partials/common/criterias.html',
-                replace: true
-            }
-        })
+                              $scope.$watch('mindate', function () {
+                                  if ($scope.mindate) {
+                                      $scope.showmindate = false;
+                                      if ($scope.mindate > $scope.maxdate) {
+                                          $scope.maxdate = $scope.mindate;
+                                      }
+                                  }
+                              });
+                              $scope.$watch('maxdate', function () {
+                                  if ($scope.maxdate) {
+                                      $scope.showmaxdate = false;
+                                      if ($scope.mindate > $scope.maxdate) {
+                                          $scope.maxdate = $scope.mindate;
+                                      }
+                                  }
+                              });
+                          },
+                          templateUrl: 'partials/common/criterias.html',
+                          replace: true
+                      }
+                  })
+                  .directive('spGroups', function () {
+                              return {
+                                  restrict: 'E',
+                                  scope: {
+                                      groups: '='
+                                  },
+                                  controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, GroupsService, UIService) {
+
+                                      GroupsService.findAllAndSelect($scope, $routeParams.environment);
+
+                                      $scope.changeCriteria = function () {
+                                          UIService.reloadPage($scope);
+                                      };
+
+
+                                  },
+                                  templateUrl: 'partials/common/group.html',
+                                  replace: true
+                              }
+                          })
         .directive('spGraphtimes', function () {
             return {
                 restrict: 'E',
