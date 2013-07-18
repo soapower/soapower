@@ -98,9 +98,8 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
             .when('/groups/new', {controller: GroupNewCtrl, templateUrl: 'partials/groups/detail.html'})
             .when('/groups/:groupId', {controller: GroupEditCtrl, templateUrl: 'partials/groups/detail.html'})
 
-            .when('/soapactions', { redirectTo: '/soapactions/all'})
             .when('/soapactions/edit/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
-            .when('/soapactions/:group', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
+            .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
 
 
             .when('/stats', {
