@@ -25,7 +25,7 @@ POST    /soap/:environment/*localTarget                  controllers.Soap.index(
 GET     /replay/:id                                      controllers.Soap.replay(id:Long)
 
 # Services list
-GET     /services/listDatatable/:group    controllers.Services.listDatatable(group:String)
+GET     /services/:group/listDatatable    controllers.Services.listDatatable(group:String)
 
 # Add service
 POST    /services/:id                  controllers.Services.save(id:Long)
@@ -40,7 +40,7 @@ DELETE    /services/:id            controllers.Services.delete(id:Long)
 GET     /environments/options          controllers.Environments.options
 
 # Environments list
-GET     /environments/listDatatable/:group    controllers.Environments.listDatatable(group:String)
+GET     /environments/:group/listDatatable    controllers.Environments.listDatatable(group:String)
 
 # Add service
 POST    /environments/:id              controllers.Environments.save(id:Long)

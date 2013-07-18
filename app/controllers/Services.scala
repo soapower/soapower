@@ -34,7 +34,9 @@ object Services extends Controller {
     implicit request =>
 
      var data : List[(Service, Environment)] = null.asInstanceOf[ List[(Service, Environment)] ]
+     println(group)
       if(group != "all"){
+
         data = Service.list(group)
       } else{
         data = Service.list

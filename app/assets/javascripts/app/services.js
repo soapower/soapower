@@ -118,15 +118,15 @@ define(['angular'], function (angular) {
         })
         .factory("ServicesService", function ($http) {
             return {
-                findAll: function () {
-                    return $http.get('/services/listDatatable');
+                findAll: function (group) {
+                    return $http.get('/services/'+group+'/listDatatable');
                 }
             }
         })
         .factory("EnvironmentsService", function ($http) {
             return {
                 findAll: function (group) {
-                    return $http.get('/environments/listDatatable/'+group);
+                    return $http.get('/environments/'+group+'/listDatatable');
                 },
                 findAllAndSelect: function ($scope, environmentName, myService) {
                     $http.get('/environments/options')

@@ -284,8 +284,8 @@ object Service {
           select * from service, environment, environment_group
           where service.environment_id = environment.id
           and environment.groupId = environment_group.id
-          and environment.name = {group}
-          order by name asc, description asc
+          and environment_group.name = {group}
+          order by environment.name asc, description asc
           """).on('group -> group).as(Service.withEnvironment *)
         services
     }

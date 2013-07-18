@@ -1,10 +1,10 @@
-function ServicesCtrl($scope, ServicesService) {
+function ServicesCtrl($scope, $routeParams, ServicesService) {
 
     $scope.ctrlPath = "services";
 
     console.log("fetch services");
 
-    ServicesService.findAll().
+    ServicesService.findAll($routeParams.group).
         success(function (services) {
             $scope.services = services.data;
         })
