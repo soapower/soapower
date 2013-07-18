@@ -1,5 +1,7 @@
 function ServicesCtrl($scope, ServicesService) {
 
+    $scope.ctrlPath = "services";
+
     console.log("fetch services");
 
     ServicesService.findAll().

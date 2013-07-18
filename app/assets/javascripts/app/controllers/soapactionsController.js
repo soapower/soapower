@@ -1,6 +1,6 @@
 function SoapActionsCtrl($scope, SoapactionsService) {
 
-
+    $scope.ctrlPath = "soapactions";
     $scope.btnRegenerateDisabled = false;
     $scope.info = "";
 

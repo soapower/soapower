@@ -64,7 +64,7 @@ define(['angular'], function (angular) {
                                       GroupsService.findAllAndSelect($scope, $routeParams.group);
 
                                       $scope.changeGroup = function () {
-                                          UIService.reloadPage($scope);
+                                          UIService.reloadAdminPage($scope);
                                       };
 
 

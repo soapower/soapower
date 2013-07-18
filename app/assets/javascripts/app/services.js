@@ -126,7 +126,6 @@ define(['angular'], function (angular) {
         .factory("EnvironmentsService", function ($http) {
             return {
                 findAll: function (group) {
-                    console.log(group)
                     return $http.get('/environments/listDatatable/'+group);
                 },
                 findAllAndSelect: function ($scope, environmentName, myService) {
@@ -204,7 +203,7 @@ define(['angular'], function (angular) {
                     var group ="all", environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
 
                     if ($scope.environment) environment = $scope.environment.name;
-                    
+
                     if ($scope.group) group = $scope.group.name;
 
                     if ($scope.showSoapactions) {
@@ -228,6 +227,13 @@ define(['angular'], function (angular) {
                     console.log("UIService.reloadPage : Go to " + path);
                     $location.path(path);
                 },
+                 reloadAdminPage: function ($scope) {
+                                    var group ="all";
+                                    var path = $scope.ctrlPath + '/' + group + "/";
+
+                                    console.log("UIService.reloadAdminPage : Go to " + path);
+                                    $location.path(path);
+                 },
                 getDateFromParam: function (indate) {
                     if (indate && indate != "all") {
                         if (indate == "yesterday" || indate == "today") {

@@ -260,33 +260,9 @@ object Environment {
   }
 
 
-  /**
-   * Parse a (Environment,Group) from a ResultSet
-   */
-  val withGroup = Environment.simple ~ Group.simple map {
-    case environment ~ group => (environment, group)
-  }
 
 
-  /**
-   * Return a list of (Environment, Group).
-   *
-   */
-  def listWithGroup: List[(Environment, Group)] = {
 
-    DB.withConnection {
-      implicit connection =>
-
-        val environments = SQL(
-          """
-          select * from environment
-          left join environment_group on environment.groupId = environment_group.id
-          order by environment.groupId asc, environment.name
-          """).as(Environment.withGroup *)
-
-        environments
-    }
-  }
 
   /**
    * Return a list of all Environment which are contained into the given group

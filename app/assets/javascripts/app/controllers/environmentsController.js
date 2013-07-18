@@ -1,5 +1,7 @@
 function EnvironmentsCtrl($scope, $routeParams, EnvironmentsService) {
 
+     $scope.ctrlPath = "environments";
+
     // Looking for environments with their groups and adding all informations to $scope.environments var
     EnvironmentsService.findAll($routeParams.group).
         success(function (environments) {

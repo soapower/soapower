@@ -1,5 +1,8 @@
 function GroupsCtrl($scope, GroupsService) {
 
+    $scope.ctrlPath = "groups";
+
+
     GroupsService.findAll().
         success(function (groups) {
             $scope.groups = groups.data;
