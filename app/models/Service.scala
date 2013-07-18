@@ -272,6 +272,25 @@ object Service {
     }
   }
 
+
+  /**
+   * Return a list of Service which are linked to an environment which group is the given group
+   */
+  def list(group : String): List[(Service, Environment)] = {
+    DB.withConnection {
+      implicit connection =>
+        val services = SQL(
+          """
+          select * from service, environment, environment_group
+          where service.environment_id = environment.id
+          and environment.groupId = environment_group.id
+          and environment.name = {group}
+          order by name asc, description asc
+          """).on('group -> group).as(Service.withEnvironment *)
+        services
+    }
+  }
+
   /**
    * Upload a csvLine => insert service & environment.
    *

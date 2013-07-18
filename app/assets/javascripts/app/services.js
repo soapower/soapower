@@ -229,7 +229,9 @@ define(['angular'], function (angular) {
                 },
                  reloadAdminPage: function ($scope) {
                                     var group ="all";
-                                    var path = $scope.ctrlPath + '/' + group + "/";
+                                    if ($scope.group) group = $scope.group.name;
+
+                                    var path = $scope.ctrlPath + '/' + group ;
 
                                     console.log("UIService.reloadAdminPage : Go to " + path);
                                     $location.path(path);

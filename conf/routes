@@ -25,7 +25,7 @@ POST    /soap/:environment/*localTarget                  controllers.Soap.index(
 GET     /replay/:id                                      controllers.Soap.replay(id:Long)
 
 # Services list
-GET     /services/listDatatable    controllers.Services.listDatatable
+GET     /services/listDatatable/:group    controllers.Services.listDatatable(group:String)
 
 # Add service
 POST    /services/:id                  controllers.Services.save(id:Long)

@@ -60,7 +60,7 @@ define(['angular'], function (angular) {
                                       groups: '='
                                   },
                                   controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, GroupsService, UIService) {
-
+                                      $scope.ctrlPath = $scope.$parent.ctrlPath;
                                       GroupsService.findAllAndSelect($scope, $routeParams.group);
 
                                       $scope.changeGroup = function () {

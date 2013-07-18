@@ -30,9 +30,15 @@ object Services extends Controller {
    *
    * @return JSON
    */
-  def listDatatable = Action {
+  def listDatatable(group : String) = Action {
     implicit request =>
-      val data = Service.list
+
+     var data : List[(Service, Environment)] = null.asInstanceOf[ List[(Service, Environment)] ]
+      if(group != "all"){
+        data = Service.list(group)
+      } else{
+        data = Service.list
+      }
       Ok(Json.toJson(Map(
         "iTotalRecords" -> Json.toJson(data.size),
         "iTotalDisplayRecords" -> Json.toJson(data.size),
