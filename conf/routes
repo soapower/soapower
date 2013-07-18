@@ -40,7 +40,7 @@ DELETE    /services/:id            controllers.Services.delete(id:Long)
 GET     /environments/options          controllers.Environments.options
 
 # Environments list
-GET     /environments/listDatatable    controllers.Environments.listDatatable
+GET     /environments/listDatatable/:group    controllers.Environments.listDatatable(group:String)
 
 # Add service
 POST    /environments/:id              controllers.Environments.save(id:Long)

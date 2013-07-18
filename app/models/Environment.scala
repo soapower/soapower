@@ -289,10 +289,31 @@ object Environment {
   }
 
   /**
-   * Return a list of all Environment.
+   * Return a list of all Environment which are contained into the given group
    *
    */
-  def list: List[Environment] = {
+  def list(group : String) : List[Environment] = {
+
+    DB.withConnection {
+      implicit connection =>
+
+        val environments = SQL(
+          """
+          select * from environment, environment_group
+          where environment.groupId = environment_group.id
+          and environment_group.name = {group}
+          order by environment.groupId asc, environment.name
+          """).on('group -> group).as(Environment.simple *)
+
+        environments
+    }
+  }
+
+  /**
+   * Return a list of all Environment
+   *
+   */
+  def list() : List[Environment] = {
 
     DB.withConnection {
       implicit connection =>
@@ -300,8 +321,7 @@ object Environment {
         val environments = SQL(
           """
           select * from environment
-          left join environment_group on environment.groupId = environment_group.id
-          order by environment.groupId asc, environment.name
+          order by environment.name
           """).as(Environment.simple *)
 
         environments

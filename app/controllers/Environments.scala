@@ -55,9 +55,17 @@ object Environments extends Controller {
    *
    * @return JSON
    */
-  def listDatatable = Action {
+  def listDatatable(group : String) = Action {
     implicit request =>
-      val data = Environment.list
+
+      var data : List[Environment]  = null.asInstanceOf[List[Environment]]
+
+      if(group != "all"){
+        data = Environment.list(group)
+      } else{
+        data = Environment.list
+      }
+
       Ok(Json.toJson(Map(
         "iTotalRecords" -> Json.toJson(data.size),
         "iTotalDisplayRecords" -> Json.toJson(data.size),
@@ -65,6 +73,8 @@ object Environments extends Controller {
           Json.toJson(data)
         }
       ))).as(JSON)
+
+
   }
 
 

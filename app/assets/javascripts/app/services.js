@@ -125,8 +125,9 @@ define(['angular'], function (angular) {
         })
         .factory("EnvironmentsService", function ($http) {
             return {
-                findAll: function () {
-                    return $http.get('/environments/listDatatable');
+                findAll: function (group) {
+                    console.log(group)
+                    return $http.get('/environments/listDatatable/'+group);
                 },
                 findAllAndSelect: function ($scope, environmentName, myService) {
                     $http.get('/environments/options')
@@ -200,12 +201,12 @@ define(['angular'], function (angular) {
         .factory("UIService",function ($location, $filter) {
             return {
                 reloadPage: function ($scope) {
-                    var environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
+                    var group ="all", environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
 
                     if ($scope.environment) environment = $scope.environment.name;
                     
-                    
-                    
+                    if ($scope.group) group = $scope.group.name;
+
                     if ($scope.showSoapactions) {
                         if ($scope.soapaction) soapaction = $scope.soapaction.name;
                     }

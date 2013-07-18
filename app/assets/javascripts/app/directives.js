@@ -61,9 +61,9 @@ define(['angular'], function (angular) {
                                   },
                                   controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, GroupsService, UIService) {
 
-                                      GroupsService.findAllAndSelect($scope, $routeParams.environment);
+                                      GroupsService.findAllAndSelect($scope, $routeParams.group);
 
-                                      $scope.changeCriteria = function () {
+                                      $scope.changeGroup = function () {
                                           UIService.reloadPage($scope);
                                       };
 
