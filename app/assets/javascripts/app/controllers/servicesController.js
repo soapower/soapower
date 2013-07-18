@@ -30,7 +30,7 @@ function ServicesCtrl($scope, ServicesService) {
             {field: 'timeoutInMs', displayName: 'Timeout in ms'},
             {field: 'recordXmlData', displayName: 'Record Xml Data'},
             {field: 'recordData', displayName: 'Record Data'},
-            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/services/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
+            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/services/edit/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
         ]
     };
 }

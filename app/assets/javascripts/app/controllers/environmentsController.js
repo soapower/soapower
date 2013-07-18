@@ -32,7 +32,7 @@ function EnvironmentsCtrl($scope, $routeParams, EnvironmentsService) {
             {field: 'nbDayKeepAllData', displayName: 'All Data : nb days keep'},
             {field: 'recordXmlData', displayName: 'Record Xml Data'},
             {field: 'recordData', displayName: 'Record Data'},
-            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/environments/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
+            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/environments/edit/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
         ]
     };
 }

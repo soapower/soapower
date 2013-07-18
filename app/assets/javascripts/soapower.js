@@ -82,18 +82,27 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
                 templateUrl: 'partials/admin/admin.html',
                 controller: AdminCtrl
             })
-            .when('/services', { controller: ServicesCtrl, templateUrl: 'partials/services/list.html'})
+
+            .when('/services', {  redirectTo: '/services/all'})
             .when('/services/new', {controller: ServiceNewCtrl, templateUrl: 'partials/services/detail.html'})
-            .when('/services/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'partials/services/detail.html'})
+            .when('/services/edit/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'partials/services/detail.html'})
+            .when('/services/:group', { controller: ServicesCtrl, templateUrl: 'partials/services/list.html'})
+
             .when('/environments', {  redirectTo: '/environments/all'})
             .when('/environments/new', {controller: EnvironmentNewCtrl, templateUrl: 'partials/environments/detail.html'})
+            .when('/environments/edit/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'partials/environments/detail.html'})
             .when('/environments/:group', { controller: EnvironmentsCtrl, templateUrl: 'partials/environments/list.html'})
-            .when('/environments/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'partials/environments/detail.html'})
+
+
             .when('/groups', { controller: GroupsCtrl, templateUrl: 'partials/groups/list.html'})
             .when('/groups/new', {controller: GroupNewCtrl, templateUrl: 'partials/groups/detail.html'})
             .when('/groups/:groupId', {controller: GroupEditCtrl, templateUrl: 'partials/groups/detail.html'})
-            .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
-            .when('/soapactions/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
+
+            .when('/soapactions', { redirectTo: '/soapactions/all'})
+            .when('/soapactions/edit/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
+            .when('/soapactions/:group', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
+
+
             .when('/stats', {
                 templateUrl: 'partials/stats/stats.html',
                 controller: StatsCtrl
