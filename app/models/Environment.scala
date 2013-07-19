@@ -183,11 +183,24 @@ object Environment {
    * Retrieve an Environment from name.
    */
   def findByName(name: String): Option[Environment] = DB.withConnection {
+      implicit connection =>
+      // FIXME : add key to clearCache
+      //Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
+        SQL("select * from environment where name = {name}").on(
+          'name -> name).as(Environment.simple.singleOpt)
+      //}
+    }
+
+
+  /**
+   * Retrieve an Environment from name.
+   */
+  def findByGroupAndByName(group :String, name: String): Option[Environment] = DB.withConnection {
     implicit connection =>
     // FIXME : add key to clearCache
     //Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
-      SQL("select * from environment where name = {name}").on(
-        'name -> name).as(Environment.simple.singleOpt)
+      SQL("select * from environment,environment_group where environment.groupId = environment_group.id and environment.name = {name} and environment_group.name = {group}").on(
+        'name -> name, 'group -> group).as(Environment.simple.singleOpt)
     //}
   }
 
