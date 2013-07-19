@@ -45,7 +45,6 @@ object Environments extends Controller {
    */
   def options(group : String) = Action {
     implicit request =>
-      println("Options requested for environment :" + group)
       var data :  Seq[(String, String)] = null.asInstanceOf[Seq[(String, String)]]
       if(group == "all"){
         data=Environment.optionsAll

@@ -37,7 +37,7 @@ function EnvironmentsCtrl($scope, $routeParams, EnvironmentsService) {
     };
 }
 
-function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UIService) {
+function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UIService, GroupsService) {
 
     var self = this;
 
@@ -46,6 +46,9 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UISer
         $scope.environment = new Environment(self.original);
         $scope.environment.recordXmlData = UIService.fixBooleanReverse($scope.environment.recordXmlData);
         $scope.environment.recordData = UIService.fixBooleanReverse($scope.environment.recordData);
+
+        GroupsService.findAllAndSelect($scope, null, $scope.service);
+
     });
 
     $scope.isClean = function () {
@@ -65,9 +68,9 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UISer
     };
 }
 
-function EnvironmentNewCtrl($scope, $location, Environment, EnvironmentsEnvironment) {
+function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
 
-    EnvironmentsEnvironment.findAllAndSelect($scope);
+    GroupsService.findAllAndSelect($scope);
 
     $scope.environment = new Environment({id:'-1'});
     $scope.environment.recordXmlData = "yes";

@@ -64,6 +64,7 @@ object Services extends Controller {
    * Insert or update a service.
    */
   def save(id: Long) = Action(parse.json) { request =>
+    println(request.body)
     request.body.validate(serviceFormat).map { service =>
       if (id < 0) Service.insert(service)
       else Service.update(service)

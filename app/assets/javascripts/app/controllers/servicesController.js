@@ -2,7 +2,7 @@ function ServicesCtrl($scope, $routeParams, ServicesService) {
 
     $scope.adminPath = "services";
 
-    console.log("fetch services");
+    console.log("fetch services for group : " + $routeParams.group);
 
     ServicesService.findAll($routeParams.group).
         success(function (services) {
@@ -30,7 +30,7 @@ function ServicesCtrl($scope, $routeParams, ServicesService) {
             {field: 'timeoutInMs', displayName: 'Timeout in ms'},
             {field: 'recordXmlData', displayName: 'Record Xml Data'},
             {field: 'recordData', displayName: 'Record Data'},
-            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/services/edit/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
+            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/services/edit/'+ $routeParams.group+'/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
         ]
     };
 }
@@ -48,7 +48,7 @@ function ServiceEditCtrl($scope, $routeParams, $location, Service, EnvironmentsS
         $scope.service.recordXmlData = UIService.fixBooleanReverse($scope.service.recordXmlData);
         $scope.service.recordData = UIService.fixBooleanReverse($scope.service.recordData);
 
-        EnvironmentsService.findAllAndSelect($scope, null, $scope.service);
+        EnvironmentsService.findAllAndSelect($scope, null, $routeParams.groupId, $scope.service);
 
     });
 
