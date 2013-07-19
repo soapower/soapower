@@ -133,7 +133,14 @@ define(['angular'], function (angular) {
                     $http.get('/environments/'+environmentGroup+'/options')
                         .success(function (environments) {
                             $scope.environments = environments;
-                            $scope.environments.unshift({id: "all", name: "all"});
+                             if(environments.length==0){
+                                console.log("No environments have been founded")
+                                $scope.environments.unshift({id: "none", name: "none"});
+                            }else{
+                                 $scope.environments.unshift({id: "all", name: "all"});
+                            }
+
+
                             if (environmentName != null || myService != null) {
                                 angular.forEach($scope.environments, function (value, key) {
                                     if (environmentName != null && value.name == environmentName) {
