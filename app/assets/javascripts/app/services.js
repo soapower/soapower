@@ -165,18 +165,18 @@ define(['angular'], function (angular) {
                 findAll: function () {
                     return $http.get('/groups/listDatatable');
                 },
-                findAllAndSelect: function ($scope, groupName, myService) {
+                findAllAndSelect: function ($scope, groupName, myEnvironment) {
                     $http.get('/groups/options')
                         .success(function (groups) {
                             $scope.groups = groups;
                             $scope.groups.unshift({id: "all", name: "all"});
-                            if (groupName != null || myService != null) {
+                            if (groupName != null || myEnvironment != null) {
                                 angular.forEach($scope.groups, function (value, key) {
                                     if (groupName != null && value.name == groupName) {
                                         $scope.group = value;
                                     }
-                                    if (myService != null && value.groupId == myService.groupId) {
-                                        myService.group = value;
+                                    if (myEnvironment != null && value.id == myEnvironment.groupId) {
+                                        myEnvironment.group = value;
                                     }
                                 });
                             }

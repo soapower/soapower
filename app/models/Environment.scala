@@ -61,7 +61,7 @@ object Environment {
   val csv = {
     get[Pk[Long]]("environment.id") ~
       get[String]("environment.name") ~
-      get[String]("environment_group.groupName") ~
+      get[String]("environment_group.name") ~
       get[Int]("environment.hourRecordXmlDataMin") ~
       get[Int]("environment.hourRecordXmlDataMax") ~
       get[Int]("environment.nbDayKeepXmlData") ~
