@@ -14,8 +14,8 @@ define(['angular'], function (angular) {
                               soapactions: '='
                           },
                           controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, SoapactionsService, CodesService, UIService) {
-
-                              EnvironmentsService.findAllAndSelect($scope, $routeParams.environment);
+                              console.log("Directive : " + $routeParams.group)
+                              EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.group);
                               CodesService.findAllAndSelect($scope, $routeParams);
                               $scope.ctrlPath = $scope.$parent.ctrlPath;
 
@@ -29,7 +29,7 @@ define(['angular'], function (angular) {
                               $scope.maxdate = UIService.getDateFromParam($routeParams.maxdate);
 
                               $scope.changeCriteria = function () {
-                                  UIService.reloadPage($scope);
+                                  UIService.reloadPage($scope, $routeParams);
                               };
 
                               $scope.$watch('mindate', function () {
@@ -80,7 +80,7 @@ define(['angular'], function (angular) {
                                           GroupsService.findAllAndSelect($scope, $routeParams.group);
 
                                           $scope.changeGroup = function () {
-                                              UIService.reloadPage($scope);
+                                              UIService.reloadPage($scope, $routeParams);
                                           };
                                       }
 

@@ -37,7 +37,7 @@ GET     /services/:id              controllers.Services.edit(id:Long)
 DELETE    /services/:id            controllers.Services.delete(id:Long)
 
 # Environments list
-GET     /environments/options          controllers.Environments.options
+GET     /environments/:group/options          controllers.Environments.options(group:String)
 
 # Environments list
 GET     /environments/:group/listDatatable    controllers.Environments.listDatatable(group:String)

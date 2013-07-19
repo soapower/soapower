@@ -110,6 +110,21 @@ object Environment {
 
 
   /**
+   * Construct the Map[String,String] which are contained to the given group, needed to fill a select options set
+   */
+  def optionsAll(group : String): Seq[(String, String)] = DB.withConnection {
+    implicit connection =>
+      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions+group) {
+        Logger.debug("Environments not found in cache: loading from db")
+        SQL("select * from environment, environment_group where environment.groupId = environment_group.id and environment_group.name = {group} order by environment.name ")
+          .on('group -> group)
+          .as(Environment.simple *)
+          .map(c => c.id.toString -> c.name)
+      }
+      envs
+  }
+
+  /**
    * Sort the given env option seq
    */
   private def sortEnvs(envs: Seq[(String, String)]): Seq[(String, String)] = {

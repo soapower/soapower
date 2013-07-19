@@ -128,8 +128,9 @@ define(['angular'], function (angular) {
                 findAll: function (group) {
                     return $http.get('/environments/'+group+'/listDatatable');
                 },
-                findAllAndSelect: function ($scope, environmentName, myService) {
-                    $http.get('/environments/options')
+                findAllAndSelect: function ($scope, environmentName, environmentGroup, myService) {
+                    console.log("Selected environment group : " + environmentGroup)
+                    $http.get('/environments/'+environmentGroup+'/options')
                         .success(function (environments) {
                             $scope.environments = environments;
                             $scope.environments.unshift({id: "all", name: "all"});
@@ -199,12 +200,16 @@ define(['angular'], function (angular) {
         })
         .factory("UIService",function ($location, $filter) {
             return {
-                reloadPage: function ($scope) {
+                reloadPage: function ($scope, $routeParams) {
                     var group ="all", environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
 
                     if ($scope.environment) environment = $scope.environment.name;
 
+                    if ($routeParams.group) group = $routeParams.group;
+
                     if ($scope.group) group = $scope.group.name;
+
+
 
                     if ($scope.showSoapactions) {
                         if ($scope.soapaction) soapaction = $scope.soapaction.name;

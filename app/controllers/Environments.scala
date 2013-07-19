@@ -43,9 +43,15 @@ object Environments extends Controller {
    * Return all Environments in Json Format
    * @return JSON
    */
-  def options = Action {
+  def options(group : String) = Action {
     implicit request =>
-      val data = Environment.optionsAll
+      println("Options requested for environment :" + group)
+      var data :  Seq[(String, String)] = null.asInstanceOf[Seq[(String, String)]]
+      if(group == "all"){
+        data=Environment.optionsAll
+      }else{
+        data= Environment.optionsAll(group)
+      }
       Ok(Json.toJson(data)).as(JSON)
   }
 
