@@ -31,6 +31,7 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
     'app/controllers/adminController',
     'app/controllers/analysisController',
     'app/controllers/environmentsController',
+    'app/controllers/groupsController',
     'app/controllers/liveController',
     'app/controllers/monitorController',
     'app/controllers/searchController',
@@ -61,16 +62,16 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
                 controller: LiveCtrl
             })
             .when('/search', {
-                redirectTo: '/search/all/all/yesterday/today/all'
+                redirectTo: '/search/all/all/all/yesterday/today/all'
             })
-            .when('/search/:environment/:soapaction/:mindate/:maxdate/:code', {
+            .when('/search/:group/:environment/:soapaction/:mindate/:maxdate/:code', {
                 templateUrl: 'partials/search/search.html',
                 controller: SearchCtrl
             })
             .when('/analysis', {
-                redirectTo: '/analysis/all/all/yesterday/today/all'
+                redirectTo: '/analysis/all/all/all/yesterday/today/all'
             })
-            .when('/analysis/:environment/:soapaction/:mindate/:maxdate/:code', {
+            .when('/analysis/:group/:environment/:soapaction/:mindate/:maxdate/:code', {
                 templateUrl: 'partials/analysis/analysis.html', controller: AnalysisCtrl
             })
             .when('/monitor', {
@@ -81,19 +82,30 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
                 templateUrl: 'partials/admin/admin.html',
                 controller: AdminCtrl
             })
-            .when('/services', { controller: ServicesCtrl, templateUrl: 'partials/services/list.html'})
-            .when('/services/new', {controller: ServiceNewCtrl, templateUrl: 'partials/services/detail.html'})
-            .when('/services/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'partials/services/detail.html'})
-            .when('/environments', { controller: EnvironmentsCtrl, templateUrl: 'partials/environments/list.html'})
+
+            .when('/services', {  redirectTo: '/services/all'})
+            .when('/services/new/:group', {controller: ServiceNewCtrl, templateUrl: 'partials/services/detail.html'})
+            .when('/services/edit/:group/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'partials/services/detail.html'})
+            .when('/services/:group', { controller: ServicesCtrl, templateUrl: 'partials/services/list.html'})
+
+            .when('/environments', {  redirectTo: '/environments/all'})
             .when('/environments/new', {controller: EnvironmentNewCtrl, templateUrl: 'partials/environments/detail.html'})
-            .when('/environments/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'partials/environments/detail.html'})
+            .when('/environments/edit/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'partials/environments/detail.html'})
+            .when('/environments/:group', { controller: EnvironmentsCtrl, templateUrl: 'partials/environments/list.html'})
+
+
+            .when('/groups', { controller: GroupsCtrl, templateUrl: 'partials/groups/list.html'})
+            .when('/groups/new', {controller: GroupNewCtrl, templateUrl: 'partials/groups/detail.html'})
+            .when('/groups/:groupId', {controller: GroupEditCtrl, templateUrl: 'partials/groups/detail.html'})
+
+            .when('/soapactions/edit/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
             .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
-            .when('/soapactions/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
+
+
             .when('/stats', {
-                templateUrl: 'partials/stats/stats.html',
-                controller: StatsCtrl
+                redirectTo: '/stats/all/all/yesterday/today/all'
             })
-            .when('/stats/:environment/:mindate/:maxdate/:code', {
+            .when('/stats/:group/:environment/:mindate/:maxdate/:code', {
                 templateUrl: 'partials/stats/stats.html',
                 controller: StatsCtrl
             })

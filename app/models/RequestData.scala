@@ -571,12 +571,12 @@ object RequestData {
     var environment = ""
 
     // search by name
-    if (environmentIn != "all" && Environment.options.exists(t => t._2 == environmentIn))
-      environment = "and request_data.environmentId = " + Environment.options.find(t => t._2 == environmentIn).get._1
+    if (environmentIn != "all" && Environment.optionsAll.exists(t => t._2 == environmentIn))
+      environment = "and request_data.environmentId = " + Environment.optionsAll.find(t => t._2 == environmentIn).get._1
 
     // search by id
-    if (environment == "" && Environment.options.exists(t => t._1 == environmentIn))
-      environment = "and request_data.environmentId = " + Environment.options.find(t => t._1 == environmentIn).get._1
+    if (environment == "" && Environment.optionsAll.exists(t => t._1 == environmentIn))
+      environment = "and request_data.environmentId = " + Environment.optionsAll.find(t => t._1 == environmentIn).get._1
 
     environment
   }
@@ -607,7 +607,7 @@ object RequestData {
           "id" -> JsString(o.id.toString),
           "purged" -> JsString(o.purged.toString),
           "status" -> JsString(o.status.toString),
-          "env" -> JsString(Environment.options.find(t => t._1 == o.environmentId.toString).get._2),
+          "env" -> JsString(Environment.optionsAll.find(t => t._1 == o.environmentId.toString).get._2),
           "sender" -> JsString(o.sender),
           "soapAction" -> JsString(o.soapAction),
           "startTime" -> JsString(UtilDate.getDateFormatees(o.startTime)),

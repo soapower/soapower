@@ -1,8 +1,12 @@
-function ServicesCtrl($scope, ServicesService) {
+function ServicesCtrl($scope, $routeParams, ServicesService) {
 
-    console.log("fetch services");
+    $scope.adminPath = "services";
 
-    ServicesService.findAll().
+    $scope.groupName =  $routeParams.group;
+
+    console.log("fetch services for group : " + $routeParams.group);
+
+    ServicesService.findAll($routeParams.group).
         success(function (services) {
             $scope.services = services.data;
         })
@@ -28,7 +32,7 @@ function ServicesCtrl($scope, ServicesService) {
             {field: 'timeoutInMs', displayName: 'Timeout in ms'},
             {field: 'recordXmlData', displayName: 'Record Xml Data'},
             {field: 'recordData', displayName: 'Record Data'},
-            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/services/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
+            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/services/edit/'+ $routeParams.group+'/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
         ]
     };
 }
@@ -46,9 +50,10 @@ function ServiceEditCtrl($scope, $routeParams, $location, Service, EnvironmentsS
         $scope.service.recordXmlData = UIService.fixBooleanReverse($scope.service.recordXmlData);
         $scope.service.recordData = UIService.fixBooleanReverse($scope.service.recordData);
 
-        EnvironmentsService.findAllAndSelect($scope, null, $scope.service);
+        EnvironmentsService.findAllAndSelect($scope, null, $routeParams.group, $scope.service);
 
     });
+
 
     $scope.isClean = function () {
         return angular.equals(self.original, $scope.service);
@@ -67,9 +72,11 @@ function ServiceEditCtrl($scope, $routeParams, $location, Service, EnvironmentsS
     };
 }
 
-function ServiceNewCtrl($scope, $location, Service, EnvironmentsService) {
+function ServiceNewCtrl($scope, $location, $routeParams, Service, EnvironmentsService) {
 
-    EnvironmentsService.findAllAndSelect($scope);
+
+
+    EnvironmentsService.findAllAndSelect($scope, null, $routeParams.group);
 
     $scope.service = new Service({id:'-2'});
     $scope.service.recordXmlData = "yes";

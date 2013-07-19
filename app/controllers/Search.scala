@@ -14,12 +14,12 @@ case class Search(environmentId: Long)
 
 object Search extends Controller {
 
-  def listDatatable(environment: String, soapAction: String, minDate: String, maxDate: String, status: String, sSearch: String, iDisplayStart: Int, iDisplayLength: Int) = Action {
+  def listDatatable(group: String, environment: String, soapAction: String, minDate: String, maxDate: String, status: String, sSearch: String, iDisplayStart: Int, iDisplayLength: Int) = Action {
     val page: Page[(RequestData)] = RequestData.list(environment, soapAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (iDisplayStart-1), iDisplayLength, sSearch)
 
-    Logger.debug("iTotalRecords {}" + Json.toJson(iDisplayLength));
-    Logger.debug("iTotalDisplayRecords {}" + Json.toJson(page.total));
-    Logger.debug("data {}" + Json.toJson(page.items));
+    Logger.debug("iTotalRecords {}" + Json.toJson(iDisplayLength))
+    Logger.debug("iTotalDisplayRecords {}" + Json.toJson(page.total))
+    Logger.debug("data {}" + Json.toJson(page.items))
 
     Ok(Json.toJson(Map(
       "iTotalRecords" -> Json.toJson(iDisplayLength),

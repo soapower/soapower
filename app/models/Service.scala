@@ -51,7 +51,7 @@ object Service {
    * Csv format.
    */
   val csv = {
-    get[Long]("service.id") ~
+		  get[Long]("service.id") ~
       get[String]("service.description") ~
       get[String]("service.localTarget") ~
       get[String]("service.remoteTarget") ~
@@ -161,7 +161,7 @@ object Service {
               'environment_id -> service.environmentId).executeUpdate()
       }
 
-      val serviceKey = localTarget + Environment.options.find(t => t._1 == service.environmentId.toString).get._2
+      val serviceKey = localTarget + Environment.optionsAll.find(t => t._1 == service.environmentId.toString).get._2
       val inst = Cache.get(serviceKey)
       if (inst isDefined) {
         Logger.debug("Insert new service - Delete from cache key:" + serviceKey)
@@ -272,6 +272,25 @@ object Service {
     }
   }
 
+
+  /**
+   * Return a list of Service which are linked to an environment which group is the given group
+   */
+  def list(group : String): List[(Service, Environment)] = {
+    DB.withConnection {
+      implicit connection =>
+        val services = SQL(
+          """
+          select * from service, environment, environment_group
+          where service.environment_id = environment.id
+          and environment.groupId = environment_group.id
+          and environment_group.name = {group}
+          order by environment.name asc, description asc
+          """).on('group -> group).as(Service.withEnvironment *)
+        services
+    }
+  }
+
   /**
    * Upload a csvLine => insert service & environment.
    *
@@ -337,8 +356,12 @@ object Service {
 
     var environment = Environment.findByName(environmentName)
     if (environment == None) {
+      
       Logger.debug("Insert Environment " + environmentName)
+
+      // Insert a new group which is linked to the default group
       Environment.insert(new Environment(-1, environmentName))
+      
       environment = Environment.findByName(environmentName)
       if (environment.get == null) Logger.error("Environment insert failed : " + environmentName)
     } else {

@@ -7,6 +7,7 @@ object ApplicationBuild extends Build {
     val appName         = "soapower"
     val appVersion      = "1.0.6"
 
+
     val appDependencies = Seq(
         jdbc,
         anorm,

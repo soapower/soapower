@@ -12,12 +12,13 @@ import play.Logger
 
 object Analysis extends Controller {
 
+
   // use by Json : from scala to json
   implicit object ReponseTimeWrites extends Writes[(Long, String, Date, Long)] {
     def writes(data: (Long, String, Date, Long)): JsValue = JsObject(
       List(
         "responseTime" -> JsNumber(data._4),
-        "env" -> JsString(Environment.options.find(t => t._1 == data._1.toString).get._2),
+        "env" -> JsString(Environment.optionsAll.find(t => t._1 == data._1.toString).get._2),
         "soapaction" -> JsString(data._2),
         "x" -> JsNumber(data._3.getTime)
         )
@@ -68,3 +69,4 @@ object Analysis extends Controller {
   }
 
 }
+
