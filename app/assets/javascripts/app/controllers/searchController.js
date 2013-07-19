@@ -26,12 +26,14 @@ function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayServ
     };
 
     $scope.getPagedDataAsync = function (pageSize, page, searchText) {
+        var group = $routeParams.group ? $routeParams.group : 'all';
         var environment = $routeParams.environment ? $routeParams.environment : 'all';
         var soapaction = $routeParams.soapaction ? $routeParams.soapaction : 'all';
         var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
         var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
         var code = $routeParams.code ? $routeParams.code : 'all';
-        var url = '/search/' + environment +
+        var url = '/search/' + group +
+            '/' + environment +
             '/' + soapaction +
             '/' + mindate +
             '/' + maxdate +

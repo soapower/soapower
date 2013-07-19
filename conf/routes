@@ -15,7 +15,7 @@ GET     /admin/downloadRequestDataStatsEntries controllers.Admin.downloadRequest
 POST    /admin/uploadConfiguration      controllers.Admin.uploadConfiguration
 
 # Search page
-GET     /search/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable      controllers.Search.listDatatable(environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
+GET     /search/:group/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable      controllers.Search.listDatatable(group, environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
 GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load    controllers.Analysis.load(environment, soapAction, minDate, maxDate, status, statsOnly)
@@ -25,7 +25,7 @@ POST    /soap/:environment/*localTarget                  controllers.Soap.index(
 GET     /replay/:id                                      controllers.Soap.replay(id:Long)
 
 # Services list
-GET     /services/listDatatable    controllers.Services.listDatatable
+GET     /services/:group/listDatatable    controllers.Services.listDatatable(group:String)
 
 # Add service
 POST    /services/:id                  controllers.Services.save(id:Long)
@@ -37,10 +37,10 @@ GET     /services/:id              controllers.Services.edit(id:Long)
 DELETE    /services/:id            controllers.Services.delete(id:Long)
 
 # Environments list
-GET     /environments/options          controllers.Environments.options
+GET     /environments/:group/options          controllers.Environments.options(group:String)
 
 # Environments list
-GET     /environments/listDatatable    controllers.Environments.listDatatable
+GET     /environments/:group/listDatatable    controllers.Environments.listDatatable(group:String)
 
 # Add service
 POST    /environments/:id              controllers.Environments.save(id:Long)
@@ -50,6 +50,21 @@ GET     /environments/:id              controllers.Environments.edit(id:Long)
 
 # Delete a environment
 DELETE    /environments/:id            controllers.Environments.delete(id:Long)
+
+# Groups list
+GET     /groups/options                 controllers.Groups.options
+
+# Groups list
+GET     /groups/listDatatable           controllers.Groups.listDatatable
+
+# Add group
+POST    /groups/:id                     controllers.Groups.save(id:Long)
+
+# Edit existing group
+GET     /groups/:id                     controllers.Groups.edit(id:Long)
+
+# Delete a group
+DELETE  /groups/:id                     controllers.Groups.delete(id:Long)
 
 
 # SoapActions list

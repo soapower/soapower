@@ -43,7 +43,7 @@ object Stats extends Controller {
     val thresholdsBySoapActions = SoapAction.loadAll().map(action => (action.name, action.thresholdms)).toMap
 
     var ret = ""
-    Environment.options.foreach{e =>
+    Environment.optionsAll.foreach{e =>
       val avgResponseTimesByAction = RequestData.loadAvgResponseTimesByAction(e._1, minDate, maxDate, true)
       val data = avgResponseTimesByAction.map(d => (d._1, d._2, thresholdsBySoapActions.getOrElse[Long](d._1, -1)))
 

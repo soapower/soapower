@@ -28,7 +28,7 @@ object Soap extends Controller {
   def replay(requestId: Long) = Action {
     val requestData = RequestData.load(requestId)
 
-    val environmentTuple = Environment.options.find { case (k, v) => k == requestData.environmentId.toString }
+    val environmentTuple = Environment.optionsAll.find { case (k, v) => k == requestData.environmentId.toString }
 
     if (!environmentTuple.isDefined) {
       val err = "environment with id " + requestData.environmentId + " unknown"

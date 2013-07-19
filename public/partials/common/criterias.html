@@ -15,7 +15,6 @@
             <datepicker name="maxdate" ng-model="maxdate" starting-day="1"></datepicker>
         </div>
         <input class="input-small" type="hidden" id="to" ng-model="maxdate" ng-click="showmaxdate = !showmaxdate"/>
-
         <select ng-model="environment" ng-options="environment.name for environment in environments"></select>
         <select ng-model="soapaction" ng-options="s.name for s in soapactions" ng-show="showSoapactions"></select>
         <select ng-model="code" ng-options="c.name for c in codes"></select>

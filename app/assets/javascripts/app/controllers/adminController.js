@@ -53,5 +53,8 @@ function AdminCtrl ($scope, EnvironmentsService, $http) {
             });
     }
 
-    EnvironmentsService.findAllAndSelect($scope);
+    EnvironmentsService.findAllAndSelect($scope, null, 'all');
+	
+
+
 }

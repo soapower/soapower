@@ -1,12 +1,18 @@
-function EnvironmentsCtrl($scope, EnvironmentsService) {
+function EnvironmentsCtrl($scope, $routeParams, EnvironmentsService) {
 
-    EnvironmentsService.findAll().
+     $scope.adminPath = "environments";
+
+    // Looking for environments with their groups and adding all informations to $scope.environments var
+    EnvironmentsService.findAll($routeParams.group).
         success(function (environments) {
             $scope.environments = environments.data;
         })
         .error(function (resp) {
             console.log("Error with EnvironmentsService.findAll" + resp);
         });
+
+
+
 
     $scope.filterOptions = {
         filterText: "",
@@ -26,12 +32,12 @@ function EnvironmentsCtrl($scope, EnvironmentsService) {
             {field: 'nbDayKeepAllData', displayName: 'All Data : nb days keep'},
             {field: 'recordXmlData', displayName: 'Record Xml Data'},
             {field: 'recordData', displayName: 'Record Data'},
-            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/environments/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
+            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/environments/edit/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
         ]
     };
 }
 
-function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UIService) {
+function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UIService, GroupsService) {
 
     var self = this;
 
@@ -40,6 +46,9 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UISer
         $scope.environment = new Environment(self.original);
         $scope.environment.recordXmlData = UIService.fixBooleanReverse($scope.environment.recordXmlData);
         $scope.environment.recordData = UIService.fixBooleanReverse($scope.environment.recordData);
+        console.log($scope.environment.groupId )
+        GroupsService.findAllAndSelect($scope, null, $scope.environment);
+
     });
 
     $scope.isClean = function () {
@@ -59,9 +68,9 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UISer
     };
 }
 
-function EnvironmentNewCtrl($scope, $location, Environment, EnvironmentsEnvironment) {
+function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
 
-    EnvironmentsEnvironment.findAllAndSelect($scope);
+    GroupsService.findAllAndSelect($scope);
 
     $scope.environment = new Environment({id:'-1'});
     $scope.environment.recordXmlData = "yes";

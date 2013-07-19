@@ -40,6 +40,7 @@ define(['angular'], function (angular) {
                 this.recordXmlData = UIService.fixBoolean(this.recordXmlData);
                 this.recordData = UIService.fixBoolean(this.recordData);
                 this.id = parseInt(this.id);
+                this.groupId =  parseInt(this.group.id);
 
                 return Environment.update({environmentId: this.id},
                     angular.extend({}, this, {environmentId: undefined}), cb);
@@ -50,6 +51,25 @@ define(['angular'], function (angular) {
             };
 
             return Environment;
+        })
+        .factory('Group', function ($resource, UIService) {
+            var Group = $resource('/groups/:groupId',
+                { groupId: '@id'},
+                { update: {method: 'POST'} }
+            );
+
+            Group.prototype.update = function (cb) {
+                this.id = parseInt(this.id);
+
+                return Group.update({groupId: this.id},
+                    angular.extend({}, this, {groupId: undefined}), cb);
+            };
+
+            Group.prototype.destroy = function (cb) {
+                return Group.remove({groupId: this.id}, cb);
+            };
+
+            return Group;
         })
         .factory('SoapAction', function ($resource) {
             var SoapAction = $resource('/soapactions/:soapActionId',
@@ -99,21 +119,29 @@ define(['angular'], function (angular) {
         })
         .factory("ServicesService", function ($http) {
             return {
-                findAll: function () {
-                    return $http.get('/services/listDatatable');
+                findAll: function (group) {
+                    return $http.get('/services/'+group+'/listDatatable');
                 }
             }
         })
         .factory("EnvironmentsService", function ($http) {
             return {
-                findAll: function () {
-                    return $http.get('/environments/listDatatable');
+                findAll: function (group) {
+                    return $http.get('/environments/'+group+'/listDatatable');
                 },
-                findAllAndSelect: function ($scope, environmentName, myService) {
-                    $http.get('/environments/options')
+                findAllAndSelect: function ($scope, environmentName, environmentGroup, myService) {
+                    console.log("Selected environment group : " + environmentGroup)
+                    $http.get('/environments/'+environmentGroup+'/options')
                         .success(function (environments) {
                             $scope.environments = environments;
-                            $scope.environments.unshift({id: "all", name: "all"});
+                             if(environments.length==0){
+                                console.log("No environments have been founded")
+                                $scope.environments.unshift({id: "none", name: "none"});
+                            }else{
+                                 $scope.environments.unshift({id: "all", name: "all"});
+                            }
+
+
                             if (environmentName != null || myService != null) {
                                 angular.forEach($scope.environments, function (value, key) {
                                     if (environmentName != null && value.name == environmentName) {
@@ -128,6 +156,34 @@ define(['angular'], function (angular) {
                         })
                         .error(function (resp) {
                             console.log("Error with EnvironmentsService.findAllAndSelect" + resp);
+                        });
+                }
+            }
+        })
+        .factory("GroupsService", function ($http) {
+            return {
+                findAll: function () {
+                    return $http.get('/groups/listDatatable');
+                },
+                findAllAndSelect: function ($scope, groupName, myEnvironment) {
+                    $http.get('/groups/options')
+                        .success(function (groups) {
+                            $scope.groups = groups;
+                            $scope.groups.unshift({id: "all", name: "all"});
+                            if (groupName != null || myEnvironment != null) {
+                                angular.forEach($scope.groups, function (value, key) {
+                                    if (groupName != null && value.name == groupName) {
+                                        $scope.group = value;
+                                    }
+                                    if (myEnvironment != null && value.id == myEnvironment.groupId) {
+                                        myEnvironment.group = value;
+                                    }
+                                });
+                            }
+
+                        })
+                        .error(function (resp) {
+                            console.log("Error with GroupsService.findAllAndSelect" + resp);
                         });
                 }
             }
@@ -152,10 +208,17 @@ define(['angular'], function (angular) {
         })
         .factory("UIService",function ($location, $filter) {
             return {
-                reloadPage: function ($scope) {
-                    var environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
+                reloadPage: function ($scope, $routeParams) {
+                    var group ="all", environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
 
                     if ($scope.environment) environment = $scope.environment.name;
+
+                    if ($routeParams.group) group = $routeParams.group;
+
+                    if ($scope.group) group = $scope.group.name;
+
+
+
                     if ($scope.showSoapactions) {
                         if ($scope.soapaction) soapaction = $scope.soapaction.name;
                     }
@@ -168,7 +231,7 @@ define(['angular'], function (angular) {
                     }
                     if ($scope.code) code = $scope.code.name;
 
-                    var path = $scope.ctrlPath + '/' + environment + "/";
+                    var path = $scope.ctrlPath + '/' + group + "/" + environment + "/";
 
                     if ($scope.showSoapactions) path = path + soapaction + "/";
 
@@ -177,6 +240,15 @@ define(['angular'], function (angular) {
                     console.log("UIService.reloadPage : Go to " + path);
                     $location.path(path);
                 },
+                 reloadAdminPage: function ($scope) {
+                                    var group ="all";
+                                    if ($scope.group) group = $scope.group.name;
+
+                                    var path = $scope.adminPath + '/' + group ;
+
+                                    console.log("UIService.reloadAdminPage : Go to " + path);
+                                    $location.path(path);
+                 },
                 getDateFromParam: function (indate) {
                     if (indate && indate != "all") {
                         if (indate == "yesterday" || indate == "today") {
