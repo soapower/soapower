@@ -56,7 +56,9 @@ define(['angular'], function (angular) {
                   .directive('spGroups', function () {
                               return {
                                   restrict: 'E',
-                                  scope: true,
+                                  scope: {
+                                     soapactions: '='
+                                  },
                                   // Check if it's an admin path
                                   controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, GroupsService, UIService) {
                                       if($scope.$parent.adminPath) {
@@ -70,8 +72,11 @@ define(['angular'], function (angular) {
                                       //Check if it's a search path
                                       if($scope.$parent.ctrlPath){
 
-
-                                          $scope.showSoapactions = true; // Use in order to produce right URL into search forms
+                                        // Use in order to produce right URL into search forms
+                                        $scope.showSoapactions = true;
+                                        if ($attrs.soapactions == "no") {
+                                          $scope.showSoapactions = false;
+                                        }
                                           $scope.mindate = "yesterday"
                                           $scope.maxdate = "today"
 

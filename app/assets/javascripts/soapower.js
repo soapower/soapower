@@ -69,9 +69,9 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
                 controller: SearchCtrl
             })
             .when('/analysis', {
-                redirectTo: '/analysis/all/all/yesterday/today/all'
+                redirectTo: '/analysis/all/all/all/yesterday/today/all'
             })
-            .when('/analysis/:environment/:soapaction/:mindate/:maxdate/:code', {
+            .when('/analysis/:group/:environment/:soapaction/:mindate/:maxdate/:code', {
                 templateUrl: 'partials/analysis/analysis.html', controller: AnalysisCtrl
             })
             .when('/monitor', {
@@ -103,10 +103,9 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
 
 
             .when('/stats', {
-                templateUrl: 'partials/stats/stats.html',
-                controller: StatsCtrl
+                redirectTo: '/stats/all/all/yesterday/today/all'
             })
-            .when('/stats/:environment/:mindate/:maxdate/:code', {
+            .when('/stats/:group/:environment/:mindate/:maxdate/:code', {
                 templateUrl: 'partials/stats/stats.html',
                 controller: StatsCtrl
             })
