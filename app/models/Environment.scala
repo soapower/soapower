@@ -199,7 +199,7 @@ object Environment {
     implicit connection =>
     // FIXME : add key to clearCache
     //Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
-      SQL("select * from environment,environment_group where environment.groupId = environment_group.id and environment.name = {name} and group.name = {group}").on(
+      SQL("select * from environment,environment_group where environment.groupId = environment_group.id and environment.name = {name} and environment_group.name = {group}").on(
         'name -> name, 'group -> group).as(Environment.simple.singleOpt)
     //}
   }
