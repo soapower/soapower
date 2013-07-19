@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" ng-ap>
+<head>
+    <meta charset="utf-8">
+    <title>Soapower</title>
+    <link rel="stylesheet" href="/stylesheets/ng-grid-2.0.7.min.css">
+    <link rel="stylesheet" href="/stylesheets/nv.d3.min.css">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/stylesheets/main.min.css">
+    <link rel="shortcut icon" type="image/png" href="/images/soapower.png">
+    <script src="/assets/javascripts/lib/jquery-1.10.1.min.js"></script>
+    <script type="text/javascript" data-main="/assets/javascripts/soapower" src="/assets/javascripts/require.js"></script>
+</head>
+<body>
+
+<!--[if lt IE 10]>
+<link rel="stylesheet" type="text/css" href="css/iespecific.css"/>
+<![endif]-->
+
+<div id="warningIE" class="alert alert-error">
+    <i class="icon-warning-sign"></i>
+    Soapower use HTML5 websocket, it is not compatible with Internet Exporer < 10
+</div>
+
+<div class="navbar navbar-inverse">
+    <div class="navbar-inner">
+        <div class="container">
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </a>
+            <a class="brand" href="#/home">
+                <i class="icon-bolt icon-white"></i>  Soapower
+            </a>
+            <div class="nav-collapse collapse navbar-responsive-collapse">
+                <ul class="nav">
+                    <li active-link="active" link="live"><a id="menu-live" href="#/live"><i class="icon-bullhorn icon-white"></i> Live</a></li>
+                    <li active-link="active" link="search"><a id="menu-search" href="#/search"><i class="icon-search icon-white"></i> Search</a></li>
+                    <li active-link="active" link="analysis"><a id="menu-analysis" href="#/analysis"><i class="icon-bar-chart icon-white"></i> Analysis</a></li>
+                    <li active-link="active" link="stats"><a id="menu-statistics" href="#/stats"><i class="icon-table icon-white"></i> Statistics</a></li>
+                </ul>
+                <ul class="nav pull-right">
+                    <li active-link="active" link="monitor"><a href="#/monitor"><i class="icon-dashboard"></i> </i> Monitoring </a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li active-link="active" link="services"><a href="#/services"><i class="icon-pencil icon-white"></i> Services</a></li>
+                            <li active-link="active" link="environments"><a href="#/environments"><i class="icon-pencil icon-white"></i> Environments</a></li>
+                            <li active-link="active" link="groups"><a href="#/groups"><i class="icon-pencil icon-white"></i> Groups</a></li>
+                            <li active-link="active" link="soapactions"><a href="#/soapactions"><i class="icon-pencil icon-white"></i> SoapActions Threshold</a></li>
+                            <li class="divider"></li>
+                            <li active-link="active" link="admin"><a href="#/admin"><i class="icon-warning-sign icon-white"></i> Admin</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div><!-- /.nav-collapse -->
+        </div>
+    </div><!-- /navbar-inner -->
+</div>
+
+<div class="container-fluid" ng-view></div>
+
+<hr>
+<div class="footer">
+    Hello! I'm your friendly footer. If you're actually reading this, I'm impressed....
+    <a href="https://github.com/soapower/soapower">Fork me on Github</a> <i class="icon-github icon-2x"></i>
+
+</div>
+
+
+
+</body>
+</html>

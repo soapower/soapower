@@ -2,6 +2,7 @@ package models
 
 import java.util.{ Calendar, Date, GregorianCalendar }
 import java.text.SimpleDateFormat
+import play.Logger
 
 object UtilDate {
 
@@ -11,11 +12,14 @@ object UtilDate {
   val longFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
   val defaultGCal = new GregorianCalendar()
 
-  def getDate(sDate: String, addInMillis: Long = 0): GregorianCalendar = {
+  def getDate(sDate: String, addInMillis: Long = 0, isMax : Boolean = false): GregorianCalendar = {
     val gCal = new GregorianCalendar()
+    gCal.set(Calendar.HOUR_OF_DAY, 0)
+    gCal.set(Calendar.MINUTE, 0)
+    gCal.set(Calendar.SECOND, 0)
 
     val mDate: GregorianCalendar = sDate match {
-      case "all" => gCal.setTime(RequestData.getMinStartTime.getOrElse(new Date)); gCal
+      case "all" => if (isMax) gCal else { gCal.setTime(RequestData.getMinStartTime.getOrElse(new Date)); gCal}
       case "today" => gCal
       case "yesterday" => gCal.add(Calendar.DATE, -1); gCal
       case pattern(days) => gCal.add(Calendar.DATE, -(days.toInt)); gCal
@@ -26,12 +30,16 @@ object UtilDate {
     }
     mDate.setTimeInMillis(mDate.getTimeInMillis + addInMillis)
     mDate
+
   }
 
   def formatDate(gCal: GregorianCalendar): String = {
     var rDate = gCal.get(Calendar.YEAR) + "-"
     rDate += addZero(gCal.get(Calendar.MONTH) + 1) + "-"
-    rDate += addZero(gCal.get(Calendar.DATE)) + ""
+    rDate += addZero(gCal.get(Calendar.DATE)) + " "
+    rDate += addZero(gCal.get(Calendar.HOUR_OF_DAY)) + ":"
+    rDate += addZero(gCal.get(Calendar.MINUTE)) + ":"
+    rDate += addZero(gCal.get(Calendar.SECOND))
     rDate
   }
 

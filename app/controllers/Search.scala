@@ -8,27 +8,23 @@ import play.api.libs.iteratee.Enumerator
 import play.api.http.HeaderNames
 import scala.xml.PrettyPrinter
 import org.xml.sax.SAXParseException
+import play.api.Logger
 
 case class Search(environmentId: Long)
 
 object Search extends Controller {
 
-  /**
-   * Index of the search page. Retrieve all information from the given group
-   */
-  def index(group: String, environment: String, soapAction: String, minDate: String, maxDate: String, status: String) = Action {
-    implicit request =>
-      Ok(views.html.search.index(group, environment, soapAction, formatDate(getDate(minDate)), formatDate(getDate(maxDate)), status,  Group.options, Environment.options(group), RequestData.soapActionOptions, RequestData.statusOptions))
-  }
-
   def listDatatable(group: String, environment: String, soapAction: String, minDate: String, maxDate: String, status: String, sSearch: String, iDisplayStart: Int, iDisplayLength: Int) = Action {
-   println("listDatatable ok")
-    val page: Page[(RequestData)] = RequestData.list(environment, soapAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s).getTime, status, iDisplayStart, iDisplayLength, sSearch)
+    val page: Page[(RequestData)] = RequestData.list(environment, soapAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (iDisplayStart-1), iDisplayLength, sSearch)
+
+    Logger.debug("iTotalRecords {}" + Json.toJson(iDisplayLength))
+    Logger.debug("iTotalDisplayRecords {}" + Json.toJson(page.total))
+    Logger.debug("data {}" + Json.toJson(page.items))
 
     Ok(Json.toJson(Map(
       "iTotalRecords" -> Json.toJson(iDisplayLength),
       "iTotalDisplayRecords" -> Json.toJson(page.total),
-      "aaData" -> Json.toJson(page.items)))).as(JSON)
+      "data" -> Json.toJson(page.items)))).as(JSON)
   }
 
   def downloadRequest(id: Long, asFile: Boolean) = Action {

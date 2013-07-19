@@ -19,50 +19,55 @@ import play.api.libs.json.JsString
 object Groups extends Controller {
 
   // use by Json : from scala to json
-  private implicit object StatsDataWrites extends Writes[Group] {
-    def writes(groupToWrite: Group): JsValue = {
+  private implicit object GroupsOptionsDataWrites extends Writes[(String, String)] {
+    def writes(data: (String, String)): JsValue = {
       JsObject(
         List(
-          "0" -> JsString(groupToWrite.groupName),
-          "1" -> JsString("<a href=\"groups/"+groupToWrite.groupId+"\"><i class=\"icon-edit\"></i> Edit</a>")
+          "id" -> JsString(data._1),
+          "name" -> JsString(data._2)
         ))
     }
   }
 
   /**
-   * This result directly redirect to the application home.
+   * Group format
    */
-  val Home = Redirect(routes.Groups.index)
-
-  /**
-   * Display the list of groups.
-   */
-  def index = Action { implicit request =>
-    Ok(views.html.groups.index())
-  }
+  implicit val groupFormat = Json.format[Group]
 
   /**
    * Retrieve all groups and generate a DataTable's JSON format in order to be displayed in a datatable
    *
    * @return A group JSON datatable data
    */
-  def listDatatable = Action { implicit request =>
-    val data = Group.allGroups
-    Ok(Json.toJson(Map(
-      "iTotalRecords" -> Json.toJson(data.size),
-      "iTotalDisplayRecords" -> Json.toJson(data.size),
-      "aaData" -> Json.toJson(data)
-    ))).as(JSON)
+  def listDatatable = Action {
+    implicit request =>
+      val data = Group.allGroups
+      Ok(Json.toJson(Map(
+        "iTotalRecords" -> Json.toJson(data.size),
+        "iTotalDisplayRecords" -> Json.toJson(data.size),
+        "data" -> Json.toJson(data)
+      ))).as(JSON)
   }
 
   /**
-   * Describe the group form (used in both edit and create screens).
+   * Return all Groups in Json Format
+   * @return JSON
    */
-  val groupForm = Form(
-    mapping(
-      "groupId" -> ignored(NotAssigned: Pk[Long]),
-      "groupName" -> nonEmptyText)
-      (Group.apply)(Group.unapply))
+  def findAll = Action {
+    implicit request =>
+      val data = Group.allGroups
+      Ok(Json.toJson(data)).as(JSON)
+  }
+
+  /**
+   * Return all groups options
+   */
+  def options = Action {
+    implicit request =>
+      val data = Group.options
+      Ok(Json.toJson(data)).as(JSON)
+  }
+
 
   /**
    * Display the 'edit form' of a existing Group.
@@ -70,44 +75,26 @@ object Groups extends Controller {
    * @param id Id of the group to edit
    */
   def edit(id: Long) = Action {
-    Group.findById(id).map { group =>
-      Ok(views.html.groups.editForm(id, groupForm.fill(group)))
+    Group.findById(id).map {
+      group =>
+        Ok(Json.toJson(group)).as(JSON)
     }.getOrElse(NotFound)
   }
 
-  /**
-   * Handle the 'edit form' submission
-   *
-   * @param id Id of the group to edit
-   */
-  def update(id: Long) = Action { implicit request =>
-    groupForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html.groups.createForm(formWithErrors)),
-      group => {
-        Group.update(id, group)
-        Home.flashing("success" -> "Group %s has been updated".format(group.groupName))
-      })
-  }
 
   /**
-   * Display the 'new group form'.
+   * Insert or update a group.
    */
-  def create = Action {
-    Ok(views.html.groups.createForm(groupForm.fill(new Group(NotAssigned, ""))))
-  }
-
-  /**
-   * Handle the 'new group form' submission.
-   */
-  def save = Action { implicit request =>
-    groupForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html.groups.createForm(formWithErrors)),
-      group => {
-        Group.insert(group)
-        Home.flashing("success" -> "Group %s has been created".format(group.groupName))
+  def save(id: Long) = Action(parse.json) {
+    request =>
+      request.body.validate(groupFormat).map {
+        group =>
+          if (id < 0) Group.insert(group)
+          else Group.update(group)
+          Ok(Json.toJson("Succesfully save group."))
+      }.recoverTotal {
+        e => BadRequest("Detected error:" + JsError.toFlatJson(e))
       }
-      
-    )
   }
 
   /**
@@ -115,14 +102,13 @@ object Groups extends Controller {
    */
   def delete(id: Long) = Action {
     val groupOption = Group.findById(id)
-    groupOption match{
+    groupOption match {
       case Some(group) =>
         Group.delete(group)
-        Home.flashing("success" -> "Group has been deleted")
+        Ok("deleted");
       case None =>
-         Home.flashing("failure" -> "Group doesn't exist")
+        Ok("failure : Group doesn't exist")
     }
-
   }
 
 }

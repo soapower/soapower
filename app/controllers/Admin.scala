@@ -8,27 +8,14 @@ import play.api.data._
 import play.api.data.Forms._
 import java.util.Date
 import play.api._
+import play.api.libs.json.{JsError, Json, JsObject}
 
 
 object Admin extends Controller {
 
-  val Home = Redirect(routes.Admin.index())
+  case class AdminForm(environmentName: String, minDate: Date, maxDate: Date, typeAction: String)
 
-  case class AdminForm(environment: String, minDate: Date, maxDate: Date, typeAction: String)
-
-  val adminForm = Form(
-    mapping(
-      "environment" -> text,
-      "minDate" -> date,
-      "maxDate" -> date,
-      "typeAction" -> nonEmptyText
-    )(AdminForm.apply)(AdminForm.unapply)
-  )
-
-  def index = Action {
-    implicit request =>
-      Ok(views.html.admin.index(Environment.options, adminForm))
-  }
+  def toJson(code: String, text: String) = Json.obj("code" -> code, "text" -> text)
 
   def uploadConfiguration = Action(parse.multipartFormData) {
     request =>
@@ -56,12 +43,12 @@ object Admin extends Controller {
               }
           }
           if (err.size > 0) {
-            Home.flashing("warning" -> "Configuration uploaded partially. See Warn Logs")
+            Ok(toJson("warning", "Warning ! Configuration uploaded partially. See Warn Logs")).as(JSON)
           } else {
-            Home.flashing("success" -> "Configuration Uploaded")
+            Ok(toJson("success", "Success ! Configuration Uploaded")).as(JSON)
           }
       }.getOrElse {
-        Home.flashing("warning" -> "Failed to upload configuration")
+        Ok(toJson("warning", "Warning ! Failed to upload configuration")).as(JSON)
       }
   }
 
@@ -107,22 +94,19 @@ object Admin extends Controller {
     ).withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=requestDataStatsEntries.csv")).as(BINARY)
   }
 
-  def deleteAllRequestData = Action {
-    //RequestData.deleteAll()
-    Home.flashing("error" -> "You can't delete all data. Actually disabled on Soapower")
-  }
+  implicit val adminFormat = Json.format[AdminForm]
 
-  def delete = Action { implicit request =>
-      adminForm.bindFromRequest.fold(
-        formWithErrors => BadRequest(views.html.admin.index(Environment.options, formWithErrors)),
-        form => {
-          val maxDate = new Date(form.maxDate.getTime +  ((24*60*60)-1)*1000) // 23h59,59s
-          Logger.debug("Delete min:" + form.minDate + " max:" + maxDate)
-          form.typeAction match {
-            case "xml-data" => RequestData.deleteRequestResponse(form.environment, form.minDate, maxDate, "Admin Soapower")
-            case "all-data" => RequestData.delete(form.environment, form.minDate, maxDate)
-          }
-          Home.flashing("success" -> "Success deleting data")
-        })
+  def delete = Action(parse.json) { request =>
+    request.body.validate(adminFormat).map { adminForm =>
+      val maxDate = new Date(adminForm.maxDate.getTime +  ((24*60*60)-1)*1000) // 23h59,59s
+      Logger.debug("Delete min:" + adminForm.minDate + " max:" + maxDate)
+      adminForm.typeAction match {
+        case "xml-data" => RequestData.deleteRequestResponse(adminForm.environmentName, adminForm.minDate, maxDate, "Admin Soapower")
+        case "all-data" => RequestData.delete(adminForm.environmentName, adminForm.minDate, maxDate)
+      }
+      Ok(toJson("success", "Success deleting data")).as(JSON)
+    }.recoverTotal{
+      e => Ok(toJson("error", "Detected error:" + JsError.toFlatJson(e))).as(JSON)
+    }
   }
 }

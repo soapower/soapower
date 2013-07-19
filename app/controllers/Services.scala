@@ -1,79 +1,50 @@
 package controllers
 
 import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
-
-import anorm._
-
 import models._
 import play.api.libs.json._
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import play.api.libs.json.JsNumber
-import play.api.Play
 
 object Services extends Controller {
 
-  val port = Option(System.getProperty("http.port")).map(Integer.parseInt(_)).getOrElse(9000)
-  val url = "http://&lt;serverSoapower&gt;:" + port + "/soap/"
 
-  // use by Json : from scala to json
-  private implicit object StatsDataWrites extends Writes[(Service, Environment)] {
+  private implicit object ServicesDataWrites extends Writes[(Service, Environment)] {
     def writes(data: (Service, Environment)): JsValue = {
       JsObject(
         List(
-          "0" -> JsString(data._1.description),
-          "1" -> JsString(data._2.name),
-          "2" -> JsString(url + data._2.name + "/" + data._1.localTarget),
-          "3" -> JsString(data._1.remoteTarget),
-          "4" -> JsNumber(data._1.timeoutms),
-          "5" -> JsBoolean(data._1.recordXmlData),
-          "6" -> JsBoolean(data._1.recordData),
-          "7" -> JsString("<a href=\"services/" + data._1.id + "\"><i class=\"icon-edit\"></i> Edit</a>")
+          "id" -> JsString(data._1.id.toString),
+          "description" -> JsString(data._1.description),
+          "env" -> JsString(data._2.name),
+          "localTarget" -> JsString("/soap/" + data._2.name + "/" + data._1.localTarget),
+          "remoteTarget" -> JsString(data._1.remoteTarget),
+          "timeoutInMs" -> JsNumber(data._1.timeoutms),
+          "recordXmlData" -> JsBoolean(data._1.recordXmlData),
+          "recordData" -> JsBoolean(data._1.recordData)
         ))
     }
   }
 
-  /**
-   * This result directly redirect to the application home.
-   */
-  val Home = Redirect(routes.Services.index)
-
-  /**
-   * Describe the service form (used in both edit and create screens).
-   */
-  val serviceForm = Form(
-    mapping(
-      "id" -> ignored(NotAssigned: Pk[Long]),
-      "description" -> nonEmptyText,
-      "localTarget" -> nonEmptyText,
-      "remoteTarget" -> nonEmptyText,
-      "timeoutms" -> longNumber,
-      "recordXmlData" -> boolean,
-      "recordData" -> boolean,
-      "environment" -> longNumber)(Service.apply)(Service.unapply))
-
-  /**
-   * Display the list of services.
-   */
-  def index = Action {
-    implicit request =>
-      Ok(views.html.services.index())
-  }
+  implicit val serviceFormat = Json.format[Service]
 
   /**
    * List to Datable table.
    *
    * @return JSON
    */
-  def listDatatable = Action {
+  def listDatatable(group : String) = Action {
     implicit request =>
-      val data = Service.list
+
+     var data : List[(Service, Environment)] = null.asInstanceOf[ List[(Service, Environment)] ]
+     println(group)
+      if(group != "all"){
+
+        data = Service.list(group)
+      } else{
+        data = Service.list
+      }
       Ok(Json.toJson(Map(
         "iTotalRecords" -> Json.toJson(data.size),
         "iTotalDisplayRecords" -> Json.toJson(data.size),
-        "aaData" -> Json.toJson(data)
+        "data" -> Json.toJson(data)
       ))).as(JSON)
   }
 
@@ -85,43 +56,22 @@ object Services extends Controller {
   def edit(id: Long) = Action {
     Service.findById(id).map {
       service =>
-        Ok(views.html.services.editForm(id, serviceForm.fill(service), Environment.options))
+        Ok(Json.toJson(service)).as(JSON)
     }.getOrElse(NotFound)
   }
 
   /**
-   * Handle the 'edit form' submission
-   *
-   * @param id Id of the service to edit
+   * Insert or update a service.
    */
-  def update(id: Long) = Action {
-    implicit request =>
-      serviceForm.bindFromRequest.fold(
-        formWithErrors => BadRequest(views.html.services.editForm(id, formWithErrors, Environment.options)),
-        service => {
-          Service.update(id, service)
-          Home.flashing("success" -> "Service %s has been updated".format(service.description))
-        })
-  }
-
-  /**
-   * Display the 'new service form'.
-   */
-  def create = Action {
-    Ok(views.html.services.createForm(serviceForm, Environment.options))
-  }
-
-  /**
-   * Handle the 'new service form' submission.
-   */
-  def save = Action {
-    implicit request =>
-      serviceForm.bindFromRequest.fold(
-        formWithErrors => BadRequest(views.html.services.createForm(formWithErrors, Environment.options)),
-        service => {
-          Service.insert(service)
-          Home.flashing("success" -> "Service %s has been created".format(service.description))
-        })
+  def save(id: Long) = Action(parse.json) { request =>
+    println(request.body)
+    request.body.validate(serviceFormat).map { service =>
+      if (id < 0) Service.insert(service)
+      else Service.update(service)
+      Ok(Json.toJson("Succesfully save service."))
+    }.recoverTotal{
+      e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
+    }
   }
 
   /**
@@ -129,7 +79,7 @@ object Services extends Controller {
    */
   def delete(id: Long) = Action {
     Service.delete(id)
-    Home.flashing("success" -> "Service has been deleted")
+    Ok("deleted");
   }
 
 }

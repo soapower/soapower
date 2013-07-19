@@ -9,15 +9,16 @@ import anorm._
 import anorm.SqlParser._
 import java.util.{Date, Calendar, GregorianCalendar}
 
-case class Environment(id: Pk[Long],
-  name: String,
-  hourRecordXmlDataMin: Int ,
-  hourRecordXmlDataMax: Int ,
-  nbDayKeepXmlData: Int ,
-  nbDayKeepAllData: Int ,
-  recordXmlData: Boolean,
-  recordData: Boolean,
-  groupId: Long)
+case class Environment(id: Long,
+                       name: String,
+                       groupId: Long = 1, // 1 is default group
+                       hourRecordXmlDataMin: Int = 8,
+                       hourRecordXmlDataMax: Int = 22,
+                       nbDayKeepXmlData: Int = 2,
+                       nbDayKeepAllData: Int = 5,
+                       recordXmlData: Boolean = true,
+                       recordData: Boolean = true
+                       )
 
 object ModePurge extends Enumeration {
   type ModePurge = Value
@@ -30,98 +31,105 @@ object Environment {
   private val keyCacheById = "environment-all"
 
   /**
-   * Create an environment with the classical default values and the given name and group id.
-   */
-  def createEnvironmentWithDefaultValues(name: String, groupId: Long): Environment = {
-    return new Environment(NotAssigned, name, 8, 22, 2, 5, true, true, groupId)
-  }
-    
-  /**
    * Parse a Environment from a ResultSet
    */
   val simple = {
-    get[Pk[Long]]("id") ~
-    get[String]("name") ~
-    get[Int]("hourRecordXmlDataMin") ~
-    get[Int]("hourRecordXmlDataMax") ~
-    get[Int]("nbDayKeepXmlData") ~
-    get[Int]("nbDayKeepAllData") ~
-    get[String]("recordXmlData") ~
-    get[String]("recordData") ~ 
-    get[Long]("groupId")  map {
-        case id ~ name ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData ~ recordXmlData ~ recordData ~ groupId
-          => Environment(id, name, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData, nbDayKeepAllData, (recordXmlData == "true"), (recordData == "true"), groupId)
-      }
+    get[Long]("environment.id") ~
+      get[String]("environment.name") ~
+      get[Long]("environment.groupId") ~
+      get[Int]("environment.hourRecordXmlDataMin") ~
+      get[Int]("environment.hourRecordXmlDataMax") ~
+      get[Int]("environment.nbDayKeepXmlData") ~
+      get[Int]("environment.nbDayKeepAllData") ~
+      get[String]("environment.recordXmlData") ~
+      get[String]("environment.recordData") map {
+      case id ~ name ~ groupId ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData ~ recordXmlData ~ recordData
+      => Environment(id, name, groupId, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData, nbDayKeepAllData, (recordXmlData == "true"), (recordData == "true"))
+    }
   }
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "hourRecordXmlDataMin" -> 3, "hourRecordXmlDataMax" -> 4, "nbDayKeepXmlData" -> 5, "nbDayKeepAllData" -> 6, "recordXmlData" -> 7, "recordData" -> 8, "groupName" ->9 )
+  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groupName" -> 3, "hourRecordXmlDataMin" -> 4, "hourRecordXmlDataMax" -> 5, "nbDayKeepXmlData" -> 6, "nbDayKeepAllData" -> 7, "recordXmlData" -> 8, "recordData" -> 9)
 
-  val csvKey = "environment";
+  val csvKey = "environment"
 
   /**
    * Csv format.
    */
   val csv = {
     get[Pk[Long]]("environment.id") ~
-    get[String]("environment.name") ~
-    get[Int]("environment.hourRecordXmlDataMin") ~
-    get[Int]("environment.hourRecordXmlDataMax") ~
-    get[Int]("environment.nbDayKeepXmlData") ~
-    get[Int]("environment.nbDayKeepAllData") ~
-    get[String]("environment.recordXmlData") ~
-    get[String]("environment.recordData") ~
-    get[String] ("environment_group.groupName") map {
-      case id ~ name ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData ~ recordXmlData ~ recordData ~ groupName=>
-        id + ";" + name + ";" + hourRecordXmlDataMin + ";" + hourRecordXmlDataMax + ";" + nbDayKeepXmlData + ";" + nbDayKeepAllData + ";" + recordXmlData + ";" + recordData + ";" + groupName + "\n"
+      get[String]("environment.name") ~
+      get[String]("environment_group.name") ~
+      get[Int]("environment.hourRecordXmlDataMin") ~
+      get[Int]("environment.hourRecordXmlDataMax") ~
+      get[Int]("environment.nbDayKeepXmlData") ~
+      get[Int]("environment.nbDayKeepAllData") ~
+      get[String]("environment.recordXmlData") ~
+      get[String]("environment.recordData") map {
+      case id ~ name ~ groupName ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData ~ recordXmlData ~ recordData =>
+        id + ";" + name + ";" + groupName + ";" + hourRecordXmlDataMin + ";" + hourRecordXmlDataMax + ";" + nbDayKeepXmlData + ";" + nbDayKeepAllData + ";" + recordXmlData + ";" + recordData + "\n"
     }
   }
-
 
   /**
    * Get All environements, csv format.
    * @return List of Environements, csv format
    */
   def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("select * from environment left join environment_group on environment.groupId = environment_group.groupId").as(Environment.csv *)
+    implicit c => SQL("select * from environment left join environment_group on environment.groupId = environment_group.id").as(Environment.csv *)
   }
 
-  
+
   /**
    * Construct the Map[String,String] needed to fill a select options set. Only environments which are into the given group name are retrieved
    */
-  def options(group : String): Seq[(String, String)] = DB.withConnection {
+  def options(group: String): Seq[(String, String)] = DB.withConnection {
     implicit connection =>
-      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions+group) {
+      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
         Logger.debug("Environments not found in cache: loading from db")
-        SQL("select * from environment, environment_group where environment.groupId = environment_group.groupId and environment_group.groupName = {groupName} order by environment.name").on(
-        'groupName -> group).as(Environment.simple *).map(c => c.id.toString -> c.name)
+        SQL("select * from environment, environment_group where environment.groupId = environment_group.id and environment_group.name = {groupName} order by environment.name").on(
+          'groupName -> group).as(Environment.simple *).map(c => c.id.toString -> c.name)
       }
       sortEnvs(envs)
   }
 
-  
-  
+
   /**
    * Construct the Map[String,String] needed to fill a select options set.
    */
-  def options: Seq[(String, String)] = DB.withConnection {
+  def optionsAll: Seq[(String, String)] = DB.withConnection {
     implicit connection =>
       val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
         Logger.debug("Environments not found in cache: loading from db")
         SQL("select * from environment order by name").as(Environment.simple *).map(c => c.id.toString -> c.name)
       }
-      sortEnvs(envs)
+      envs
   }
-  
-  
+
+
+  /**
+   * Construct the Map[String,String] which are contained to the given group, needed to fill a select options set
+   */
+  def optionsAll(group : String): Seq[(String, String)] = DB.withConnection {
+    implicit connection =>
+      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions+group) {
+        Logger.debug("Environments not found in cache: loading from db")
+        SQL("select * from environment, environment_group where environment.groupId = environment_group.id and environment_group.name = {group} order by environment.name ")
+          .on('group -> group)
+          .as(Environment.simple *)
+          .map(c => c.id.toString -> c.name)
+      }
+      envs
+  }
+
   /**
    * Sort the given env option seq
    */
-  private def sortEnvs(envs : Seq[(String, String)]) : Seq[(String, String)] = {
-		val sortedEnvs = envs.sortWith { (a, b) =>
+  private def sortEnvs(envs: Seq[(String, String)]): Seq[(String, String)] = {
+    val sortedEnvs = envs.sortWith {
+      (a, b) =>
         val pattern = """^(.+?)([0-9]+)$""".r
 
         val matchA = pattern.findAllIn(a._2)
@@ -153,10 +161,10 @@ object Environment {
           // none matches the regex
           a._2 < b._2
         }
-      }
+    }
 
-      sortedEnvs
-  } 
+    sortedEnvs
+  }
 
   /**
    * Retrieve an Environment from id.
@@ -176,8 +184,8 @@ object Environment {
    */
   def findByName(name: String): Option[Environment] = DB.withConnection {
     implicit connection =>
-      // FIXME : add key to clearCache
-      //Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
+    // FIXME : add key to clearCache
+    //Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
       SQL("select * from environment where name = {name}").on(
         'name -> name).as(Environment.simple.singleOpt)
     //}
@@ -200,27 +208,26 @@ object Environment {
         		{groupId}
             )
           """).on(
-            'name -> environment.name,
-            'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
-            'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
-            'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
-            'nbDayKeepAllData -> environment.nbDayKeepAllData,
-            'recordXmlData -> environment.recordXmlData.toString,
-            'recordData -> environment.recordData.toString,
-            'groupId -> environment.groupId
-            ).executeUpdate()
+          'name -> environment.name,
+          'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
+          'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
+          'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
+          'nbDayKeepAllData -> environment.nbDayKeepAllData,
+          'recordXmlData -> environment.recordXmlData.toString,
+          'recordData -> environment.recordData.toString,
+          'groupId -> environment.groupId
+        ).executeUpdate()
     }
   }
 
   /**
    * Update a environment.
    *
-   * @param id The environment id
    * @param environment The environment values.
    */
-  def update(id: Long, environment: Environment) = {
+  def update(environment: Environment) = {
     clearCache
-    Cache.remove(keyCacheById + id)
+    Cache.remove(keyCacheById + environment.id)
     DB.withConnection {
       implicit connection =>
         SQL(
@@ -236,16 +243,16 @@ object Environment {
           groupId = {groupId}
           where id = {id}
           """).on(
-            'id -> id,
-            'name -> environment.name,
-            'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
-            'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
-            'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
-            'nbDayKeepAllData -> environment.nbDayKeepAllData,
-            'recordXmlData -> environment.recordXmlData.toString,
-            'recordData -> environment.recordData.toString,
-            'groupId -> environment.groupId
-          ).executeUpdate()
+          'id -> environment.id,
+          'name -> environment.name,
+          'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
+          'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
+          'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
+          'nbDayKeepAllData -> environment.nbDayKeepAllData,
+          'recordXmlData -> environment.recordXmlData.toString,
+          'recordData -> environment.recordData.toString,
+          'groupId -> environment.groupId
+        ).executeUpdate()
     }
   }
 
@@ -266,21 +273,38 @@ object Environment {
   def clearCache() {
     Cache.remove(keyCacheAllOptions)
   }
-  
-  
-    /**
-   * Parse a (Environment,Group) from a ResultSet
-   */
-  val withGroup = Environment.simple ~ Group.simple map {
-    case environment ~ group => (environment, group)
-  }
+
+
+
+
 
 
   /**
-   * Return a list of (Environment, Group).
+   * Return a list of all Environment which are contained into the given group
    *
    */
-  def list: List[(Environment, Group)] = {
+  def list(group : String) : List[Environment] = {
+
+    DB.withConnection {
+      implicit connection =>
+
+        val environments = SQL(
+          """
+          select * from environment, environment_group
+          where environment.groupId = environment_group.id
+          and environment_group.name = {group}
+          order by environment.groupId asc, environment.name
+          """).on('group -> group).as(Environment.simple *)
+
+        environments
+    }
+  }
+
+  /**
+   * Return a list of all Environment
+   *
+   */
+  def list() : List[Environment] = {
 
     DB.withConnection {
       implicit connection =>
@@ -288,13 +312,13 @@ object Environment {
         val environments = SQL(
           """
           select * from environment
-          left join environment_group on environment.groupId = environment_group.groupId
-          order by environment.groupId asc, environment.name
-          """).as(Environment.withGroup *)
+          order by environment.name
+          """).as(Environment.simple *)
 
         environments
     }
   }
+
 
   /*
    * Compile stats for each env / day
@@ -303,20 +327,22 @@ object Environment {
     Logger.info("Compile Stats")
     val gcal = new GregorianCalendar
 
-    Environment.options.foreach {
+    Environment.optionsAll.foreach {
       (e) =>
         Logger.debug("Compile Stats env:" + e._2)
         val days = RequestData.findDayNotCompileStats(e._1.toLong)
 
-        days.foreach{minDate =>
-          gcal.setTimeInMillis(minDate.getTime + UtilDate.v1d)
-          val maxDate = gcal.getTime
+        days.foreach {
+          minDate =>
+            gcal.setTimeInMillis(minDate.getTime + UtilDate.v1d)
+            val maxDate = gcal.getTime
 
-          val result = RequestData.loadAvgResponseTimesByAction(e._1, minDate, maxDate, false)
-          result.foreach{(r) =>
-            Logger.debug("env:" + e._2 + " SoapAction:"+r._1+ " timeAverage:" + r._2)
-            RequestData.insertStats(e._1.toLong, r._1, minDate, r._2)
-          }
+            val result = RequestData.loadAvgResponseTimesByAction(e._1, minDate, maxDate, false)
+            result.foreach {
+              (r) =>
+                Logger.debug("env:" + e._2 + " SoapAction:" + r._1 + " timeAverage:" + r._2)
+                RequestData.insertStats(e._1.toLong, r._1, minDate, r._2)
+            }
         }
     }
   }
@@ -338,9 +364,9 @@ object Environment {
     var purgedRequests = 0
 
     val gcal = new GregorianCalendar
-    val today = new GregorianCalendar(gcal.get(Calendar.YEAR),gcal.get(Calendar.MONTH),gcal.get(Calendar.DATE))
+    val today = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
 
-    Environment.options.foreach {
+    Environment.optionsAll.foreach {
       (e) =>
         val env = Environment.findById(e._1.toInt).get
         var nbDay = 100
@@ -353,7 +379,7 @@ object Environment {
 
         maxDate.setTimeInMillis(today.getTimeInMillis - UtilDate.v1d * nbDay)
         Logger.debug("Purge env: " + env.name + " NbDaysKeep: " + nbDay + " MinDate:" + minDate + " MaxDate:" + maxDate.getTime)
-        val user = "Soapower Akka Scheduler (keep "+mode+" data for " + nbDay + " days for this env " + env.name + ")"
+        val user = "Soapower Akka Scheduler (keep " + mode + " data for " + nbDay + " days for this env " + env.name + ")"
         if (mode == ModePurge.XML)
           purgedRequests += RequestData.deleteRequestResponse(env.name, minDate, maxDate.getTime, user)
         else
@@ -374,7 +400,7 @@ object Environment {
 
     val dataCsv = csvLine.split(";")
 
-    if (dataCsv.size != csvTitle.size){
+    if (dataCsv.size != csvTitle.size) {
       throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
     }
 
@@ -386,7 +412,7 @@ object Environment {
     }
   }
 
-    /**
+  /**
    * Check if group exist and insert it if not
    *
    * @param dataCsv List of string
@@ -398,12 +424,12 @@ object Environment {
 
     var group = Group.findByName(groupName)
     if (group == None) {
-      Logger.debug("Insert Environment " + groupName)
-      Group.insert(new Group(NotAssigned, groupName))
+      Logger.debug("Insert group " + groupName)
+      Group.insert(new Group(0, groupName))
       group = Group.findByName(groupName)
       if (group.get == null) Logger.error("Group insert failed : " + groupName)
     } else {
-      Logger.debug("Group already exist : " + group.get.groupName)
+      Logger.debug("Group already exist : " + group.get.name)
     }
     group.get
   }
@@ -426,15 +452,15 @@ object Environment {
     }.getOrElse {
 
       val environment = new Environment(
-        NotAssigned,
+        -1,
         dataCsv(csvTitle.get("name").get).trim,
+        group.id,
         dataCsv(csvTitle.get("hourRecordXmlDataMin").get).toInt,
         dataCsv(csvTitle.get("hourRecordXmlDataMax").get).toInt,
         dataCsv(csvTitle.get("nbDayKeepXmlData").get).toInt,
         dataCsv(csvTitle.get("nbDayKeepAllData").get).toInt,
         (dataCsv(csvTitle.get("recordXmlData").get).trim == "true"),
-        (dataCsv(csvTitle.get("recordData").get).trim == "true"),
-        group.groupId.get
+        (dataCsv(csvTitle.get("recordData").get).trim == "true")
       )
       Environment.insert(environment)
       Logger.info("Insert Environment " + environment.name)
