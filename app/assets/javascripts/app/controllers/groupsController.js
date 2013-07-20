@@ -2,7 +2,6 @@ function GroupsCtrl($scope, GroupsService) {
 
     $scope.adminPath = "groups";
 
-
     GroupsService.findAll().
         success(function (groups) {
             $scope.groups = groups.data;

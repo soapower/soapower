@@ -1,11 +1,6 @@
 package controllers
 
 import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
-import play.api.data.validation.Constraints._
-
-import anorm._
 
 import models._
 import play.api.libs.json._
@@ -41,7 +36,7 @@ object Groups extends Controller {
    */
   def listDatatable = Action {
     implicit request =>
-      val data = Group.allGroups
+      val data = Group.findAll
       Ok(Json.toJson(Map(
         "iTotalRecords" -> Json.toJson(data.size),
         "iTotalDisplayRecords" -> Json.toJson(data.size),
@@ -50,12 +45,12 @@ object Groups extends Controller {
   }
 
   /**
-   * Return all Groups in Json Format
+   * Return all Groups in Json Format.
    * @return JSON
    */
   def findAll = Action {
     implicit request =>
-      val data = Group.allGroups
+      val data = Group.findAll
       Ok(Json.toJson(data)).as(JSON)
   }
 

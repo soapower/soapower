@@ -43,7 +43,7 @@ object Group {
    */
   val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2)
 
-  val csvKey = "group";
+  val csvKey = "group"
 
   /**
    * Csv format.
@@ -75,43 +75,7 @@ object Group {
         Logger.debug("Groups not found in cache: loading from db")
         SQL("select * from environment_group order by name").as(Group.simple *).map(c => c.id.toString -> c.name)
       }
-
-      val sortedGroups = groups.sortWith {
-        (a, b) =>
-          val pattern = """^(.+?)([0-9]+)$""".r
-
-          val matchA = pattern.findAllIn(a._2)
-          val matchB = pattern.findAllIn(b._2)
-
-          if (matchA.hasNext && matchB.hasNext) {
-            // both names match the regex: compare name then number
-            val nameA = matchA.group(1)
-            val numberA = matchA.group(2)
-            val nameB = matchB.group(1)
-            val numberB = matchB.group(2)
-            if (nameA != nameB) {
-              nameA < nameB
-            } else {
-              numberA.toInt <= numberB.toInt
-            }
-
-          } else if (matchA.hasNext) {
-            val nameA = matchA.group(1)
-            // only a matches the regex
-            nameA < b._2
-
-          } else if (matchB.hasNext) {
-            val nameB = matchB.group(1)
-            // only b matches the regex
-            a._2 < nameB
-
-          } else {
-            // none matches the regex
-            a._2 < b._2
-          }
-      }
-
-      sortedGroups
+      groups
   }
 
   /**
@@ -183,7 +147,7 @@ object Group {
   }
 
   /**
-   * remove the all-options cache
+   * Remove the all-options cache.
    */
   def clearCache() {
     Cache.remove(keyCacheAllOptions)
@@ -191,18 +155,12 @@ object Group {
 
   /**
    * Return a list of all groups.
-   *
    */
-  def allGroups: List[Group] = {
+  def findAll: List[Group] = {
     DB.withConnection {
       implicit connection =>
-
         val groups = SQL(
-          """
-							select * from environment_group
-							order by environment_group.name
-          							""").as(Group.simple *)
-
+          "select * from environment_group order by environment_group.name").as(Group.simple *)
         groups
     }
   }
