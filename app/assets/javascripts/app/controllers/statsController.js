@@ -1,4 +1,4 @@
-function StatsCtrl($scope, $http, $location, $routeParams) {
+function StatsCtrl($scope, $rootScope, $http, $location, $routeParams, UIService) {
     $scope.ctrlPath = "stats";
 
     $scope.showTips = false;
@@ -78,4 +78,9 @@ function StatsCtrl($scope, $http, $location, $routeParams) {
         ]
     };
 
+    $rootScope.$broadcast("showGroupsFilter", true);
+
+    $scope.$on("ReloadPage", function (event) {
+        UIService.reloadPage($scope, false);
+    });
 }

@@ -1,4 +1,4 @@
-function AnalysisCtrl ($scope, $routeParams, $http) {
+function AnalysisCtrl ($scope, $rootScope, $routeParams, $http, UIService) {
     $scope.ctrlPath = "analysis";
 
     var environment = $routeParams.environment ? $routeParams.environment : 'all';
@@ -66,5 +66,11 @@ function AnalysisCtrl ($scope, $routeParams, $http) {
                 });
 
             });
+    });
+
+    $rootScope.$broadcast("showGroupsFilter", true);
+
+    $scope.$on("ReloadPage", function (event) {
+        UIService.reloadPage($scope, true);
     });
 }

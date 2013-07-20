@@ -32,10 +32,11 @@ function SoapActionsCtrl($scope, SoapactionsService) {
         $scope.info = "Running Generation...";
         $scope.btnRegenerateDisabled = true;
 
-        SoapactionsService.regenerate().success(function (resp) {
-            $scope.info = "Success generate SoapAction list";
-            $scope.btnRegenerateDisabled = false;
-        })
+        SoapactionsService.regenerate()
+            .success(function (resp) {
+                $scope.info = "Success generate SoapAction list";
+                $scope.btnRegenerateDisabled = false;
+            })
             .error(function (resp) {
                 console.log("Error with SoapActionsService.regenerate" + resp);
                 $scope.info = "Error with generate SoapAction list. See server logs.";
@@ -43,6 +44,7 @@ function SoapActionsCtrl($scope, SoapactionsService) {
 
         //$scope.btnRegenerate = "Running Generation...";
     }
+
 }
 
 function SoapActionEditCtrl($scope, $routeParams, $location, SoapAction) {

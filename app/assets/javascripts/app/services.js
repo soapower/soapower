@@ -40,7 +40,7 @@ define(['angular'], function (angular) {
                 this.recordXmlData = UIService.fixBoolean(this.recordXmlData);
                 this.recordData = UIService.fixBoolean(this.recordData);
                 this.id = parseInt(this.id);
-                this.groupId =  parseInt(this.group.id);
+                this.groupId = parseInt(this.group.id);
 
                 return Environment.update({environmentId: this.id},
                     angular.extend({}, this, {environmentId: undefined}), cb);
@@ -120,27 +120,25 @@ define(['angular'], function (angular) {
         .factory("ServicesService", function ($http) {
             return {
                 findAll: function (group) {
-                    return $http.get('/services/'+group+'/listDatatable');
+                    return $http.get('/services/' + group + '/listDatatable');
                 }
             }
         })
         .factory("EnvironmentsService", function ($http) {
             return {
                 findAll: function (group) {
-                    return $http.get('/environments/'+group+'/listDatatable');
+                    return $http.get('/environments/' + group + '/listDatatable');
                 },
                 findAllAndSelect: function ($scope, environmentName, environmentGroup, myService) {
-                    console.log("Selected environment group : " + environmentGroup)
-                    $http.get('/environments/'+environmentGroup+'/options')
+                    $http.get('/environments/' + environmentGroup + '/options')
                         .success(function (environments) {
                             $scope.environments = environments;
-                             if(environments.length==0){
+                            if (environments.length == 0) {
                                 console.log("No environments have been founded")
                                 $scope.environments.unshift({id: "none", name: "none"});
-                            }else{
-                                 $scope.environments.unshift({id: "all", name: "all"});
+                            } else {
+                                $scope.environments.unshift({id: "all", name: "all"});
                             }
-
 
                             if (environmentName != null || myService != null) {
                                 angular.forEach($scope.environments, function (value, key) {
@@ -169,7 +167,8 @@ define(['angular'], function (angular) {
                     $http.get('/groups/options')
                         .success(function (groups) {
                             $scope.groups = groups;
-                            $scope.groups.unshift({id: "all", name: "all"});
+                            var groupAll = {id: "all", name: "all"}
+                            $scope.groups.unshift(groupAll);
                             if (groupName != null || myEnvironment != null) {
                                 angular.forEach($scope.groups, function (value, key) {
                                     if (groupName != null && value.name == groupName) {
@@ -179,6 +178,9 @@ define(['angular'], function (angular) {
                                         myEnvironment.group = value;
                                     }
                                 });
+                            }
+                            if (!$scope.group) {
+                                $scope.group = groupAll;
                             }
 
                         })
@@ -206,22 +208,20 @@ define(['angular'], function (angular) {
                 }
             }
         })
-        .factory("UIService",function ($location, $filter) {
+        .factory("UIService",function ($location, $filter, $rootScope) {
             return {
-                reloadPage: function ($scope, $routeParams) {
-                    var group ="all", environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
+                reloadPage: function ($scope, showSoapactions) {
+                    var environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
 
                     if ($scope.environment) environment = $scope.environment.name;
 
-                    if ($routeParams.group) group = $routeParams.group;
+                    console.log("groupe:" + $rootScope.group.name);
+                    var group = $rootScope.group.name;
 
-                    if ($scope.group) group = $scope.group.name;
-
-
-
-                    if ($scope.showSoapactions) {
-                        if ($scope.soapaction) soapaction = $scope.soapaction.name;
+                    if (showSoapactions && $scope.soapaction) {
+                        soapaction = $scope.soapaction.name;
                     }
+
                     if ($scope.mindate && $scope.mindate != "" && $scope.mindate != "All") {
                         mindate = this.initDayToUrl($filter('date')($scope.mindate, 'yyyy-MM-dd'));
 
@@ -233,22 +233,18 @@ define(['angular'], function (angular) {
 
                     var path = $scope.ctrlPath + '/' + group + "/" + environment + "/";
 
-                    if ($scope.showSoapactions) path = path + soapaction + "/";
+                    if (showSoapactions) path = path + soapaction + "/";
 
                     path = path + mindate + "/" + maxdate + "/" + code;
 
                     console.log("UIService.reloadPage : Go to " + path);
                     $location.path(path);
                 },
-                 reloadAdminPage: function ($scope) {
-                                    var group ="all";
-                                    if ($scope.group) group = $scope.group.name;
-
-                                    var path = $scope.adminPath + '/' + group ;
-
-                                    console.log("UIService.reloadAdminPage : Go to " + path);
-                                    $location.path(path);
-                 },
+                reloadAdminPage: function ($scope, group) {
+                    var path = $scope.ctrlPath + '/' + group;
+                    console.log("UIService.reloadAdminPage : Go to " + path);
+                    $location.path(path);
+                },
                 getDateFromParam: function (indate) {
                     if (indate && indate != "all") {
                         if (indate == "yesterday" || indate == "today") {
@@ -258,7 +254,7 @@ define(['angular'], function (angular) {
                         return new Date(elem[0], elem[1] - 1, elem[2]);
                     }
                 },
-                initDayToUrl: function(val, defaultValue) {
+                initDayToUrl: function (val, defaultValue) {
                     var dayInit = null;
                     if (val == defaultValue) return val;
                     if (val == "")  return defaultValue;

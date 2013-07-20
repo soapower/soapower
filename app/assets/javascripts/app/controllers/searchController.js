@@ -1,4 +1,4 @@
-function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayService) {
+function SearchCtrl ($scope, $rootScope, $http, $location, $routeParams, $window, ReplayService, UIService) {
     $scope.ctrlPath = "search";
 
     $scope.showTips = false;
@@ -98,6 +98,12 @@ function SearchCtrl ($scope, $http, $location, $routeParams, $window, ReplayServ
     $scope.$on('refreshSearchTable', function (event) {
         console.log("Receive Broadcast event : refreshSearchTable");
         $scope.reloadTable();
+    });
+
+    $rootScope.$broadcast("showGroupsFilter", true);
+
+    $scope.$on("ReloadPage", function (event) {
+        UIService.reloadPage($scope, true);
     });
 
     $scope.gridOptions = {

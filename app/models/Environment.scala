@@ -61,7 +61,7 @@ object Environment {
   val csv = {
     get[Pk[Long]]("environment.id") ~
       get[String]("environment.name") ~
-      get[String]("environment_group.name") ~
+      get[String]("groups.name") ~
       get[Int]("environment.hourRecordXmlDataMin") ~
       get[Int]("environment.hourRecordXmlDataMax") ~
       get[Int]("environment.nbDayKeepXmlData") ~
@@ -78,7 +78,7 @@ object Environment {
    * @return List of Environements, csv format
    */
   def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("select * from environment left join environment_group on environment.groupId = environment_group.id").as(Environment.csv *)
+    implicit c => SQL("select * from environment left join groups on environment.groupId = groups.id").as(Environment.csv *)
   }
 
 
@@ -89,7 +89,7 @@ object Environment {
     implicit connection =>
       val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
         Logger.debug("Environments not found in cache: loading from db")
-        SQL("select * from environment, environment_group where environment.groupId = environment_group.id and environment_group.name = {groupName} order by environment.name").on(
+        SQL("select * from environment, groups where environment.groupId = groups.id and groups.name = {groupName} order by environment.name").on(
           'groupName -> group).as(Environment.simple *).map(c => c.id.toString -> c.name)
       }
       sortEnvs(envs)
@@ -116,7 +116,7 @@ object Environment {
     implicit connection =>
       val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions+group) {
         Logger.debug("Environments not found in cache: loading from db")
-        SQL("select * from environment, environment_group where environment.groupId = environment_group.id and environment_group.name = {group} order by environment.name ")
+        SQL("select * from environment, groups where environment.groupId = groups.id and groups.name = {group} order by environment.name ")
           .on('group -> group)
           .as(Environment.simple *)
           .map(c => c.id.toString -> c.name)
@@ -290,9 +290,9 @@ object Environment {
 
         val environments = SQL(
           """
-          select * from environment, environment_group
-          where environment.groupId = environment_group.id
-          and environment_group.name = {group}
+          select * from environment, groups
+          where environment.groupId = groups.id
+          and groups.name = {group}
           order by environment.groupId asc, environment.name
           """).on('group -> group).as(Environment.simple *)
 

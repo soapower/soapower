@@ -378,6 +378,7 @@ object RequestData {
 
   /**
    * Return a page of RequestData
+   * @param groupeIn group name
    * @param environmentIn name of environnement, "all" default
    * @param soapAction soapAction, "all" default
    * @param minDate Min Date
@@ -388,7 +389,7 @@ object RequestData {
    * @param filterIn filter on soapAction. Usefull only is soapActionIn = "all"
    * @return
    */
-  def list(environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
+  def list(groupeIn: String, environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
     val filter = "%" + filterIn + "%"
 
     // Convert dates... bad perf anorm ?
@@ -398,14 +399,17 @@ object RequestData {
     g.setTime(maxDate)
     val max = UtilDate.formatDate(g)
 
-    var whereClause = "where startTime >= '" + min + "' and startTime <= '" + max + "'"
+    var whereClause = " where startTime >= '" + min + "' and startTime <= '" + max + "'"
     if (status != "all") whereClause += " and status = {status}"
     if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
     if (filterIn != "%" && filterIn.trim != "") whereClause += " and soapAction like {filter}"
 
-    whereClause += " and isStats = 'false' "
 
+    whereClause += " and isStats = 'false' "
     whereClause += sqlAndEnvironnement(environmentIn)
+    val pair = sqlFromAndGroup(groupeIn, environmentIn)
+    val fromClause = "from request_data " + pair._1
+    whereClause += pair._2
 
     Logger.debug("Offset:" + offset + " pageSize x pageSize:" + (offset * pageSize) + " offset:" + offset);
 
@@ -418,20 +422,21 @@ object RequestData {
       'status -> status,
       'filter -> filter)
 
+    val sql = "select request_data.id, sender, soapAction, environmentId, serviceId, " +
+      " startTime, timeInMillis, status, purged  " + fromClause + whereClause +
+      " order by request_data.id " +
+      " desc limit {offset}, {pageSize}"
+
+    Logger.debug("SQL ====> " + sql)
     DB.withConnection {
       implicit connection =>
       val requestTimeInMillis = System.currentTimeMillis
-        val requests = SQL(
-          "select id, sender, soapAction, environmentId, serviceId, " +
-            " startTime, timeInMillis, status, purged from request_data "
-            + whereClause +
-            " order by request_data.id " +
-            " desc limit {offset}, {pageSize}").on(params: _*).as(RequestData.simple *)
+        val requests = SQL(sql).on(params: _*).as(RequestData.simple *)
         val middle = System.currentTimeMillis
           Logger.debug("Middle : "+ (System.currentTimeMillis - requestTimeInMillis))
 
         val totalRows = SQL(
-          "select count(id) from request_data " + whereClause).on(params: _*).as(scalar[Long].single)
+          "select count(request_data.id) " + fromClause + whereClause).on(params: _*).as(scalar[Long].single)
         Logger.debug("End : "+ (System.currentTimeMillis - middle) + " totalrows:" + totalRows + " where:" + whereClause);
 
         Page(requests, -1, offset, totalRows)
@@ -572,13 +577,27 @@ object RequestData {
 
     // search by name
     if (environmentIn != "all" && Environment.optionsAll.exists(t => t._2 == environmentIn))
-      environment = "and request_data.environmentId = " + Environment.optionsAll.find(t => t._2 == environmentIn).get._1
+      environment = " and request_data.environmentId = " + Environment.optionsAll.find(t => t._2 == environmentIn).get._1
 
     // search by id
     if (environment == "" && Environment.optionsAll.exists(t => t._1 == environmentIn))
-      environment = "and request_data.environmentId = " + Environment.optionsAll.find(t => t._1 == environmentIn).get._1
+      environment = " and request_data.environmentId = " + Environment.optionsAll.find(t => t._1 == environmentIn).get._1
 
     environment
+  }
+
+  private def sqlFromAndGroup(groupIn: String, environmentIn: String): (String, String) = {
+    var group = ""
+    var from = ""
+
+    // search by name
+    if (environmentIn == "all" && groupIn != "all" && Group.options.exists(t => t._2 == groupIn)) {
+      group += " and request_data.environmentId = environment.id"
+      group += " and environment.groupId = " + Group.options.find(t => t._2 == groupIn).get._1
+      from = ", environment "
+    }
+
+    (from, group)
   }
 
   private def headersToString(headers: Map[String, String]): String = {

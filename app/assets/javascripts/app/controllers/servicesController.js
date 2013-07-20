@@ -1,8 +1,4 @@
-function ServicesCtrl($scope, $routeParams, ServicesService) {
-
-    $scope.adminPath = "services";
-
-    console.log("fetch services for group : " + $routeParams.group);
+function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIService) {
 
     ServicesService.findAll($routeParams.group).
         success(function (services) {
@@ -33,6 +29,13 @@ function ServicesCtrl($scope, $routeParams, ServicesService) {
             {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/services/edit/'+ $routeParams.group+'/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
         ]
     };
+
+    $rootScope.$broadcast("showGroupsFilter", true);
+
+    $scope.$on("ReloadPage", function (event, group) {
+        $scope.ctrlPath = "services";
+        UIService.reloadAdminPage($scope, group);
+    });
 }
 
 function ServiceEditCtrl($scope, $routeParams, $location, Service, EnvironmentsService, UIService) {

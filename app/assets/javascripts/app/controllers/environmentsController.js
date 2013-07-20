@@ -1,6 +1,4 @@
-function EnvironmentsCtrl($scope, $routeParams, EnvironmentsService) {
-
-     $scope.adminPath = "environments";
+function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService, UIService) {
 
     // Looking for environments with their groups and adding all informations to $scope.environments var
     EnvironmentsService.findAll($routeParams.group).
@@ -10,9 +8,6 @@ function EnvironmentsCtrl($scope, $routeParams, EnvironmentsService) {
         .error(function (resp) {
             console.log("Error with EnvironmentsService.findAll" + resp);
         });
-
-
-
 
     $scope.filterOptions = {
         filterText: "",
@@ -35,6 +30,13 @@ function EnvironmentsCtrl($scope, $routeParams, EnvironmentsService) {
             {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/environments/edit/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
         ]
     };
+
+    $rootScope.$broadcast("showGroupsFilter", true);
+
+    $scope.$on("ReloadPage", function (event, group) {
+        $scope.ctrlPath = "environments";
+        UIService.reloadAdminPage($scope, group);
+    });
 }
 
 function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UIService, GroupsService) {
@@ -46,7 +48,7 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UISer
         $scope.environment = new Environment(self.original);
         $scope.environment.recordXmlData = UIService.fixBooleanReverse($scope.environment.recordXmlData);
         $scope.environment.recordData = UIService.fixBooleanReverse($scope.environment.recordData);
-        console.log($scope.environment.groupId )
+        console.log($scope.environment.groupId)
         GroupsService.findAllAndSelect($scope, null, $scope.environment);
 
     });
@@ -72,7 +74,7 @@ function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
 
     GroupsService.findAllAndSelect($scope);
 
-    $scope.environment = new Environment({id:'-1'});
+    $scope.environment = new Environment({id: '-1'});
     $scope.environment.recordXmlData = "yes";
     $scope.environment.recordData = "yes";
 

@@ -14,7 +14,6 @@ define(['angular'], function (angular) {
                     soapactions: '='
                 },
                 controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, SoapactionsService, CodesService, UIService) {
-                    console.log("Directive : " + $routeParams.group)
                     EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.group);
                     CodesService.findAllAndSelect($scope, $routeParams);
                     $scope.ctrlPath = $scope.$parent.ctrlPath;
@@ -29,7 +28,7 @@ define(['angular'], function (angular) {
                     $scope.maxdate = UIService.getDateFromParam($routeParams.maxdate);
 
                     $scope.changeCriteria = function () {
-                        UIService.reloadPage($scope, $routeParams);
+                        UIService.reloadPage($scope, $scope.showSoapactions);
                     };
 
                     $scope.$watch('mindate', function () {
@@ -60,34 +59,20 @@ define(['angular'], function (angular) {
                     soapactions: '='
                 },
                 // Check if it's an admin path
-                controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, GroupsService, UIService) {
-                    if ($scope.$parent.adminPath) {
-                        $scope.adminPath = $scope.$parent.adminPath;
-                        GroupsService.findAllAndSelect($scope, $routeParams.group);
-
-                        $scope.changeGroup = function () {
-                            UIService.reloadAdminPage($scope);
-                        };
+                controller: function ($scope, $rootScope, $routeParams, GroupsService) {
+                    $scope.showSelect = false;
+                    $scope.showGroup = false;
+                    $scope.$on("showGroupsFilter", function(event, toShow) {
+                        $scope.showGroup = toShow;
+                        event.preventDefault();
+                    });
+                    GroupsService.findAllAndSelect($scope, $routeParams.group);
+                    $scope.changeGroup = function () {
+                        $scope.showSelect = false;
+                        console.log("broadcast ReloadPage with group " + $scope.group.name);
+                        $rootScope.group = $scope.group;
+                        $rootScope.$broadcast("ReloadPage", $scope.group.name);
                     }
-                    //Check if it's a search path
-                    if ($scope.$parent.ctrlPath) {
-
-                        // Use in order to produce right URL into search forms
-                        $scope.showSoapactions = true;
-                        if ($attrs.soapactions == "no") {
-                            $scope.showSoapactions = false;
-                        }
-                        $scope.mindate = "yesterday"
-                        $scope.maxdate = "today"
-
-                        $scope.ctrlPath = $scope.$parent.ctrlPath;
-                        GroupsService.findAllAndSelect($scope, $routeParams.group);
-
-                        $scope.changeGroup = function () {
-                            UIService.reloadPage($scope, $routeParams);
-                        };
-                    }
-
                 },
                 templateUrl: 'partials/common/group.html',
                 replace: true

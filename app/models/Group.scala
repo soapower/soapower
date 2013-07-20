@@ -31,8 +31,8 @@ object Group {
    * SQL anorm row parser. This operation indicate how to parse a sql row.
    */
   val simple = {
-    get[Long]("environment_group.id") ~
-      get[String]("environment_group.name") map {
+    get[Long]("groups.id") ~
+      get[String]("groups.name") map {
       case id ~ name
       => Group(id, name)
     }
@@ -49,8 +49,8 @@ object Group {
    * Csv format.
    */
   val csv = {
-    get[Long]("environment_group.id") ~
-      get[String]("environment_group.name") map {
+    get[Long]("groups.id") ~
+      get[String]("groups.name") map {
       case id ~ name =>
         id + ";" + name + ";" + "\n"
     }
@@ -62,7 +62,7 @@ object Group {
    * @return List of groups, csv format
    */
   def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("select * from environment_group").as(Group.csv *)
+    implicit c => SQL("select * from groups").as(Group.csv *)
   }
 
 
@@ -73,7 +73,7 @@ object Group {
     implicit connection =>
       val groups = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
         Logger.debug("Groups not found in cache: loading from db")
-        SQL("select * from environment_group order by name").as(Group.simple *).map(c => c.id.toString -> c.name)
+        SQL("select * from groups order by name").as(Group.simple *).map(c => c.id.toString -> c.name)
       }
       groups
   }
@@ -85,7 +85,7 @@ object Group {
     DB.withConnection {
       implicit connection =>
         Cache.getOrElse[Option[Group]](keyCacheById + id) {
-          SQL("select * from environment_group where id = {id}").on('id -> id).as(Group.simple.singleOpt)
+          SQL("select * from groups where id = {id}").on('id -> id).as(Group.simple.singleOpt)
         }
     }
   }
@@ -96,7 +96,7 @@ object Group {
   def findByName(name: String): Option[Group] = DB.withConnection {
     implicit connection =>
       Cache.getOrElse[Option[Group]](keyCacheByName + name) {
-        SQL("select * from environment_group where name = {name}").on('name -> name).as(Group.simple.singleOpt)
+        SQL("select * from groups where name = {name}").on('name -> name).as(Group.simple.singleOpt)
       }
   }
 
@@ -111,7 +111,7 @@ object Group {
     // Insert the new group
     DB.withConnection {
       implicit connection =>
-        SQL( """	insert into environment_group values (null, {name})""").on('name -> group.name).executeUpdate()
+        SQL( """	insert into groups values (null, {name})""").on('name -> group.name).executeUpdate()
     }
   }
 
@@ -125,7 +125,7 @@ object Group {
     Cache.remove(keyCacheById + group.id)
     DB.withConnection {
       implicit connection =>
-        SQL( """update environment_group set name = {name} where id = {id}""").on(
+        SQL( """update groups set name = {name} where id = {id}""").on(
           'id -> group.id,
           'name -> group.name
         ).executeUpdate()
@@ -142,7 +142,7 @@ object Group {
     Cache.remove(keyCacheById + group.id)
     DB.withConnection {
       implicit connection =>
-        SQL("delete from environment_group where id = {id}").on('id -> group.id).executeUpdate()
+        SQL("delete from groups where id = {id}").on('id -> group.id).executeUpdate()
     }
   }
 
@@ -160,7 +160,7 @@ object Group {
     DB.withConnection {
       implicit connection =>
         val groups = SQL(
-          "select * from environment_group order by environment_group.name").as(Group.simple *)
+          "select * from groups order by groups.name").as(Group.simple *)
         groups
     }
   }
