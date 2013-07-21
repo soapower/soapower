@@ -24,6 +24,7 @@ object Groups extends Controller {
     }
   }
 
+
   /**
    * Group format
    */
@@ -100,7 +101,7 @@ object Groups extends Controller {
     groupOption match {
       case Some(group) =>
         Group.delete(group)
-        Ok("deleted");
+        Ok("deleted")
       case None =>
         Ok("failure : Group doesn't exist")
     }

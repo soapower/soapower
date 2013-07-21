@@ -35,7 +35,6 @@ object Services extends Controller {
 
       var data: List[(Service, Environment)] = null.asInstanceOf[List[(Service, Environment)]]
       if (group != "all") {
-
         data = Service.list(group)
       } else {
         data = Service.list
@@ -79,7 +78,7 @@ object Services extends Controller {
    */
   def delete(id: Long) = Action {
     Service.delete(id)
-    Ok("deleted");
+    Ok("deleted")
   }
 
 }

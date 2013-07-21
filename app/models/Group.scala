@@ -1,6 +1,3 @@
-/**
- *
- */
 package models
 
 import anorm._
@@ -13,7 +10,7 @@ import play.api.db._
 /**
  * @author Ronan Quintin - ronan.quintin@gmail.com
  *
- * A group  can contain environments, and an environment must be contained by a group. A group does have a name.
+ *         A group  can contain environments, and an environment must be contained by a group. A group does have a name.
  */
 // Defining a case class
 case class Group(id: Long, name: String)

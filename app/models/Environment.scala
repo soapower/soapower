@@ -18,7 +18,7 @@ case class Environment(id: Long,
                        nbDayKeepAllData: Int = 5,
                        recordXmlData: Boolean = true,
                        recordData: Boolean = true
-                       )
+                        )
 
 object ModePurge extends Enumeration {
   type ModePurge = Value
@@ -112,9 +112,9 @@ object Environment {
   /**
    * Construct the Map[String,String] which are contained to the given group, needed to fill a select options set
    */
-  def optionsAll(group : String): Seq[(String, String)] = DB.withConnection {
+  def optionsAll(group: String): Seq[(String, String)] = DB.withConnection {
     implicit connection =>
-      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions+group) {
+      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions + group) {
         Logger.debug("Environments not found in cache: loading from db")
         SQL("select * from environment, groups where environment.groupId = groups.id and groups.name = {group} order by environment.name ")
           .on('group -> group)
@@ -274,16 +274,11 @@ object Environment {
     Cache.remove(keyCacheAllOptions)
   }
 
-
-
-
-
-
   /**
    * Return a list of all Environment which are contained into the given group
    *
    */
-  def list(group : String) : List[Environment] = {
+  def list(group: String): List[Environment] = {
 
     DB.withConnection {
       implicit connection =>
@@ -304,7 +299,7 @@ object Environment {
    * Return a list of all Environment
    *
    */
-  def list() : List[Environment] = {
+  def list(): List[Environment] = {
 
     DB.withConnection {
       implicit connection =>

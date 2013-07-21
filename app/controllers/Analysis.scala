@@ -12,7 +12,6 @@ import play.Logger
 
 object Analysis extends Controller {
 
-
   // use by Json : from scala to json
   implicit object ReponseTimeWrites extends Writes[(Long, String, Date, Long)] {
     def writes(data: (Long, String, Date, Long)): JsValue = JsObject(

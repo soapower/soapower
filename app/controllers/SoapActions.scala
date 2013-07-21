@@ -74,5 +74,4 @@ object SoapActions extends Controller {
       Ok(Json.toJson("Success regeneration"))
   }
 
-
 }
