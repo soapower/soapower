@@ -644,7 +644,7 @@ object RequestData {
   private def explainPlan(sql: String, params: (Any, anorm.ParameterValue[_])*)(implicit connection: Connection) {
     val plan = SQL("explain plan for " + sql).on(params: _*).resultSet()
     while (plan.next) {
-      println(plan.getString(1))
+      Logger.debug(plan.getString(1))
     }
   }
 
