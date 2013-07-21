@@ -35,12 +35,13 @@ object Soap extends Controller {
   def autoIndex(group: String, environment: String, remoteTarget: String) = Action(parse.xml) {
     implicit request =>
 
-      Logger.info("Automatic service detection request on group: " + group + " environment:" + environment + " localTarget:" + localTarget + " remoteTarget: " + remoteTarget)
-
-      // Search the corresponding service
       // FIXME make a localTarget from remoteTarget.
       // Exemple : remote: http://server:port/svc/loginSvc -> localTarget is svc/loginSvc
       val localTarget = "FIXME"
+
+      Logger.info("Automatic service detection request on group: " + group + " environment:" + environment + " localTarget:" + localTarget + " remoteTarget: " + remoteTarget)
+
+      // Search the corresponding service
       val optionService = Service.findByLocalTargetAndEnvironmentName(localTarget, environment)
 
       var service: Service = null.asInstanceOf[Service]
