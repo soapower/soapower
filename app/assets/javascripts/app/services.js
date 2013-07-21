@@ -129,14 +129,14 @@ define(['angular'], function (angular) {
                 findAll: function (group) {
                     return $http.get('/environments/' + group + '/listDatatable');
                 },
-                findAllAndSelect: function ($scope, environmentName, environmentGroup, myService) {
+                findAllAndSelect: function ($scope, environmentName, environmentGroup, myService, addAll) {
                     $http.get('/environments/' + environmentGroup + '/options')
                         .success(function (environments) {
                             $scope.environments = environments;
                             if (environments.length == 0) {
                                 console.log("No environments have been founded")
-                                $scope.environments.unshift({id: "none", name: "none"});
-                            } else {
+                                $scope.environments.unshift({id: "error", name: "error. No Env with this group"});
+                            } else if (addAll) {
                                 $scope.environments.unshift({id: "all", name: "all"});
                             }
 

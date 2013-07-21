@@ -14,7 +14,7 @@ define(['angular'], function (angular) {
                     soapactions: '='
                 },
                 controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, SoapactionsService, CodesService, UIService) {
-                    EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.group);
+                    EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.group, null, true);
                     CodesService.findAllAndSelect($scope, $routeParams);
                     $scope.ctrlPath = $scope.$parent.ctrlPath;
 
@@ -63,7 +63,7 @@ define(['angular'], function (angular) {
                     $scope.showSelect = false;
                     $scope.showGroup = false;
                     $scope.$on("showGroupsFilter", function(event, groupName) {
-                        $scope.showGroup = (groupName != null);
+                        $scope.showGroup = (groupName != false);
                         GroupsService.findAllAndSelect($scope, groupName);
                         event.preventDefault();
                     });

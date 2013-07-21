@@ -1,5 +1,7 @@
 function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIService) {
 
+    $scope.groupName =  $routeParams.group;
+
     ServicesService.findAll($routeParams.group).
         success(function (services) {
             $scope.services = services.data;
@@ -38,7 +40,7 @@ function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIServi
     });
 }
 
-function ServiceEditCtrl($scope, $routeParams, $location, Service, EnvironmentsService, UIService) {
+function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, EnvironmentsService, UIService) {
 
     var self = this;
 
@@ -51,10 +53,8 @@ function ServiceEditCtrl($scope, $routeParams, $location, Service, EnvironmentsS
         $scope.service.recordXmlData = UIService.fixBooleanReverse($scope.service.recordXmlData);
         $scope.service.recordData = UIService.fixBooleanReverse($scope.service.recordData);
 
-        EnvironmentsService.findAllAndSelect($scope, null, $routeParams.group, $scope.service);
-
+        EnvironmentsService.findAllAndSelect($scope, null, $routeParams.group, $scope.service, false);
     });
-
 
     $scope.isClean = function () {
         return angular.equals(self.original, $scope.service);
@@ -71,11 +71,14 @@ function ServiceEditCtrl($scope, $routeParams, $location, Service, EnvironmentsS
             $location.path('/services');
         });
     };
+
+    // not using filter on edit services
+    $rootScope.$broadcast("showGroupsFilter", false);
 }
 
-function ServiceNewCtrl($scope, $location, $routeParams, Service, EnvironmentsService) {
+function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, EnvironmentsService) {
 
-    EnvironmentsService.findAllAndSelect($scope, null, $routeParams.group);
+    EnvironmentsService.findAllAndSelect($scope, null, $routeParams.group, null, false);
 
     $scope.service = new Service({id:'-2'});
     $scope.service.recordXmlData = "yes";
@@ -87,4 +90,10 @@ function ServiceNewCtrl($scope, $location, $routeParams, Service, EnvironmentsSe
         });
     }
 
+    $rootScope.$broadcast("showGroupsFilter", $routeParams.group);
+
+    $scope.$on("ReloadPage", function (event, group) {
+        var path = "services/new/" + group;
+        $location.path(path);
+    });
 }
