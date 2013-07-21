@@ -20,14 +20,14 @@ object Stats extends Controller {
     }
   }
 
-  def listDataTable(environmentName: String, minDateAsStr: String, maxDateAsStr: String, status: String) = Action { implicit request =>
+  def listDataTable(groupName: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String, status: String) = Action { implicit request =>
     // load thresholds
     val thresholdsBySoapActions = SoapAction.loadAll().map(action => (action.name, action.thresholdms)).toMap
 
     // compute average response times
     val minDate = getDate(minDateAsStr).getTime()
     val maxDate = getDate(maxDateAsStr, v23h59min59s).getTime()
-    val avgResponseTimesByAction = RequestData.loadAvgResponseTimesByAction(environmentName, minDate, maxDate, true)
+    val avgResponseTimesByAction = RequestData.loadAvgResponseTimesByAction(groupName, environmentName, minDate, maxDate, true)
 
     val data = avgResponseTimesByAction.map(d => (environmentName, d._1, d._2, thresholdsBySoapActions.getOrElse[Long](d._1, -1)))
 
@@ -37,14 +37,14 @@ object Stats extends Controller {
       "data" -> Json.toJson(data)))).as(JSON)
   }
 
-  def statsAsJunit(minDateAsStr: String, maxDateAsStr: String) = Action {
+  def statsAsJunit(groupName: String, minDateAsStr: String, maxDateAsStr: String) = Action {
     val minDate = getDate(minDateAsStr).getTime()
     val maxDate = getDate(maxDateAsStr, v23h59min59s).getTime()
     val thresholdsBySoapActions = SoapAction.loadAll().map(action => (action.name, action.thresholdms)).toMap
 
     var ret = ""
     Environment.optionsAll.foreach{e =>
-      val avgResponseTimesByAction = RequestData.loadAvgResponseTimesByAction(e._1, minDate, maxDate, true)
+      val avgResponseTimesByAction = RequestData.loadAvgResponseTimesByAction(groupName, e._1, minDate, maxDate, true)
       val data = avgResponseTimesByAction.map(d => (d._1, d._2, thresholdsBySoapActions.getOrElse[Long](d._1, -1)))
 
       ret += "<testsuite name=\""+e._2+"\">"

@@ -1,12 +1,14 @@
-function AnalysisCtrl ($scope, $rootScope, $routeParams, $http, UIService) {
+function AnalysisCtrl($scope, $rootScope, $routeParams, $http, UIService) {
     $scope.ctrlPath = "analysis";
 
+    var group = $routeParams.group ? $routeParams.group : 'all';
     var environment = $routeParams.environment ? $routeParams.environment : 'all';
     var soapaction = $routeParams.soapaction ? $routeParams.soapaction : 'all';
     var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
     var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
     var code = $routeParams.code ? $routeParams.code : 'all';
-    var url = '/analysis/' + environment +
+    var url = '/analysis/' + group +
+        '/' + environment +
         '/' + soapaction +
         '/' + mindate +
         '/' + maxdate +
