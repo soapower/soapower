@@ -30,15 +30,17 @@ object Soap extends Controller {
    *
    * @param group The group of soap request. It is a logical separation between environments.
    * @param environment The environment group of the soap request. It is a logical separation between services.
-   * @param localTarget The target to call on Soapower, it identifies a particular service
    * @param remoteTarget The remote target to be call. The underlying soap request is forwarded to this remote target.
    */
-  def autoIndex(group: String, environment: String, localTarget: String, remoteTarget: String) = Action(parse.xml) {
+  def autoIndex(group: String, environment: String, remoteTarget: String) = Action(parse.xml) {
     implicit request =>
 
       Logger.info("Automatic service detection request on group: " + group + " environment:" + environment + " localTarget:" + localTarget + " remoteTarget: " + remoteTarget)
 
       // Search the corresponding service
+      // FIXME make a localTarget from remoteTarget.
+      // Exemple : remote: http://server:port/svc/loginSvc -> localTarget is svc/loginSvc
+      val localTarget = "FIXME"
       val optionService = Service.findByLocalTargetAndEnvironmentName(localTarget, environment)
 
       var service: Service = null.asInstanceOf[Service]
