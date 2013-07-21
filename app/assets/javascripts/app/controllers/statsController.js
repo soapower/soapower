@@ -81,7 +81,7 @@ function StatsCtrl($scope, $rootScope, $http, $location, $routeParams, UIService
         ]
     };
 
-    $rootScope.$broadcast("showGroupsFilter", true);
+    $rootScope.$broadcast("showGroupsFilter", $routeParams.group);
 
     $scope.$on("ReloadPage", function (event) {
         UIService.reloadPage($scope, false);

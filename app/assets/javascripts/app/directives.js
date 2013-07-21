@@ -62,11 +62,11 @@ define(['angular'], function (angular) {
                 controller: function ($scope, $rootScope, $routeParams, GroupsService) {
                     $scope.showSelect = false;
                     $scope.showGroup = false;
-                    $scope.$on("showGroupsFilter", function(event, toShow) {
-                        $scope.showGroup = toShow;
+                    $scope.$on("showGroupsFilter", function(event, groupName) {
+                        $scope.showGroup = (groupName != null);
+                        GroupsService.findAllAndSelect($scope, groupName);
                         event.preventDefault();
                     });
-                    GroupsService.findAllAndSelect($scope, $routeParams.group);
                     $scope.changeGroup = function () {
                         $scope.showSelect = false;
                         console.log("broadcast ReloadPage with group " + $scope.group.name);

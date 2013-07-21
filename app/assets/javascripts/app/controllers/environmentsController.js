@@ -31,7 +31,7 @@ function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService,
         ]
     };
 
-    $rootScope.$broadcast("showGroupsFilter", true);
+    $rootScope.$broadcast("showGroupsFilter", $routeParams.group);
 
     $scope.$on("ReloadPage", function (event, group) {
         $scope.ctrlPath = "environments";
