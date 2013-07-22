@@ -477,8 +477,8 @@ object RequestData {
     DB.withConnection {
       implicit connection =>
 
-        var whereClause = "where status=200 and startTime >= {minDate} and startTime <= {maxDate}"
-        if (!withStats) whereClause = " and isStats = 'false' "
+        var whereClause = " where status=200 and startTime >= {minDate} and startTime <= {maxDate} "
+        if (!withStats) whereClause += " and isStats = 'false' "
 
         Logger.debug("Load Stats with env:" + environmentName)
         whereClause += sqlAndEnvironnement(environmentName)
