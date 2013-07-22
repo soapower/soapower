@@ -93,14 +93,12 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
             .when('/environments/edit/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'partials/environments/detail.html'})
             .when('/environments/:group', { controller: EnvironmentsCtrl, templateUrl: 'partials/environments/list.html'})
 
-
             .when('/groups', { controller: GroupsCtrl, templateUrl: 'partials/groups/list.html'})
             .when('/groups/new', {controller: GroupNewCtrl, templateUrl: 'partials/groups/detail.html'})
             .when('/groups/:groupId', {controller: GroupEditCtrl, templateUrl: 'partials/groups/detail.html'})
 
             .when('/soapactions/edit/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
             .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
-
 
             .when('/stats', {
                 redirectTo: '/stats/all/all/yesterday/today/all'
@@ -113,5 +111,11 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
                 redirectTo: '/home'
             });
     });
+
+    spApp.run(['$location', '$rootScope', function($location, $rootScope) {
+        $rootScope.$on('$routeChangeSuccess', function (event, current, previous) {
+            $rootScope.$broadcast("showGroupsFilter", false);
+        });
+    }]);
     angular.bootstrap(document, ['spApp']);
 });

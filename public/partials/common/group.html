@@ -1,11 +1,4 @@
-<div>
-
-    <form class="form-inline">
-        <label for="group"> Group : </label>
-        <select ng-model="group" ng-options="group.name for group in groups"></select>
-        <button class="btn" ng-click="changeGroup()">Filter</button>
-        <br>
-
-    </form>
-
-</div>
+<a ng-show="showGroup">
+    <span style="cursor:pointer" ng-show="!showSelect" ng-click="showSelect=showSelect==false">Current Group : {{ group.name }}</span>
+    <select ng-show="showSelect" id="group" ng-model="group" ng-change="changeGroup()" ng-options="group.name for group in groups"></select>
+</a>

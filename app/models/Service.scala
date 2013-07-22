@@ -281,10 +281,10 @@ object Service {
       implicit connection =>
         val services = SQL(
           """
-          select * from service, environment, environment_group
+          select * from service, environment, groups
           where service.environment_id = environment.id
-          and environment.groupId = environment_group.id
-          and environment_group.name = {group}
+          and environment.groupId = groups.id
+          and groups.name = {group}
           order by environment.name asc, description asc
           """).on('group -> group).as(Service.withEnvironment *)
         services

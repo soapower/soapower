@@ -1,6 +1,6 @@
 package models
 
-import java.util.{ GregorianCalendar, Calendar, Date }
+import java.util.{GregorianCalendar, Calendar, Date}
 import play.api.db._
 import play.api.Play.current
 import play.api._
@@ -16,19 +16,19 @@ import java.nio.charset.Charset
 import java.io.{ByteArrayOutputStream, BufferedReader, InputStreamReader, ByteArrayInputStream}
 
 case class RequestData(
-  var id: Pk[Long],
-  sender: String,
-  var soapAction: String,
-  environmentId: Long,
-  serviceId: Long,
-  var request: String,
-  var requestHeaders: Map[String, String],
-  startTime: Date,
-  var response: String,
-  var responseHeaders: Map[String, String],
-  var timeInMillis: Long,
-  var status: Int,
-  var purged: Boolean) {
+                        var id: Pk[Long],
+                        sender: String,
+                        var soapAction: String,
+                        environmentId: Long,
+                        serviceId: Long,
+                        var request: String,
+                        var requestHeaders: Map[String, String],
+                        startTime: Date,
+                        var response: String,
+                        var responseHeaders: Map[String, String],
+                        var timeInMillis: Long,
+                        var status: Int,
+                        var purged: Boolean) {
 
   var responseBytes: Array[Byte] = null
 
@@ -58,12 +58,13 @@ object RequestData {
   val keyCacheStatusOptions = "status-options"
   val keyCacheMinStartTime = "minStartTime"
 
-  implicit def rowToByteArray: Column[Array[Byte]] = Column.nonNull { (value, meta) =>
-    val MetaDataItem(qualified, nullable, clazz) = meta
-    value match {
-      case data: Array[Byte] => Right(data)
-      case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Byte Array for column " + qualified))
-    }
+  implicit def rowToByteArray: Column[Array[Byte]] = Column.nonNull {
+    (value, meta) =>
+      val MetaDataItem(qualified, nullable, clazz) = meta
+      value match {
+        case data: Array[Byte] => Right(data)
+        case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Byte Array for column " + qualified))
+      }
   }
 
   /**
@@ -84,9 +85,9 @@ object RequestData {
       long("request_data.timeInMillis") ~
       int("request_data.status") ~
       str("request_data.purged") map {
-        case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ startTime ~ timeInMillis ~ status ~ purged =>
-          RequestData(id, sender, soapAction, environnmentId, serviceId, null, null, startTime, null, null, timeInMillis, status, (purged == "true"))
-      }
+      case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ startTime ~ timeInMillis ~ status ~ purged =>
+        RequestData(id, sender, soapAction, environnmentId, serviceId, null, null, startTime, null, null, timeInMillis, status, (purged == "true"))
+    }
   }
 
   /**
@@ -115,7 +116,7 @@ object RequestData {
    * @return List of RequestData, csv format
    */
   def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("SELECT *  FROM  request_data, environment WHERE environmentId = environment.id and isStats = 'true';").as(RequestData.csv. *)
+    implicit c => SQL("SELECT *  FROM  request_data, environment WHERE environmentId = environment.id and isStats = 'true';").as(RequestData.csv.*)
   }
 
   /**
@@ -129,10 +130,10 @@ object RequestData {
       long("request_data.serviceId") ~
       bytes("request_data.request") ~
       str("request_data.requestHeaders") map {
-        case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ request ~ requestHeaders =>
-          val headers = headersFromString(requestHeaders)
-          new RequestData(id, sender, soapAction, environnmentId, serviceId, uncompressString(request), headers, null, null, null, -1, -1, false)
-      }
+      case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ request ~ requestHeaders =>
+        val headers = headersFromString(requestHeaders)
+        new RequestData(id, sender, soapAction, environnmentId, serviceId, uncompressString(request), headers, null, null, null, -1, -1, false)
+    }
   }
 
   /**
@@ -173,9 +174,9 @@ object RequestData {
    *
    * @param requestData the requestData
    */
-  def insert(requestData: RequestData) : Long = {
-    var xmlRequest : Array[Byte] = null
-    var xmlResponse : Array[Byte] = null
+  def insert(requestData: RequestData): Long = {
+    var xmlRequest: Array[Byte] = null
+    var xmlResponse: Array[Byte] = null
 
     val environment = Environment.findById(requestData.environmentId).get
     val service = Service.findById(requestData.serviceId).get
@@ -199,12 +200,14 @@ object RequestData {
       Logger.debug(msg)
     } else if (requestData.status != 200 || (
       environment.hourRecordXmlDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
-      environment.hourRecordXmlDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
+        environment.hourRecordXmlDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
       // Record XML Data if it is a soap fault (status != 200) or
       // if we can record data with environment's configuration (hours of recording)
       xmlRequest = compressString(requestData.request)
 
-      def transferEncodingResponse = requestData.responseHeaders.filter { _._1 == HeaderNames.CONTENT_ENCODING }
+      def transferEncodingResponse = requestData.responseHeaders.filter {
+        _._1 == HeaderNames.CONTENT_ENCODING
+      }
 
       transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
         case Some("gzip") =>
@@ -231,34 +234,34 @@ object RequestData {
               {sender}, {soapAction}, {environmentId}, {serviceId}, {request}, {requestHeaders}, {startTime}, {response}, {responseHeaders}, {timeInMillis}, {status}
             )
             """).on(
-              'sender -> requestData.sender,
-              'soapAction -> requestData.soapAction,
-              'environmentId -> requestData.environmentId,
-              'serviceId -> requestData.serviceId,
-              'request -> xmlRequest,
-              'requestHeaders -> headersToString(requestData.requestHeaders),
-              'startTime -> requestData.startTime,
-              'response -> xmlResponse,
-              'responseHeaders -> headersToString(requestData.responseHeaders),
-              'timeInMillis -> requestData.timeInMillis,
-              'status -> requestData.status).executeInsert()
+            'sender -> requestData.sender,
+            'soapAction -> requestData.soapAction,
+            'environmentId -> requestData.environmentId,
+            'serviceId -> requestData.serviceId,
+            'request -> xmlRequest,
+            'requestHeaders -> headersToString(requestData.requestHeaders),
+            'startTime -> requestData.startTime,
+            'response -> xmlResponse,
+            'responseHeaders -> headersToString(requestData.responseHeaders),
+            'timeInMillis -> requestData.timeInMillis,
+            'status -> requestData.status).executeInsert()
       } match {
         case Some(long) => long // The Primary Key
-        case None       => -1
+        case None => -1
       }
 
     } catch {
       case e: Exception => Logger.error("Error during insertion of RequestData ", e)
-      -1
+        -1
     }
   }
 
   /**
    * Insert a new RequestData.
    */
-  def insertStats(environmentId : Long, soapAction: String, startTime : Date, timeInMillis : Long) = {
+  def insertStats(environmentId: Long, soapAction: String, startTime: Date, timeInMillis: Long) = {
 
-     try {
+    try {
 
       DB.withConnection {
         implicit connection =>
@@ -298,18 +301,6 @@ object RequestData {
   }
 
   /**
-   * Delete all request data !
-   */
-  /*def deleteAll() {
-    DB.withConnection {
-      implicit connection =>
-        SQL("delete from request_data").executeUpdate()
-    }
-    Cache.remove(keyCacheSoapAction)
-    Cache.remove(keyCacheStatusOptions)
-  }*/
-
-  /**
    * Delete XML data (request & reponse) between min and max date
    * @param environmentIn environmement or "" / all if all
    * @param minDate min date
@@ -323,9 +314,10 @@ object RequestData {
     //val d = new Date()
     //val deleted = "deleted by " + user + " " + d.toString
 
-    DB.withConnection { implicit connection =>
-      val purgedRequests = SQL(
-        """
+    DB.withConnection {
+      implicit connection =>
+        val purgedRequests = SQL(
+          """
             update request_data
             set response = '',
             request = '',
@@ -333,14 +325,14 @@ object RequestData {
             responseHeaders = '',
             purged = 'true'
             where startTime >= {minDate} and startTime <= {maxDate} and purged = 'false' and isStats = 'false'
-        """
-          + sqlAndEnvironnement(environmentIn)).on(
+          """
+            + sqlAndEnvironnement(environmentIn)).on(
           'minDate -> minDate,
           'maxDate -> maxDate).executeUpdate()
 
-      Cache.remove(keyCacheSoapAction)
-      Cache.remove(keyCacheStatusOptions)
-      purgedRequests
+        Cache.remove(keyCacheSoapAction)
+        Cache.remove(keyCacheStatusOptions)
+        purgedRequests
     }
   }
 
@@ -350,21 +342,21 @@ object RequestData {
    * @param minDate min date
    * @param maxDate max date
    */
-  def delete(environmentIn: String, minDate: Date, maxDate: Date) : Int = {
+  def delete(environmentIn: String, minDate: Date, maxDate: Date): Int = {
     DB.withConnection {
       implicit connection =>
-      val deletedRequests = SQL(
-        """
+        val deletedRequests = SQL(
+          """
             delete from request_data
             where startTime >= {minDate} and startTime < {maxDate}
             and isStats = 'false'
-        """
-          + sqlAndEnvironnement(environmentIn)).on(
-            'minDate -> minDate,
-            'maxDate -> maxDate).executeUpdate()
-      Cache.remove(keyCacheSoapAction)
-      Cache.remove(keyCacheStatusOptions)
-      deletedRequests
+          """
+            + sqlAndEnvironnement(environmentIn)).on(
+          'minDate -> minDate,
+          'maxDate -> maxDate).executeUpdate()
+        Cache.remove(keyCacheSoapAction)
+        Cache.remove(keyCacheStatusOptions)
+        deletedRequests
     }
   }
 
@@ -378,6 +370,7 @@ object RequestData {
 
   /**
    * Return a page of RequestData
+   * @param groupName group name
    * @param environmentIn name of environnement, "all" default
    * @param soapAction soapAction, "all" default
    * @param minDate Min Date
@@ -388,7 +381,7 @@ object RequestData {
    * @param filterIn filter on soapAction. Usefull only is soapActionIn = "all"
    * @return
    */
-  def list(environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
+  def list(groupName: String, environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
     val filter = "%" + filterIn + "%"
 
     // Convert dates... bad perf anorm ?
@@ -398,14 +391,16 @@ object RequestData {
     g.setTime(maxDate)
     val max = UtilDate.formatDate(g)
 
-    var whereClause = "where startTime >= '" + min + "' and startTime <= '" + max + "'"
+    var whereClause = " where startTime >= '" + min + "' and startTime <= '" + max + "'"
     if (status != "all") whereClause += " and status = {status}"
     if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
     if (filterIn != "%" && filterIn.trim != "") whereClause += " and soapAction like {filter}"
 
     whereClause += " and isStats = 'false' "
-
     whereClause += sqlAndEnvironnement(environmentIn)
+    val pair = sqlFromAndGroup(groupName, environmentIn)
+    val fromClause = "from request_data " + pair._1
+    whereClause += pair._2
 
     Logger.debug("Offset:" + offset + " pageSize x pageSize:" + (offset * pageSize) + " offset:" + offset);
 
@@ -418,21 +413,22 @@ object RequestData {
       'status -> status,
       'filter -> filter)
 
+    val sql = "select request_data.id, sender, soapAction, environmentId, serviceId, " +
+      " startTime, timeInMillis, status, purged  " + fromClause + whereClause +
+      " order by request_data.id " +
+      " desc limit {offset}, {pageSize}"
+
+    Logger.debug("SQL (list) ====> " + sql)
     DB.withConnection {
       implicit connection =>
-      val requestTimeInMillis = System.currentTimeMillis
-        val requests = SQL(
-          "select id, sender, soapAction, environmentId, serviceId, " +
-            " startTime, timeInMillis, status, purged from request_data "
-            + whereClause +
-            " order by request_data.id " +
-            " desc limit {offset}, {pageSize}").on(params: _*).as(RequestData.simple *)
+        val requestTimeInMillis = System.currentTimeMillis
+        val requests = SQL(sql).on(params: _*).as(RequestData.simple *)
         val middle = System.currentTimeMillis
-          Logger.debug("Middle : "+ (System.currentTimeMillis - requestTimeInMillis))
+        Logger.debug("Middle : " + (System.currentTimeMillis - requestTimeInMillis))
 
         val totalRows = SQL(
-          "select count(id) from request_data " + whereClause).on(params: _*).as(scalar[Long].single)
-        Logger.debug("End : "+ (System.currentTimeMillis - middle) + " totalrows:" + totalRows + " where:" + whereClause);
+          "select count(request_data.id) " + fromClause + whereClause).on(params: _*).as(scalar[Long].single)
+        Logger.debug("End : " + (System.currentTimeMillis - middle) + " totalrows:" + totalRows + " where:" + whereClause);
 
         Page(requests, -1, offset, totalRows)
     }
@@ -441,12 +437,16 @@ object RequestData {
   /**
    * Load reponse times for given parameters
    */
-  def findResponseTimes(environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, statsOnly: Boolean): List[(Long, String, Date, Long)] = {
+  def findResponseTimes(groupName: String, environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, statsOnly: Boolean): List[(Long, String, Date, Long)] = {
 
     var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
     if (status != "all") whereClause += " and status = {status}"
     if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
     whereClause += sqlAndEnvironnement(environmentIn)
+
+    val pair = sqlFromAndGroup(groupName, environmentIn)
+    val fromClause = " from request_data " + pair._1
+    whereClause += pair._2
 
     val params: Array[(Any, anorm.ParameterValue[_])] = Array(
       'status -> status,
@@ -454,58 +454,63 @@ object RequestData {
       'maxDate -> maxDate,
       'soapAction -> soapAction)
 
-    var sql = "select environmentId, soapAction, startTime, timeInMillis from request_data " + whereClause
+    var sql = "select environmentId, soapAction, startTime, timeInMillis " + fromClause + whereClause
 
     if (statsOnly) {
-      sql  += " and isStats = 'true' "
+      sql += " and isStats = 'true' "
     }
     sql += " order by request_data.id asc"
 
-    DB.withConnection { implicit connection =>
+    Logger.debug("SQL (findResponseTimes, g:" + groupName + ") ====> " + sql)
+
+    DB.withConnection {
+      implicit connection =>
       // explainPlan(sql, params: _*)
-      SQL(sql)
-        .on(params: _*)
-        .as(get[Long]("environmentId") ~ get[String]("soapAction") ~ get[Date]("startTime") ~ get[Long]("timeInMillis") *)
-        .map(flatten)
+        SQL(sql)
+          .on(params: _*)
+          .as(get[Long]("environmentId") ~ get[String]("soapAction") ~ get[Date]("startTime") ~ get[Long]("timeInMillis") *)
+          .map(flatten)
     }
   }
 
-  def loadAvgResponseTimesByAction(environmentName: String, minDate: Date, maxDate: Date, withStats : Boolean): List[(String, Long)] = {
-    DB.withConnection { implicit connection =>
+  def loadAvgResponseTimesByAction(groupName: String, environmentName: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {
+    DB.withConnection {
+      implicit connection =>
 
-      var whereClause = ""
-      if (!withStats) whereClause = " and isStats = 'false' "
+        var whereClause = "where status=200 and startTime >= {minDate} and startTime <= {maxDate}"
+        if (!withStats) whereClause = " and isStats = 'false' "
 
-      Logger.debug("Load Stats with env:" + environmentName)
-      whereClause += sqlAndEnvironnement(environmentName)
+        Logger.debug("Load Stats with env:" + environmentName)
+        whereClause += sqlAndEnvironnement(environmentName)
 
-      val responseTimes = SQL(
-        """
-          select soapAction, timeInMillis
-          from request_data
-          where status=200
-          and startTime >= {minDate} and startTime <= {maxDate}
-        """ + whereClause + """
-          order by timeInMillis asc
-        """)
-        .on(
+        val pair = sqlFromAndGroup(groupName, environmentName)
+        val fromClause = " from request_data " + pair._1
+        whereClause += pair._2
+
+        val sql = "select soapAction, timeInMillis " + fromClause + whereClause + " order by timeInMillis asc "
+
+        Logger.debug("SQL (loadAvgResponseTimesByAction) ====> " + sql)
+
+        val responseTimes = SQL(sql)
+          .on(
           'minDate -> minDate,
           'maxDate -> maxDate)
-        .as(get[String]("soapAction") ~ get[Long]("timeInMillis") *)
-        .map(flatten)
+          .as(get[String]("soapAction") ~ get[Long]("timeInMillis") *)
+          .map(flatten)
 
-      val avgTimesByAction = responseTimes.groupBy(_._1).mapValues { e =>
-        val times = e.map(_._2).toList
-        val ninePercentiles = times.slice(0, times.size * 9 / 10)
-        if (ninePercentiles.size > 0) {
-          ninePercentiles.sum / ninePercentiles.size
-        } else if (times.size == 1) {
-          times.head
-        } else {
-          -1
+        val avgTimesByAction = responseTimes.groupBy(_._1).mapValues {
+          e =>
+            val times = e.map(_._2).toList
+            val ninePercentiles = times.slice(0, times.size * 9 / 10)
+            if (ninePercentiles.size > 0) {
+              ninePercentiles.sum / ninePercentiles.size
+            } else if (times.size == 1) {
+              times.head
+            } else {
+              -1
+            }
         }
-      }
-      avgTimesByAction.toList.filterNot(_._2 == -1).sortBy(_._1)
+        avgTimesByAction.toList.filterNot(_._2 == -1).sortBy(_._1)
     }
   }
 
@@ -514,56 +519,61 @@ object RequestData {
    * @param environmentId environment id
    * @return list of unique date
    */
-  def findDayNotCompileStats(environmentId: Long) : List[Date] = {
-    DB.withConnection { implicit connection =>
+  def findDayNotCompileStats(environmentId: Long): List[Date] = {
+    DB.withConnection {
+      implicit connection =>
 
-      val gcal = new GregorianCalendar
-      val today = new GregorianCalendar(gcal.get(Calendar.YEAR),gcal.get(Calendar.MONTH),gcal.get(Calendar.DATE))
+        val gcal = new GregorianCalendar
+        val today = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
 
-      val startTimes = SQL(
-        """
+        val startTimes = SQL(
+          """
           select startTime from request_data
           where environmentId={environmentId} and status=200 and isStats = 'false' and startTime < {today}
-        """
-      ).on('environmentId -> environmentId, 'today -> today.getTime)
-       .as(get[Date]("startTime") *).toList
+          """
+        ).on('environmentId -> environmentId, 'today -> today.getTime)
+          .as(get[Date]("startTime") *).toList
 
-      val uniqueStartTimePerDay : Set[Date] = Set()
-      startTimes.foreach{(t) =>
-        gcal.setTimeInMillis(t.getTime)
-        val ccal = new GregorianCalendar(gcal.get(Calendar.YEAR),gcal.get(Calendar.MONTH),gcal.get(Calendar.DATE))
-        uniqueStartTimePerDay += ccal.getTime
-      }
-      uniqueStartTimePerDay.toList
+        val uniqueStartTimePerDay: Set[Date] = Set()
+        startTimes.foreach {
+          (t) =>
+            gcal.setTimeInMillis(t.getTime)
+            val ccal = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
+            uniqueStartTimePerDay += ccal.getTime
+        }
+        uniqueStartTimePerDay.toList
     }
   }
 
   def load(id: Long): RequestData = {
-    DB.withConnection { implicit connection =>
-      SQL("select id, sender, soapAction, environmentId, serviceId, request, requestHeaders from request_data where id= {id}")
-        .on('id -> id).as(RequestData.forReplay.single)
+    DB.withConnection {
+      implicit connection =>
+        SQL("select id, sender, soapAction, environmentId, serviceId, request, requestHeaders from request_data where id= {id}")
+          .on('id -> id).as(RequestData.forReplay.single)
     }
   }
 
   def loadRequest(id: Long): Option[String] = {
-    DB.withConnection { implicit connection =>
-      val request = SQL("select request from request_data where id= {id}").on('id -> id).as(bytes("request").singleOpt)
-      if (request != None) {
-        Some(uncompressString(request.get))
-      } else {
-        None
-      }
+    DB.withConnection {
+      implicit connection =>
+        val request = SQL("select request from request_data where id= {id}").on('id -> id).as(bytes("request").singleOpt)
+        if (request != None) {
+          Some(uncompressString(request.get))
+        } else {
+          None
+        }
     }
   }
 
   def loadResponse(id: Long): Option[String] = {
-    DB.withConnection { implicit connection =>
-      val response = SQL("select response from request_data where id = {id}").on('id -> id).as(bytes("response").singleOpt)
-      if (response != None) {
-        Some(uncompressString(response.get))
-      } else {
-        None
-      }
+    DB.withConnection {
+      implicit connection =>
+        val response = SQL("select response from request_data where id = {id}").on('id -> id).as(bytes("response").singleOpt)
+        if (response != None) {
+          Some(uncompressString(response.get))
+        } else {
+          None
+        }
     }
   }
 
@@ -572,18 +582,34 @@ object RequestData {
 
     // search by name
     if (environmentIn != "all" && Environment.optionsAll.exists(t => t._2 == environmentIn))
-      environment = "and request_data.environmentId = " + Environment.optionsAll.find(t => t._2 == environmentIn).get._1
+      environment = " and request_data.environmentId = " + Environment.optionsAll.find(t => t._2 == environmentIn).get._1
 
     // search by id
     if (environment == "" && Environment.optionsAll.exists(t => t._1 == environmentIn))
-      environment = "and request_data.environmentId = " + Environment.optionsAll.find(t => t._1 == environmentIn).get._1
+      environment = " and request_data.environmentId = " + Environment.optionsAll.find(t => t._1 == environmentIn).get._1
 
     environment
   }
 
+  private def sqlFromAndGroup(groupName: String, environmentIn: String): (String, String) = {
+    var group = ""
+    var from = ""
+
+    // search by name
+    if (environmentIn == "all" && groupName != "all" && Group.options.exists(t => t._2 == groupName)) {
+      group += " and request_data.environmentId = environment.id"
+      group += " and environment.groupId = " + Group.options.find(t => t._2 == groupName).get._1
+      from = ", environment "
+    }
+
+    (from, group)
+  }
+
   private def headersToString(headers: Map[String, String]): String = {
     if (headers != null) {
-      headers.foldLeft("") { (string, header) => string + header._1 + " -> " + header._2 + "\n" }
+      headers.foldLeft("") {
+        (string, header) => string + header._1 + " -> " + header._2 + "\n"
+      }
     } else {
       ""
     }
@@ -618,7 +644,7 @@ object RequestData {
   private def explainPlan(sql: String, params: (Any, anorm.ParameterValue[_])*)(implicit connection: Connection) {
     val plan = SQL("explain plan for " + sql).on(params: _*).resultSet()
     while (plan.next) {
-      println(plan.getString(1))
+      Logger.debug(plan.getString(1))
     }
   }
 
@@ -668,7 +694,7 @@ object RequestData {
       compressed
     } catch {
       case e: Exception => Logger.error("compressString : Error during compress string")
-      inputString.getBytes(Charset.forName("utf-8"))
+        inputString.getBytes(Charset.forName("utf-8"))
     }
   }
 
@@ -689,14 +715,14 @@ object RequestData {
       while (ok) {
         val bytesRead = gis.read(data)
         ok = bytesRead != -1
-        if( ok ) output.append(new String(data, 0, bytesRead))
+        if (ok) output.append(new String(data, 0, bytesRead))
       }
       gis.close()
       is.close()
       output.toString()
     } catch {
       case e: Exception => Logger.error("decompressString : Error during uncompress string:" + e.getStackTraceString)
-      new String(compressed, 0, compressed.length, Charset.forName("utf-8"))
+        new String(compressed, 0, compressed.length, Charset.forName("utf-8"))
     }
   }
 }

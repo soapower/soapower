@@ -18,11 +18,11 @@ POST    /admin/uploadConfiguration      controllers.Admin.uploadConfiguration
 GET     /search/:group/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable      controllers.Search.listDatatable(group, environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
-GET     /analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load    controllers.Analysis.load(environment, soapAction, minDate, maxDate, status, statsOnly)
+GET     /analysis/:group/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load    controllers.Analysis.load(group, environment, soapAction, minDate, maxDate, status, statsOnly)
 
 # Soap
 POST    /soap/:environment/*localTarget                  controllers.Soap.index(environment, localTarget)
-POST    /autosoap/:group/:environment/:localTarget/*remoteTarget controllers.Soap.autoIndex(group, environment, localTarget, remoteTarget)
+POST    /autosoap/:group/:environment/*remoteTarget      controllers.Soap.autoIndex(group, environment, remoteTarget)
 GET     /replay/:id                                      controllers.Soap.replay(id:Long)
 
 # Services list
@@ -83,8 +83,8 @@ POST    /soapactions/:id            controllers.SoapActions.save(id:Long)
 GET     /status/findall             controllers.Status.findAll
 
 # Statistics on SoapActions by environments
-GET     /statsAsJunit/:minDate/:maxDate/                                 controllers.Stats.statsAsJunit(minDate, maxDate)
-GET     /stats/:environment/:minDate/:maxDate/:status/listDatatable      controllers.Stats.listDataTable(environment, minDate, maxDate, status)
+GET     /statsAsJunit/:minDate/:maxDate/                                        controllers.Stats.statsAsJunit(group, minDate, maxDate)
+GET     /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable      controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
 
 # Download SOAP request and response
 GET     /download/request/:id      controllers.Search.downloadRequest(id:Long, asFile: Boolean ?= false)

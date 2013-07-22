@@ -18,7 +18,7 @@ case class Environment(id: Long,
                        nbDayKeepAllData: Int = 5,
                        recordXmlData: Boolean = true,
                        recordData: Boolean = true
-                       )
+                        )
 
 object ModePurge extends Enumeration {
   type ModePurge = Value
@@ -61,7 +61,7 @@ object Environment {
   val csv = {
     get[Pk[Long]]("environment.id") ~
       get[String]("environment.name") ~
-      get[String]("environment_group.name") ~
+      get[String]("groups.name") ~
       get[Int]("environment.hourRecordXmlDataMin") ~
       get[Int]("environment.hourRecordXmlDataMax") ~
       get[Int]("environment.nbDayKeepXmlData") ~
@@ -78,7 +78,7 @@ object Environment {
    * @return List of Environements, csv format
    */
   def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("select * from environment left join environment_group on environment.groupId = environment_group.id").as(Environment.csv *)
+    implicit c => SQL("select * from environment left join groups on environment.groupId = groups.id").as(Environment.csv *)
   }
 
 
@@ -89,7 +89,7 @@ object Environment {
     implicit connection =>
       val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
         Logger.debug("Environments not found in cache: loading from db")
-        SQL("select * from environment, environment_group where environment.groupId = environment_group.id and environment_group.name = {groupName} order by environment.name").on(
+        SQL("select * from environment, groups where environment.groupId = groups.id and groups.name = {groupName} order by environment.name").on(
           'groupName -> group).as(Environment.simple *).map(c => c.id.toString -> c.name)
       }
       sortEnvs(envs)
@@ -112,11 +112,11 @@ object Environment {
   /**
    * Construct the Map[String,String] which are contained to the given group, needed to fill a select options set
    */
-  def optionsAll(group : String): Seq[(String, String)] = DB.withConnection {
+  def optionsAll(group: String): Seq[(String, String)] = DB.withConnection {
     implicit connection =>
-      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions+group) {
+      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions + group) {
         Logger.debug("Environments not found in cache: loading from db")
-        SQL("select * from environment, environment_group where environment.groupId = environment_group.id and environment_group.name = {group} order by environment.name ")
+        SQL("select * from environment, groups where environment.groupId = groups.id and groups.name = {group} order by environment.name ")
           .on('group -> group)
           .as(Environment.simple *)
           .map(c => c.id.toString -> c.name)
@@ -199,7 +199,7 @@ object Environment {
     implicit connection =>
     // FIXME : add key to clearCache
     //Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
-      SQL("select * from environment,environment_group where environment.groupId = environment_group.id and environment.name = {name} and environment_group.name = {group}").on(
+      SQL("select * from environment e, groups g where e.groupId = g.id and e.name = {name} and g.name = {group}").on(
         'name -> name, 'group -> group).as(Environment.simple.singleOpt)
     //}
   }
@@ -287,25 +287,20 @@ object Environment {
     Cache.remove(keyCacheAllOptions)
   }
 
-
-
-
-
-
   /**
    * Return a list of all Environment which are contained into the given group
    *
    */
-  def list(group : String) : List[Environment] = {
+  def list(group: String): List[Environment] = {
 
     DB.withConnection {
       implicit connection =>
 
         val environments = SQL(
           """
-          select * from environment, environment_group
-          where environment.groupId = environment_group.id
-          and environment_group.name = {group}
+          select * from environment, groups
+          where environment.groupId = groups.id
+          and groups.name = {group}
           order by environment.groupId asc, environment.name
           """).on('group -> group).as(Environment.simple *)
 
@@ -317,7 +312,7 @@ object Environment {
    * Return a list of all Environment
    *
    */
-  def list() : List[Environment] = {
+  def list(): List[Environment] = {
 
     DB.withConnection {
       implicit connection =>
@@ -350,7 +345,7 @@ object Environment {
             gcal.setTimeInMillis(minDate.getTime + UtilDate.v1d)
             val maxDate = gcal.getTime
 
-            val result = RequestData.loadAvgResponseTimesByAction(e._1, minDate, maxDate, false)
+            val result = RequestData.loadAvgResponseTimesByAction("all", e._1, minDate, maxDate, false)
             result.foreach {
               (r) =>
                 Logger.debug("env:" + e._2 + " SoapAction:" + r._1 + " timeAverage:" + r._2)
