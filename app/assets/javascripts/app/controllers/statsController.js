@@ -1,4 +1,4 @@
-function StatsCtrl($scope, $http, $location, $routeParams) {
+function StatsCtrl($scope, $rootScope, $http, $location, $routeParams, UIService) {
     $scope.ctrlPath = "stats";
 
     $scope.showTips = false;
@@ -26,11 +26,14 @@ function StatsCtrl($scope, $http, $location, $routeParams) {
     };
 
     $scope.getPagedDataAsync = function (pageSize, page) {
+        var group = $routeParams.group ? $routeParams.group : 'all';
         var environment = $routeParams.environment ? $routeParams.environment : 'all';
         var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
         var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
         var code = $routeParams.code ? $routeParams.code : 'all';
-        var url = $scope.ctrlPath + '/' + environment +
+        var url = $scope.ctrlPath +
+            '/' + group +
+            '/' + environment +
             '/' + mindate +
             '/' + maxdate +
             '/' + code +
@@ -78,4 +81,9 @@ function StatsCtrl($scope, $http, $location, $routeParams) {
         ]
     };
 
+    $rootScope.$broadcast("showGroupsFilter", $routeParams.group);
+
+    $scope.$on("ReloadPage", function (event) {
+        UIService.reloadPage($scope, false);
+    });
 }

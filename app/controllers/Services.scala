@@ -30,15 +30,13 @@ object Services extends Controller {
    *
    * @return JSON
    */
-  def listDatatable(group : String) = Action {
+  def listDatatable(group: String) = Action {
     implicit request =>
 
-     var data : List[(Service, Environment)] = null.asInstanceOf[ List[(Service, Environment)] ]
-     println(group)
-      if(group != "all"){
-
+      var data: List[(Service, Environment)] = null.asInstanceOf[List[(Service, Environment)]]
+      if (group != "all") {
         data = Service.list(group)
-      } else{
+      } else {
         data = Service.list
       }
       Ok(Json.toJson(Map(
@@ -63,15 +61,16 @@ object Services extends Controller {
   /**
    * Insert or update a service.
    */
-  def save(id: Long) = Action(parse.json) { request =>
-    println(request.body)
-    request.body.validate(serviceFormat).map { service =>
-      if (id < 0) Service.insert(service)
-      else Service.update(service)
-      Ok(Json.toJson("Succesfully save service."))
-    }.recoverTotal{
-      e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
-    }
+  def save(id: Long) = Action(parse.json) {
+    request =>
+      request.body.validate(serviceFormat).map {
+        service =>
+          if (id < 0) Service.insert(service)
+          else Service.update(service)
+          Ok(Json.toJson("Succesfully save service."))
+      }.recoverTotal {
+        e => BadRequest("Detected error:" + JsError.toFlatJson(e))
+      }
   }
 
   /**
@@ -79,7 +78,7 @@ object Services extends Controller {
    */
   def delete(id: Long) = Action {
     Service.delete(id)
-    Ok("deleted");
+    Ok("deleted")
   }
 
 }

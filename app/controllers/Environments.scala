@@ -24,9 +24,6 @@ object Environments extends Controller {
     }
   }
 
-
-
-
   implicit val environmentFormat = Json.format[Environment]
 
   /**
@@ -43,13 +40,13 @@ object Environments extends Controller {
    * Return all Environments in Json Format
    * @return JSON
    */
-  def options(group : String) = Action {
+  def options(group: String) = Action {
     implicit request =>
-      var data :  Seq[(String, String)] = null.asInstanceOf[Seq[(String, String)]]
-      if(group == "all"){
-        data=Environment.optionsAll
-      }else{
-        data= Environment.optionsAll(group)
+      var data: Seq[(String, String)] = null.asInstanceOf[Seq[(String, String)]]
+      if (group == "all") {
+        data = Environment.optionsAll
+      } else {
+        data = Environment.optionsAll(group)
       }
       Ok(Json.toJson(data)).as(JSON)
   }
@@ -60,14 +57,14 @@ object Environments extends Controller {
    *
    * @return JSON
    */
-  def listDatatable(group : String) = Action {
+  def listDatatable(group: String) = Action {
     implicit request =>
 
-      var data : List[Environment]  = null.asInstanceOf[List[Environment]]
+      var data: List[Environment] = null.asInstanceOf[List[Environment]]
 
-      if(group != "all"){
+      if (group != "all") {
         data = Environment.list(group)
-      } else{
+      } else {
         data = Environment.list
       }
 
@@ -111,14 +108,12 @@ object Environments extends Controller {
       }
   }
 
-
   /**
    * Handle environment deletion.
    */
   def delete(id: Long) = Action {
     Environment.delete(id)
-    Ok("deleted");
+    Ok("deleted")
   }
-
 }
 

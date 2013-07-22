@@ -39,36 +39,39 @@ object SoapActions extends Controller {
   /**
    * Update a soapAction.
    */
-  def save(id: Long) = Action(parse.json) { request =>
-    request.body.validate(soapActionFormat).map { soapAction =>
-      SoapAction.update(soapAction)
-      Ok(Json.toJson("Succesfully save soapAction."))
-    }.recoverTotal{
-      e => BadRequest("Detected error:"+ JsError.toFlatJson(e))
-    }
+  def save(id: Long) = Action(parse.json) {
+    request =>
+      request.body.validate(soapActionFormat).map {
+        soapAction =>
+          SoapAction.update(soapAction)
+          Ok(Json.toJson("Succesfully save soapAction."))
+      }.recoverTotal {
+        e => BadRequest("Detected error:" + JsError.toFlatJson(e))
+      }
   }
 
   /**
    * Return all SoapActions in Json Format
    * @return JSON
    */
-  def findAll = Action { implicit request =>
-    val data = SoapAction.list
-    Ok(Json.toJson(data)).as(JSON)
+  def findAll = Action {
+    implicit request =>
+      val data = SoapAction.list
+      Ok(Json.toJson(data)).as(JSON)
   }
 
-  def regenerate() = Action { implicit request =>
-    RequestData.soapActionOptions.foreach { soapAction =>
-      println("SoapAction:" + soapAction._1)
-      if (SoapAction.findByName(soapAction._1) == None) {
-        Logger.debug("SoapAction not found. Insert in db")
-        SoapAction.insert(new SoapAction(-1, soapAction._1, 30000))
-      } else {
-        Logger.debug("SoapAction found. Do nothing.")
+  def regenerate() = Action {
+    implicit request =>
+      RequestData.soapActionOptions.foreach {
+        soapAction =>
+          if (SoapAction.findByName(soapAction._1) == None) {
+            Logger.debug("SoapAction not found. Insert in db")
+            SoapAction.insert(new SoapAction(-1, soapAction._1, 30000))
+          } else {
+            Logger.debug("SoapAction found. Do nothing.")
+          }
       }
-    }
-    Ok(Json.toJson("Success regeneration"))
+      Ok(Json.toJson("Success regeneration"))
   }
-
 
 }
