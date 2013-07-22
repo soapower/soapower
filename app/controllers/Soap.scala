@@ -26,9 +26,9 @@ object Soap extends Controller {
    * @param textualURL The url from which extract and return the path
    * @return The url's path
    */
-  def extractPathFromURL(textualURL : String ) : String = {
-      val urlObject = new java.net.URL(textualURL)
-      urlObject.getPath().substring(1)  // Extract the path without the first char of the string because it's a useless '/'
+  def extractPathFromURL(textualURL: String): String = {
+    val urlObject = new java.net.URL(textualURL)
+    urlObject.getPath().substring(1) // Extract the path without the first char of the string because it's a useless '/'
   }
 
 
