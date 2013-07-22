@@ -1,10 +1,11 @@
 // Class Diagram - http://yuml.me/diagram/scruffy/class/draw
+[Service|localTarget; remoteTarget; timeoutInMs; recordXmlData; recordData]<>-*>[RequestData]
+[Group|name]<>-*>[Environment]
 [Environment|hourRecordXmlDataMin; hourRecordXmlDataMax; nbDayKeepXmlData; nbDayKeepAllData]<>-*>[Service]
-[Service|localTarget; remoteTarget; timeoutInMs]<>-*>[RequestData]
 [RequestData|sender; Request; Response;startTime;responseTime]
 [RequestData]-[note:Soapower purge Xml Data then all data but compile 90percentiles stats every day{bg:cornsilk}]
-[Service]-[note:Added by Admin{bg:cornsilk}]
-[Environment]-[note:Added by Admin{bg:cornsilk}]
+[note:one environment name have to be unique regardless of the group to which it belong{bg:cornsilk}]
+[note:Groups Environments and Service are added by Admin or automaticaly detected from /autosoap request{bg:cornsilk}]
 [Environment]-[note:Soapower store XML Data in RequestData between min and max hour only{bg:cornsilk}]
 
 
