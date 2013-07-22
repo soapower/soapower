@@ -18,6 +18,20 @@ object Soap extends Controller {
       forwardRequest(environment, localTarget, sender, content, headers)
   }
 
+
+  /**
+   * An url is composed of the following members :
+   * protocol://host:port/path
+   * This operation return the URL's path using classical Java net operation
+   * @param textualURL The url from which extract and return the path
+   * @return The url's path
+   */
+  def extractPathFromURL(textualURL : String ) : String = {
+      val urlObject = new java.net.URL(textualURL)
+      urlObject.getPath().substring(1)  // Extract the path without the first char of the string because it's a useless '/'
+  }
+
+
   /**
    * Automatically detect new services. If the given parameters interpolates an existing service, then nothing is created otherwise a new service is created.
    * The new service takes the given parameters and theses defaults parameters :
@@ -35,9 +49,8 @@ object Soap extends Controller {
   def autoIndex(group: String, environment: String, remoteTarget: String) = Action(parse.xml) {
     implicit request =>
 
-      // FIXME make a localTarget from remoteTarget.
-      // Exemple : remote: http://server:port/svc/loginSvc -> localTarget is svc/loginSvc
-      val localTarget = "FIXME"
+      // Extract local target from the remote target
+      val localTarget = extractPathFromURL(remoteTarget)
 
       Logger.info("Automatic service detection request on group: " + group + " environment:" + environment + " localTarget:" + localTarget + " remoteTarget: " + remoteTarget)
 

@@ -58,7 +58,6 @@ define(['angular'], function (angular) {
                 scope: {
                     soapactions: '='
                 },
-                // Check if it's an admin path
                 controller: function ($scope, $rootScope, $routeParams, GroupsService) {
                     $scope.showSelect = false;
                     $scope.showGroup = false;
