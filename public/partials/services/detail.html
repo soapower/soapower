@@ -11,7 +11,7 @@
         <label>Local Target </label>
         <input type="text" name="localTarget" ng-model="service.localTarget" class="input-xxlarge" required>
         <span ng-show="myForm.localTarget.$error.required" class="help-inline">Required</span>
-        <span class="help-block">Enter service1 to have http://{{ hostname }}:{{ port }}/soap/&lt;environment&gt;/<b>service1</b>
+        <span class="help-block">Enter service1 to have http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>service1</b>
         </span>
     </div>
 
