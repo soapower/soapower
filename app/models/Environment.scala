@@ -327,7 +327,6 @@ object Environment {
     }
   }
 
-
   /*
    * Compile stats for each env / day
    */
@@ -342,13 +341,14 @@ object Environment {
 
         days.foreach {
           minDate =>
+            Logger.debug("Compile Stats minDate:" + minDate + " env:" + e._2)
             gcal.setTimeInMillis(minDate.getTime + UtilDate.v1d)
             val maxDate = gcal.getTime
 
             val result = RequestData.loadAvgResponseTimesByAction("all", e._1, minDate, maxDate, false)
             result.foreach {
               (r) =>
-                Logger.debug("env:" + e._2 + " SoapAction:" + r._1 + " timeAverage:" + r._2)
+                Logger.debug("call insertStats env:" + e._2 + " SoapAction:" + r._1 + " timeAverage:" + r._2 + " date:" + minDate)
                 RequestData.insertStats(e._1.toLong, r._1, minDate, r._2)
             }
         }
