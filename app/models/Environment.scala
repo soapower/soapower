@@ -221,7 +221,7 @@ object Environment {
         		{groupId}
             )
           """).on(
-          'name -> environment.name,
+          'name -> environment.name.trim,
           'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
           'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
           'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
@@ -257,7 +257,7 @@ object Environment {
           where id = {id}
           """).on(
           'id -> environment.id,
-          'name -> environment.name,
+          'name -> environment.name.trim,
           'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
           'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
           'nbDayKeepXmlData -> environment.nbDayKeepXmlData,

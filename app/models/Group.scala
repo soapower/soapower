@@ -110,7 +110,7 @@ object Group {
     // Insert the new group
     DB.withConnection {
       implicit connection =>
-        SQL( """	insert into groups values (null, {name})""").on('name -> group.name).executeUpdate()
+        SQL( """	insert into groups values (null, {name})""").on('name -> group.name.trim).executeUpdate()
     }
   }
 
@@ -124,9 +124,9 @@ object Group {
     Cache.remove(keyCacheById + group.id)
     DB.withConnection {
       implicit connection =>
-        SQL( """update groups set name = {name} where id = {id}""").on(
+        SQL("update groups set name = {name} where id = {id}").on(
           'id -> group.id,
-          'name -> group.name
+          'name -> group.name.trim
         ).executeUpdate()
     }
   }

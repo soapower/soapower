@@ -40,7 +40,6 @@ function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService,
 }
 
 function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UIService, GroupsService) {
-
     var self = this;
 
     Environment.get({environmentId: $routeParams.environmentId}, function (environment) {

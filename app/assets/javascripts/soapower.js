@@ -113,6 +113,9 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
     });
 
     spApp.run(['$location', '$rootScope', function($location, $rootScope) {
+
+        $rootScope.namePattern = /^\w*$/;
+
         $rootScope.$on('$routeChangeSuccess', function (event, current, previous) {
             $rootScope.$broadcast("showGroupsFilter", false);
         });
