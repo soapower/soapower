@@ -117,6 +117,16 @@ object Group {
   }
 
   /**
+   * Check that the given group doesn't already exist.
+   * @param group The group which's unicity has to be checked
+   * @return true if the group is unique, false otherwise
+   */
+  def checkUniqueGroup(group: Group) : Boolean = {
+    var existingGroup = findByName(group.name)
+    (existingGroup == None)
+  }
+
+  /**
    * Persist a new group to database.
    *
    * @param group The group to persist.
@@ -124,14 +134,19 @@ object Group {
   def insert(group: Group) = {
     // A group which looks like the default group cannot be inserted
     if(group.id != DefaultGroup.defaultGroupObject.id && group.name != DefaultGroup.defaultGroupObject.name){
-      // Clear the cache in order to ???
-      clearCache
-      // Insert the new group
-      DB.withConnection {
-        implicit connection =>
-          SQL( """	insert into groups values (null, {name})""").on('name -> group.name).executeUpdate()
-      }
-    }
+
+      // Check that the group to insert doesn't already exist
+      if(checkUniqueGroup(group)){
+
+        // Clear the cache in order to ???
+        clearCache
+        // Insert the new group
+        DB.withConnection {
+          implicit connection =>
+            SQL( """	insert into groups values (null, {name})""").on('name -> group.name).executeUpdate()
+        }
+      } // Unicity check
+    } // Default group check
   }
 
   /**
@@ -142,16 +157,21 @@ object Group {
   def update(group: Group) = {
     //The default group cannot be modified
     if(group.id != DefaultGroup.defaultGroupObject.id){
-      clearCache
-      Cache.remove(keyCacheById + group.id)
-      DB.withConnection {
-        implicit connection =>
+
+      // Check that the group to insert doesn't already exist
+      if(checkUniqueGroup(group)){
+
+        Cache.remove(keyCacheById + group.id)
+        clearCache
+        DB.withConnection {
+          implicit connection =>
           SQL( """update groups set name = {name} where id = {id}""").on(
             'id -> group.id,
             'name -> group.name
           ).executeUpdate()
-      }
-    }
+        }
+      }  // Unicity check
+    } // Default group check
   }
 
   /**
