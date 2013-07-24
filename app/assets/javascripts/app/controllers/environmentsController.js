@@ -49,8 +49,7 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UISer
         $scope.environment.recordXmlData = UIService.fixBooleanReverse($scope.environment.recordXmlData);
         $scope.environment.recordData = UIService.fixBooleanReverse($scope.environment.recordData);
         console.log($scope.environment.groupId)
-        GroupsService.findAllAndSelect($scope, null, $scope.environment);
-
+        GroupsService.findAllAndSelect($scope, null, null, $scope.environment);
     });
 
     $scope.isClean = function () {

@@ -63,7 +63,7 @@ define(['angular'], function (angular) {
                     $scope.showGroup = false;
                     $scope.$on("showGroupsFilter", function(event, groupName) {
                         $scope.showGroup = (groupName != false);
-                        GroupsService.findAllAndSelect($scope, groupName);
+                        GroupsService.findAllAndSelect($scope, $rootScope, groupName, null);
                         event.preventDefault();
                     });
                     $scope.changeGroup = function () {
@@ -183,7 +183,6 @@ define(['angular'], function (angular) {
                         .attr("width", width)
                         .attr("height", height);
 
-
                     var axis = svg.append("g")
                         .attr("class", "x axis")
                         .attr("transform", "translate(0," + height + ")")
@@ -212,8 +211,6 @@ define(['angular'], function (angular) {
                         }
                     });
                 }
-
             };
-
         }]);
 });

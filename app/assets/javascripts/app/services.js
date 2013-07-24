@@ -163,7 +163,7 @@ define(['angular'], function (angular) {
                 findAll: function () {
                     return $http.get('/groups/listDatatable');
                 },
-                findAllAndSelect: function ($scope, groupName, myEnvironment) {
+                findAllAndSelect: function ($scope, $rootScope, groupName, myEnvironment) {
                     $http.get('/groups/options')
                         .success(function (groups) {
                             $scope.groups = groups;
@@ -179,8 +179,9 @@ define(['angular'], function (angular) {
                                     }
                                 });
                             }
-                            if (!$scope.group) {
+                            if ($rootScope != null && !$scope.group) {
                                 $scope.group = groupAll;
+                                $rootScope.group = groupAll;
                             }
 
                         })
