@@ -15,6 +15,23 @@ import play.api.db._
 // Defining a case class
 case class Group(id: Long, name: String)
 
+/**
+ * Default group definition
+ */
+object DefaultGroup {
+  /**
+   * Default group identifiers
+   */
+  private val defaultGroupId = 1;
+  private val defaultGroupName = "DefaultGroup";
+
+  /**
+   * Default group value
+   */
+  val defaultGroupObject = new Group(defaultGroupId,defaultGroupName);
+
+}
+
 object Group {
 
   val ID_DEFAULT_GROUP = 1
@@ -25,6 +42,8 @@ object Group {
   private val keyCacheAllOptions = "group-options"
   private val keyCacheById = "group-by-id"
   private val keyCacheByName = "group-by-name"
+
+
 
   /**
    * SQL anorm row parser. This operation indicate how to parse a sql row.
@@ -100,18 +119,36 @@ object Group {
   }
 
   /**
+   * Check that the given group doesn't already exist.
+   * @param group The group which's unicity has to be checked
+   * @return true if the group is unique, false otherwise
+   */
+  def checkUniqueGroup(group: Group) : Boolean = {
+    var existingGroup = findByName(group.name)
+    (existingGroup == None)
+  }
+
+  /**
    * Persist a new group to database.
    *
    * @param group The group to persist.
    */
   def insert(group: Group) = {
-    // Clear the cache in order to ???
-    clearCache
-    // Insert the new group
-    DB.withConnection {
-      implicit connection =>
-        SQL( """	insert into groups values (null, {name})""").on('name -> group.name).executeUpdate()
-    }
+    // A group which looks like the default group cannot be inserted
+    if(group.id != DefaultGroup.defaultGroupObject.id && group.name != DefaultGroup.defaultGroupObject.name){
+
+      // Check that the group to insert doesn't already exist
+      if(checkUniqueGroup(group)){
+
+        // Clear the cache in order to ???
+        clearCache
+        // Insert the new group
+        DB.withConnection {
+          implicit connection =>
+            SQL( """	insert into groups values (null, {name})""").on('name -> group.name).executeUpdate()
+        }
+      } // Unicity check
+    } // Default group check
   }
 
   /**
@@ -120,15 +157,23 @@ object Group {
    * @param group The group group.
    */
   def update(group: Group) = {
-    clearCache
-    Cache.remove(keyCacheById + group.id)
-    DB.withConnection {
-      implicit connection =>
-        SQL( """update groups set name = {name} where id = {id}""").on(
-          'id -> group.id,
-          'name -> group.name
-        ).executeUpdate()
-    }
+    //The default group cannot be modified
+    if(group.id != DefaultGroup.defaultGroupObject.id){
+
+      // Check that the group to insert doesn't already exist
+      if(checkUniqueGroup(group)){
+
+        Cache.remove(keyCacheById + group.id)
+        clearCache
+        DB.withConnection {
+          implicit connection =>
+          SQL( """update groups set name = {name} where id = {id}""").on(
+            'id -> group.id,
+            'name -> group.name
+          ).executeUpdate()
+        }
+      }  // Unicity check
+    } // Default group check
   }
 
   /**
@@ -137,11 +182,15 @@ object Group {
    * @param group group to delete
    */
   def delete(group: Group) = {
-    clearCache
-    Cache.remove(keyCacheById + group.id)
-    DB.withConnection {
-      implicit connection =>
-        SQL("delete from groups where id = {id}").on('id -> group.id).executeUpdate()
+
+    // The default group cannot be delete
+    if(group.id != DefaultGroup.defaultGroupObject.id){
+      clearCache
+      Cache.remove(keyCacheById + group.id)
+      DB.withConnection {
+        implicit connection =>
+          SQL("delete from groups where id = {id}").on('id -> group.id).executeUpdate()
+      }
     }
   }
 
