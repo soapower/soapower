@@ -13,6 +13,9 @@
             class="btn btn-primary">Save
     </button>
     <button ng-click="destroy()"
-            ng-show="group.id > 0" class="btn btn-danger">Delete
+            ng-show="group.id > 1" class="btn btn-danger">Delete
     </button>
+    <div ng-show="group.id == 1" class="alert alert-info">
+        <strong>Information!</strong> This is the default group, it can't be deleted, but you can change it's name
+    </div>
 </form>

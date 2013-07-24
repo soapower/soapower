@@ -17,6 +17,8 @@ case class Group(id: Long, name: String)
 
 object Group {
 
+  val ID_DEFAULT_GROUP = 1
+
   /**
    * Group caches keys which are used in order to declare and manage a DB cache
    */

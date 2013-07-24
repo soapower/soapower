@@ -24,7 +24,6 @@ object Groups extends Controller {
     }
   }
 
-
   /**
    * Group format
    */
@@ -87,7 +86,7 @@ object Groups extends Controller {
         group =>
           if (id < 0) Group.insert(group)
           else Group.update(group)
-          Ok(Json.toJson("Succesfully save group."))
+          Ok(Json.toJson("Succesfully save group " + id))
       }.recoverTotal {
         e => BadRequest("Detected error:" + JsError.toFlatJson(e))
       }
@@ -97,14 +96,18 @@ object Groups extends Controller {
    * Handle group deletion.
    */
   def delete(id: Long) = Action {
-    val groupOption = Group.findById(id)
-    groupOption match {
-      case Some(group) =>
-        Group.delete(group)
-        Ok("deleted")
-      case None =>
-        Ok("failure : Group doesn't exist")
+    if (id == Group.ID_DEFAULT_GROUP) BadRequest("failure : Default group can't be deleted")
+    else {
+      val groupOption = Group.findById(id)
+      groupOption match {
+        case Some(group) =>
+          Group.delete(group)
+          Ok("deleted")
+        case None =>
+          Ok("failure : Group doesn't exist")
+      }
     }
+
   }
 
 }
