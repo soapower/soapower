@@ -84,6 +84,9 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, En
     $scope.service.recordXmlData = "yes";
     $scope.service.recordData = "yes";
 
+    $scope.hostname = $location.host();
+    $scope.port = $location.port();
+
     $scope.save = function () {
         $scope.service.update(function () {
             $location.path('/services/');

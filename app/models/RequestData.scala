@@ -265,13 +265,12 @@ object RequestData {
 
       DB.withConnection {
         implicit connection =>
-          val gcal = new GregorianCalendar()
-          gcal.setTimeInMillis(startTime.getTime + UtilDate.v1d)
 
           val purgedStats = SQL(
             """
             delete from request_data
             where isStats = 'true'
+            and environmentId = {environmentId}
             and startTime >= {startTime} and startTime <= {startTime}
             and soapAction = {soapAction}
             """
@@ -280,8 +279,7 @@ object RequestData {
             'environmentId -> environmentId,
             'startTime -> startTime).executeUpdate()
 
-          Logger.debug("Purged " + purgedStats + " existing stats for:" + environmentId + " and startTime:" + startTime)
-
+          Logger.debug("Purged " + purgedStats + " existing stats for:" + environmentId + " soapAction: " + soapAction + " and startTime:" + startTime)
 
           SQL(
             """

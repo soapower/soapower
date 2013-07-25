@@ -145,7 +145,6 @@ object Soap extends Controller {
     }
   }
 
-
   /**
    * An url is composed of the following members :
    * protocol://host:port/path
@@ -155,10 +154,12 @@ object Soap extends Controller {
    */
   private def extractPathFromURL(textualURL: String): Option[String] = {
     try {
-      // Search the firt "/" since index 7 (http://) to find the third "/"
+      // Search the firt "/" since index 10 (http://) to find the third "/"
       // and take the String from this index
       // Add +1 to remove the / to have path instead of /path
-      Some(textualURL.substring(textualURL.indexOf("/", 7) + 1))
+      // Using substring and not java.net.URL,
+      // explanations : https://github.com/soapower/soapower/pull/33#issuecomment-21371242
+      Some(textualURL.substring(textualURL.indexOf("/", 10) + 1))
     } catch {
       case e: IndexOutOfBoundsException => {
         Logger.error("Invalid remoteTarget:" + textualURL)

@@ -205,52 +205,31 @@ object Environment {
   }
 
   /**
-   * Check that the given environment is unique for the corresponding group
-   * @param environmentToCheck The environment to check
-   * @return True if the given environment is unique for it's group
-   */
-   def checkUnicity(environmentToCheck : Environment) : Boolean = {
-     // retrieve the environment group
-     val environmentGroupOption = Group.findById(environmentToCheck.groupId)
-     environmentGroupOption match {
-       case Some(environmentGroup) =>
-         val existingEnvironment = findByGroupAndByName(environmentGroup.name, environmentToCheck.name) // Check that the environment does'nt exists for the given group
-         return (existingEnvironment == None)
-       case None =>
-         // If the group doesn't exist then nothing has to be done
-         return false
-     }
-
-   }
-
-  /**
    * Insert a new environment.
    *
    * @param environment The environment values.
    */
   def insert(environment: Environment) = {
-    if(checkUnicity(environment)){ // Check that environment doesn't already exists in its group
-      clearCache
-      DB.withConnection {
-        implicit connection =>
-          SQL(
-            """
-              insert into environment values (
-                null, {name}, {hourRecordXmlDataMin},
-              {hourRecordXmlDataMax}, {nbDayKeepXmlData}, {nbDayKeepAllData}, {recordXmlData}, {recordData},
-              {groupId}
-              )
-            """).on(
-            'name -> environment.name,
-            'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
-            'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
-            'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
-            'nbDayKeepAllData -> environment.nbDayKeepAllData,
-            'recordXmlData -> environment.recordXmlData.toString,
-            'recordData -> environment.recordData.toString,
-            'groupId -> environment.groupId
-          ).executeUpdate()
-      }
+    clearCache
+    DB.withConnection {
+      implicit connection =>
+        SQL(
+          """
+            insert into environment values (
+              null, {name}, {hourRecordXmlDataMin},
+        		{hourRecordXmlDataMax}, {nbDayKeepXmlData}, {nbDayKeepAllData}, {recordXmlData}, {recordData},
+        		{groupId}
+            )
+          """).on(
+          'name -> environment.name.trim,
+          'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
+          'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
+          'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
+          'nbDayKeepAllData -> environment.nbDayKeepAllData,
+          'recordXmlData -> environment.recordXmlData.toString,
+          'recordData -> environment.recordData.toString,
+          'groupId -> environment.groupId
+        ).executeUpdate()
     }
   }
 
@@ -260,35 +239,33 @@ object Environment {
    * @param environment The environment values.
    */
   def update(environment: Environment) = {
-    if(checkUnicity(environment)){ // Check that environment doesn't already exists in its group
-      clearCache
-      Cache.remove(keyCacheById + environment.id)
-      DB.withConnection {
-        implicit connection =>
-          SQL(
-            """
-            update environment
-            set name = {name},
-            hourRecordXmlDataMin = {hourRecordXmlDataMin},
-            hourRecordXmlDataMax = {hourRecordXmlDataMax},
-            nbDayKeepXmlData = {nbDayKeepXmlData},
-            nbDayKeepAllData = {nbDayKeepAllData},
-            recordXmlData = {recordXmlData},
-            recordData = {recordData},
-            groupId = {groupId}
-            where id = {id}
-            """).on(
-            'id -> environment.id,
-            'name -> environment.name,
-            'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
-            'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
-            'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
-            'nbDayKeepAllData -> environment.nbDayKeepAllData,
-            'recordXmlData -> environment.recordXmlData.toString,
-            'recordData -> environment.recordData.toString,
-            'groupId -> environment.groupId
-          ).executeUpdate()
-      }
+    clearCache
+    Cache.remove(keyCacheById + environment.id)
+    DB.withConnection {
+      implicit connection =>
+        SQL(
+          """
+          update environment
+          set name = {name},
+          hourRecordXmlDataMin = {hourRecordXmlDataMin},
+          hourRecordXmlDataMax = {hourRecordXmlDataMax},
+          nbDayKeepXmlData = {nbDayKeepXmlData},
+          nbDayKeepAllData = {nbDayKeepAllData},
+          recordXmlData = {recordXmlData},
+          recordData = {recordData},
+          groupId = {groupId}
+          where id = {id}
+          """).on(
+          'id -> environment.id,
+          'name -> environment.name.trim,
+          'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
+          'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
+          'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
+          'nbDayKeepAllData -> environment.nbDayKeepAllData,
+          'recordXmlData -> environment.recordXmlData.toString,
+          'recordData -> environment.recordData.toString,
+          'groupId -> environment.groupId
+        ).executeUpdate()
     }
   }
 
@@ -350,7 +327,6 @@ object Environment {
     }
   }
 
-
   /*
    * Compile stats for each env / day
    */
@@ -365,13 +341,14 @@ object Environment {
 
         days.foreach {
           minDate =>
+            Logger.debug("Compile Stats minDate:" + minDate + " env:" + e._2)
             gcal.setTimeInMillis(minDate.getTime + UtilDate.v1d)
             val maxDate = gcal.getTime
 
             val result = RequestData.loadAvgResponseTimesByAction("all", e._1, minDate, maxDate, false)
             result.foreach {
               (r) =>
-                Logger.debug("env:" + e._2 + " SoapAction:" + r._1 + " timeAverage:" + r._2)
+                Logger.debug("call insertStats env:" + e._2 + " SoapAction:" + r._1 + " timeAverage:" + r._2 + " date:" + minDate)
                 RequestData.insertStats(e._1.toLong, r._1, minDate, r._2)
             }
         }

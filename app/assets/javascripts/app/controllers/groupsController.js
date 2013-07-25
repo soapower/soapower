@@ -21,7 +21,7 @@ function GroupsCtrl($scope, GroupsService) {
         showFilter: false,
         filterOptions: $scope.filterOptions,
         columnDefs: [
-            {field: 'name', displayName: 'Name'},
+            {field: 'name', displayName: 'Name', cellTemplate: '<div class="ngCellText">{{row.getProperty(col.field)}} <span ng-show="row.getProperty(\'id\') == 1">(Default Group)</span></div>'},
             {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/groups/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
         ]
     };

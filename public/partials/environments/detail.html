@@ -7,11 +7,11 @@
         <span ng-show="myForm.group.$error.required" class="help-inline">Required</span>
     </div>
 
-
     <div class="control-group" ng-class="{error: myForm.name.$invalid}">
         <label>Name</label>
-        <input type="text" name="name" ng-model="environment.name" class="input-xxlarge" required>
-        <span ng-show="myForm.name.$error.required" class="help-inline">Required</span>
+        <input type="text" name="nameEnv" ng-pattern="namePattern" ng-model="environment.name" class="input-xxlarge" required>
+        <span ng-show="myForm.nameEnv.$error.required" class="help-inline">Required</span>
+        <span class="error" ng-show="myForm.nameEnv.$error.pattern">Single word only!</span>
     </div>
 
     <div class="control-group" ng-class="{error: myForm.hourRecordXmlDataMin.$invalid}">
