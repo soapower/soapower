@@ -1,13 +1,13 @@
 <form name="myForm">
     <input type="hidden" name="name" ng-model="environment.id">
 
-    <div class="control-group" ng-class="{error: myForm.environment.$invalid}">
+    <div class="control-group" ng-class="{error: myForm.group.$invalid}">
         <label>Group </label>
-        <select ng-model="environment.group" ng-options="group.name for group in groups" required ng-selected="{{ environment.groupId == group.id }}"></select>
+        <select ng-model="environment.group" name="group" ng-options="group.name for group in groups" required ng-selected="{{ environment.groupId == group.id }}"></select>
         <span ng-show="myForm.group.$error.required" class="help-inline">Required</span>
     </div>
 
-    <div class="control-group" ng-class="{error: myForm.name.$invalid}">
+    <div class="control-group" ng-class="{error: myForm.nameEnv.$invalid}">
         <label>Name</label>
         <input type="text" name="nameEnv" ng-pattern="namePattern" ng-model="environment.name" class="input-xxlarge" required>
         <span ng-show="myForm.nameEnv.$error.required" class="help-inline">Required</span>

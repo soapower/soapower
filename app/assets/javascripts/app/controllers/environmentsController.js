@@ -73,6 +73,10 @@ function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
     GroupsService.findAllAndSelect($scope);
 
     $scope.environment = new Environment({id: '-1'});
+    $scope.environment.hourRecordXmlDataMin = 6;
+    $scope.environment.hourRecordXmlDataMax = 22;
+    $scope.environment.nbDayKeepXmlData = 2;
+    $scope.environment.nbDayKeepAllData = 4;
     $scope.environment.recordXmlData = "yes";
     $scope.environment.recordData = "yes";
 
