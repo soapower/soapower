@@ -47,7 +47,6 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UISer
         $scope.environment = new Environment(self.original);
         $scope.environment.recordXmlData = UIService.fixBooleanReverse($scope.environment.recordXmlData);
         $scope.environment.recordData = UIService.fixBooleanReverse($scope.environment.recordData);
-        console.log($scope.environment.groupId)
         GroupsService.findAllAndSelect($scope, null, null, $scope.environment);
     });
 
@@ -64,6 +63,8 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UISer
     $scope.save = function () {
         $scope.environment.update(function () {
             $location.path('/environments');
+        }, function (response) { // error case
+            alert(response.data);
         });
     };
 }
@@ -83,6 +84,8 @@ function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
     $scope.save = function () {
         $scope.environment.update(function () {
             $location.path('/environments/');
+        }, function (response) { // error case
+            alert(response.data);
         });
     }
 

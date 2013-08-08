@@ -100,9 +100,14 @@ object Environments extends Controller {
     request =>
       request.body.validate(environmentFormat).map {
         environment =>
-          if (id < 0) Environment.insert(environment)
-          else Environment.update(environment)
-          Ok(Json.toJson("Succesfully save environment."))
+          try {
+            if (id < 0) Environment.insert(environment)
+            else Environment.update(environment)
+            Ok(Json.toJson("Succesfully save environment."))
+          } catch {
+            case e => { BadRequest("Detected error:" + e.getMessage) }
+          }
+
       }.recoverTotal {
         e => BadRequest("Detected error:" + JsError.toFlatJson(e))
       }

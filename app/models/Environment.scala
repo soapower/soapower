@@ -29,6 +29,7 @@ object Environment {
 
   private val keyCacheAllOptions = "environment-options"
   private val keyCacheById = "environment-all"
+  private val ENVIRONMENT_NAME_PATTERN = "[a-zA-Z0-9]{1,200}";
 
   /**
    * Parse a Environment from a ResultSet
@@ -211,6 +212,11 @@ object Environment {
    */
   def insert(environment: Environment) = {
     clearCache
+
+    if (!environment.name.trim.matches(ENVIRONMENT_NAME_PATTERN)) {
+      throw new Exception("Environment name invalid:" + environment.name.trim);
+    }
+
     DB.withConnection {
       implicit connection =>
         SQL(
@@ -240,6 +246,11 @@ object Environment {
    */
   def update(environment: Environment) = {
     clearCache
+
+    if (!environment.name.trim.matches(ENVIRONMENT_NAME_PATTERN)) {
+      throw new Exception("Environment name invalid:" + environment.name.trim);
+    }
+
     Cache.remove(keyCacheById + environment.id)
     DB.withConnection {
       implicit connection =>

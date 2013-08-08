@@ -36,14 +36,14 @@ define(['angular'], function (angular) {
                 { update: {method: 'POST'} }
             );
 
-            Environment.prototype.update = function (cb) {
+            Environment.prototype.update = function (cb, cbError) {
                 this.recordXmlData = UIService.fixBoolean(this.recordXmlData);
                 this.recordData = UIService.fixBoolean(this.recordData);
                 this.id = parseInt(this.id);
                 this.groupId = parseInt(this.group.id);
 
                 return Environment.update({environmentId: this.id},
-                    angular.extend({}, this, {environmentId: undefined}), cb);
+                    angular.extend({}, this, {environmentId: undefined}), cb, cbError);
             };
 
             Environment.prototype.destroy = function (cb) {
