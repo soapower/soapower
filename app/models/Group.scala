@@ -25,6 +25,7 @@ object Group {
   private val keyCacheAllOptions = "group-options"
   private val keyCacheById = "group-by-id"
   private val keyCacheByName = "group-by-name"
+  private val GROUP_NAME_PATTERN = "[a-zA-Z0-9]{1,200}"
 
   /**
    * SQL anorm row parser. This operation indicate how to parse a sql row.
@@ -107,7 +108,16 @@ object Group {
   def insert(group: Group) = {
     // Clear the cache in order to ???
     clearCache
+
+    if (!group.name.trim.matches(GROUP_NAME_PATTERN)) {
+      throw new Exception("Group name invalid:" + group.name.trim)
+    }
+
     // Insert the new group
+    if (options.exists{g => g._2.equals(group.name.trim)}) {
+      throw new Exception("Group with name " + group.name.trim + " already exist")
+    }
+
     DB.withConnection {
       implicit connection =>
         SQL( """	insert into groups values (null, {name})""").on('name -> group.name.trim).executeUpdate()
@@ -121,6 +131,15 @@ object Group {
    */
   def update(group: Group) = {
     clearCache
+
+    if (!group.name.trim.matches(GROUP_NAME_PATTERN)) {
+      throw new Exception("Group name invalid:" + group.name.trim)
+    }
+
+    if (options.exists{g => g._2.equals(group.name.trim) && g._1.toLong != group.id}) {
+      throw new Exception("Group with name " + group.name.trim + " already exist")
+    }
+
     Cache.remove(keyCacheById + group.id)
     DB.withConnection {
       implicit connection =>

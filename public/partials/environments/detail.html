@@ -12,7 +12,7 @@
         <input type="text" name="nameEnv" ng-pattern="namePattern" ng-model="environment.name" class="input-xxlarge" required>
         <span ng-show="myForm.nameEnv.$error.required" class="help-inline">Required</span>
         <span class="error" ng-show="myForm.nameEnv.$error.pattern">Single word only! </span>
-        <span class="error">The name have to match this pattern : [a-zA-Z0-9]{1,200}</span>
+        <span class="help-inline">The name have to match this pattern : [a-zA-Z0-9]{1,200}</span>
     </div>
 
     <div class="control-group" ng-class="{error: myForm.hourRecordXmlDataMin.$invalid}">

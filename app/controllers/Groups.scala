@@ -84,9 +84,13 @@ object Groups extends Controller {
     request =>
       request.body.validate(groupFormat).map {
         group =>
-          if (id < 0) Group.insert(group)
-          else Group.update(group)
-          Ok(Json.toJson("Succesfully save group " + id))
+          try {
+            if (id < 0) Group.insert(group)
+            else Group.update(group)
+            Ok(Json.toJson("Succesfully save group " + id))
+          } catch {
+            case e => { BadRequest("Detected error:" + e.getMessage) }
+          }
       }.recoverTotal {
         e => BadRequest("Detected error:" + JsError.toFlatJson(e))
       }

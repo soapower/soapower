@@ -6,6 +6,7 @@
         <input type="text" name="nameGroup" ng-pattern="namePattern"  ng-model="group.name" class="input-xxlarge" required>
         <span ng-show="myForm.nameGroup.$error.required" class="help-inline">Required</span>
         <span class="error" ng-show="myForm.nameGroup.$error.pattern">Single word only!</span>
+        <span class="help-inline">The name have to match this pattern : [a-zA-Z0-9]{1,200}</span>
     </div>
 
     <br>

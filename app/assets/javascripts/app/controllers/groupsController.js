@@ -49,6 +49,8 @@ function GroupEditCtrl($scope, $routeParams, $location, Group, UIService) {
     $scope.save = function () {
         $scope.group.update(function () {
             $location.path('/groups');
+        }, function (response) { // error case
+            alert(response.data);
         });
     };
 }
@@ -62,6 +64,8 @@ function GroupNewCtrl($scope, $location, Group, GroupsService) {
     $scope.save = function () {
         $scope.group.update(function () {
             $location.path('/groups/');
+        }, function (response) { // error case
+            alert(response.data);
         });
     }
 

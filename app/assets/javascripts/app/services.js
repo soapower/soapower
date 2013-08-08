@@ -58,11 +58,11 @@ define(['angular'], function (angular) {
                 { update: {method: 'POST'} }
             );
 
-            Group.prototype.update = function (cb) {
+            Group.prototype.update = function (cb, cbError) {
                 this.id = parseInt(this.id);
 
                 return Group.update({groupId: this.id},
-                    angular.extend({}, this, {groupId: undefined}), cb);
+                    angular.extend({}, this, {groupId: undefined}), cb, cbError);
             };
 
             Group.prototype.destroy = function (cb) {
