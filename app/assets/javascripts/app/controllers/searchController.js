@@ -34,7 +34,7 @@ function SearchCtrl ($scope, $rootScope, $http, $location, $routeParams, $window
         var code = $routeParams.code ? $routeParams.code : 'all';
         var url = '/search/' + group +
             '/' + environment +
-            '/' + soapaction +
+            '/' + encodeURIComponent(soapaction) +
             '/' + mindate +
             '/' + maxdate +
             '/' + code +

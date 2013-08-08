@@ -9,7 +9,7 @@ function AnalysisCtrl($scope, $rootScope, $routeParams, $http, UIService) {
     var code = $routeParams.code ? $routeParams.code : 'all';
     var url = '/analysis/' + group +
         '/' + environment +
-        '/' + soapaction +
+        '/' + encodeURIComponent(soapaction) +
         '/' + mindate +
         '/' + maxdate +
         '/' + code +

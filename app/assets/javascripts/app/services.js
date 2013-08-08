@@ -220,15 +220,15 @@ define(['angular'], function (angular) {
                     var group = $rootScope.group.name;
 
                     if (showSoapactions && $scope.soapaction) {
-                        soapaction = $scope.soapaction.name;
+                        soapaction = encodeURIComponent($scope.soapaction.name);
                     }
 
                     if ($scope.mindate && $scope.mindate != "" && $scope.mindate != "All") {
-                        mindate = this.initDayToUrl($filter('date')($scope.mindate, 'yyyy-MM-dd'));
+                        mindate = this.initDayToUrl($filter('date')($scope.mindate, 'yyyy-MM-dd'), "today");
 
                     }
                     if ($scope.maxdate && $scope.maxdate != "" && $scope.maxdate != "All") {
-                        maxdate = this.initDayToUrl($filter('date')($scope.maxdate, 'yyyy-MM-dd'));
+                        maxdate = this.initDayToUrl($filter('date')($scope.maxdate, 'yyyy-MM-dd'), "today");
                     }
                     if ($scope.code) code = $scope.code.name;
 
