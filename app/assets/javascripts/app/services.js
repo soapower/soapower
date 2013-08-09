@@ -209,15 +209,12 @@ define(['angular'], function (angular) {
                 }
             }
         })
-        .factory("UIService",function ($location, $filter, $rootScope) {
+        .factory("UIService",function ($location, $filter, $routeParams) {
             return {
                 reloadPage: function ($scope, showSoapactions) {
                     var environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
 
                     if ($scope.environment) environment = $scope.environment.name;
-
-                    console.log("groupe:" + $rootScope.group.name);
-                    var group = $rootScope.group.name;
 
                     if (showSoapactions && $scope.soapaction) {
                         soapaction = encodeURIComponent($scope.soapaction.name);
@@ -232,7 +229,7 @@ define(['angular'], function (angular) {
                     }
                     if ($scope.code) code = $scope.code.name;
 
-                    var path = $scope.ctrlPath + '/' + group + "/" + environment + "/";
+                    var path = $scope.ctrlPath + '/' + $routeParams.group + "/" + environment + "/";
 
                     if (showSoapactions) path = path + soapaction + "/";
 

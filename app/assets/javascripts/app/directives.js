@@ -64,11 +64,9 @@ define(['angular'], function (angular) {
                     $scope.$on("showGroupsFilter", function(event, groupName) {
                         $scope.showGroup = (groupName != false);
                         GroupsService.findAllAndSelect($scope, $rootScope, groupName, null);
-                        event.preventDefault();
                     });
                     $scope.changeGroup = function () {
                         $scope.showSelect = false;
-                        console.log("broadcast ReloadPage with group " + $scope.group.name);
                         $rootScope.group = $scope.group;
                         $rootScope.$broadcast("ReloadPage", $scope.group.name);
                     }
