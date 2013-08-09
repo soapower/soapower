@@ -9,13 +9,16 @@ import play.api.http.HeaderNames
 import scala.xml.PrettyPrinter
 import org.xml.sax.SAXParseException
 import play.api.Logger
+import java.net.URLDecoder
 
 case class Search(environmentId: Long)
 
 object Search extends Controller {
 
+  private val UTF8 = "UTF-8"
+
   def listDatatable(group: String, environment: String, soapAction: String, minDate: String, maxDate: String, status: String, sSearch: String, iDisplayStart: Int, iDisplayLength: Int) = Action {
-    val page: Page[(RequestData)] = RequestData.list(group, environment, soapAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (iDisplayStart-1), iDisplayLength, sSearch)
+    val page: Page[(RequestData)] = RequestData.list(group, environment, URLDecoder.decode(soapAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (iDisplayStart-1), iDisplayLength, sSearch)
 
     Logger.debug("iTotalRecords {}" + Json.toJson(iDisplayLength))
     Logger.debug("iTotalDisplayRecords {}" + Json.toJson(page.total))

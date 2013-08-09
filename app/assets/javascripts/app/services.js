@@ -96,7 +96,7 @@ define(['angular'], function (angular) {
                             $scope.soapactions = soapactions;
                             $scope.soapactions.unshift({id: "all", name: "all"});
                             angular.forEach($scope.soapactions, function (value, key) {
-                                if (value.name == $routeParams.soapaction) $scope.soapaction = value;
+                                if (encodeURIComponent(value.name) == $routeParams.soapaction) $scope.soapaction = value;
                             });
 
                         })
