@@ -83,7 +83,7 @@ POST    /soapactions/:id            controllers.SoapActions.save(id:Long)
 GET     /status/findall             controllers.Status.findAll
 
 # Statistics on SoapActions by environments
-GET     /statsAsJunit/:minDate/:maxDate/                                        controllers.Stats.statsAsJunit(group, minDate, maxDate)
+GET     /statsAsJunit/:group/:minDate/:maxDate/                                        controllers.Stats.statsAsJunit(group, minDate, maxDate)
 GET     /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable      controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
 
 # Download SOAP request and response
