@@ -105,7 +105,7 @@ object Environments extends Controller {
             else Environment.update(environment)
             Ok(Json.toJson("Succesfully save environment."))
           } catch {
-            case e => { BadRequest("Detected error:" + e.getMessage) }
+            case e : Throwable => { BadRequest("Detected error:" + e.getMessage) }
           }
 
       }.recoverTotal {

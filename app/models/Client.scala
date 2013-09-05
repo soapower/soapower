@@ -24,7 +24,7 @@ object Client {
 
   def processQueue(requestData: RequestData) {
     val writeStartTime = System.currentTimeMillis()
-    Akka.future {
+    scala.concurrent.Future {
       lock.synchronized {
         nbRequest.addAndGet(1)
       }
@@ -110,7 +110,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     try {
       // asynchronously writes data to the DB
       val writeStartTime = System.currentTimeMillis()
-      Akka.future {
+      scala.concurrent.Future {
         requestData.request = checkNullOrEmpty(content)
         requestData.storeSoapActionAndStatusInCache()
         val id = RequestData.insert(requestData)

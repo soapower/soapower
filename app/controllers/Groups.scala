@@ -89,7 +89,7 @@ object Groups extends Controller {
             else Group.update(group)
             Ok(Json.toJson("Succesfully save group " + id))
           } catch {
-            case e => { BadRequest("Detected error:" + e.getMessage) }
+            case e : Throwable => { BadRequest("Detected error:" + e.getMessage) }
           }
       }.recoverTotal {
         e => BadRequest("Detected error:" + JsError.toFlatJson(e))

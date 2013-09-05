@@ -70,7 +70,7 @@ object Admin extends Controller {
     Service.fetchCsv().foreach { s => content += Service.csvKey + ";" + s }
 
     // result as a file
-    val fileContent: Enumerator[String] = Enumerator(content)
+    val fileContent: Enumerator[Array[Byte]] = Enumerator(content.getBytes)
     SimpleResult(
       header = ResponseHeader(play.api.http.Status.OK),
       body = fileContent
@@ -87,7 +87,7 @@ object Admin extends Controller {
     RequestData.fetchCsv().foreach { s => content += RequestData.csvKey + ";" + s }
 
     // result as a file
-    val fileContent: Enumerator[String] = Enumerator(content)
+    val fileContent: Enumerator[Array[Byte]] = Enumerator(content.getBytes)
     SimpleResult(
       header = ResponseHeader(play.api.http.Status.OK),
       body = fileContent

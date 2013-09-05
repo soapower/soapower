@@ -45,7 +45,7 @@ object Search extends Controller {
 
         var result = SimpleResult(
           header = ResponseHeader(play.api.http.Status.OK),
-          body = Enumerator(formattedXml))
+          body = Enumerator(formattedXml.getBytes))
         if (asFile) {
           result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
           result.as(XML)
@@ -73,7 +73,7 @@ object Search extends Controller {
         val filename = "response-" + id + ".xml"
         var result = SimpleResult(
           header = ResponseHeader(play.api.http.Status.OK),
-          body = Enumerator(formattedXml))
+          body = Enumerator(formattedXml.getBytes))
         if (asFile) {
           result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
           result.as(XML)

@@ -125,7 +125,7 @@ object Soap extends Controller {
     }
   }
 
-  private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String]): PlainResult = {
+  private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String]): SimpleResult = {
     val service = Service.findByLocalTargetAndEnvironmentName(localTarget, environmentName)
     service.map {
       service =>
