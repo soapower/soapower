@@ -1,16 +1,14 @@
 <!doctype html>
-<html lang="en" ng-ap>
+<html lang="en" ng-app="spApp">
 <head>
     <meta charset="utf-8">
     <title>Soapower</title>
-    <link rel="stylesheet" href="/stylesheets/ng-grid-2.0.7.min.css">
     <link rel="stylesheet" href="/stylesheets/nv.d3.min.css">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/font-awesome.min.css">
     <link rel="stylesheet" href="/stylesheets/main.min.css">
     <link rel="shortcut icon" type="image/png" href="/images/soapower.png">
-    <script src="/assets/javascripts/lib/jquery-1.10.1.min.js"></script>
-    <script type="text/javascript" data-main="/assets/javascripts/soapower" src="/assets/javascripts/require.js"></script>
+    <script src="/javascripts/angular.js"></script>
 </head>
 <body>
 
@@ -23,52 +21,77 @@
     Soapower use HTML5 websocket, it is not compatible with Internet Exporer < 10
 </div>
 
-<div class="navbar navbar-inverse">
-    <div class="navbar-inner">
-        <div class="container">
-            <a class="btn btn-navbar" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+<nav class="navbar navbar-inverse" role="navigation">
+    <div class="collapse navbar-collapse navbar-ex1-collapse">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
-            </a>
-            <a class="brand" href="#/home">
+            </button>
+            <a class="navbar-brand" href="#/home">
                 <i class="icon-bolt icon-white"></i>  Soapower
             </a>
-            <div class="nav-collapse collapse navbar-responsive-collapse">
-                <ul class="nav">
-                    <li active-link="active" link="live"><a id="menu-live" href="#/live"><i class="icon-bullhorn icon-white"></i> Live</a></li>
-                    <li active-link="active" link="search"><a id="menu-search" href="#/search"><i class="icon-search icon-white"></i> Search</a></li>
-                    <li active-link="active" link="analysis"><a id="menu-analysis" href="#/analysis"><i class="icon-bar-chart icon-white"></i> Analysis</a></li>
-                    <li active-link="active" link="stats"><a id="menu-statistics" href="#/stats"><i class="icon-table icon-white"></i> Statistics</a></li>
-                    <li><sp-groups></sp-groups></li>
-                </ul>
-                <ul class="nav pull-right">
-                    <li><a href="http://soapower.github.io/soapower"><i class="icon-book"></i> </i> Documentation </a></li>
-                    <li active-link="active" link="monitor"><a href="#/monitor"><i class="icon-dashboard"></i> </i> Monitoring </a></li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin <b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li active-link="active" link="services"><a href="#/services"><i class="icon-pencil icon-white"></i> Services</a></li>
-                            <li active-link="active" link="environments"><a href="#/environments"><i class="icon-pencil icon-white"></i> Environments</a></li>
-                            <li active-link="active" link="groups"><a href="#/groups"><i class="icon-pencil icon-white"></i> Groups</a></li>
-                            <li active-link="active" link="soapactions"><a href="#/soapactions"><i class="icon-pencil icon-white"></i> SoapActions Threshold</a></li>
-                            <li class="divider"></li>
-                            <li active-link="active" link="admin"><a href="#/admin"><i class="icon-warning-sign icon-white"></i> Admin</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div><!-- /.nav-collapse -->
         </div>
-    </div><!-- /navbar-inner -->
-</div>
+        <div class="navbar-inner">
+            <ul class="nav navbar-nav">
+                <li active-link="active" link="live"><a id="menu-live" href="#/live"><i class="icon-bullhorn icon-white"></i> Live</a></li>
+                <li active-link="active" link="search"><a id="menu-search" href="#/search"><i class="icon-search icon-white"></i> Search</a></li>
+                <li active-link="active" link="analysis"><a id="menu-analysis" href="#/analysis"><i class="icon-bar-chart icon-white"></i> Analysis</a></li>
+                <li active-link="active" link="stats"><a id="menu-statistics" href="#/stats"><i class="icon-table icon-white"></i> Statistics</a></li>
+                <li><sp-groups></sp-groups></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="http://soapower.github.io/soapower"><i class="icon-book"></i> </i> Documentation </a></li>
+                <li active-link="active" link="monitor"><a href="#/monitor"><i class="icon-dashboard"></i> </i> Monitoring </a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li active-link="active" link="services"><a href="#/services"><i class="icon-pencil icon-white"></i> Services</a></li>
+                        <li active-link="active" link="environments"><a href="#/environments"><i class="icon-pencil icon-white"></i> Environments</a></li>
+                        <li active-link="active" link="groups"><a href="#/groups"><i class="icon-pencil icon-white"></i> Groups</a></li>
+                        <li active-link="active" link="soapactions"><a href="#/soapactions"><i class="icon-pencil icon-white"></i> SoapActions Threshold</a></li>
+                        <li class="divider"></li>
+                        <li active-link="active" link="admin"><a href="#/admin"><i class="icon-warning-sign icon-white"></i> Admin</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
 
-<div class="container-fluid" ng-view></div>
+<div class="container" ng-view></div>
 
 <hr>
 <div class="footer">
     Hello! I'm your friendly footer. If you're actually reading this, I'm impressed....
     <a href="https://github.com/soapower/soapower">Fork me on Github</a> <i class="icon-github icon-2x"></i> <a href="http://soapower.github.io/soapower">http://soapower.github.io/soapower</a>
 </div>
+
+<script src="/assets/javascripts/lib/jquery-1.10.2.js"></script>
+
+<script src="/javascripts/angular-resource.min.js"></script>
+<script src="/javascripts/angular-route.min.js"></script>
+<script src="/assets/javascripts/app/controllers/adminController.js"></script>
+<script src="/assets/javascripts/app/controllers/analysisController.js"></script>
+<script src="/assets/javascripts/app/controllers/environmentsController.js"></script>
+<script src="/assets/javascripts/app/controllers/groupsController.js"></script>
+<script src="/assets/javascripts/app/controllers/liveController.js"></script>
+<script src="/assets/javascripts/app/controllers/monitorController.js"></script>
+<script src="/assets/javascripts/app/controllers/searchController.js"></script>
+<script src="/assets/javascripts/app/controllers/servicesController.js"></script>
+<script src="/assets/javascripts/app/controllers/soapactionsController.js"></script>
+<script src="/assets/javascripts/app/controllers/statsController.js"></script>
+<script src="/assets/javascripts/lib/ui-bootstrap-0.4.0-SNAPSHOT.js"></script>
+<script src="/assets/javascripts/lib/ng-upload.min.js"></script>
+<script src="/assets/javascripts/main.js"></script>
+<script src="/assets/javascripts/lib/d3/d3.v3.js"></script>
+<script src="/assets/javascripts/lib/d3/nv.d3.js"></script>
+<script src="/assets/javascripts/soapower.js"></script>
+<script src="/assets/javascripts/app/directives.js"></script>
+<script src="/assets/javascripts/app/services.js"></script>
+<script src="/assets/javascripts/app/filters.js"></script>
 
 </body>
 </html>

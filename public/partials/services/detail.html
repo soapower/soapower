@@ -1,13 +1,13 @@
 <form name="myForm">
     <input type="hidden" name="description" ng-model="service.id">
 
-    <div class="control-group" ng-class="{error: myForm.description.$invalid}">
+    <div class="form-group" ng-class="{error: myForm.description.$invalid}">
         <label>Service Description</label>
         <input type="text" name="description" ng-model="service.description" class="input-xxlarge" required>
         <span ng-show="myForm.description.$error.required" class="help-inline">Required</span>
     </div>
 
-    <div class="control-group" ng-class="{error: myForm.localTarget.$invalid}">
+    <div class="form-group" ng-class="{error: myForm.localTarget.$invalid}">
         <label>Local Target </label>
         <input type="text" name="localTarget" ng-model="service.localTarget" class="input-xxlarge" required>
         <span ng-show="myForm.localTarget.$error.required" class="help-inline">Required</span>
@@ -15,27 +15,27 @@
         </span>
     </div>
 
-    <div class="control-group" ng-class="{error: myForm.remoteTarget.$invalid}">
+    <div class="form-group" ng-class="{error: myForm.remoteTarget.$invalid}">
         <label>Remote Target </label>
         <input type="url" name="remoteTarget" ng-model="service.remoteTarget" class="input-xxlarge" required>
         <span ng-show="myForm.remoteTarget.$error.required" class="help-inline">Required</span>
         <span ng-show="myForm.remoteTarget.$error.url" class="help-inline">Not a URL</span>
     </div>
 
-    <div class="control-group" ng-class="{error: myForm.timeoutms.$invalid}">
+    <div class="form-group" ng-class="{error: myForm.timeoutms.$invalid}">
         <label>Timeout ms </label>
         <input type="number" name="timeoutms" ng-model="service.timeoutms" required>
         <span ng-show="myForm.timeoutms.$error.required" class="help-inline">Required</span>
         <span class="help-block">Check this if you want to record Xml Request and Xml Response for this service</span>
     </div>
 
-    <div class="control-group" ng-class="{error: myForm.environment.$invalid}">
+    <div class="form-group" ng-class="{error: myForm.environment.$invalid}">
         <label>Environment </label>
         <select ng-model="service.environment" ng-options="environment.name for environment in environments" required ng-selected="{{ service.environmentId == environment.id }}"></select>
         <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
     </div>
 
-    <div class="control-group">
+    <div class="form-group">
         <label class="control-label"> Record Xml Data, Check this if you want to record Xml Request and Xml Response for this service: </label>
 
         <div class="controls">
@@ -49,7 +49,7 @@
 
     </div>
 
-    <div class="control-group">
+    <div class="form-group">
         <label class="control-label"> Record Data, Check Yes this if you want to record Data (time, responseTime, etc...) on Request / Response for this
             service. If it is unchecked, you can see requests on live page only and no stats are computed for this
             service. You must check this if you want to record XML Data : </label>
@@ -65,7 +65,7 @@
     </div>
 
     <br>
-    <a href="#/services" class="btn">Cancel</a>
+    <a href="#/services" class="btn btn-default">Cancel</a>
     <button ng-click="save()" ng-disabled="isClean() || myForm.$invalid"
             class="btn btn-primary">Save
     </button>

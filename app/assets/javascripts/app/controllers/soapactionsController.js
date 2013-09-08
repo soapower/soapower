@@ -11,23 +11,6 @@ function SoapActionsCtrl($scope, SoapactionsService) {
             console.log("Error with SoapActionsService.findAll" + resp);
         });
 
-    $scope.filterOptions = {
-        filterText: "",
-        useExternalFilter: false
-    };
-
-    $scope.gridOptions = {
-        data: 'soapActions',
-        showGroupPanel: true,
-        showFilter: false,
-        filterOptions: $scope.filterOptions,
-        columnDefs: [
-            {field: 'name', displayName: 'SoapAction Name'},
-            {field: 'thresholdms', displayName: 'SoapAction Threshold in ms'},
-            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/soapactions/edit/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
-        ]
-    };
-
     $scope.regenerate = function () {
         $scope.info = "Running Generation...";
         $scope.btnRegenerateDisabled = true;

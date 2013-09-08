@@ -9,29 +9,6 @@ function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIServi
         .error(function (resp) {
             console.log("Error with ServicesService.findAll" + resp);
         });
-
-    $scope.filterOptions = {
-        filterText: "",
-        useExternalFilter: false
-    };
-
-    $scope.gridOptions = {
-        data: 'services',
-        showGroupPanel: true,
-        showFilter: false,
-        filterOptions: $scope.filterOptions,
-        columnDefs: [
-            {field: 'env', displayName: 'Environment'},
-            {field: 'description', displayName: 'Description'},
-            {field: 'localTarget', displayName: 'Local Target'},
-            {field: 'remoteTarget', displayName: 'Remote Target'},
-            {field: 'timeoutInMs', displayName: 'Timeout in ms'},
-            {field: 'recordXmlData', displayName: 'Record Xml Data'},
-            {field: 'recordData', displayName: 'Record Data'},
-            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/services/edit/'+ $routeParams.group+'/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
-        ]
-    };
-
     $rootScope.$broadcast("showGroupsFilter", $routeParams.group);
 
     $scope.$on("ReloadPage", function (event, group) {

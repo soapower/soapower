@@ -1,7 +1,7 @@
 <h3>Download Configuration</h3>
-<a class="btn" href="{{urlDlConfig}}">Download configuration as csv File</a>
+<button class="btn btn-default" href="{{urlDlConfig}}">Download configuration as csv File</button>
 
-<a href="{{urlDlRequestDataStatsEntries}}" class="btn">Download RequestData Stat Entries as csv File</a>
+<button href="{{urlDlRequestDataStatsEntries}}" class="btn btn-default">Download RequestData Stat Entries as csv File</button>
 <hr>
 
 <h3>Upload Configuration</h3>
@@ -21,7 +21,7 @@
 
 <form action="{{urlUploadConfiguration}}" ng-upload>
     <input type="file" name="fileUploaded"/>
-    <input type="submit" value="Upload configuration" class="btn" upload-submit="uploadComplete(content, completed)"/>
+    <input type="submit" value="Upload configuration" class="btn btn-default" upload-submit="uploadComplete(content, completed)"/>
 </form>
 
 <div class="alert alert-info" ng-show="showUploadRunning">Wait... Uploading.</div>
@@ -32,7 +32,7 @@
 
 <form name="deleteForm" class="form-horizontal" novalidate>
 
-    <div class="control-group">
+    <div class="form-group">
 
         <span ng-click="showminDate = !showminDate">
             <label class="control-label"> From : </label>
@@ -49,7 +49,7 @@
         <input name="minDate" type="hidden" ng-model="minDate" required>
     </div>
 
-    <div class="control-group">
+    <div class="form-group">
         <span ng-click="showmaxDate = !showmaxDate">
         <label class="control-label">To : </label>
             <div class="controls">{{maxDate | date:'yyyy-MM-dd'}}
@@ -63,7 +63,7 @@
         <input name="maxDate" type="hidden" ng-model="maxDate" required>
     </div>
 
-    <div class="control-group">
+    <div class="form-group">
         <label class="control-label" for="environment"> Environment : </label>
 
         <div class="controls">
@@ -72,7 +72,7 @@
         </div>
     </div>
 
-    <div class="control-group">
+    <div class="form-group">
         <label class="control-label"> Type Action for selected environment between min and max date : </label>
 
         <div class="controls">

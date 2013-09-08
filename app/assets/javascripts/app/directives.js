@@ -2,12 +2,7 @@
 
 'use strict';
 
-define(['angular'], function (angular) {
-
-    /* Directives */
-
-    angular.module('spApp.directives', []).
-        directive('spCriterias', function () {
+    spApp.directive('spCriterias', function () {
             return {
                 restrict: 'E',
                 scope: {
@@ -211,4 +206,35 @@ define(['angular'], function (angular) {
                 }
             };
         }]);
+
+spApp.directive('spReplay', function(){
+    return {
+        restrict : 'E',
+        replace : true,
+        templateUrl: "partials/common/cellReplayTemplate.html"
+    }
+});
+spApp.directive('spRequest', function(){
+    return {
+        restrict : 'E',
+        replace : true,
+        templateUrl: "partials/common/cellRequestTemplate.html"
+    }
+});
+spApp.directive('spResponse', function(){
+    return {
+        restrict : 'E',
+        replace : true,
+        templateUrl: "partials/common/cellResponseTemplate.html"
+    }
+});
+spApp.directive('spStatus', function(){
+    return {
+        restrict : 'E',
+        replace : true,
+        templateUrl: "partials/common/cellStatusTemplate.html",
+        scope : {
+            status : '='
+        }
+    }
 });

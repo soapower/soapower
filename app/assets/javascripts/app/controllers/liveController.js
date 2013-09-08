@@ -3,7 +3,7 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
     $scope.isLiveOn = false;
     $scope.isError = false;
     $scope.nbConnected = 0;
-    $scope.myData = [];
+    $scope.liveData = [];
     $scope.showTips = false;
 
     $scope.hostname = $location.host();
@@ -38,7 +38,7 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
 
         if (data.kind == "talkRequestData") {
            // $('#datas').dataTable().fnAddData([ data.message["0"] ]);
-            $scope.myData.push(data.message["0"])
+            $scope.liveData.push(data.message["0"])
         }
 
         $scope.nbConnected = data.members.length - 1;// substract Robot
@@ -67,51 +67,25 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
         }
     }
 
-    $scope.filterOptions = {
-        filterText: "",
-        useExternalFilter: false
-    };
-
-    $scope.gridOptions = {
-        data: 'myData',
-        enablePaging: false,
-        showFooter: false,
-        showFilter: false,
-        sortInfo : { fields: ['startTime'], directions: ['desc']},
-        filterOptions: $scope.filterOptions,
-        columnDefs: [
-            {field: 'status', displayName: 'Status', width: '60px', cellTemplate: 'partials/common/cellStatusTemplate.html'},
-            {field: 'env', displayName: 'Environment', width: '100px'},
-            {field: 'sender', displayName: 'Sender',  width: '100px'},
-            {field: 'soapAction', displayName: 'SoapAction'},
-            {field: 'startTime', displayName: 'StartTime', width: '200px' },
-            {field: 'time', displayName: 'TimeInMillis', width: '100px'},
-            {field: 'purged', displayName: 'Request', width: '80px', cellTemplate: 'partials/common/cellRequestTemplate.html'},
-            {field: 'purged', displayName: 'Response', width: '80px', cellTemplate: 'partials/common/cellResponseTemplate.html'},
-            {field: 'purged', displayName: 'Replay', width: '80px', cellTemplate: 'partials/common/cellReplayTemplate.html'}
-        ]
-
-    };
-
     if ($routeParams.search) {
-        $scope.gridOptions.filterOptions.filterText = $routeParams.search;
+        $scope.filterSearch = $routeParams.search;
     }
 
     $scope.dlRequest = function (asFile, row) {
-        if (row.getProperty("purged") == "true") {
+        if (row.purged == "true") {
             $window.alert("Sorry, Request already purged...");
         } else {
-            var url = "/download/request/" + row.getProperty("id");
+            var url = "/download/request/" + row.id;
             if (asFile) url += "?asFile=true";
             $window.open(url);
         }
     };
 
     $scope.dlResponse = function (asFile, row) {
-        if (row.getProperty("purged") == "true") {
+        if (row.purged == "true") {
             $window.alert("Sorry, Response already purged...");
         } else {
-            var url = "/download/response/" + row.getProperty("id");
+            var url = "/download/response/" + row.id;
             if (asFile) url += "?asFile=true";
             $window.open(url);
         }

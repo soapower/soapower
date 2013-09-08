@@ -9,28 +9,6 @@ function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService,
             console.log("Error with EnvironmentsService.findAll" + resp);
         });
 
-    $scope.filterOptions = {
-        filterText: "",
-        useExternalFilter: false
-    };
-
-    $scope.gridOptions = {
-        data: 'environments',
-        showGroupPanel: true,
-        showFilter: false,
-        filterOptions: $scope.filterOptions,
-        columnDefs: [
-            {field: 'name', displayName: 'Name'},
-            {field: 'hourRecordXmlDataMin', displayName: 'Xml Data : Start Record Hour'},
-            {field: 'hourRecordXmlDataMax', displayName: 'Xml Data : End Record Hour'},
-            {field: 'nbDayKeepXmlData', displayName: 'Xml Data : nb days keep'},
-            {field: 'nbDayKeepAllData', displayName: 'All Data : nb days keep'},
-            {field: 'recordXmlData', displayName: 'Record Xml Data'},
-            {field: 'recordData', displayName: 'Record Data'},
-            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/environments/edit/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
-        ]
-    };
-
     $rootScope.$broadcast("showGroupsFilter", $routeParams.group);
 
     $scope.$on("ReloadPage", function (event, group) {
@@ -73,7 +51,7 @@ function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
 
     GroupsService.findAllAndSelect($scope);
 
-    $scope.environment = new Environment({id: '-1'});
+    $scope.environment = new ({id: '-1'});
     $scope.environment.hourRecordXmlDataMin = 6;
     $scope.environment.hourRecordXmlDataMax = 22;
     $scope.environment.nbDayKeepXmlData = 2;

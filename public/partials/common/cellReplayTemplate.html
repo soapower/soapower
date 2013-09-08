@@ -1,3 +1,6 @@
-<span class="ngCellText data-purged-{{row.getProperty(col.field)}}">
-    <i class="pointer" ng-click="replayReq(row)"><i class="icon-refresh"></i></i>
+<span>
+<span class="ngCellText" ng-show="!{{line.purged}}">
+    <i class="pointer" ng-click="replayReq(line)"><i class="icon-refresh"></i></i>
+</span>
+<span class="ngCellText" ng-show="{{line.purged}}">-</span>
 </span>

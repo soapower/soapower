@@ -1,13 +1,13 @@
-<form name="myForm">
+<form name="myForm" role="form">
     <input type="hidden" name="name" ng-model="environment.id">
 
-    <div class="control-group" ng-class="{error: myForm.group.$invalid}">
+    <div class="form-group" ng-class="{error: myForm.group.$invalid}">
         <label>Group </label>
         <select ng-model="environment.group" name="group" ng-options="group.name for group in groups" required ng-selected="{{ environment.groupId == group.id }}"></select>
         <span ng-show="myForm.group.$error.required" class="help-inline">Required</span>
     </div>
 
-    <div class="control-group" ng-class="{error: myForm.nameEnv.$invalid}">
+    <div class="form-group" ng-class="{error: myForm.nameEnv.$invalid}">
         <label>Name</label>
         <input type="text" name="nameEnv" ng-pattern="namePattern" ng-model="environment.name" class="input-xxlarge" required>
         <span ng-show="myForm.nameEnv.$error.required" class="help-inline">Required</span>
@@ -15,14 +15,14 @@
         <span class="help-inline">The name have to match this pattern : [a-zA-Z0-9]{1,200}</span>
     </div>
 
-    <div class="control-group" ng-class="{error: myForm.hourRecordXmlDataMin.$invalid}">
+    <div class="form-group" ng-class="{error: myForm.hourRecordXmlDataMin.$invalid}">
         <label>Start Record Hour</label>
         <input type="number" name="hourRecordXmlDataMin" ng-model="environment.hourRecordXmlDataMin"
                class="input-xxlarge" required>
         <span ng-show="myForm.hourRecordXmlDataMin.$error.required" class="help-inline">Required</span>
     </div>
 
-    <div class="control-group" ng-class="{error: myForm.hourRecordXmlDataMax.$invalid}">
+    <div class="form-group" ng-class="{error: myForm.hourRecordXmlDataMax.$invalid}">
         <label>End Record Hour</label>
         <input type="number" name="hourRecordXmlDataMax" ng-model="environment.hourRecordXmlDataMax"
                class="input-xxlarge" required>
@@ -30,19 +30,19 @@
         <span ng-show="myForm.hourRecordXmlDataMax.$error.url" class="help-inline">Not a URL</span>
     </div>
 
-    <div class="control-group" ng-class="{error: myForm.nbDayKeepXmlData.$invalid}">
+    <div class="form-group" ng-class="{error: myForm.nbDayKeepXmlData.$invalid}">
         <label>Xml Data : Nb days keep</label>
         <input type="number" name="nbDayKeepXmlData" ng-model="environment.nbDayKeepXmlData" required>
         <span ng-show="myForm.nbDayKeepXmlData.$error.required" class="help-inline">Required</span>
     </div>
 
-    <div class="control-group" ng-class="{error: myForm.nbDayKeepAllData.$invalid}">
+    <div class="form-group" ng-class="{error: myForm.nbDayKeepAllData.$invalid}">
         <label>All Data : Nb days keep</label>
         <input type="number" name="nbDayKeepAllData" ng-model="environment.nbDayKeepAllData" required>
         <span ng-show="myForm.nbDayKeepAllData.$error.required" class="help-inline">Required</span>
     </div>
 
-    <div class="control-group">
+    <div class="form-group">
         <label class="control-label"> Record Xml Data, Check this if you want to record Xml Request and Xml Response for
             ALL services attached to this environment: </label>
 
@@ -57,7 +57,7 @@
 
     </div>
 
-    <div class="control-group">
+    <div class="form-group">
         <label class="control-label"> Record Data, Check this if you want to record Data (startTime, responseTime,
             etc...) on Request for ALL services attached to this environment. If it is unchecked, you can see requests
             on live page only and no stats are computed for this environment. You must check this if you want to record
@@ -75,7 +75,7 @@
     </div>
 
     <br>
-    <a href="#/environments" class="btn">Cancel</a>
+    <a href="#/environments" class="btn btn-default">Cancel</a>
     <button ng-click="save()" ng-disabled="isClean() || myForm.$invalid"
             class="btn btn-primary">Save
     </button>

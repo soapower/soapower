@@ -9,22 +9,6 @@ function GroupsCtrl($scope, GroupsService) {
         .error(function (resp) {
             console.log("Error with GroupsService.findAll" + resp);
         });
-
-    $scope.filterOptions = {
-        filterText: "",
-        useExternalFilter: false
-    };
-
-    $scope.gridOptions = {
-        data: 'groups',
-        showGroupPanel: true,
-        showFilter: false,
-        filterOptions: $scope.filterOptions,
-        columnDefs: [
-            {field: 'name', displayName: 'Name', cellTemplate: '<div class="ngCellText">{{row.getProperty(col.field)}} <span ng-show="row.getProperty(\'id\') == 1">(Default Group)</span></div>'},
-            {field: 'edit', displayName: 'Edit', cellTemplate: '<div class="ngCellText" ng-class="col.colIndex()"><span ng-cell-text><a href="#/groups/{{ row.getProperty(\'id\') }}"><i class="icon-pencil"></i></a></span></div>'}
-        ]
-    };
 }
 
 function GroupEditCtrl($scope, $routeParams, $location, Group, UIService) {

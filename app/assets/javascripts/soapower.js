@@ -2,51 +2,7 @@
 
 'use strict';
 
-
-// make global var
-require.config({
-    shim: {
-        'd3': {
-            exports: 'd3'
-        },
-        'nv': {
-            deps: ['d3'],
-            exports: 'nv'
-        }
-    }
-});
-
-define("angular", ['/assets/javascripts/angular.js'], function () {
-    return angular;
-});
-
-define("d3", ['/assets/javascripts/lib/d3/d3.v3.js'], function () {
-    return d3;
-});
-define("nv", ['/assets/javascripts/lib/d3/nv.d3.js'], function () {
-    return nv;
-});
-
-require(['angular', 'app/directives', 'app/services', //'app/filters',
-    'app/controllers/adminController',
-    'app/controllers/analysisController',
-    'app/controllers/environmentsController',
-    'app/controllers/groupsController',
-    'app/controllers/liveController',
-    'app/controllers/monitorController',
-    'app/controllers/searchController',
-    'app/controllers/servicesController',
-    'app/controllers/soapactionsController',
-    'app/controllers/statsController',
-    'lib/angular-resource.min',
-    'lib/ui-bootstrap-0.4.0-SNAPSHOT',
-    'lib/ng-grid-2.0.7.yesnault',
-    'lib/ng-upload.min',
-    'main',
-    'd3'
-], function (angular) {
-
-    var spApp = angular.module('spApp', [ 'ngResource', 'spApp.services', 'spApp.directives', 'ui.bootstrap', 'ngGrid', 'ngUpload']);
+    var spApp = angular.module('spApp', [ 'ui.bootstrap', 'ngRoute', 'ngResource', 'ngUpload']);
 
     spApp.config(function ($routeProvider) {
         $routeProvider
@@ -120,5 +76,3 @@ require(['angular', 'app/directives', 'app/services', //'app/filters',
             $rootScope.$broadcast("showGroupsFilter", false);
         });
     }]);
-    angular.bootstrap(document, ['spApp']);
-});

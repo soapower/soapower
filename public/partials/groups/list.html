@@ -2,6 +2,18 @@
 
 <a class="btn btn-primary" href="#/groups/new"><i class="icon-plus-sign"></i> Add a new group</a>
 
-<input placeholder="Search... " type="text" ng-model="gridOptions.filterOptions.filterText"
-       class="ng-valid ng-dirty pull-right">
-<div class="gridStyle" ng-grid="gridOptions"></div>
+<div class="panel panel-default">
+    Filter in results : <input type="text" ng-model="filter">
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr title="click to order">
+                <td ng-click="predicate = 'name'; reverse=!reverse">Name</td>
+                <td>Edit</td>
+            </tr>
+        </thead>
+        <tr ng-repeat="line in groups | filter:filter | orderBy:predicate:reverse">
+            <td>{{ line.name }}</td>
+            <td><a href="#/groups/{{ line.id }}"><i class="icon-pencil"></i></a></td>
+        </tr>
+    </table>
+ </div>

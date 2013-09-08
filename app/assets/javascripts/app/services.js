@@ -1,13 +1,6 @@
-/*global define */
-
 'use strict';
 
-define(['angular'], function (angular) {
-
-    /* Services */
-    angular.module('spApp.services', ['ngResource'])
-
-        .factory('Service', function ($resource, UIService) {
+    spApp.factory('Service', function ($resource, UIService) {
             var Service = $resource('/services/:serviceId',
                 { serviceId: '@id'},
                 { update: {method: 'POST'} }
@@ -28,9 +21,9 @@ define(['angular'], function (angular) {
             };
 
             return Service;
-        })
+        });
 
-        .factory('Environment', function ($resource, UIService) {
+        spApp.factory('Environment', function ($resource, UIService) {
             var Environment = $resource('/environments/:environmentId',
                 { environmentId: '@id'},
                 { update: {method: 'POST'} }
@@ -51,8 +44,9 @@ define(['angular'], function (angular) {
             };
 
             return Environment;
-        })
-        .factory('Group', function ($resource, UIService) {
+        });
+
+        spApp.factory('Group', function ($resource, UIService) {
             var Group = $resource('/groups/:groupId',
                 { groupId: '@id'},
                 { update: {method: 'POST'} }
@@ -70,8 +64,9 @@ define(['angular'], function (angular) {
             };
 
             return Group;
-        })
-        .factory('SoapAction', function ($resource) {
+        });
+
+        spApp.factory('SoapAction', function ($resource) {
             var SoapAction = $resource('/soapactions/:soapActionId',
                 { soapActionId: '@id'},
                 { update: {method: 'POST'} }
@@ -84,8 +79,9 @@ define(['angular'], function (angular) {
             };
 
             return SoapAction;
-        })
-        .factory("SoapactionsService", function ($http) {
+        });
+
+        spApp.factory("SoapactionsService", function ($http) {
             return {
                 findAll: function () {
                     return $http.get('/soapactions/listDatatable');
@@ -109,22 +105,25 @@ define(['angular'], function (angular) {
 
                 }
             }
-        })
-        .factory("AnalysisService", function ($http) {
+        });
+
+        spApp.factory("AnalysisService", function ($http) {
             return {
                 findAll: function () {
                     return $http.get('/soapactions/listDatatable');
                 }
             }
-        })
-        .factory("ServicesService", function ($http) {
+        });
+
+        spApp.factory("ServicesService", function ($http) {
             return {
                 findAll: function (group) {
                     return $http.get('/services/' + group + '/listDatatable');
                 }
             }
-        })
-        .factory("EnvironmentsService", function ($http) {
+        });
+
+        spApp.factory("EnvironmentsService", function ($http) {
             return {
                 findAll: function (group) {
                     return $http.get('/environments/' + group + '/listDatatable');
@@ -157,8 +156,9 @@ define(['angular'], function (angular) {
                         });
                 }
             }
-        })
-        .factory("GroupsService", function ($http) {
+        });
+
+        spApp.factory("GroupsService", function ($http) {
             return {
                 findAll: function () {
                     return $http.get('/groups/listDatatable');
@@ -190,8 +190,9 @@ define(['angular'], function (angular) {
                         });
                 }
             }
-        })
-        .factory("CodesService", function ($http) {
+        });
+
+        spApp.factory("CodesService", function ($http) {
             return {
                 findAllAndSelect: function ($scope, $routeParams) {
                     $http.get('/status/findall')
@@ -208,8 +209,9 @@ define(['angular'], function (angular) {
                         });
                 }
             }
-        })
-        .factory("UIService",function ($location, $filter, $routeParams) {
+        });
+
+        spApp.factory("UIService",function ($location, $filter, $routeParams) {
             return {
                 reloadPage: function ($scope, showSoapactions) {
                     var environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
@@ -295,7 +297,9 @@ define(['angular'], function (angular) {
                     return (val == "true" || val == true) ? "yes" : "no";
                 }
             }
-        }).factory('ReplayService', function ($http, $rootScope, $location) {
+        });
+
+        spApp.factory('ReplayService', function ($http, $rootScope, $location) {
             return {
                 replay: function (id) {
                     $http.get('/replay/' + id)
@@ -310,5 +314,4 @@ define(['angular'], function (angular) {
                         });
                 }
             }
-        })
-});
+        });

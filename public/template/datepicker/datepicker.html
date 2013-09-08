@@ -14,7 +14,7 @@
     <tr ng-repeat="row in rows">
       <td ng-show="showWeekNumbers" class="text-center"><em>{{ getWeekNumber(row) }}</em></td>
       <td ng-repeat="dt in row" class="text-center">
-        <button style="width:100%;" class="btn" ng-class="{'btn-info': dt.isSelected}" ng-click="select(dt.date)" ng-disabled="dt.disabled"><span ng-class="{muted: ! dt.isCurrent}">{{dt.label}}</span></button>
+        <button style="width:100%;" class="btn btn-default" ng-class="{'btn-info': dt.isSelected}" ng-click="select(dt.date)" ng-disabled="dt.disabled"><span ng-class="{muted: ! dt.isCurrent}">{{dt.label}}</span></button>
       </td>
     </tr>
   </tbody>

@@ -2,6 +2,31 @@
 
 <a class="btn btn-primary" href="#/environments/new"><i class="icon-plus-sign"></i> Add a new environment</a>
 
-<input placeholder="Search... " type="text" ng-model="gridOptions.filterOptions.filterText"
-       class="ng-valid ng-dirty pull-right">
-<div class="gridStyle" ng-grid="gridOptions"></div>
+    <div class="panel panel-default">
+        Filter in results : <input type="text" ng-model="filter">
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr title="click to order">
+                    <td ng-click="predicate = 'name'; reverse=!reverse">Name</td>
+                    <td ng-click="predicate = 'hourRecordXmlDataMin'; reverse=!reverse">Xml Data : Start Record Hour</td>
+                    <td ng-click="predicate = 'hourRecordXmlDataMax'; reverse=!reverse">Xml Data : End Record Hour</td>
+                    <td ng-click="predicate = 'nbDayKeepXmlData'; reverse=!reverse">Xml Data : nb days keep</td>
+                    <td ng-click="predicate = 'nbDayKeepAllData'; reverse=!reverse">All Data : nb days keep</td>
+                    <td ng-click="predicate = 'recordXmlData'; reverse=!reverse">Record Xml Data</td>
+                    <td ng-click="predicate = 'recordData'; reverse=!reverse">Record Data</td>
+                    <td>Edit</td>
+                </tr>
+            </thead>
+            <tr ng-repeat="line in environments | filter:filter | orderBy:predicate:reverse">
+                <td>{{line.name}}</td>
+                <td>{{line.hourRecordXmlDataMin}}</td>
+                <td>{{line.hourRecordXmlDataMax}}</td>
+                <td>{{line.nbDayKeepXmlData}}</td>
+                <td>{{line.nbDayKeepAllData}}</td>
+                <td>{{line.recordXmlData}}</td>
+                <td>{{line.recordData}}</td>
+                <td><a href="#/environments/edit/{{ line.id }}"><i class="icon-pencil"></i></a></td>
+            </tr>
+        </table>
+     </div>
+
