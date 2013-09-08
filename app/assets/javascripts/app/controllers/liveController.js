@@ -1,4 +1,4 @@
-function LiveCtrl($scope, $location, $window, $routeParams) {
+function LiveCtrl($scope, $location, $window, $routeParams, ReplayService) {
     $scope.ctrlPath = "live";
     $scope.isLiveOn = false;
     $scope.isError = false;
@@ -89,6 +89,10 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
             if (asFile) url += "?asFile=true";
             $window.open(url);
         }
+    };
+
+    $scope.replayReq = function (row) {
+        ReplayService.replay(row.id);
     };
 
     $scope.startWS();
