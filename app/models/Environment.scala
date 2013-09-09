@@ -211,8 +211,6 @@ object Environment {
    * @param environment The environment values.
    */
   def insert(environment: Environment) = {
-    clearCache
-
     if (!environment.name.trim.matches(ENVIRONMENT_NAME_PATTERN)) {
       throw new Exception("Environment name invalid:" + environment.name.trim)
     }
@@ -241,6 +239,7 @@ object Environment {
           'groupId -> environment.groupId
         ).executeUpdate()
     }
+    clearCache
   }
 
   /**
@@ -249,8 +248,6 @@ object Environment {
    * @param environment The environment values.
    */
   def update(environment: Environment) = {
-    clearCache
-
     if (!environment.name.trim.matches(ENVIRONMENT_NAME_PATTERN)) {
       throw new Exception("Environment name invalid:" + environment.name.trim)
     }
@@ -286,6 +283,7 @@ object Environment {
           'groupId -> environment.groupId
         ).executeUpdate()
     }
+    clearCache
   }
 
   /**
@@ -294,12 +292,12 @@ object Environment {
    * @param id Id of the environment to delete.
    */
   def delete(id: Long) = {
-    clearCache
     Cache.remove(keyCacheById + id)
     DB.withConnection {
       implicit connection =>
         SQL("delete from environment where id = {id}").on('id -> id).executeUpdate()
     }
+    clearCache
   }
 
   def clearCache() {
