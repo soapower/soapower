@@ -23,7 +23,7 @@ GET     /analysis/:group/:environment/:soapAction/:minDate/:maxDate/:status/:sta
 # Soap
 POST    /soap/:environment/*localTarget                  controllers.Soap.index(environment, localTarget)
 POST    /autosoap/:group/:environment/*remoteTarget      controllers.Soap.autoIndex(group, environment, remoteTarget)
-GET     /replay/:id                                      controllers.Soap.replay(id:Long)
+POST    /replay/:id                                      controllers.Soap.replay(id:Long)
 
 # Services list
 GET     /services/:group/listDatatable    controllers.Services.listDatatable(group:String)

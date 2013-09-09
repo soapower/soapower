@@ -98,31 +98,33 @@ object Soap extends Controller {
    * Replay a given request.
    */
   def replay(requestId: Long) = Action {
-    val requestData = RequestData.load(requestId)
+    implicit request =>
+      val requestData = RequestData.load(requestId)
 
-    val environmentTuple = Environment.optionsAll.find {
-      case (k, v) => k == requestData.environmentId.toString
-    }
+      val environmentTuple = Environment.optionsAll.find {
+        case (k, v) => k == requestData.environmentId.toString
+      }
 
-    if (!environmentTuple.isDefined) {
-      val err = "environment with id " + requestData.environmentId + " unknown"
-      Logger.error(err)
-      BadRequest(err)
-
-    } else {
-      val sender = requestData.sender
-      val content = requestData.request
-      val headers = requestData.requestHeaders
-      val environmentName = environmentTuple.get._2
-      if (requestData.serviceId > 0) {
-        val service = Service.findById(requestData.serviceId).get
-        forwardRequest(environmentName, service.localTarget, sender, content, headers)
-      } else {
-        val err = "service with id " + requestData.serviceId + " unknown"
+      if (!environmentTuple.isDefined) {
+        val err = "environment with id " + requestData.environmentId + " unknown"
         Logger.error(err)
         BadRequest(err)
+
+      } else {
+        val sender = requestData.sender
+        val content = request.body.asXml.get.toString()
+        Logger.debug("Content:" + content)
+        val headers = requestData.requestHeaders
+        val environmentName = environmentTuple.get._2
+        if (requestData.serviceId > 0) {
+          val service = Service.findById(requestData.serviceId).get
+          forwardRequest(environmentName, service.localTarget, sender, content, headers)
+        } else {
+          val err = "service with id " + requestData.serviceId + " unknown"
+          Logger.error(err)
+          BadRequest(err)
+        }
       }
-    }
   }
 
   private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String]): SimpleResult = {

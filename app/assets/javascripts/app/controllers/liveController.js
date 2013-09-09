@@ -91,10 +91,6 @@ function LiveCtrl($scope, $location, $window, $routeParams, ReplayService) {
         }
     };
 
-    $scope.replayReq = function (row) {
-        ReplayService.replay(row.id);
-    };
-
     $scope.startWS();
 
 }

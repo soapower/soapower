@@ -250,3 +250,24 @@ spApp.directive('spShowresults', function () {
         }
     }
 });
+spApp.directive('spReplayEdit', function () {
+    return {
+        restrict: 'E',
+        replace: true,
+        templateUrl: "partials/common/replay.html",
+        controller: function ($scope, ReplayService) {
+            $scope.replayReq = function (row) {
+                $scope.idSelected = row.id;
+                ReplayService.beforeReplay(row.id).then(function(data) {
+                    $scope.replayContent = data;
+                    $('#myModal').modal('show')
+                });
+            };
+
+            $scope.sendReplayReq = function () {
+                ReplayService.replay($scope.idSelected, $scope.replayContent);
+                $('#myModal').modal('hide')
+            };
+        }
+    }
+});

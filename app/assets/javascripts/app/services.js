@@ -301,17 +301,24 @@
 
         spApp.factory('ReplayService', function ($http, $rootScope, $location) {
             return {
-                replay: function (id) {
-                    $http.get('/replay/' + id)
-                        .success(function (data) {
-                            console.log("Success replay id" + id);
-                            $rootScope.$broadcast('refreshSearchTable');
-                        })
-                        .error(function (resp) {
-                            console.log("Error replay id" + id);
-                            console.log("location:" + $location.path())
-                            $rootScope.$broadcast('refreshSearchTable');
-                        });
+                beforeReplay: function(id) {
+                    var url = "/download/request/" + id;
+                    return $http.get(url);
+                },
+                replay: function (id, data) {
+                    var url = '/replay/' + id;
+                    $http({ method: "POST",
+                        url: url,
+                        data: data.data,
+                        headers: { "Content-Type" : "application/xml" }
+                    }).success(function (data) {
+                        console.log("Success replay id" + id);
+                        $rootScope.$broadcast('refreshSearchTable');
+                    }).error(function (resp) {
+                        console.log("Error replay id" + id);
+                        console.log("location:" + $location.path())
+                        $rootScope.$broadcast('refreshSearchTable');
+                    });
                 }
             }
         });

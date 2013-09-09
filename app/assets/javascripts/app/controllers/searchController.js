@@ -57,10 +57,6 @@ function SearchCtrl ($scope, $rootScope, $http, $location, $routeParams, $window
         }
     };
 
-    $scope.replayReq = function (row) {
-        ReplayService.replay(row.id);
-    };
-
     $scope.$on('refreshSearchTable', function (event) {
         console.log("Receive Broadcast event : refreshSearchTable");
         $scope.reloadTable();
