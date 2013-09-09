@@ -51,7 +51,7 @@ function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
 
     GroupsService.findAllAndSelect($scope);
 
-    $scope.environment = new ({id: '-1'});
+    $scope.environment = new Environment({id: '-1'});
     $scope.environment.hourRecordXmlDataMin = 6;
     $scope.environment.hourRecordXmlDataMax = 22;
     $scope.environment.nbDayKeepXmlData = 2;
@@ -66,5 +66,4 @@ function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
             alert(response.data);
         });
     }
-
 }
