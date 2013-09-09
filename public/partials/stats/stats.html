@@ -15,24 +15,27 @@
         </ul>
     </div>
 
-    <div class="panel panel-default">
-        Filter in results : <input type="text" ng-model="filterSearch">
-        <table class="table table-striped table-bordered">
-            <thead>
-                <tr title="click to order">
-                    <td ng-click="predicate = 'env'; reverse=!reverse">Environment</td>
-                    <td ng-click="predicate = 'soapAction'; reverse=!reverse">SoapAction</td>
-                    <td ng-click="predicate = 'avgTime'; reverse=!reverse">Avg Time In Millis</td>
-                    <td ng-click="predicate = 'threshold'; reverse=!reverse">Threshold</td>
-                </tr>
-            </thead>
-            <tr ng-repeat="line in data | filter:filterSearch | orderBy:startTime:true">
-                <td>{{ line.env }}</td>
-                <td>{{ line.soapAction }}</td>
-                <td>{{ line.avgTime }}</td>
-                <td>{{ line.threshold }}</td>
+    <hr>
+    <p>There is {{ data.length }} stats.</p>
+
+    <sp-showresults></sp-showresults>
+
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr title="click to order">
+                <td ng-click="predicate = 'env'; reverse=!reverse">Environment</td>
+                <td ng-click="predicate = 'soapAction'; reverse=!reverse">SoapAction</td>
+                <td ng-click="predicate = 'avgTime'; reverse=!reverse">Avg Time In Millis</td>
+                <td ng-click="predicate = 'threshold'; reverse=!reverse">Threshold</td>
             </tr>
-        </table>
-     </div>
+        </thead>
+        <tr ng-repeat="line in data | filter:filter | orderBy:startTime:true | limitTo:nbResults">
+            <td>{{ line.env }}</td>
+            <td>{{ line.soapAction }}</td>
+            <td>{{ line.avgTime }}</td>
+            <td>{{ line.threshold }}</td>
+        </tr>
+    </table>
+
 
 </div>

@@ -21,34 +21,35 @@
         </ul>
     </div>
 
-        <div class="panel panel-default">
-        Filter in results : <input type="text" ng-model="filterSearch">
-        <table class="table table-striped table-bordered">
-            <thead>
-                <tr title="click to order">
-                    <td>Status</td>
-                    <td>Environment</td>
-                    <td>Sender</td>
-                    <td>SoapAction</td>
-                    <td>StartTime</td>
-                    <td>TimeInMillis</td>
-                    <td>Request</td>
-                    <td>Response</td>
-                    <td>Replay</td>
-                </tr>
-            </thead>
-            <tr ng-repeat="line in data | filter:filterSearch | orderBy:predicate:reverse">
-                <td style="width: '60px'"><sp-status status="line.status"></sp-status></td>
-                <td style="width: '100px'">{{ line.env }}</td>
-                <td style="width: '100px'">{{ line.sender }}</td>
-                <td style="width: '100px'">{{ line.soapAction }}</td>
-                <td style="width: '200px'">{{ line.startTime }}</td>
-                <td style="width: '100px'">{{ line.time }}</td>
-                <td style="width: '80px'"><sp-request></td>
-                <td style="width: '80px'"><sp-response></td>
-                <td style="width: '80px'"><sp-replay></td>
+    <p>There is {{ data.length }} results.</p>
+
+    <sp-showresults></sp-showresults>
+
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr title="click to order">
+                <td ng-click="predicate = 'status'; reverse=!reverse">Status</td>
+                <td ng-click="predicate = 'env'; reverse=!reverse">Environment</td>
+                <td ng-click="predicate = 'sender'; reverse=!reverse">Sender</td>
+                <td ng-click="predicate = 'soapAction'; reverse=!reverse">SoapAction</td>
+                <td ng-click="predicate = 'startTime'; reverse=!reverse">StartTime</td>
+                <td ng-click="predicate = 'time'; reverse=!reverse">TimeInMillis</td>
+                <td>Request</td>
+                <td>Response</td>
+                <td>Replay</td>
             </tr>
-        </table>
-     </div>
+        </thead>
+        <tr ng-repeat="line in data | filter:filter | orderBy:predicate:reverse | limitTo:nbResults">
+            <td style="width: '60px'"><sp-status status="line.status"></sp-status></td>
+            <td style="width: '100px'">{{ line.env }}</td>
+            <td style="width: '100px'">{{ line.sender }}</td>
+            <td style="width: '100px'">{{ line.soapAction }}</td>
+            <td style="width: '200px'">{{ line.startTime }}</td>
+            <td style="width: '100px'">{{ line.time }}</td>
+            <td style="width: '80px'"><sp-request></td>
+            <td style="width: '80px'"><sp-response></td>
+            <td style="width: '80px'"><sp-replay></td>
+        </tr>
+    </table>
 
 </div>
