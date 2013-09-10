@@ -54,6 +54,7 @@ function MockNewCtrl($scope, $location, Mock, GroupsService) {
     $scope.mock.description = "";
     $scope.mock.timeout = 0;
     $scope.mock.response = "";
+    $scope.mock.criterias = "";
 
     $scope.save = function () {
         $scope.mock.update(function () {

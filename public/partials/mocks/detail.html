@@ -12,7 +12,7 @@
     <div class="form-group" ng-class="{error: myForm.nameMock.$invalid}">
         <label for="name" class="col-lg-2 control-label">Name</label>
         <div class="col-lg-4">
-            <input class="form-control" id="name" type="text" name="nameMock" ng-model="mock.name" class="input-xxlarge" required>
+            <input class="form-control" id="name" type="text" name="nameMock" ng-model="mock.name"  required>
             <span ng-show="myForm.nameMock.$error.required" class="help-inline">Required</span>
         </div>
     </div>
@@ -28,7 +28,7 @@
     <div class="form-group" ng-class="{error: myForm.timeout.$invalid}">
         <label for="timeout" class="col-lg-2 control-label">Timeout</label>
         <div class="col-lg-4">
-            <input class="form-control" type="number" id="timeout" name="timeout" ng-model="mock.timeout" class="input-xxlarge" required>
+            <input class="form-control" type="number" id="timeout" name="timeout" ng-model="mock.timeout" required>
             <span ng-show="myForm.timeout.$error.required" class="help-inline">Required</span>
             <span ng-show="myForm.timeout.$error.url" class="help-inline">Not a URL</span>
         </div>

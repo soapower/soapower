@@ -49,7 +49,12 @@
         spApp.factory('Mock', function ($resource) {
             var Mock = $resource('/mocks/:mockId',
                 { mockId: '@id'},
-                { update: {method: 'POST'} }
+                { update: {method: 'POST'},
+                    // FIXME headers not working. Issue #50
+                  remove: { method: 'DELETE', isArray:false,
+                      headers:{'Content-Type':'text/html; charset=UTF-8'}
+                  }
+                }
             );
 
             Mock.prototype.update = function (cb, cbError) {
