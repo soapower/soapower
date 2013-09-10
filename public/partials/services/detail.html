@@ -1,75 +1,100 @@
-<form name="myForm">
-    <input type="hidden" name="description" ng-model="service.id">
+<form name="myForm" role="form" class="form-horizontal">
+    <input class="form-control" type="hidden" name="description" ng-model="service.id">
 
     <div class="form-group" ng-class="{error: myForm.description.$invalid}">
-        <label>Service Description</label>
-        <input type="text" name="description" ng-model="service.description" class="input-xxlarge" required>
-        <span ng-show="myForm.description.$error.required" class="help-inline">Required</span>
+        <label for="description" class="col-lg-2 control-label">Service Description</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="text" id="description" name="description" ng-model="service.description" required>
+            <span ng-show="myForm.description.$error.required" class="help-inline">Required</span>
+        </div>
     </div>
 
     <div class="form-group" ng-class="{error: myForm.localTarget.$invalid}">
-        <label>Local Target </label>
-        <input type="text" name="localTarget" ng-model="service.localTarget" class="input-xxlarge" required>
-        <span ng-show="myForm.localTarget.$error.required" class="help-inline">Required</span>
-        <span class="help-block">Enter service1 to have http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>service1</b>
-        </span>
+        <label for="localTarget" class="col-lg-2 control-label">Local Target</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="text" id="localTarget" name="localTarget" ng-model="service.localTarget" required>
+            <span ng-show="myForm.localTarget.$error.required" class="help-inline">Required</span>
+            <span class="help-block">Enter service1 to have http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>service1</b>
+            </span>
+        </div>
     </div>
 
     <div class="form-group" ng-class="{error: myForm.remoteTarget.$invalid}">
-        <label>Remote Target </label>
-        <input type="url" name="remoteTarget" ng-model="service.remoteTarget" class="input-xxlarge" required>
-        <span ng-show="myForm.remoteTarget.$error.required" class="help-inline">Required</span>
-        <span ng-show="myForm.remoteTarget.$error.url" class="help-inline">Not a URL</span>
+        <label for="remoteTarget" class="col-lg-2 control-label">Remote Target</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="url" id="remoteTarget" name="remoteTarget" ng-model="service.remoteTarget" required>
+            <span ng-show="myForm.remoteTarget.$error.required" class="help-inline">Required</span>
+            <span ng-show="myForm.remoteTarget.$error.url" class="help-inline">Not a URL</span>
+        </div>
     </div>
 
     <div class="form-group" ng-class="{error: myForm.timeoutms.$invalid}">
-        <label>Timeout ms </label>
-        <input type="number" name="timeoutms" ng-model="service.timeoutms" required>
-        <span ng-show="myForm.timeoutms.$error.required" class="help-inline">Required</span>
-        <span class="help-block">Check this if you want to record Xml Request and Xml Response for this service</span>
+        <label for="timeoutms" class="col-lg-2 control-label">Timeout ms</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="number" id="timeoutms" name="timeoutms" ng-model="service.timeoutms" required>
+            <span ng-show="myForm.timeoutms.$error.required" class="help-inline">Required</span>
+            <span class="help-block">Check this if you want to record Xml Request and Xml Response for this service</span>
+        </div>
     </div>
 
     <div class="form-group" ng-class="{error: myForm.environment.$invalid}">
-        <label>Environment </label>
-        <select ng-model="service.environment" ng-options="environment.name for environment in environments" required ng-selected="{{ service.environmentId == environment.id }}"></select>
-        <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
+        <label for="environment" class="col-lg-2 control-label">Environment</label>
+        <div class="col-lg-4">
+            <select class="form-control" ng-model="service.environment" id="environment" ng-options="environment.name for environment in environments" required ng-selected="{{ service.environmentId == environment.id }}"></select>
+            <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
+        </div>
     </div>
 
     <div class="form-group">
-        <label class="control-label"> Record Xml Data, Check this if you want to record Xml Request and Xml Response for this service: </label>
+        <div class="col-lg-4">
+            <label class="control-label"> Record Xml Data, Check this if you want to record Xml Request and Xml Response for this service:</label>
+        </div>
 
-        <div class="controls">
-            <label class="radio">
-                <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="yes" ng-checked="service.recordXmlData == 'yes'"> Yes
-            </label>
-            <label class="radio">
-                <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="no" ng-checked="service.recordXmlData == 'no'"> No
-            </label>
+        <div class="col-lg-4">
+            <div class="radio">
+                <label>
+                    <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="yes" ng-checked="service.recordXmlData == 'yes'"> Yes
+               </label>
+            </div>
+            <div class="radio">
+               <label>
+                    <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="no" ng-checked="service.recordXmlData == 'no'"> No
+               </label>
+            </div>
         </div>
 
     </div>
 
     <div class="form-group">
-        <label class="control-label"> Record Data, Check Yes this if you want to record Data (time, responseTime, etc...) on Request / Response for this
-            service. If it is unchecked, you can see requests on live page only and no stats are computed for this
-            service. You must check this if you want to record XML Data : </label>
-        <div class="controls">
-            <label class="radio">
-                <input type="radio" name="recordData" ng-model="service.recordData" value="yes" ng-checked="service.recordData == 'yes'"> Yes
-            </label>
-            <label class="radio">
-                <input type="radio" name="recordData" ng-model="service.recordData" value="no" ng-checked="service.recordData == 'no'"> No
-            </label>
+        <div class="col-lg-6">
+            <label class="control-label"> Record Data, Check Yes this if you want to record Data (time, responseTime, etc...) on Request / Response for this
+                service. If it is unchecked, you can see requests on live page only and no stats are computed for this
+                service. You must check this if you want to record XML Data :</label>
+        </div>
+        <div class="col-lg-6">
+            <div class="radio">
+               <label>
+                    <input type="radio" name="recordData" ng-model="service.recordData" value="yes" ng-checked="service.recordData == 'yes'"> Yes
+               </label>
+            </div>
+            <div class="radio">
+               <label>
+                    <input type="radio" name="recordData" ng-model="service.recordData" value="no" ng-checked="service.recordData == 'no'"> No
+               </label>
+            </div>
         </div>
 
     </div>
 
-    <br>
-    <a href="#/services" class="btn btn-default">Cancel</a>
-    <button ng-click="save()" ng-disabled="isClean() || myForm.$invalid"
-            class="btn btn-primary">Save
-    </button>
-    <button ng-click="destroy()"
-            ng-show="service.id > 0" class="btn btn-danger">Delete
-    </button>
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <a href="#/services" class="btn btn-default">Cancel</a>
+            <button ng-click="save()" ng-disabled="isClean() || myForm.$invalid"
+                    class="btn btn-primary">Save
+            </button>
+            <button ng-click="destroy()"
+                    ng-show="service.id > 0" class="btn btn-danger">Delete
+            </button>
+        </div>
+    </div>
 </form>
