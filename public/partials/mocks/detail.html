@@ -1,0 +1,65 @@
+<form name="myForm" role="form" class="form-horizontal">
+    <input class="form-control" type="hidden" ng-model="mock.id">
+
+    <div class="form-group" ng-class="{error: myForm.group.$invalid}">
+        <label for="group" class="col-lg-2 control-label">Group </label>
+        <div class="col-lg-4">
+            <select class="form-control" ng-model="mock.group" id="group" name="group" ng-options="group.name for group in groups" required ng-selected="{{ mock.groupId == group.id }}"></select>
+            <span ng-show="myForm.group.$error.required" class="help-inline">Required</span>
+        </div>
+    </div>
+
+    <div class="form-group" ng-class="{error: myForm.nameMock.$invalid}">
+        <label for="name" class="col-lg-2 control-label">Name</label>
+        <div class="col-lg-4">
+            <input class="form-control" id="name" type="text" name="nameMock" ng-model="mock.name" class="input-xxlarge" required>
+            <span ng-show="myForm.nameMock.$error.required" class="help-inline">Required</span>
+        </div>
+    </div>
+
+    <div class="form-group" ng-class="{error: myForm.description.$invalid}">
+        <label for="description" class="col-lg-2 control-label">Description</label>
+        <div class="col-lg-4">
+            <textarea class="form-control" id="description" name="description" ng-model="mock.description" rows="5" required></textarea>
+            <span ng-show="myForm.description.$error.required" class="help-inline">Required</span>
+        </div>
+    </div>
+
+    <div class="form-group" ng-class="{error: myForm.timeout.$invalid}">
+        <label for="timeout" class="col-lg-2 control-label">Timeout</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="number" id="timeout" name="timeout" ng-model="mock.timeout" class="input-xxlarge" required>
+            <span ng-show="myForm.timeout.$error.required" class="help-inline">Required</span>
+            <span ng-show="myForm.timeout.$error.url" class="help-inline">Not a URL</span>
+        </div>
+    </div>
+
+    <div class="form-group" ng-class="{error: myForm.criterias.$invalid}">
+        <label for="criterias" class="col-lg-2 control-label">Criterias</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="text" id="criterias" name="criterias" ng-model="mock.criterias" required>
+            <span ng-show="myForm.criterias.$error.required" class="help-inline">Required</span>
+        </div>
+    </div>
+
+    <div class="form-group" ng-class="{error: myForm.response.$invalid}">
+        <label for="response" class="col-lg-2 control-label">Response</label>
+        <div class="col-lg-4">
+            <textarea class="form-control" id="response" name="response" ng-model="mock.response" rows="5" required></textarea>
+            <span ng-show="myForm.response.$error.required" class="help-inline">Required</span>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <a href="#/mocks" class="btn btn-default">Cancel</a>
+            <button ng-click="save()" ng-disabled="isClean() || myForm.$invalid" class="btn btn-primary">
+                Save
+            </button>
+            <button ng-click="destroy()" ng-show="mock.id > 0" class="btn btn-danger">
+                Delete
+            </button>
+        </div>
+    </div>
+</form>

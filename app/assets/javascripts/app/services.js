@@ -46,6 +46,27 @@
             return Environment;
         });
 
+        spApp.factory('Mock', function ($resource) {
+            var Mock = $resource('/mocks/:mockId',
+                { mockId: '@id'},
+                { update: {method: 'POST'} }
+            );
+
+            Mock.prototype.update = function (cb, cbError) {
+                this.id = parseInt(this.id);
+                this.groupId = parseInt(this.group.id);
+
+                return Mock.update({mockId: this.id},
+                    angular.extend({}, this, {mockId: undefined}), cb, cbError);
+            };
+
+            Mock.prototype.destroy = function (cb) {
+                return Mock.remove({mockId: this.id}, cb);
+            };
+
+            return Mock;
+        });
+
         spApp.factory('Group', function ($resource, UIService) {
             var Group = $resource('/groups/:groupId',
                 { groupId: '@id'},
@@ -154,6 +175,14 @@
                         .error(function (resp) {
                             console.log("Error with EnvironmentsService.findAllAndSelect" + resp);
                         });
+                }
+            }
+        });
+
+        spApp.factory("MocksService", function ($http) {
+            return {
+                findAll: function (group) {
+                    return $http.get('/mocks/' + group + '/listDatatable');
                 }
             }
         });

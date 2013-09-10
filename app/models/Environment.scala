@@ -75,7 +75,7 @@ object Environment {
   }
 
   /**
-   * Get All environements, csv format.
+   * Get All environments, csv format.
    * @return List of Environements, csv format
    */
   def fetchCsv(): List[String] = DB.withConnection {
@@ -443,7 +443,7 @@ object Environment {
    * @param dataCsv List of string
    * @return group
    */
-  private def uploadGroup(dataCsv: Array[String]): Group = {
+  def uploadGroup(dataCsv: Array[String]): Group = {
     val groupName = dataCsv(csvTitle.get("groupName").get)
     Logger.debug("groupName:" + groupName)
 

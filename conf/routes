@@ -43,7 +43,7 @@ GET     /environments/:group/options          controllers.Environments.options(g
 # Environments list
 GET     /environments/:group/listDatatable    controllers.Environments.listDatatable(group:String)
 
-# Add service
+# Add environment
 POST    /environments/:id              controllers.Environments.save(id:Long)
 
 # Edit existing environment
@@ -51,6 +51,18 @@ GET     /environments/:id              controllers.Environments.edit(id:Long)
 
 # Delete a environment
 DELETE    /environments/:id            controllers.Environments.delete(id:Long)
+
+# Mocks list
+GET     /mocks/:group/listDatatable    controllers.Mocks.listDatatable(group:String)
+
+# Add mock
+POST    /mocks/:id                     controllers.Mocks.save(id:Long)
+
+# Edit existing mock
+GET     /mocks/:id                     controllers.Mocks.edit(id:Long)
+
+# Delete a mock
+DELETE    /mocks/:id                   controllers.Mocks.delete(id:Long)
 
 # Groups list
 GET     /groups/options                 controllers.Groups.options
@@ -97,7 +109,4 @@ GET     /monitor/downloadLogFile   controllers.Monitor.downloadLogFile
 POST    /gc!                       controllers.Monitor.gc
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file              controllers.Assets.at(path="/public", file)
-
-# Map the JS resource paths
-GET     /*file                      controllers.Assets.at(path="/public", file)
+GET     /*file              controllers.Assets.at(path="/public", file)
