@@ -99,7 +99,7 @@ object Groups extends Controller {
   /**
    * Handle group deletion.
    */
-  def delete(id: Long) = Action {
+  def delete(id: Long) = Action(parse.tolerantText) { request =>
     if (id == Group.ID_DEFAULT_GROUP) BadRequest("failure : Default group can't be deleted")
     else {
       val groupOption = Group.findById(id)

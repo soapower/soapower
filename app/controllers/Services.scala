@@ -76,7 +76,7 @@ object Services extends Controller {
   /**
    * Handle service deletion.
    */
-  def delete(id: Long) = Action {
+  def delete(id: Long) = Action(parse.tolerantText) { request =>
     Service.delete(id)
     Ok("deleted")
   }

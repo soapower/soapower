@@ -115,7 +115,7 @@ object Environments extends Controller {
   /**
    * Handle environment deletion.
    */
-  def delete(id: Long) = Action {
+  def delete(id: Long) = Action(parse.tolerantText) { request =>
     Environment.delete(id)
     Ok("deleted")
   }

@@ -79,7 +79,7 @@ object Mocks extends Controller {
   /**
    * Handle mock deletion.
    */
-  def delete(id: Long) = Action {
+  def delete(id: Long) = Action(parse.tolerantText) { request =>
     Mock.delete(id)
     Ok("deleted")
   }

@@ -25,7 +25,7 @@ object Status extends Controller {
   }
 
   /**
-   * Return all soapAction in Json Format
+   * Return all status in Json Format
    * @return JSON
    */
   def findAll = Action {
