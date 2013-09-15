@@ -67,6 +67,27 @@ spApp.factory('Mock', function ($resource) {
     return Mock;
 });
 
+spApp.factory('MockGroup', function ($resource) {
+    var MockGroup = $resource('/mockgroups/:mockGroupId',
+        { mockGroupId: '@id'},
+        { update: {method: 'POST'} }
+    );
+
+    MockGroup.prototype.update = function (cb, cbError) {
+        this.id = parseInt(this.id);
+        this.groupId = parseInt(this.group.id);
+
+        return MockGroup.update({mockGroupId: this.id},
+            angular.extend({}, this, {mockGroupId: undefined}), cb, cbError);
+    };
+
+    MockGroup.prototype.destroy = function (cb) {
+        return MockGroup.remove({mockGroupId: this.id}, cb);
+    };
+
+    return MockGroup;
+});
+
 spApp.factory('Group', function ($resource, UIService) {
     var Group = $resource('/groups/:groupId',
         { groupId: '@id'},
@@ -181,8 +202,16 @@ spApp.factory("EnvironmentsService", function ($http) {
 
 spApp.factory("MocksService", function ($http) {
     return {
+        findAll: function (mockGroup) {
+            return $http.get('/mocks/' + mockGroup + '/listDatatable');
+        }
+    }
+});
+
+spApp.factory("MockGroupsService", function ($http) {
+    return {
         findAll: function (group) {
-            return $http.get('/mocks/' + group + '/listDatatable');
+            return $http.get('/mockgroups/' + group + '/listDatatable');
         }
     }
 });

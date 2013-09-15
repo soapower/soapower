@@ -23,13 +23,13 @@ object Mocks extends Controller {
    *
    * @return JSON
    */
-  def listDatatable(group: String) = Action {
+  def listDatatable(mockGroup: String) = Action {
     implicit request =>
 
       var data: List[Mock] = null.asInstanceOf[List[Mock]]
 
-      if (group != "all") {
-        data = Mock.list(group)
+      if (mockGroup != "all") {
+        data = Mock.list(mockGroup)
       } else {
         data = Mock.list
       }

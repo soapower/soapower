@@ -52,7 +52,12 @@
             .when('/mocks', {  redirectTo: '/mocks/all'})
             .when('/mocks/new', {controller: MockNewCtrl, templateUrl: 'partials/mocks/detail.html'})
             .when('/mocks/edit/:mockId', {controller: MockEditCtrl, templateUrl: 'partials/mocks/detail.html'})
-            .when('/mocks/:group', { controller: MocksCtrl, templateUrl: 'partials/mocks/list.html'})
+            .when('/mocks/:mockGroup', { controller: MocksCtrl, templateUrl: 'partials/mocks/list.html'})
+
+            .when('/mockgroups', {  redirectTo: '/mockgroups/all'})
+            .when('/mockgroups/new', {controller: MockGroupNewCtrl, templateUrl: 'partials/mockgroups/detail.html'})
+            .when('/mockgroups/edit/:mockGroupId', {controller: MockGroupEditCtrl, templateUrl: 'partials/mockgroups/detail.html'})
+            .when('/mockgroups/:group', { controller: MockGroupsCtrl, templateUrl: 'partials/mockgroups/list.html'})
 
             .when('/groups', { controller: GroupsCtrl, templateUrl: 'partials/groups/list.html'})
             .when('/groups/new', {controller: GroupNewCtrl, templateUrl: 'partials/groups/detail.html'})

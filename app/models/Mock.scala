@@ -10,7 +10,7 @@ import anorm.SqlParser._
 
 case class Mock(id: Long,
                 name: String,
-                groupId: Long = 1, // 1 is default group
+                mockGroupId: Long = 1, // 1 is default group
                 description: String,
                 timeout: Int = 0,
                 criterias: String,
@@ -28,13 +28,13 @@ object Mock {
   val simple = {
     get[Long]("mock.id") ~
       get[String]("mock.name") ~
-      get[Long]("mock.groupId") ~
+      get[Long]("mock.mockGroupId") ~
       get[String]("mock.description") ~
       get[Int]("mock.timeout") ~
       get[String]("mock.criterias") ~
       get[String]("mock.response") map {
-      case id ~ name ~ groupId ~ description ~ timeout ~ criterias ~ response
-      => Mock(id, name, groupId, description, timeout, criterias, response)
+      case id ~ name ~ mockGroupId ~ description ~ timeout ~ criterias ~ response
+      => Mock(id, name, mockGroupId, description, timeout, criterias, response)
     }
   }
 
@@ -44,12 +44,12 @@ object Mock {
   val simpleWithoutResponse = {
     get[Long]("mock.id") ~
       get[String]("mock.name") ~
-      get[Long]("mock.groupId") ~
+      get[Long]("mock.mockGroupId") ~
       get[String]("mock.description") ~
       get[Int]("mock.timeout") ~
       get[String]("mock.criterias") map {
-      case id ~ name ~ groupId ~ description ~ timeout ~ criterias
-      => Mock(id, name, groupId, description, timeout, criterias, null)
+      case id ~ name ~ mockGroupId ~ description ~ timeout ~ criterias
+      => Mock(id, name, mockGroupId, description, timeout, criterias, null)
     }
   }
 
@@ -81,7 +81,7 @@ object Mock {
    * @return List of Environements, csv format
    */
   def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("select * from mock left join groups on mock.groupId = groups.id").as(Mock.csv *)
+    implicit c => SQL("select * from mock left join groups on mock.mockGroupId = mock_group.id").as(Mock.csv *)
   }
 
   /**
@@ -138,15 +138,15 @@ object Mock {
       implicit connection =>
         SQL(
           """
-            insert into mock (id, name, description, timeout, criterias, response, groupId)
-              values (null, {name}, {description}, {timeout}, {criterias}, {response}, {groupId})
+            insert into mock (id, name, description, timeout, criterias, response, mockGroupId)
+              values (null, {name}, {description}, {timeout}, {criterias}, {response}, {mockGroupId})
           """).on(
           'name -> mock.name.trim,
           'description -> mock.description,
           'timeout -> mock.timeout,
           'criterias -> mock.criterias,
           'response -> mock.response,
-          'groupId -> mock.groupId
+          'mockGroupId -> mock.mockGroupId
         ).executeUpdate()
     }
     clearCache
@@ -176,7 +176,7 @@ object Mock {
           timeout = {timeout},
           criterias = {criterias},
           response = {response},
-          groupId = {groupId}
+          mockGroupId = {mockGroupId}
           where id = {id}
           """).on(
           'id -> mock.id,
@@ -185,7 +185,7 @@ object Mock {
           'timeout -> mock.timeout,
           'criterias -> mock.criterias,
           'response -> mock.response,
-          'groupId -> mock.groupId
+          'mockGroupId -> mock.mockGroupId
         ).executeUpdate()
     }
     clearCache
@@ -213,19 +213,19 @@ object Mock {
    * Return a list of all Mock which are contained into the given group
    *
    */
-  def list(group: String): List[Mock] = {
+  def list(mockGroup: String): List[Mock] = {
 
     DB.withConnection {
       implicit connection =>
 
         val mocks = SQL(
           """
-          select mock.id, mock.name, mock.groupId, mock.description, mock.timeout, mock.criterias
-          from mock, groups
-          where mock.groupId = groups.id
-          and groups.name = {group}
-          order by mock.groupId asc, mock.name
-          """).on('group -> group).as(Mock.simpleWithoutResponse *)
+          select mock.id, mock.name, mock.mockGroupId, mock.description, mock.timeout, mock.criterias
+          from mock, mock_group
+          where mock.mockGroupId = mock_group.id
+          and mock_group.name = {mockGroup}
+          order by mock.mockGroupId asc, mock.name
+          """).on('mockGroup -> mockGroup).as(Mock.simpleWithoutResponse *)
 
         mocks
     }
@@ -242,7 +242,7 @@ object Mock {
 
         val mocks = SQL(
           """
-          select id, name, groupId, description, timeout, criterias from mock
+          select id, name, mockGroupId, description, timeout, criterias from mock
           order by mock.name
           """).as(Mock.simpleWithoutResponse *)
 

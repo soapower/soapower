@@ -9,15 +9,10 @@ function MocksCtrl($scope, $rootScope, $routeParams, MocksService, UIService) {
             console.log("Error with MocksService.findAll" + resp);
         });
 
-    $rootScope.$broadcast("showGroupsFilter", $routeParams.group);
-
-    $scope.$on("ReloadPage", function (event, group) {
-        $scope.ctrlPath = "mocks";
-        UIService.reloadAdminPage($scope, group);
-    });
+    $rootScope.$broadcast("showGroupsFilter", false);
 }
 
-function MockEditCtrl($scope, $routeParams, $location, Mock, UIService, GroupsService) {
+function MockEditCtrl($scope, $routeParams, $location, Mock, GroupsService) {
     var self = this;
 
     Mock.get({mockId: $routeParams.mockId}, function (mock) {

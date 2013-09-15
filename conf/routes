@@ -25,60 +25,37 @@ POST    /soap/:environment/*localTarget                  controllers.Soap.index(
 POST    /autosoap/:group/:environment/*remoteTarget      controllers.Soap.autoIndex(group, environment, remoteTarget)
 POST    /replay/:id                                      controllers.Soap.replay(id:Long)
 
-# Services list
+# Services
 GET     /services/:group/listDatatable    controllers.Services.listDatatable(group:String)
+POST    /services/:id                     controllers.Services.save(id:Long)
+GET     /services/:id                     controllers.Services.edit(id:Long)
+DELETE  /services/:id                     controllers.Services.delete(id:Long)
 
-# Add service
-POST    /services/:id                  controllers.Services.save(id:Long)
-
-# Edit existing service
-GET     /services/:id              controllers.Services.edit(id:Long)
-
-# Delete a service
-DELETE    /services/:id            controllers.Services.delete(id:Long)
-
-# Environments list
+# Environments
 GET     /environments/:group/options          controllers.Environments.options(group:String)
-
-# Environments list
 GET     /environments/:group/listDatatable    controllers.Environments.listDatatable(group:String)
+POST    /environments/:id                     controllers.Environments.save(id:Long)
+GET     /environments/:id                     controllers.Environments.edit(id:Long)
+DELETE  /environments/:id                     controllers.Environments.delete(id:Long)
 
-# Add environment
-POST    /environments/:id              controllers.Environments.save(id:Long)
+# Mocks
+GET     /mocks/:mockGroup/listDatatable    controllers.Mocks.listDatatable(mockGroup:String)
+POST    /mocks/:id                         controllers.Mocks.save(id:Long)
+GET     /mocks/:id                         controllers.Mocks.edit(id:Long)
+DELETE  /mocks/:id                         controllers.Mocks.delete(id:Long)
 
-# Edit existing environment
-GET     /environments/:id              controllers.Environments.edit(id:Long)
+# Mock Groups
+GET     /mockgroups/:group/listDatatable    controllers.MockGroups.listDatatable(group:String)
+POST    /mockgroups/:id                     controllers.MockGroups.save(id:Long)
+GET     /mockgroups/:id                     controllers.MockGroups.edit(id:Long)
+DELETE  /mockgroups/:id                     controllers.MockGroups.delete(id:Long)
 
-# Delete a environment
-DELETE    /environments/:id            controllers.Environments.delete(id:Long)
-
-# Mocks list
-GET     /mocks/:group/listDatatable    controllers.Mocks.listDatatable(group:String)
-
-# Add mock
-POST    /mocks/:id                     controllers.Mocks.save(id:Long)
-
-# Edit existing mock
-GET     /mocks/:id                     controllers.Mocks.edit(id:Long)
-
-# Delete a mock
-DELETE    /mocks/:id                   controllers.Mocks.delete(id:Long)
-
-# Groups list
+# Groups
 GET     /groups/options                 controllers.Groups.options
-
-# Groups list
 GET     /groups/listDatatable           controllers.Groups.listDatatable
-
-# Add group
 POST    /groups/:id                     controllers.Groups.save(id:Long)
-
-# Edit existing group
 GET     /groups/:id                     controllers.Groups.edit(id:Long)
-
-# Delete a group
 DELETE  /groups/:id                     controllers.Groups.delete(id:Long)
-
 
 # SoapActions list
 GET     /soapactions/findall          controllers.SoapActions.findAll
@@ -95,7 +72,7 @@ POST    /soapactions/:id            controllers.SoapActions.save(id:Long)
 GET     /status/findall             controllers.Status.findAll
 
 # Statistics on SoapActions by environments
-GET     /statsAsJunit/:group/:minDate/:maxDate/                                        controllers.Stats.statsAsJunit(group, minDate, maxDate)
+GET     /statsAsJunit/:group/:minDate/:maxDate/                                 controllers.Stats.statsAsJunit(group, minDate, maxDate)
 GET     /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable      controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
 
 # Download SOAP request and response
