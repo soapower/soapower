@@ -1,7 +1,7 @@
-function MocksCtrl($scope, $rootScope, $routeParams, MocksService, UIService) {
+function MocksCtrl($scope, $rootScope, $routeParams, MocksService, MockGroupsService, UIService) {
 
     // Looking for mocks with their groups and adding all informations to $scope.mocks var
-    MocksService.findAll($routeParams.group).
+    MocksService.findAll($routeParams.mockGroup).
         success(function (mocks) {
             $scope.mocks = mocks.data;
         })
@@ -9,16 +9,29 @@ function MocksCtrl($scope, $rootScope, $routeParams, MocksService, UIService) {
             console.log("Error with MocksService.findAll" + resp);
         });
 
-    $rootScope.$broadcast("showGroupsFilter", false);
+    $rootScope.$broadcast("showGroupsFilter", $routeParams.group);
+
+    $scope.$on("ReloadPage", function (event, group) {
+        $scope.ctrlPath = "mocks";
+        UIService.reloadAdminPage($scope, group);
+    });
+
+    $scope.mockGroup = $routeParams.mockGroup;
 }
 
-function MockEditCtrl($scope, $routeParams, $location, Mock, GroupsService) {
+function MockEditCtrl($scope, $routeParams, $location, Mock, MockGroupsService) {
     var self = this;
 
     Mock.get({mockId: $routeParams.mockId}, function (mock) {
         self.original = mock;
         $scope.mock = new Mock(self.original);
-        GroupsService.findAllAndSelect($scope, null, null, $scope.mock, false);
+        MockGroupsService.findAll("all").
+            success(function (mockGroups) {
+                $scope.mockGroups = mockGroups.data;
+            })
+            .error(function (resp) {
+                console.log("Error with MockGroupsService.findAll:" + resp);
+            });
     });
 
     $scope.isClean = function () {
@@ -40,9 +53,7 @@ function MockEditCtrl($scope, $routeParams, $location, Mock, GroupsService) {
     };
 }
 
-function MockNewCtrl($scope, $location, Mock, GroupsService) {
-
-    GroupsService.findAllAndSelect($scope);
+function MockNewCtrl($scope, $location, Mock, MockGroupsService, $routeParams) {
 
     $scope.mock = new Mock({id: '-1'});
     $scope.mock.name = "";
@@ -51,6 +62,20 @@ function MockNewCtrl($scope, $location, Mock, GroupsService) {
     $scope.mock.response = "";
     $scope.mock.criterias = "";
 
+    MockGroupsService.findAll("all").
+        success(function (mockGroups) {
+            $scope.mockGroups = mockGroups.data;
+            angular.forEach(mockGroups.data, function(mockGroup, key){
+                if (mockGroup.name == $routeParams.mockGroup) {
+                    $scope.mock.mockGroup = mockGroup;
+                    return false;
+                }
+            });
+        })
+        .error(function (resp) {
+            console.log("Error with MockGroupsService.findAll:" + resp);
+        });
+
     $scope.save = function () {
         $scope.mock.update(function () {
             $location.path('/mocks/');
@@ -58,4 +83,5 @@ function MockNewCtrl($scope, $location, Mock, GroupsService) {
             alert(response.data);
         });
     }
+
 }

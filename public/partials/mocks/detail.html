@@ -2,10 +2,10 @@
     <input class="form-control" type="hidden" ng-model="mock.id">
 
     <div class="form-group" ng-class="{error: myForm.group.$invalid}">
-        <label for="group" class="col-lg-2 control-label">Group </label>
+        <label for="mockGroup" class="col-lg-2 control-label">Group </label>
         <div class="col-lg-4">
-            <select class="form-control" ng-model="mock.group" id="group" name="group" ng-options="group.name for group in groups" required ng-selected="{{ mock.groupId == group.id }}"></select>
-            <span ng-show="myForm.group.$error.required" class="help-inline">Required</span>
+            <select class="form-control" ng-model="mock.mockGroup" id="mockGroup" name="mockGroup" ng-options="mockGroup.name for mockGroup in mockGroups" required ng-selected="{{ mock.mockGroupId == mockGroup.id }}"></select>
+            <span ng-show="myForm.mockGroup.$error.required" class="help-inline">Required</span>
         </div>
     </div>
 

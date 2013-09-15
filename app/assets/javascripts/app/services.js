@@ -54,7 +54,7 @@ spApp.factory('Mock', function ($resource) {
 
     Mock.prototype.update = function (cb, cbError) {
         this.id = parseInt(this.id);
-        this.groupId = parseInt(this.group.id);
+        this.mockGroupId = parseInt(this.mockGroup.id);
 
         return Mock.update({mockId: this.id},
             angular.extend({}, this, {mockId: undefined}), cb, cbError);

@@ -49,8 +49,8 @@
             .when('/environments/edit/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'partials/environments/detail.html'})
             .when('/environments/:group', { controller: EnvironmentsCtrl, templateUrl: 'partials/environments/list.html'})
 
-            .when('/mocks', {  redirectTo: '/mocks/all'})
-            .when('/mocks/new', {controller: MockNewCtrl, templateUrl: 'partials/mocks/detail.html'})
+            .when('/mocks', {  redirectTo: '/mockgroups'})
+            .when('/mocks/new/:mockGroup', {controller: MockNewCtrl, templateUrl: 'partials/mocks/detail.html'})
             .when('/mocks/edit/:mockId', {controller: MockEditCtrl, templateUrl: 'partials/mocks/detail.html'})
             .when('/mocks/:mockGroup', { controller: MocksCtrl, templateUrl: 'partials/mocks/list.html'})
 

@@ -197,7 +197,6 @@ spApp.directive('spCriterias', function () {
                 var path = "/" + attrs.link;
                 scope.location = location;
                 scope.$watch('location.path()', function (newPath) {
-                    console.log("path:" + path + " newPath" + newPath);
                     if (newPath.indexOf(path) == 0) {
                         element.addClass(clazz);
                     } else {
