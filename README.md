@@ -4,8 +4,6 @@ Soapower - Monitoring Webservices
 What it is and how to install it ?
 Go to http://soapower.github.io/soapower/
 
-[![Build Status](https://buildhive.cloudbees.com/job/soapower/job/soapower/badge/icon)](https://buildhive.cloudbees.com/job/soapower/job/soapower/)
-
 Download & Release Notes
 =============
 

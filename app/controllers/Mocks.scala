@@ -3,7 +3,6 @@ package controllers
 import play.api.mvc._
 import models._
 import play.api.libs.json._
-import play.Logger
 
 object Mocks extends Controller {
 
@@ -62,14 +61,8 @@ object Mocks extends Controller {
    */
   def save(id: Long) = Action(parse.json) {
     request =>
-      Logger.debug("##############################")
-      Logger.debug("Body:" + request.body)
-      Logger.debug("##############################")
       request.body.validate(mockFormat).map {
         mock =>
-          Logger.debug("##############################")
-          Logger.debug("Mock:" + mock)
-          Logger.debug("##############################")
           try {
             if (id < 0) Mock.insert(mock)
             else Mock.update(mock)
