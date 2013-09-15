@@ -2,7 +2,7 @@
 
 <a class="btn btn-primary" href="#/mockgroups/new"><i class="icon-plus-sign"></i> Add a new Mock Group</a>
 
-<p>There is {{ mockgroups.length }} Mock Groups.</p>
+<p>There is {{ mockgroups.length - 1 }} Mock Groups.</p>
 
 <sp-showresults></sp-showresults>
 
@@ -14,7 +14,7 @@
             <td>Mocks</td>
         </tr>
     </thead>
-    <tr ng-repeat="line in mockgroups | filter:filter | orderBy:predicate:reverse | limitTo:nbResults">
+    <tr ng-repeat="line in mockgroups | filter:filter | filter:isNotDefaultMockGroup | orderBy:predicate:reverse | limitTo:nbResults ">
         <td>{{ line.name }}</td>
         <td><a href="#/mockgroups/edit/{{ line.id }}"><i class="icon-pencil"></i></a></td>
         <td><a href="#/mocks/{{ line.name }}">View Mocks</a></td>

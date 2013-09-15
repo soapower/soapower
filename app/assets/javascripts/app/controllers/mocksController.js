@@ -22,6 +22,8 @@ function MocksCtrl($scope, $rootScope, $routeParams, MocksService, MockGroupsSer
 function MockEditCtrl($scope, $routeParams, $location, Mock, MockGroupsService) {
     var self = this;
 
+    $scope.title = "Edit a Mock"
+
     Mock.get({mockId: $routeParams.mockId}, function (mock) {
         self.original = mock;
         $scope.mock = new Mock(self.original);
@@ -54,6 +56,8 @@ function MockEditCtrl($scope, $routeParams, $location, Mock, MockGroupsService) 
 }
 
 function MockNewCtrl($scope, $location, Mock, MockGroupsService, $routeParams) {
+
+    $scope.title = "Insert new Mock"
 
     $scope.mock = new Mock({id: '-1'});
     $scope.mock.name = "";

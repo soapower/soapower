@@ -1,4 +1,5 @@
 <form name="myForm" role="form" class="form-horizontal">
+    <h2>{{ title }}</h2>
     <input class="form-control" type="hidden" name="description" ng-model="service.id">
 
     <div class="form-group" ng-class="{error: myForm.description.$invalid}">
@@ -9,39 +10,50 @@
         </div>
     </div>
 
+    <div class="form-group" ng-class="{error: myForm.environment.$invalid}">
+        <label for="environment" class="col-lg-2 control-label">Environment</label>
+        <div class="col-lg-4">
+            <select class="form-control" ng-model="service.environment" id="environment" ng-options="environment.name for environment in environments" required></select>
+            <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
+        </div>
+    </div>
+
+    <h4>The Local Target</h4>
     <div class="form-group" ng-class="{error: myForm.localTarget.$invalid}">
         <label for="localTarget" class="col-lg-2 control-label">Local Target</label>
         <div class="col-lg-4">
             <input class="form-control" type="text" id="localTarget" name="localTarget" ng-model="service.localTarget" required>
             <span ng-show="myForm.localTarget.$error.required" class="help-inline">Required</span>
-            <span class="help-block">Enter service1 to have http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>service1</b>
-            </span>
+            <span ng-show="myForm.localTarget.$error.required" class="help-block">Enter service1 to have http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>service1</b></span>
+            <span ng-show="!myForm.localTarget.$error.required" class="help-block">Local Target : http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>{{ service.localTarget }}</b> </span>
         </div>
     </div>
 
+    <h4>The Remote Target</h4>
     <div class="form-group" ng-class="{error: myForm.remoteTarget.$invalid}">
         <label for="remoteTarget" class="col-lg-2 control-label">Remote Target</label>
         <div class="col-lg-4">
-            <input class="form-control" type="url" id="remoteTarget" name="remoteTarget" ng-model="service.remoteTarget" required>
-            <span ng-show="myForm.remoteTarget.$error.required" class="help-inline">Required</span>
+            <input class="form-control" type="url" id="remoteTarget" name="remoteTarget" ng-model="service.remoteTarget">
             <span ng-show="myForm.remoteTarget.$error.url" class="help-inline">Not a URL</span>
+            <span class="help-block">Remote service, example : http://host:8080/myService/1.0</span>
         </div>
     </div>
 
+    <div class="form-group" ng-class="{error: myForm.mockGroup.$invalid}">
+        <label for="mockGroup" class="col-lg-2 control-label">Mock Group</label>
+        <div class="col-lg-4">
+            <select class="form-control" ng-model="service.mockGroup" id="mockGroup" ng-options="mockGroup.name for mockGroup in mockGroups"></select>
+            <span ng-show="myForm.mockGroup.$error.required" class="help-inline">Required</span>
+        </div>
+    </div>
+
+    <h4>Options</h4>
     <div class="form-group" ng-class="{error: myForm.timeoutms.$invalid}">
         <label for="timeoutms" class="col-lg-2 control-label">Timeout ms</label>
         <div class="col-lg-4">
             <input class="form-control" type="number" id="timeoutms" name="timeoutms" ng-model="service.timeoutms" required>
             <span ng-show="myForm.timeoutms.$error.required" class="help-inline">Required</span>
-            <span class="help-block">Check this if you want to record Xml Request and Xml Response for this service</span>
-        </div>
-    </div>
-
-    <div class="form-group" ng-class="{error: myForm.environment.$invalid}">
-        <label for="environment" class="col-lg-2 control-label">Environment</label>
-        <div class="col-lg-4">
-            <select class="form-control" ng-model="service.environment" id="environment" ng-options="environment.name for environment in environments" required ng-selected="{{ service.environmentId == environment.id }}"></select>
-            <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
+            <span class="help-block">Timeout in milliseconds</span>
         </div>
     </div>
 

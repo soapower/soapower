@@ -25,11 +25,16 @@ alter table mock add constraint fk_mock_mockgroups_1 foreign key (mockGroupId) r
 
 alter table service add constraint fk_service_mockgroups_1 foreign key(mockGroupId) references mock_group(id) on delete restrict on update restrict;
 
+insert into mock_group values (1, "NoMockGroup", 1);
+
+update service set mockGroupId = 1;
+
 # --- !Downs
 
+alter table service drop foreign key fk_service_mockgroups_1;
 alter table service drop column mockGroupId;
 alter table mock drop foreign key fk_mock_mockgroups_1;
 alter table mock_group drop foreign key fk_mock_groups_1;
-alter table service drop foreign key fk_service_mockgroups_1;
+
 drop table mock;
 drop table mock_group;

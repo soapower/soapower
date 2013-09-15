@@ -17,7 +17,9 @@ function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIServi
     });
 }
 
-function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, EnvironmentsService, UIService) {
+function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, EnvironmentsService, MockGroupsService, UIService) {
+
+    $scope.title = "Update a service";
 
     var self = this;
 
@@ -31,6 +33,20 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
         $scope.service.recordData = UIService.fixBooleanReverse($scope.service.recordData);
 
         EnvironmentsService.findAllAndSelect($scope, null, $routeParams.group, $scope.service, false);
+
+        MockGroupsService.findAll($routeParams.group).
+            success(function (mockGroups) {
+                $scope.mockGroups = mockGroups.data;
+                angular.forEach(mockGroups.data, function(mockGroup, key) {
+                    if (mockGroup.id == $scope.service.mockGroupId) {
+                        $scope.service.mockGroup = mockGroup;
+                        return false;
+                    }
+                });
+            })
+            .error(function (resp) {
+                console.log("Error with MockGroupsService.findAll:" + resp);
+            });
     });
 
     $scope.isClean = function () {
@@ -53,16 +69,27 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
     $rootScope.$broadcast("showGroupsFilter", false);
 }
 
-function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, EnvironmentsService) {
+function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, MockGroupsService, EnvironmentsService) {
+
+    $scope.title = "Insert new service";
 
     EnvironmentsService.findAllAndSelect($scope, null, $routeParams.group, null, false);
 
     $scope.service = new Service({id:'-2'});
     $scope.service.recordXmlData = "yes";
     $scope.service.recordData = "yes";
+    $scope.service.timeoutms = "60000";
 
     $scope.hostname = $location.host();
     $scope.port = $location.port();
+
+    MockGroupsService.findAll("all").
+        success(function (mockGroups) {
+            $scope.mockGroups = mockGroups.data;
+        })
+        .error(function (resp) {
+            console.log("Error with MockGroupsService.findAll:" + resp);
+        });
 
     $scope.save = function () {
         $scope.service.update(function () {

@@ -80,10 +80,13 @@ object MockGroups extends Controller {
    * @param id Id of the mockgroup to edit
    */
   def edit(id: Long) = Action {
-    MockGroup.findById(id).map {
-      mockgroup =>
-        Ok(Json.toJson(mockgroup)).as(JSON)
-    }.getOrElse(NotFound)
+    if (id == MockGroup.ID_DEFAULT_NO_MOCK_GROUP) BadRequest("failure : Default Mock Group can't be edited")
+    else {
+      MockGroup.findById(id).map {
+        mockgroup =>
+          Ok(Json.toJson(mockgroup)).as(JSON)
+      }.getOrElse(NotFound)
+    }
   }
 
 
@@ -92,6 +95,8 @@ object MockGroups extends Controller {
    */
   def save(id: Long) = Action(parse.json) {
     request =>
+      if (id == MockGroup.ID_DEFAULT_NO_MOCK_GROUP) BadRequest("failure : Default Mock Group can't be updated")
+      else {
       request.body.validate(mockgroupFormat).map {
         mockgroup =>
           try {
@@ -104,19 +109,23 @@ object MockGroups extends Controller {
       }.recoverTotal {
         e => BadRequest("Detected error:" + JsError.toFlatJson(e))
       }
+    }
   }
 
   /**
    * Handle mockgroup deletion.
    */
   def delete(id: Long) = Action(parse.tolerantText) { request =>
-    val mockgroupOption = MockGroup.findById(id)
-    mockgroupOption match {
-      case Some(mockgroup) =>
-        MockGroup.delete(mockgroup)
-        Ok("deleted")
-      case None =>
-        Ok("failure : Mockgroup doesn't exist")
+    if (id == MockGroup.ID_DEFAULT_NO_MOCK_GROUP) BadRequest("failure : Default Mock Group can't be deleted")
+    else {
+      val mockgroupOption = MockGroup.findById(id)
+      mockgroupOption match {
+        case Some(mockgroup) =>
+          MockGroup.delete(mockgroup)
+          Ok("deleted")
+        case None =>
+          Ok("failure : Mockgroup doesn't exist")
+      }
     }
   }
 

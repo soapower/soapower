@@ -432,33 +432,11 @@ object Environment {
     }
 
     if (dataCsv(csvTitle.get("key").get) == csvKey) {
-      val group = uploadGroup(dataCsv)
+      val group = Group.upload(dataCsv(csvTitle.get("groupName").get))
       uploadEnvironment(dataCsv, group)
     } else {
       Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
     }
-  }
-
-  /**
-   * Check if group exist and insert it if not
-   *
-   * @param dataCsv List of string
-   * @return group
-   */
-  def uploadGroup(dataCsv: Array[String]): Group = {
-    val groupName = dataCsv(csvTitle.get("groupName").get)
-    Logger.debug("groupName:" + groupName)
-
-    var group = Group.findByName(groupName)
-    if (group == None) {
-      Logger.debug("Insert group " + groupName)
-      Group.insert(new Group(0, groupName))
-      group = Group.findByName(groupName)
-      if (group.get == null) Logger.error("Group insert failed : " + groupName)
-    } else {
-      Logger.debug("Group already exist : " + group.get.name)
-    }
-    group.get
   }
 
   /**

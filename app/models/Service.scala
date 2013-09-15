@@ -17,7 +17,8 @@ case class Service(
   timeoutms: Long,
   recordXmlData: Boolean,
   recordData: Boolean,
-  environmentId: Long) {
+  environmentId: Long,
+  mockGroupId: Long) {
 }
 
 object Service {
@@ -34,16 +35,17 @@ object Service {
     get[Long]("service.timeoutms") ~
     get[String]("service.recordXmlData") ~
     get[String]("service.recordData") ~
-    get[Long]("service.environment_id") map {
-      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ environmentId =>
-        Service(id, description, localTarget, remoteTarget, timeoutms, (recordXmlData == "true"), (recordData == "true"), environmentId)
+    get[Long]("service.environment_id") ~
+    get[Long]("service.mockGroupId") map {
+      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ environmentId ~ mockGroupId =>
+        Service(id, description, localTarget, remoteTarget, timeoutms, (recordXmlData == "true"), (recordData == "true"), environmentId, mockGroupId)
     }
   }
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "description" -> 2, "localTarget" -> 3, "remoteTarget" -> 4, "timeoutms" -> 5, "recordXmlData" -> 6, "recordData" -> 7, "environmentName" -> 8)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "description" -> 2, "localTarget" -> 3, "remoteTarget" -> 4, "timeoutms" -> 5, "recordXmlData" -> 6, "recordData" -> 7, "environmentName" -> 8, "mockGroupName" -> 9)
 
   val csvKey = "service";
 
@@ -58,9 +60,10 @@ object Service {
       get[Long]("service.timeoutms") ~
       get[String]("service.recordXmlData") ~
       get[String]("service.recordData") ~
-      get[String]("environment.name") map {
-        case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ environmentName =>
-          id + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + recordXmlData + ";" + recordData + ";" + environmentName + "\n"
+      get[String]("environment.name") ~
+      get[String]("mock_group.name") map {
+        case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ environmentName ~ mockGroupName =>
+          id + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + recordXmlData + ";" + recordData + ";" + environmentName + ";" + mockGroupName + "\n"
       }
   }
 
@@ -148,8 +151,8 @@ object Service {
           SQL(
             """
             insert into service 
-              (description, localTarget, remoteTarget, timeoutms, recordXmlData, recordData, environment_id) values (
-              {description}, {localTarget}, {remoteTarget}, {timeoutms}, {recordXmlData}, {recordData}, {environment_id}
+              (description, localTarget, remoteTarget, timeoutms, recordXmlData, recordData, environment_id, mockGroupId) values (
+              {description}, {localTarget}, {remoteTarget}, {timeoutms}, {recordXmlData}, {recordData}, {environment_id}, {mockGroupId}
             )
             """).on(
               'description -> service.description,
@@ -158,7 +161,8 @@ object Service {
               'timeoutms -> service.timeoutms,
               'recordXmlData -> service.recordXmlData.toString,
               'recordData -> service.recordData.toString,
-              'environment_id -> service.environmentId).executeUpdate()
+              'environment_id -> service.environmentId,
+              'mockGroupId -> service.mockGroupId).executeUpdate()
       }
 
       val serviceKey = localTarget + Environment.optionsAll.find(t => t._1 == service.environmentId.toString).get._2
@@ -193,7 +197,8 @@ object Service {
           timeoutms = {timeoutms},
           recordXmlData = {recordXmlData},
           recordData = {recordData},
-          environment_id = {environment_id} 
+          environment_id = {environmentId},
+          mockGroupId = {mockGroupId}
           where id = {id}
           """).on(
             'id -> service.id,
@@ -203,7 +208,8 @@ object Service {
             'timeoutms -> service.timeoutms,
             'recordXmlData -> service.recordXmlData.toString,
             'recordData -> service.recordData.toString,
-            'environment_id -> service.environmentId).executeUpdate()
+            'environmentId -> service.environmentId,
+            'mockGroupId -> service.mockGroupId).executeUpdate()
     }
   }
 
@@ -306,7 +312,8 @@ object Service {
 
     if (dataCsv(csvTitle.get("key").get) == csvKey) {
       val environment = uploadEnvironment(dataCsv)
-      uploadService(dataCsv, environment)
+      val mockGroup = MockGroup.upload(dataCsv(csvTitle.get("mockGroupName").get), Group.ID_DEFAULT_GROUP)
+      uploadService(dataCsv, environment, mockGroup)
     } else {
       Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
     }
@@ -317,9 +324,10 @@ object Service {
    *
    * @param dataCsv line in csv file
    * @param environment service's environment
+   * @param mockGroup service's Mock Group
    * @return service (new or not)
    */
-  private def uploadService(dataCsv: Array[String], environment: Environment) = {
+  private def uploadService(dataCsv: Array[String], environment: Environment, mockGroup : MockGroup) = {
 
     val localTarget = dataCsv(csvTitle.get("localTarget").get)
     val s = findByLocalTargetAndEnvironmentName(localTarget, environment.name)
@@ -338,7 +346,8 @@ object Service {
         dataCsv(csvTitle.get("timeoutms").get).toLong,
         (dataCsv(csvTitle.get("recordXmlData").get).trim == "true"),
         (dataCsv(csvTitle.get("recordData").get).trim == "true"),
-        environment.id)
+        environment.id,
+        mockGroup.id)
       Service.insert(service)
       Logger.info("Insert Service " + environment.name + "/" + localTarget)
     }

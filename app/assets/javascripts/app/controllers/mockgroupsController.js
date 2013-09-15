@@ -15,11 +15,17 @@ function MockGroupsCtrl($scope, $rootScope, $routeParams, MockGroupsService, UIS
         $scope.ctrlPath = "mockgroups";
         UIService.reloadAdminPage($scope, group);
     });
+
+    // Hide the default group in table
+    $scope.isNotDefaultMockGroup = function(mockGroup) {
+        return mockGroup.id > 1;
+    };
 }
 
 function MockGroupEditCtrl($scope, $routeParams, $location, MockGroup, GroupsService) {
     var self = this;
 
+    $scope.title = "Edit a Mock Group"
     MockGroup.get({mockGroupId: $routeParams.mockGroupId}, function (mockGroup) {
         self.original = mockGroup;
         $scope.mockGroup = new MockGroup(self.original);
@@ -48,6 +54,8 @@ function MockGroupEditCtrl($scope, $routeParams, $location, MockGroup, GroupsSer
 function MockGroupNewCtrl($scope, $location, MockGroup, GroupsService) {
 
     GroupsService.findAllAndSelect($scope);
+
+    $scope.title = "Insert new Mock Group"
 
     $scope.mockGroup = new MockGroup({id: '-1'});
     $scope.mockGroup.name = "";

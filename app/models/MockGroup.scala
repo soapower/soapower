@@ -11,6 +11,8 @@ case class MockGroup(id: Long, name: String, groupId: Long)
 
 object MockGroup {
 
+  val ID_DEFAULT_NO_MOCK_GROUP = Long.box(1)
+
   /**
    * Mockgroup caches keys which are used in order to declare and manage a DB cache
    */
@@ -178,11 +180,13 @@ object MockGroup {
   /**
    * Return a list of all mockgroups.
    */
-  def findAll: List[MockGroup] = {
+  def findAll : List[MockGroup] = {
     DB.withConnection {
       implicit connection =>
         val mockGroups = SQL(
-          "select * from mock_group order by mock_group.name").as(MockGroup.simple *)
+          " select * from mock_group " +
+          " order by mock_group.name"
+          ).as(MockGroup.simple *)
         mockGroups
     }
   }
@@ -197,11 +201,37 @@ object MockGroup {
           select mock_group.id, mock_group.name, mock_group.groupId
           from mock_group, groups
           where mock_group.groupId = groups.id
-          and groups.name = {groupName}
+          and (groups.name = {groupName}
+          or mock_group.id = {defaultMockGroudId})
           order by mock_group.name
-          """).on('groupName -> groupName).as(MockGroup.simple *)
+          """
+          ).on(
+            'groupName -> groupName,
+            'defaultMockGroudId -> ID_DEFAULT_NO_MOCK_GROUP
+          ).as(MockGroup.simple *)
 
         mockGroups
     }
+  }
+
+  /**
+   * Check if group exist and insert it if not
+   *
+   * @param mockGroupName Name of the Mock Group
+   * @return mockGroup
+   */
+  def upload(mockGroupName: String, groupId: Long): MockGroup = {
+    Logger.debug("mockGroupName:" + mockGroupName)
+
+    var mockGroup = findByName(mockGroupName)
+    if (mockGroup == None) {
+      Logger.debug("Insert group " + mockGroupName)
+      insert(new MockGroup(0, mockGroupName, groupId))
+      mockGroup = findByName(mockGroupName)
+      if (mockGroup.get == null) Logger.error("MockGroup insert failed : " + mockGroupName)
+    } else {
+      Logger.debug("MockGroup already exist : " + mockGroup.get.name)
+    }
+    mockGroup.get
   }
 }

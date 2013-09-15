@@ -15,7 +15,7 @@ case class Mock(id: Long,
                 timeoutms: Int = 0,
                 criterias: String,
                 response: String
-                 )
+                )
 
 object Mock {
 
@@ -265,8 +265,8 @@ object Mock {
     }
 
     if (dataCsv(csvTitle.get("key").get) == csvKey) {
-      val group = Environment.uploadGroup(dataCsv)
-      uploadMock(dataCsv, group)
+      val mockGroup = MockGroup.upload(dataCsv(csvTitle.get("mockGroupName").get), Group.ID_DEFAULT_GROUP)
+      uploadMock(dataCsv, mockGroup)
     } else {
       Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
     }
@@ -276,9 +276,10 @@ object Mock {
    * Check if mock already exist (with same name). Insert or do nothing if exist.
    *
    * @param dataCsv line in csv file
+   * @param mockGroup mock's mockGroup
    * @return mock (new or not)
    */
-  private def uploadMock(dataCsv: Array[String], group: Group) = {
+  private def uploadMock(dataCsv: Array[String], mockGroup: MockGroup) = {
 
     val name = dataCsv(csvTitle.get("name").get)
     val s = findByName(name)
@@ -291,7 +292,7 @@ object Mock {
       val mock = new Mock(
         -1,
         dataCsv(csvTitle.get("name").get).trim,
-        group.id,
+        mockGroup.id,
         dataCsv(csvTitle.get("description").get).trim,
         dataCsv(csvTitle.get("timeoutms").get).toInt,
         dataCsv(csvTitle.get("criterias").get).trim,

@@ -75,7 +75,8 @@ object Soap extends Controller {
                 timeoutms,
                 recordXmlData,
                 recordData,
-                environmentReal.id)
+                environmentReal.id,
+                MockGroup.ID_DEFAULT_NO_MOCK_GROUP)
               // Persist environment to database
               Service.insert(service)
           }.getOrElse {

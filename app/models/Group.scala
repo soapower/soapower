@@ -17,7 +17,7 @@ case class Group(id: Long, name: String)
 
 object Group {
 
-  val ID_DEFAULT_GROUP = 1
+  val ID_DEFAULT_GROUP = Long.box(1)
 
   /**
    * Group caches keys which are used in order to declare and manage a DB cache
@@ -181,6 +181,27 @@ object Group {
           "select * from groups order by groups.name").as(Group.simple *)
         groups
     }
+  }
+
+  /**
+   * Check if group exist and insert it if not
+   *
+   * @param groupName Name of the group
+   * @return group
+   */
+  def upload(groupName: String): Group = {
+    Logger.debug("groupName:" + groupName)
+
+    var group = Group.findByName(groupName)
+    if (group == None) {
+      Logger.debug("Insert group " + groupName)
+      Group.insert(new Group(0, groupName))
+      group = Group.findByName(groupName)
+      if (group.get == null) Logger.error("Group insert failed : " + groupName)
+    } else {
+      Logger.debug("Group already exist : " + group.get.name)
+    }
+    group.get
   }
 
 }

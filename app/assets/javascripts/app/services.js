@@ -10,6 +10,7 @@ spApp.factory('Service', function ($resource, UIService) {
         this.recordXmlData = UIService.fixBoolean(this.recordXmlData);
         this.recordData = UIService.fixBoolean(this.recordData);
         this.environmentId = parseInt(this.environment.id);
+        this.mockGroupId = parseInt(this.mockGroup.id);
         this.id = parseInt(this.id);
 
         return Service.update({serviceId: this.id},
