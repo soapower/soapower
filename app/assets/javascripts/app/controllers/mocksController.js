@@ -58,7 +58,7 @@ function MockNewCtrl($scope, $location, Mock, MockGroupsService, $routeParams) {
     $scope.mock = new Mock({id: '-1'});
     $scope.mock.name = "";
     $scope.mock.description = "";
-    $scope.mock.timeout = 0;
+    $scope.mock.timeoutms = 0;
     $scope.mock.response = "";
     $scope.mock.criterias = "";
 

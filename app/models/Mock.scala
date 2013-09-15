@@ -12,7 +12,7 @@ case class Mock(id: Long,
                 name: String,
                 mockGroupId: Long = 1, // 1 is default group
                 description: String,
-                timeout: Int = 0,
+                timeoutms: Int = 0,
                 criterias: String,
                 response: String
                  )
@@ -30,11 +30,11 @@ object Mock {
       get[String]("mock.name") ~
       get[Long]("mock.mockGroupId") ~
       get[String]("mock.description") ~
-      get[Int]("mock.timeout") ~
+      get[Int]("mock.timeoutms") ~
       get[String]("mock.criterias") ~
       get[String]("mock.response") map {
-      case id ~ name ~ mockGroupId ~ description ~ timeout ~ criterias ~ response
-      => Mock(id, name, mockGroupId, description, timeout, criterias, response)
+      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ criterias ~ response
+      => Mock(id, name, mockGroupId, description, timeoutms, criterias, response)
     }
   }
 
@@ -46,17 +46,17 @@ object Mock {
       get[String]("mock.name") ~
       get[Long]("mock.mockGroupId") ~
       get[String]("mock.description") ~
-      get[Int]("mock.timeout") ~
+      get[Int]("mock.timeoutms") ~
       get[String]("mock.criterias") map {
-      case id ~ name ~ mockGroupId ~ description ~ timeout ~ criterias
-      => Mock(id, name, mockGroupId, description, timeout, criterias, null)
+      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ criterias
+      => Mock(id, name, mockGroupId, description, timeoutms, criterias, null)
     }
   }
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groupName" -> 3, "description" -> 4, "timeout" -> 5, "criterias" -> 6, "response" -> 7)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groupName" -> 3, "description" -> 4, "timeoutms" -> 5, "criterias" -> 6, "response" -> 7)
 
   val csvKey = "mock"
 
@@ -68,11 +68,11 @@ object Mock {
       get[String]("mock.name") ~
       get[String]("groups.name") ~
       get[Int]("mock.description") ~
-      get[Int]("mock.timeout") ~
+      get[Int]("mock.timeoutms") ~
       get[Int]("mock.criterias") ~
       get[Int]("mock.response") map {
-      case id ~ name ~ groupName ~ description ~ timeout ~ criterias ~ response =>
-        id + ";" + name + ";" + groupName + ";" + description + ";" + timeout + ";" + criterias + ";" + response + "\n"
+      case id ~ name ~ groupName ~ description ~ timeoutms ~ criterias ~ response =>
+        id + ";" + name + ";" + groupName + ";" + description + ";" + timeoutms + ";" + criterias + ";" + response + "\n"
     }
   }
 
@@ -138,12 +138,12 @@ object Mock {
       implicit connection =>
         SQL(
           """
-            insert into mock (id, name, description, timeout, criterias, response, mockGroupId)
-              values (null, {name}, {description}, {timeout}, {criterias}, {response}, {mockGroupId})
+            insert into mock (id, name, description, timeoutms, criterias, response, mockGroupId)
+              values (null, {name}, {description}, {timeoutms}, {criterias}, {response}, {mockGroupId})
           """).on(
           'name -> mock.name.trim,
           'description -> mock.description,
-          'timeout -> mock.timeout,
+          'timeoutms -> mock.timeoutms,
           'criterias -> mock.criterias,
           'response -> mock.response,
           'mockGroupId -> mock.mockGroupId
@@ -173,7 +173,7 @@ object Mock {
           update mock
           set name = {name},
           description = {description},
-          timeout = {timeout},
+          timeoutms = {timeoutms},
           criterias = {criterias},
           response = {response},
           mockGroupId = {mockGroupId}
@@ -182,7 +182,7 @@ object Mock {
           'id -> mock.id,
           'name -> mock.name.trim,
           'description -> mock.description,
-          'timeout -> mock.timeout,
+          'timeoutms -> mock.timeoutms,
           'criterias -> mock.criterias,
           'response -> mock.response,
           'mockGroupId -> mock.mockGroupId
@@ -220,7 +220,7 @@ object Mock {
 
         val mocks = SQL(
           """
-          select mock.id, mock.name, mock.mockGroupId, mock.description, mock.timeout, mock.criterias
+          select mock.id, mock.name, mock.mockGroupId, mock.description, mock.timeoutms, mock.criterias
           from mock, mock_group
           where mock.mockGroupId = mock_group.id
           and mock_group.name = {mockGroup}
@@ -242,7 +242,7 @@ object Mock {
 
         val mocks = SQL(
           """
-          select id, name, mockGroupId, description, timeout, criterias from mock
+          select id, name, mockGroupId, description, timeoutms, criterias from mock
           order by mock.name
           """).as(Mock.simpleWithoutResponse *)
 
@@ -293,7 +293,7 @@ object Mock {
         dataCsv(csvTitle.get("name").get).trim,
         group.id,
         dataCsv(csvTitle.get("description").get).trim,
-        dataCsv(csvTitle.get("timeout").get).toInt,
+        dataCsv(csvTitle.get("timeoutms").get).toInt,
         dataCsv(csvTitle.get("criterias").get).trim,
         dataCsv(csvTitle.get("response").get).trim
       )

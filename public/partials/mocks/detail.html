@@ -25,12 +25,12 @@
         </div>
     </div>
 
-    <div class="form-group" ng-class="{error: myForm.timeout.$invalid}">
-        <label for="timeout" class="col-lg-2 control-label">Timeout</label>
+    <div class="form-group" ng-class="{error: myForm.timeoutms.$invalid}">
+        <label for="timeoutms" class="col-lg-2 control-label">Timeout in ms</label>
         <div class="col-lg-4">
-            <input class="form-control" type="number" id="timeout" name="timeout" ng-model="mock.timeout" required>
-            <span ng-show="myForm.timeout.$error.required" class="help-inline">Required</span>
-            <span ng-show="myForm.timeout.$error.url" class="help-inline">Not a URL</span>
+            <input class="form-control" type="number" id="timeoutms" name="timeoutms" ng-model="mock.timeoutms" required>
+            <span ng-show="myForm.timeoutms.$error.required" class="help-inline">Required</span>
+            <span ng-show="myForm.timeoutms.$error.url" class="help-inline">Not a URL</span>
         </div>
     </div>
 

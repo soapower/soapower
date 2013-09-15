@@ -192,7 +192,7 @@ spApp.directive('spCriterias', function () {
     .directive('activeLink', ['$location', function (location) {
         return {
             restrict: 'A',
-            link: function (scope, element, attrs, controller) {
+            link: function (scope, element, attrs) {
                 var clazz = attrs.activeLink;
                 var path = "/" + attrs.link;
                 scope.location = location;
