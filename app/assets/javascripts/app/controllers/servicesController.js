@@ -70,7 +70,7 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, En
         });
     }
 
-    $rootScope.$broadcast("showGroupsFilter", $routeParams.group);
+    $rootScope.$broadcast("showGroupsFilter", false);
 
     $scope.$on("ReloadPage", function (event, group) {
         var path = "services/new/" + group;

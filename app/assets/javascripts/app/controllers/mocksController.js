@@ -23,7 +23,7 @@ function MockEditCtrl($scope, $routeParams, $location, Mock, UIService, GroupsSe
     Mock.get({mockId: $routeParams.mockId}, function (mock) {
         self.original = mock;
         $scope.mock = new Mock(self.original);
-        GroupsService.findAllAndSelect($scope, null, null, $scope.mock);
+        GroupsService.findAllAndSelect($scope, null, null, $scope.mock, false);
     });
 
     $scope.isClean = function () {

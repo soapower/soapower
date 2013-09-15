@@ -134,9 +134,6 @@ object Mock {
       throw new Exception("Mock with name " + mock.name.trim + " already exist")
     }
 
-    Logger.debug("Timeout:" + mock.timeout)
-    Logger.debug("Criterias:" + mock.criterias)
-
     DB.withConnection {
       implicit connection =>
         SQL(
@@ -223,7 +220,7 @@ object Mock {
 
         val mocks = SQL(
           """
-          select id, name, groupId, description, timeout, criterias
+          select mock.id, mock.name, mock.groupId, mock.description, mock.timeout, mock.criterias
           from mock, groups
           where mock.groupId = groups.id
           and groups.name = {group}

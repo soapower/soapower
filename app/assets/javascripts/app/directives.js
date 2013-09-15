@@ -58,7 +58,7 @@ spApp.directive('spCriterias', function () {
                 $scope.showGroup = false;
                 $scope.$on("showGroupsFilter", function (event, groupName) {
                     $scope.showGroup = (groupName != false);
-                    GroupsService.findAllAndSelect($scope, $rootScope, groupName, null);
+                    GroupsService.findAllAndSelect($scope, $rootScope, groupName, null, true);
                 });
                 $scope.changeGroup = function () {
                     $scope.showSelect = false;

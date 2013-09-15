@@ -25,7 +25,7 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UISer
         $scope.environment = new Environment(self.original);
         $scope.environment.recordXmlData = UIService.fixBooleanReverse($scope.environment.recordXmlData);
         $scope.environment.recordData = UIService.fixBooleanReverse($scope.environment.recordData);
-        GroupsService.findAllAndSelect($scope, null, null, $scope.environment);
+        GroupsService.findAllAndSelect($scope, null, null, $scope.environment, false);
     });
 
     $scope.isClean = function () {
@@ -49,7 +49,7 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UISer
 
 function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
 
-    GroupsService.findAllAndSelect($scope);
+    GroupsService.findAllAndSelect($scope, null, null, null, false);
 
     $scope.environment = new Environment({id: '-1'});
     $scope.environment.hourRecordXmlDataMin = 6;
