@@ -223,10 +223,12 @@ object Environment {
       implicit connection =>
         SQL(
           """
-            insert into environment values (
-              null, {name}, {hourRecordXmlDataMin},
-        		{hourRecordXmlDataMax}, {nbDayKeepXmlData}, {nbDayKeepAllData}, {recordXmlData}, {recordData},
-        		{groupId}
+            insert into environment (
+              id, name, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData,
+              nbDayKeepAllData, recordXmlData, recordData, groupId)
+             values (
+              null, {name}, {hourRecordXmlDataMin}, {hourRecordXmlDataMax}, {nbDayKeepXmlData},
+              {nbDayKeepAllData}, {recordXmlData}, {recordData}, {groupId}
             )
           """).on(
           'name -> environment.name.trim,

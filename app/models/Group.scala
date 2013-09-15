@@ -120,7 +120,7 @@ object Group {
 
     DB.withConnection {
       implicit connection =>
-        SQL( """	insert into groups values (null, {name})""").on('name -> group.name.trim).executeUpdate()
+        SQL( """	insert into groups (id, name) values (null, {name})""").on('name -> group.name.trim).executeUpdate()
     }
   }
 

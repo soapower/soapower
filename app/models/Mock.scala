@@ -134,15 +134,15 @@ object Mock {
       throw new Exception("Mock with name " + mock.name.trim + " already exist")
     }
 
+    Logger.debug("Timeout:" + mock.timeout)
+    Logger.debug("Criterias:" + mock.criterias)
+
     DB.withConnection {
       implicit connection =>
         SQL(
           """
-            insert into mock values (
-              null, {name}, {description},
-        		{timeout}, {criterias}, {response},
-        		{groupId}
-            )
+            insert into mock (id, name, description, timeout, criterias, response, groupId)
+              values (null, {name}, {description}, {timeout}, {criterias}, {response}, {groupId})
           """).on(
           'name -> mock.name.trim,
           'description -> mock.description,
