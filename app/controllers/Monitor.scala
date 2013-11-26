@@ -1,8 +1,7 @@
 package controllers
 
 import play.api.mvc._
-import play.api.libs._
-import play.api.libs.json.{Json, JsValue}
+import play.api.libs.json.{Writes, Json, JsValue}
 import play.api.libs.iteratee._
 import play.api.libs.concurrent.Promise
 import java.util.concurrent.TimeUnit
@@ -10,11 +9,14 @@ import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.stm._
 import scala.concurrent.duration._
 import java.io.File
-import play.api.Logger
 import java.util.Date
 import ch.qos.logback.classic.spi.ILoggingEvent
 import java.text.SimpleDateFormat
-import models.Client
+import models.{Mock, Client}
+import org.slf4j.LoggerFactory
+import ch.qos.logback.classic.{Level, LoggerContext}
+import scala.collection.JavaConversions._
+
 
 /*
 * Code inspired from https://github.com/playframework/Play20/tree/master/samples/scala/comet-live-monitoring
@@ -49,7 +51,28 @@ object Monitor extends Controller {
     Runtime.getRuntime().gc()
     Ok("Done")
   }
+
+  implicit val loggersFormat = Json.format[JsonLogger]
+
+  def loggers = Action {
+    val loggerContext: LoggerContext = LoggerFactory.getILoggerFactory().asInstanceOf[LoggerContext]
+    val loggersList = scala.collection.mutable.ListBuffer[JsonLogger]()
+    loggerContext.getLoggerList.toList.foreach {
+      logger =>
+        loggersList.add (new JsonLogger(logger.getName, logger.getEffectiveLevel().toString()))
+    }
+    Ok(Json.toJson(loggersList)).as(JSON)
+  }
+
+  def changeLevel(loggerName: String, newLevel: String) = Action {
+    val loggerContext: LoggerContext = LoggerFactory.getILoggerFactory().asInstanceOf[LoggerContext]
+    loggerContext.getLogger(loggerName).setLevel(Level.valueOf(newLevel))
+    Ok("Done")
+  }
+
 }
+
+case class JsonLogger(name: String, level: String)
 
 object Streams {
 

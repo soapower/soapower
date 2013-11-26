@@ -3,87 +3,89 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Assets.at(path="/public", file="index.html")
+GET           /                                                                                          controllers.Assets.at(path="/public", file="index.html")
 
 # Live page
-GET     /live/socket                    controllers.Live.socket
+GET           /live/socket                                                                               controllers.Live.socket
 
 # Admin page
-POST    /admin/delete                   controllers.Admin.delete
-GET     /admin/downloadConfiguration    controllers.Admin.downloadConfiguration
-GET     /admin/downloadRequestDataStatsEntries controllers.Admin.downloadRequestDataStatsEntries
-POST    /admin/uploadConfiguration      controllers.Admin.uploadConfiguration
+POST          /admin/delete                                                                              controllers.Admin.delete
+GET           /admin/downloadConfiguration                                                               controllers.Admin.downloadConfiguration
+GET           /admin/downloadRequestDataStatsEntries                                                     controllers.Admin.downloadRequestDataStatsEntries
+POST          /admin/uploadConfiguration                                                                 controllers.Admin.uploadConfiguration
 
 # Search page
-GET     /search/:group/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable      controllers.Search.listDatatable(group, environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
+GET           /search/:group/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable            controllers.Search.listDatatable(group, environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
-GET     /analysis/:group/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load    controllers.Analysis.load(group, environment, soapAction, minDate, maxDate, status, statsOnly)
+GET           /analysis/:group/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load        controllers.Analysis.load(group, environment, soapAction, minDate, maxDate, status, statsOnly)
 
 # Soap
-POST    /soap/:environment/*localTarget                  controllers.Soap.index(environment, localTarget)
-POST    /autosoap/:group/:environment/*remoteTarget      controllers.Soap.autoIndex(group, environment, remoteTarget)
-POST    /replay/:id                                      controllers.Soap.replay(id:Long)
+POST          /soap/:environment/*localTarget                                                            controllers.Soap.index(environment, localTarget)
+POST          /autosoap/:group/:environment/*remoteTarget                                                controllers.Soap.autoIndex(group, environment, remoteTarget)
+POST          /replay/:id                                                                                controllers.Soap.replay(id:Long)
 
 # Services
-GET     /services/:group/listDatatable    controllers.Services.listDatatable(group:String)
-POST    /services/:id                     controllers.Services.save(id:Long)
-GET     /services/:id                     controllers.Services.edit(id:Long)
-DELETE  /services/:id                     controllers.Services.delete(id:Long)
+GET           /services/:group/listDatatable                                                             controllers.Services.listDatatable(group:String)
+POST          /services/:id                                                                              controllers.Services.save(id:Long)
+GET           /services/:id                                                                              controllers.Services.edit(id:Long)
+DELETE        /services/:id                                                                              controllers.Services.delete(id:Long)
 
 # Environments
-GET     /environments/:group/options          controllers.Environments.options(group:String)
-GET     /environments/:group/listDatatable    controllers.Environments.listDatatable(group:String)
-POST    /environments/:id                     controllers.Environments.save(id:Long)
-GET     /environments/:id                     controllers.Environments.edit(id:Long)
-DELETE  /environments/:id                     controllers.Environments.delete(id:Long)
+GET           /environments/:group/options                                                               controllers.Environments.options(group:String)
+GET           /environments/:group/listDatatable                                                         controllers.Environments.listDatatable(group:String)
+POST          /environments/:id                                                                          controllers.Environments.save(id:Long)
+GET           /environments/:id                                                                          controllers.Environments.edit(id:Long)
+DELETE        /environments/:id                                                                          controllers.Environments.delete(id:Long)
 
 # Mocks
-GET     /mocks/:mockGroup/listDatatable    controllers.Mocks.listDatatable(mockGroup:String)
-POST    /mocks/:id                         controllers.Mocks.save(id:Long)
-GET     /mocks/:id                         controllers.Mocks.edit(id:Long)
-DELETE  /mocks/:id                         controllers.Mocks.delete(id:Long)
+GET           /mocks/:mockGroup/listDatatable                                                            controllers.Mocks.listDatatable(mockGroup:String)
+POST          /mocks/:id                                                                                 controllers.Mocks.save(id:Long)
+GET           /mocks/:id                                                                                 controllers.Mocks.edit(id:Long)
+DELETE        /mocks/:id                                                                                 controllers.Mocks.delete(id:Long)
 
 # Mock Groups
-GET     /mockgroups/:group/listDatatable    controllers.MockGroups.listDatatable(group:String)
-POST    /mockgroups/:id                     controllers.MockGroups.save(id:Long)
-GET     /mockgroups/:id                     controllers.MockGroups.edit(id:Long)
-DELETE  /mockgroups/:id                     controllers.MockGroups.delete(id:Long)
+GET           /mockgroups/:group/listDatatable                                                           controllers.MockGroups.listDatatable(group:String)
+POST          /mockgroups/:id                                                                            controllers.MockGroups.save(id:Long)
+GET           /mockgroups/:id                                                                            controllers.MockGroups.edit(id:Long)
+DELETE        /mockgroups/:id                                                                            controllers.MockGroups.delete(id:Long)
 
 # Groups
-GET     /groups/options                 controllers.Groups.options
-GET     /groups/listDatatable           controllers.Groups.listDatatable
-POST    /groups/:id                     controllers.Groups.save(id:Long)
-GET     /groups/:id                     controllers.Groups.edit(id:Long)
-DELETE  /groups/:id                     controllers.Groups.delete(id:Long)
+GET           /groups/options                                                                            controllers.Groups.options
+GET           /groups/listDatatable                                                                      controllers.Groups.listDatatable
+POST          /groups/:id                                                                                controllers.Groups.save(id:Long)
+GET           /groups/:id                                                                                controllers.Groups.edit(id:Long)
+DELETE        /groups/:id                                                                                controllers.Groups.delete(id:Long)
 
 # SoapActions list
-GET     /soapactions/findall          controllers.SoapActions.findAll
-GET     /soapactions/listDatatable    controllers.SoapActions.listDatatable
+GET           /soapactions/findall                                                                       controllers.SoapActions.findAll
+GET           /soapactions/listDatatable                                                                 controllers.SoapActions.listDatatable
 
 # Regeneration soapAction listDatatable
-GET     /soapactions/regenerate     controllers.SoapActions.regenerate
+GET           /soapactions/regenerate                                                                    controllers.SoapActions.regenerate
 
 # Edit existing soapAction
-GET     /soapactions/:id            controllers.SoapActions.edit(id:Long)
-POST    /soapactions/:id            controllers.SoapActions.save(id:Long)
+GET           /soapactions/:id                                                                           controllers.SoapActions.edit(id:Long)
+POST          /soapactions/:id                                                                           controllers.SoapActions.save(id:Long)
 
 # Status list
-GET     /status/findall             controllers.Status.findAll
+GET           /status/findall                                                                            controllers.Status.findAll
 
 # Statistics on SoapActions by environments
-GET     /statsAsJunit/:group/:minDate/:maxDate/                                 controllers.Stats.statsAsJunit(group, minDate, maxDate)
-GET     /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable      controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
+GET           /statsAsJunit/:group/:minDate/:maxDate/                                                    controllers.Stats.statsAsJunit(group, minDate, maxDate)
+GET           /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable                         controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
 
 # Download SOAP request and response
-GET     /download/request/:id      controllers.Search.downloadRequest(id:Long, asFile: Boolean ?= false)
-GET     /download/response/:id     controllers.Search.downloadResponse(id:Long, asFile: Boolean ?= false)
+GET           /download/request/:id                                                                      controllers.Search.downloadRequest(id:Long, asFile: Boolean ?= false)
+GET           /download/response/:id                                                                     controllers.Search.downloadResponse(id:Long, asFile: Boolean ?= false)
 
 # Monitoring
-GET     /monitor/logfile           controllers.Monitor.logfile
-GET     /monitor/socket            controllers.Monitor.socket
-GET     /monitor/downloadLogFile   controllers.Monitor.downloadLogFile
-POST    /gc!                       controllers.Monitor.gc
+GET           /monitor/logfile                                                                           controllers.Monitor.logfile
+GET           /monitor/socket                                                                            controllers.Monitor.socket
+GET           /monitor/downloadLogFile                                                                   controllers.Monitor.downloadLogFile
+POST          /gc!                                                                                       controllers.Monitor.gc
+GET           /loggers                                                                                   controllers.Monitor.loggers
+GET           /loggers/change/:loggerName/:newLevel                                                      controllers.Monitor.changeLevel(loggerName: String, newLevel : String)
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /*file              controllers.Assets.at(path="/public", file)
+GET           /*file                                                                                     controllers.Assets.at(path="/public", file)

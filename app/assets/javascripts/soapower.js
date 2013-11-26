@@ -34,6 +34,10 @@
                 templateUrl: 'partials/monitor/monitor.html',
                 controller: MonitorCtrl
             })
+            .when('/loggers', {
+                templateUrl: 'partials/monitor/loggers.html',
+                controller: LoggersCtrl
+            })
             .when('/admin', {
                 templateUrl: 'partials/admin/admin.html',
                 controller: AdminCtrl

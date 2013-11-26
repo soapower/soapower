@@ -270,6 +270,19 @@ spApp.factory("CodesService", function ($http) {
     }
 });
 
+
+spApp.factory("LoggersService", function ($http) {
+    return {
+        findAll: function () {
+            return $http.get('/loggers');
+        },
+        changeLevel: function (loggerName, newLevel) {
+            return $http.get('/loggers/change/' + loggerName + '/' + newLevel);
+        }
+    }
+});
+
+
 spApp.factory("UIService",function ($location, $filter, $routeParams) {
     return {
         reloadPage: function ($scope, showSoapactions) {
