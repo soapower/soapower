@@ -1,7 +1,7 @@
 <h2>SoapActions</h2>
 
 <button class="btn btn-primary" ng-click="regenerate()" ng-disabled="btnRegenerateDisabled">
-    <i class="icon-refresh"></i> Generate List
+    <i class="fa fa-refresh"></i> Generate List
 </button>
 
 {{ info }}
@@ -21,6 +21,6 @@
     <tr ng-repeat="line in soapActions | filter:filter | orderBy:startTime:true | limitTo:nbResults">
         <td>{{ line.name }}</td>
         <td>{{ line.thresholdms }}</td>
-        <td><a href="#/soapactions/edit/{{ line.id }}"><i class="icon-pencil"></i></a></td>
+        <td><a href="#/soapactions/edit/{{ line.id }}"><i class="fa fa-pencil"></i></a></td>
     </tr>
 </table>

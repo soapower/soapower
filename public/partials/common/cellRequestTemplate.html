@@ -1,7 +1,8 @@
 <span>
 <span class="ngCellText" ng-show="!{{line.purged}}">
-    <i class="pointer" ng-click="dlRequest(true, line)" title="Download"><i class="icon-file"></i></i>
-    <i class="pointer" target="_blank" ng-click="dlRequest(false, line)" title="Open in new tab"><i class="icon-eye-open"></i></i>
+    <i class="pointer" ng-click="dlRequest(true, line)" title="Download"><i class="fa fa-file"></i></i>
+    <i class="pointer" target="_blank" ng-click="dlRequest(false, line)" title="Open in new tab"><i
+            class="fa fa-eye"></i></i>
 </span>
 <span class="ngCellText" ng-show="{{line.purged}}">-</span>
 </span>

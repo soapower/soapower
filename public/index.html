@@ -6,9 +6,10 @@
     <link rel="stylesheet" href="/stylesheets/nv.d3.min.css">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/ngtable/ng-table.min.css">
     <link rel="stylesheet" href="/stylesheets/main.min.css">
     <link rel="shortcut icon" type="image/png" href="/images/soapower.png">
-    <script src="/javascripts/angular.js"></script>
+    <script src="/javascripts/angularjs/angular.js"></script>
 </head>
 <body>
 
@@ -17,7 +18,7 @@
 <![endif]-->
 
 <div id="warningIE" class="alert alert-error">
-    <i class="icon-warning-sign"></i>
+    <i class="fa fa-warning"></i>
     Soapower use HTML5 websocket, it is not compatible with Internet Exporer < 10
 </div>
 
@@ -26,38 +27,52 @@
         <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
                 <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
+                <span class="fa fa-bars"></span>
+                <span class="fa fa-bars"></span>
+                <span class="fa fa-bars"></span>
             </button>
             <a class="navbar-brand" href="#/home">
-                <i class="icon-bolt icon-white"></i>  Soapower
+                <i class="fa fa-bolt"></i> Soapower
             </a>
         </div>
         <div class="navbar-inner">
             <ul class="nav navbar-nav">
-                <li active-link="active" link="live"><a id="menu-live" href="#/live"><i class="icon-bullhorn icon-white"></i> Live</a></li>
-                <li active-link="active" link="search"><a id="menu-search" href="#/search"><i class="icon-search icon-white"></i> Search</a></li>
-                <li active-link="active" link="analysis"><a id="menu-analysis" href="#/analysis"><i class="icon-bar-chart icon-white"></i> Analysis</a></li>
-                <li active-link="active" link="stats"><a id="menu-statistics" href="#/stats"><i class="icon-table icon-white"></i> Statistics</a></li>
-                <li><sp-groups></sp-groups></li>
+                <li active-link="active" link="live"><a id="menu-live" href="#/live"><i class="fa fa-bullhorn"></i> Live</a>
+                </li>
+                <li active-link="active" link="search"><a id="menu-search" href="#/search"><i class="fa fa-search"></i>
+                    Search</a></li>
+                <li active-link="active" link="analysis"><a id="menu-analysis" href="#/analysis"><i
+                        class="fa fa-bar-chart-o"></i> Analysis</a></li>
+                <li active-link="active" link="stats"><a id="menu-statistics" href="#/stats"><i class="fa fa-table"></i>
+                    Statistics</a></li>
+                <li>
+                    <sp-groups></sp-groups>
+                </li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
-                <li><a href="http://soapower.github.io/soapower"><i class="icon-book"></i> </i> Documentation </a></li>
+                <li><a href="http://soapower.github.io/soapower"><i class="fa fa-book"></i> </i> Documentation </a></li>
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin <b class="caret"></b></a>
                     <ul class="dropdown-menu">
-                        <li active-link="active" link="groups"><a href="#/groups"><i class="icon-pencil icon-white"></i> Groups</a></li>
-                        <li active-link="active" link="environments"><a href="#/environments"><i class="icon-pencil icon-white"></i> Environments</a></li>
-                        <li active-link="active" link="services"><a href="#/services"><i class="icon-pencil icon-white"></i> Services</a></li>
-                        <li active-link="active" link="soapactions"><a href="#/soapactions"><i class="icon-pencil icon-white"></i> SoapActions Threshold</a></li>
+                        <li active-link="active" link="groups"><a href="#/groups"><i class="fa fa-pencil"></i>
+                            Groups</a></li>
+                        <li active-link="active" link="environments"><a href="#/environments"><i
+                                class="fa fa-pencil"></i> Environments</a></li>
+                        <li active-link="active" link="services"><a href="#/services"><i class="fa fa-pencil"></i>
+                            Services</a></li>
+                        <li active-link="active" link="soapactions"><a href="#/soapactions"><i class="fa fa-pencil"></i>
+                            SoapActions Threshold</a></li>
                         <li class="divider"></li>
-                        <li active-link="active" link="mocks"><a href="#/mocks"><i class="icon-pencil icon-white"></i> Mockings</a></li>
+                        <li active-link="active" link="mocks"><a href="#/mocks"><i class="fa fa-pencil"></i>
+                            Mockings</a></li>
                         <li class="divider"></li>
-                        <li active-link="active" link="monitor"><a href="#/monitor"><i class="icon-dashboard"></i> </i> Monitoring </a></li>
-                        <li active-link="active" link="loggers"><a href="#/loggers"><i class="icon-dashboard"></i> </i> Loggers </a></li>
+                        <li active-link="active" link="monitor"><a href="#/monitor"><i class="fa fa-dashboard"></i> </i>
+                            Monitoring </a></li>
+                        <li active-link="active" link="loggers"><a href="#/loggers"><i class="fa fa-dashboard"></i> </i>
+                            Loggers </a></li>
                         <li class="divider"></li>
-                        <li active-link="active" link="admin"><a href="#/admin"><i class="icon-warning-sign icon-white"></i> Admin</a></li>
+                        <li active-link="active" link="admin"><a href="#/admin"><i class="fa fa-warning"></i> Admin</a>
+                        </li>
                     </ul>
                 </li>
             </ul>
@@ -70,13 +85,14 @@
 <hr>
 <div class="footer">
     Hello! I'm your friendly footer. If you're actually reading this, I'm impressed....
-    <a href="https://github.com/soapower/soapower">Fork me on Github</a> <i class="icon-github icon-2x"></i> <a href="http://soapower.github.io/soapower">http://soapower.github.io/soapower</a>
+    <a href="https://github.com/soapower/soapower">Fork me on Github</a> <i class="fa fa-github fa fa-2x"></i> <a
+        href="http://soapower.github.io/soapower">http://soapower.github.io/soapower</a>
 </div>
 
-<script src="/javascripts/jquery-1.10.2.js"></script>
+<script src="/javascripts/jquery/jquery-2.1.0.min.js"></script>
 
-<script src="/javascripts/angular-resource.min.js"></script>
-<script src="/javascripts/angular-route.min.js"></script>
+<script src="/javascripts/angularjs/angular-resource.min.js"></script>
+<script src="/javascripts/angularjs/angular-route.min.js"></script>
 <script src="/javascripts/app/controllers/adminController.js"></script>
 <script src="/javascripts/app/controllers/analysisController.js"></script>
 <script src="/javascripts/app/controllers/environmentsController.js"></script>
@@ -99,5 +115,6 @@
 <script src="/javascripts/app/services.js"></script>
 <script src="/javascripts/app/filters.js"></script>
 <script src="/javascripts/modal.js"></script>
+<script src="/javascripts/ngtable/ng-table.min.js"></script>
 </body>
 </html>
