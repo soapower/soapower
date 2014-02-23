@@ -1,33 +1,34 @@
 <h2>Services</h2>
 
-<a class="btn btn-primary" href="#/services/new/{{groupName}}"><i class="icon-plus-sign"></i> Add a new service</a>
+<a class="btn btn-primary" href="#/services/new/{{groupName}}"><i class="fa fa-plus"></i> Add a new service</a>
 
 <p>There is {{ services.length }} services.</p>
 
 <sp-showresults></sp-showresults>
 
-<table class="table table-striped table-bordered table-responsive">
-    <thead>
-        <tr title="click to order">
-            <td>Edit</td>
-            <td ng-click="predicate = 'env'; reverse=!reverse">Environment</td>
-            <td ng-click="predicate = 'description'; reverse=!reverse">Description</td>
-            <td ng-click="predicate = 'localTarget'; reverse=!reverse">Local Target</td>
-            <td ng-click="predicate = 'remoteTarget'; reverse=!reverse">Remote Target</td>
-            <td ng-click="predicate = 'timeoutInMs'; reverse=!reverse">Timeout in</td>
-            <td ng-click="predicate = 'recordXmlData'; reverse=!reverse">Record Xml</td>
-            <td ng-click="predicate = 'recordData'; reverse=!reverse">Record Data</td>
-        </tr>
-    </thead>
-
-    <tr ng-repeat="line in services | filter:filter | orderBy:predicate:reverse | limitTo:nbResults">
-        <td><a href="#/services/edit/{{ groupName }}/{{ line.id }}"><i class="icon-pencil"></i></a></td>
-        <td>{{ line.env }}</td>
-        <td>{{ line.description }}</td>
-        <td>{{ line.localTarget }}</td>
-        <td>{{ line.remoteTarget }}</td>
-        <td>{{ line.timeoutInMs }}</td>
-        <td>{{ line.recordXmlData }}</td>
-        <td>{{ line.recordData }}</td>
+<table ng-table="tableParams" class="table table-striped table-bordered">
+    <tr ng-repeat="line in $data">
+        <td data-title="'Edit'"><a href="#/services/edit/{{ groupName }}/{{ line.id }}"><i class="fa fa-pencil"></i></a></td>
+        <td data-title="'Environment'" sortable="'env'">
+            {{line.env}}
+        </td>
+        <td data-title="'Description'" sortable="'description'">
+            {{line.description}}
+        </td>
+        <td data-title="'Local Target'" sortable="'localTarget'">
+            {{line.localTarget}}
+        </td>
+        <td data-title="'Remote Target'" sortable="'remoteTarget'">
+            {{line.remoteTarget}}
+        </td>
+        <td data-title="'Timeout in'" sortable="'timeoutInMs'">
+            {{line.timeoutInMs}}
+        </td>
+        <td data-title="'Record Xml'" sortable="'recordXmlData'">
+            {{line.recordXmlData}}
+        </td>
+        <td data-title="'Record Data'" sortable="'recordData'">
+            {{line.recordData}}
+        </td>
     </tr>
 </table>
