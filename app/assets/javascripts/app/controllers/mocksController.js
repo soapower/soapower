@@ -1,9 +1,33 @@
-function MocksCtrl($scope, $rootScope, $routeParams, MocksService, UIService) {
+function MocksCtrl($scope, $rootScope, $filter, $routeParams, MocksService, UIService, ngTableParams) {
 
     // Looking for mocks with their groups and adding all informations to $scope.mocks var
     MocksService.findAll($routeParams.mockGroup).
         success(function (mocks) {
             $scope.mocks = mocks.data;
+
+            $scope.tableParams = new ngTableParams({
+                page: 1,            // show first page
+                count: 10,          // count per page
+                sorting: {
+                    'name': 'asc'     // initial sorting
+                }
+            }, {
+                total: $scope.mocks.length, // length of data
+                getData: function ($defer, params) {
+                    var datafilter = $filter('filter');
+                    var mocksData = datafilter($scope.mocks, $scope.tableFilter);
+                    var orderedData = params.sorting() ? $filter('orderBy')(mocksData, params.orderBy()) : mocksData;
+                    var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
+                    params.total(orderedData.length)
+                    $defer.resolve(res);
+                },
+                $scope: { $data: {} }
+            });
+
+            $scope.$watch("tableFilter", function () {
+                $scope.tableParams.reload()
+            });
+
         })
         .error(function (resp) {
             console.log("Error with MocksService.findAll" + resp);

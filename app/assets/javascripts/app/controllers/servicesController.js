@@ -1,10 +1,33 @@
-function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIService) {
+function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIService, ngTableParams, $filter) {
 
-    $scope.groupName =  $routeParams.group;
+    $scope.groupName = $routeParams.group;
 
     ServicesService.findAll($routeParams.group).
         success(function (services) {
             $scope.services = services.data;
+
+            $scope.tableParams = new ngTableParams({
+                page: 1,            // show first page
+                count: 10,          // count per page
+                sorting: {
+                    'name': 'asc'     // initial sorting
+                }
+            }, {
+                total: $scope.services.length, // length of data
+                getData: function ($defer, params) {
+                    var datafilter = $filter('filter');
+                    var servicesData = datafilter($scope.services, $scope.tableFilter);
+                    var orderedData = params.sorting() ? $filter('orderBy')(servicesData, params.orderBy()) : servicesData;
+                    var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
+                    params.total(orderedData.length)
+                    $defer.resolve(res);
+                },
+                $scope: { $data: {} }
+            });
+
+            $scope.$watch("tableFilter", function () {
+                $scope.tableParams.reload()
+            });
         })
         .error(function (resp) {
             console.log("Error with ServicesService.findAll" + resp);
@@ -37,7 +60,7 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
         MockGroupsService.findAll($routeParams.group).
             success(function (mockGroups) {
                 $scope.mockGroups = mockGroups.data;
-                angular.forEach(mockGroups.data, function(mockGroup, key) {
+                angular.forEach(mockGroups.data, function (mockGroup, key) {
                     if (mockGroup.id == $scope.service.mockGroupId) {
                         $scope.service.mockGroup = mockGroup;
                         return false;
@@ -75,7 +98,7 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
 
     EnvironmentsService.findAllAndSelect($scope, null, $routeParams.group, null, false);
 
-    $scope.service = new Service({id:'-2'});
+    $scope.service = new Service({id: '-2'});
     $scope.service.recordXmlData = "yes";
     $scope.service.recordData = "yes";
     $scope.service.timeoutms = "60000";
