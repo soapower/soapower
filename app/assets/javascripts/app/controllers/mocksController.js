@@ -1,4 +1,4 @@
-function MocksCtrl($scope, $rootScope, $routeParams, MocksService, MockGroupsService, UIService) {
+function MocksCtrl($scope, $rootScope, $routeParams, MocksService, UIService) {
 
     // Looking for mocks with their groups and adding all informations to $scope.mocks var
     MocksService.findAll($routeParams.mockGroup).
@@ -22,7 +22,7 @@ function MocksCtrl($scope, $rootScope, $routeParams, MocksService, MockGroupsSer
 function MockEditCtrl($scope, $routeParams, $location, Mock, MockGroupsService) {
     var self = this;
 
-    $scope.title = "Edit a Mock"
+    $scope.title = "Edit a Mock";
 
     Mock.get({mockId: $routeParams.mockId}, function (mock) {
         self.original = mock;
@@ -30,6 +30,12 @@ function MockEditCtrl($scope, $routeParams, $location, Mock, MockGroupsService) 
         MockGroupsService.findAll("all").
             success(function (mockGroups) {
                 $scope.mockGroups = mockGroups.data;
+                angular.forEach(mockGroups.data, function (mockGroup) {
+                    if (mockGroup.id == $scope.mock.mockGroupId) {
+                        $scope.mock.mockGroup = mockGroup;
+                        return false;
+                    }
+                });
             })
             .error(function (resp) {
                 console.log("Error with MockGroupsService.findAll:" + resp);
@@ -38,7 +44,7 @@ function MockEditCtrl($scope, $routeParams, $location, Mock, MockGroupsService) 
 
     $scope.isClean = function () {
         return angular.equals(self.original, $scope.mock);
-    }
+    };
 
     $scope.destroy = function () {
         self.original.destroy(function () {
@@ -57,7 +63,7 @@ function MockEditCtrl($scope, $routeParams, $location, Mock, MockGroupsService) 
 
 function MockNewCtrl($scope, $location, Mock, MockGroupsService, $routeParams) {
 
-    $scope.title = "Insert new Mock"
+    $scope.title = "Insert new Mock";
 
     $scope.mock = new Mock({id: '-1'});
     $scope.mock.name = "";
@@ -69,7 +75,7 @@ function MockNewCtrl($scope, $location, Mock, MockGroupsService, $routeParams) {
     MockGroupsService.findAll("all").
         success(function (mockGroups) {
             $scope.mockGroups = mockGroups.data;
-            angular.forEach(mockGroups.data, function(mockGroup, key){
+            angular.forEach(mockGroups.data, function (mockGroup) {
                 if (mockGroup.name == $routeParams.mockGroup) {
                     $scope.mock.mockGroup = mockGroup;
                     return false;
