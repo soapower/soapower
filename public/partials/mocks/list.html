@@ -6,8 +6,6 @@
 
 <sp-showresults></sp-showresults>
 
-<p><strong>Sorting:</strong> {{tableParams.sorting()|json}}
-
 <table ng-table="tableParams" class="table table-striped table-bordered">
     <tr ng-repeat="line in $data">
         <td data-title="'Name'" sortable="'name'">
@@ -19,6 +17,6 @@
         <td data-title="'Timeout'" sortable="'timeout'">
             {{line.timeout}}
         </td>
-        <td data-title="Edit"><a href="#/mocks/edit/{{ line.id }}"><i class="fa fa-pencil"></i></a></td>
+        <td data-title="'Edit'"><a href="#/mocks/edit/{{ line.id }}"><i class="fa fa-pencil"></i></a></td>
     </tr>
 </table>

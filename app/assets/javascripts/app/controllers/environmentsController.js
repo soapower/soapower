@@ -1,9 +1,31 @@
-function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService, UIService) {
+function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService, UIService, ngTableParams, $filter) {
 
     // Looking for environments with their groups and adding all informations to $scope.environments var
     EnvironmentsService.findAll($routeParams.group).
         success(function (environments) {
             $scope.environments = environments.data;
+            $scope.tableParams = new ngTableParams({
+                page: 1,            // show first page
+                count: 10,          // count per page
+                sorting: {
+                    'name': 'asc'     // initial sorting
+                }
+            }, {
+                total: $scope.environments.length, // length of data
+                getData: function ($defer, params) {
+                    var datafilter = $filter('filter');
+                    var environmentsData = datafilter($scope.environments, $scope.tableFilter);
+                    var orderedData = params.sorting() ? $filter('orderBy')(environmentsData, params.orderBy()) : environmentsData;
+                    var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
+                    params.total(orderedData.length)
+                    $defer.resolve(res);
+                },
+                $scope: { $data: {} }
+            });
+
+            $scope.$watch("tableFilter", function () {
+                $scope.tableParams.reload()
+            });
         })
         .error(function (resp) {
             console.log("Error with EnvironmentsService.findAll" + resp);

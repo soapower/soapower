@@ -1,4 +1,4 @@
-function SoapActionsCtrl($scope, SoapactionsService) {
+function SoapActionsCtrl($scope, SoapactionsService, ngTableParams, $filter) {
 
     $scope.btnRegenerateDisabled = false;
     $scope.info = "";
@@ -6,6 +6,28 @@ function SoapActionsCtrl($scope, SoapactionsService) {
     SoapactionsService.findAll().
         success(function (soapActions) {
             $scope.soapActions = soapActions.data;
+            $scope.tableParams = new ngTableParams({
+                page: 1,            // show first page
+                count: 10,          // count per page
+                sorting: {
+                    'name': 'asc'     // initial sorting
+                }
+            }, {
+                total: $scope.soapActions.length, // length of data
+                getData: function ($defer, params) {
+                    var datafilter = $filter('filter');
+                    var soapActionsData = datafilter($scope.soapActions, $scope.tableFilter);
+                    var orderedData = params.sorting() ? $filter('orderBy')(soapActionsData, params.orderBy()) : soapActionsData;
+                    var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
+                    params.total(orderedData.length)
+                    $defer.resolve(res);
+                },
+                $scope: { $data: {} }
+            });
+
+            $scope.$watch("tableFilter", function () {
+                $scope.tableParams.reload()
+            });
         })
         .error(function (resp) {
             console.log("Error with SoapActionsService.findAll" + resp);

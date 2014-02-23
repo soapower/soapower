@@ -1,10 +1,33 @@
-function GroupsCtrl($scope, GroupsService) {
+function GroupsCtrl($scope, GroupsService, ngTableParams, $filter) {
 
     $scope.adminPath = "groups";
 
     GroupsService.findAll().
         success(function (groups) {
             $scope.groups = groups.data;
+
+            $scope.tableParams = new ngTableParams({
+                page: 1,            // show first page
+                count: 10,          // count per page
+                sorting: {
+                    'name': 'asc'     // initial sorting
+                }
+            }, {
+                total: $scope.groups.length, // length of data
+                getData: function ($defer, params) {
+                    var datafilter = $filter('filter');
+                    var groupsData = datafilter($scope.groups, $scope.tableFilter);
+                    var orderedData = params.sorting() ? $filter('orderBy')(groupsData, params.orderBy()) : groupsData;
+                    var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
+                    params.total(orderedData.length)
+                    $defer.resolve(res);
+                },
+                $scope: { $data: {} }
+            });
+
+            $scope.$watch("tableFilter", function () {
+                $scope.tableParams.reload()
+            });
         })
         .error(function (resp) {
             console.log("Error with GroupsService.findAll" + resp);
