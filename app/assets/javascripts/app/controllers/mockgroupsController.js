@@ -13,7 +13,7 @@ function MockGroupsCtrl($scope, $rootScope, $routeParams, MockGroupsService, UIS
             }, {
                 total: $scope.mockgroups.length, // length of data
                 getData: function ($defer, params) {
-                    var datafilter = $filter('filter');
+                    var datafilter = $filter('customAndSearch');
                     var mockgroupsData = datafilter($scope.mockgroups, $scope.tableFilter);
                     var orderedData = params.sorting() ? $filter('orderBy')(mockgroupsData, params.orderBy()) : mockgroupsData;
                     var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());

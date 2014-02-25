@@ -13,7 +13,7 @@ function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService,
             }, {
                 total: $scope.environments.length, // length of data
                 getData: function ($defer, params) {
-                    var datafilter = $filter('filter');
+                    var datafilter = $filter('customAndSearch');
                     var environmentsData = datafilter($scope.environments, $scope.tableFilter);
                     var orderedData = params.sorting() ? $filter('orderBy')(environmentsData, params.orderBy()) : environmentsData;
                     var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());

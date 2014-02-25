@@ -15,7 +15,7 @@ function GroupsCtrl($scope, GroupsService, ngTableParams, $filter) {
             }, {
                 total: $scope.groups.length, // length of data
                 getData: function ($defer, params) {
-                    var datafilter = $filter('filter');
+                    var datafilter = $filter('customAndSearch');
                     var groupsData = datafilter($scope.groups, $scope.tableFilter);
                     var orderedData = params.sorting() ? $filter('orderBy')(groupsData, params.orderBy()) : groupsData;
                     var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());

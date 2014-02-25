@@ -15,7 +15,7 @@ function SoapActionsCtrl($scope, SoapactionsService, ngTableParams, $filter) {
             }, {
                 total: $scope.soapActions.length, // length of data
                 getData: function ($defer, params) {
-                    var datafilter = $filter('filter');
+                    var datafilter = $filter('customAndSearch');
                     var soapActionsData = datafilter($scope.soapActions, $scope.tableFilter);
                     var orderedData = params.sorting() ? $filter('orderBy')(soapActionsData, params.orderBy()) : soapActionsData;
                     var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());

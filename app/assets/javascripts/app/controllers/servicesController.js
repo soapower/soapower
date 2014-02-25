@@ -15,7 +15,7 @@ function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIServi
             }, {
                 total: $scope.services.length, // length of data
                 getData: function ($defer, params) {
-                    var datafilter = $filter('filter');
+                    var datafilter = $filter('customAndSearch');
                     var servicesData = datafilter($scope.services, $scope.tableFilter);
                     var orderedData = params.sorting() ? $filter('orderBy')(servicesData, params.orderBy()) : servicesData;
                     var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
