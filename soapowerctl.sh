@@ -10,7 +10,7 @@
 # ./soapower.ctl.sh stop       : stop soapower
 # ./soapower.ctl.sh restart    : restart soapower
 # ./soapower.ctl.sh configtest : check the configuration
-# ./soapower.ctl.sh status     : display sopower status (port regardless)
+# ./soapower.ctl.sh status     : display soapower status (port regardless)
 # 
 #  YOU DOESN'T NEED TO MODIFY THIS SCRIPT.
 # 
