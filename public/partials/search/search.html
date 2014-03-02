@@ -27,39 +27,25 @@
 
     <sp-replay-edit></sp-replay-edit>
 
-    <table class="table table-striped table-bordered">
-        <thead>
-        <tr title="click to order">
-            <td ng-click="predicate = 'status'; reverse=!reverse">Status</td>
-            <td ng-click="predicate = 'env'; reverse=!reverse">Environment</td>
-            <td ng-click="predicate = 'sender'; reverse=!reverse">Sender</td>
-            <td ng-click="predicate = 'soapAction'; reverse=!reverse">SoapAction</td>
-            <td ng-click="predicate = 'startTime'; reverse=!reverse">StartTime</td>
-            <td ng-click="predicate = 'time'; reverse=!reverse">TimeInMillis</td>
-            <td>Request</td>
-            <td>Response</td>
-            <td>Replay</td>
-        </tr>
-        </thead>
-        <tr ng-repeat="line in data | filter:filter | orderBy:predicate:reverse | limitTo:nbResults">
-            <td style="width: '60px'">
+    <table ng-table="tableParams" class="table table-striped table-bordered">
+        <tr ng-repeat="line in $data">
+            <td data-title="'Status'" style="width: '60px'">
                 <sp-status status="line.status"></sp-status>
             </td>
-            <td style="width: '100px'">{{ line.env }}</td>
-            <td style="width: '100px'">{{ line.sender }}</td>
-            <td style="width: '100px'">{{ line.soapAction }}</td>
-            <td style="width: '200px'">{{ line.startTime }}</td>
-            <td style="width: '100px'">{{ line.time }}</td>
-            <td style="width: '80px'">
+            <td data-title="'Environment'" sortable="'env'" style="width: '100px'">{{ line.env }}</td>
+            <td data-title="'Sender'" sortable="'sender'" style="width: '100px'">{{ line.sender }}</td>
+            <td data-title="'SoapAction'" sortable="'soapAction'" style="width: '100px'">{{ line.soapAction }}</td>
+            <td data-title="'StartTime'" sortable="'startTime'" style="width: '200px'">{{ line.startTime }}</td>
+            <td data-title="'TimeInMillis'" sortable="'time'" style="width: '100px'">{{ line.time }}</td>
+            <td data-title="'Request'" style="width: '80px'">
                 <sp-request>
             </td>
-            <td style="width: '80px'">
+            <td data-title="'Response'" style="width: '80px'">
                 <sp-response>
             </td>
-            <td style="width: '80px'">
+            <td data-title="'Replay'" style="width: '80px'">
                 <sp-replay>
             </td>
         </tr>
     </table>
-
 </div>

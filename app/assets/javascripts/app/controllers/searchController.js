@@ -1,4 +1,4 @@
-function SearchCtrl ($scope, $rootScope, $http, $location, $routeParams, $window, ReplayService, UIService) {
+function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window, $filter, ngTableParams, UIService) {
     $scope.ctrlPath = "search";
 
     $scope.showTips = false;
@@ -6,7 +6,7 @@ function SearchCtrl ($scope, $rootScope, $http, $location, $routeParams, $window
     $scope.port = $location.port();
 
     $scope.totalServerItems = 0;
-     
+
     $scope.reloadTable = function () {
         var group = $routeParams.group ? $routeParams.group : 'all';
         var environment = $routeParams.environment ? $routeParams.environment : 'all';
@@ -32,6 +32,30 @@ function SearchCtrl ($scope, $rootScope, $http, $location, $routeParams, $window
             cache: false
         }).success(function (largeLoad) {
             $scope.data = largeLoad.data;
+
+            $scope.tableParams = new ngTableParams({
+                page: 1,            // show first page
+                count: 10,          // count per page
+                sorting: {
+                    'name': 'asc'     // initial sorting
+                }
+            }, {
+                total: largeLoad.data.length, // length of data
+                getData: function ($defer, params) {
+                    var datafilter = $filter('customAndSearch');
+                    var requestsData = datafilter(largeLoad.data, $scope.tableFilter);
+                    var orderedData = params.sorting() ? $filter('orderBy')(requestsData, params.orderBy()) : requestsData;
+                    var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
+                    params.total(orderedData.length)
+                    $defer.resolve(res);
+                },
+                $scope: { $data: {} }
+            });
+
+            $scope.$watch("tableFilter", function () {
+                $scope.tableParams.reload()
+            });
+
         });
     }
 
@@ -66,5 +90,5 @@ function SearchCtrl ($scope, $rootScope, $http, $location, $routeParams, $window
 
     $scope.$on("ReloadPage", function (event) {
         UIService.reloadPage($scope, true);
-    });    
+    });
 }

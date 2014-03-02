@@ -37,7 +37,6 @@ function LiveCtrl($scope, $location, $window, $routeParams, ReplayService) {
         }
 
         if (data.kind == "talkRequestData") {
-           // $('#datas').dataTable().fnAddData([ data.message["0"] ]);
             $scope.liveData.push(data.message["0"])
         }
 

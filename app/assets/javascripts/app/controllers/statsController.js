@@ -1,4 +1,4 @@
-function StatsCtrl($scope, $rootScope, $http, $location, $routeParams, UIService) {
+function StatsCtrl($scope, $rootScope, $http, $location, $routeParams, $filter, ngTableParams, UIService) {
     $scope.ctrlPath = "stats";
 
     $scope.showTips = false;
@@ -25,7 +25,31 @@ function StatsCtrl($scope, $rootScope, $http, $location, $routeParams, UIService
     $http({ method: 'GET', url: url, cache: false })
         .success(function (dataJson) {
             $scope.data = dataJson.data;
-    });
+
+            $scope.tableParams = new ngTableParams({
+                page: 1,            // show first page
+                count: 10,          // count per page
+                sorting: {
+                    'name': 'asc'     // initial sorting
+                }
+            }, {
+                total: $scope.data.length, // length of data
+                getData: function ($defer, params) {
+                    var datafilter = $filter('customAndSearch');
+                    var requestsData = datafilter($scope.data, $scope.tableFilter);
+                    var orderedData = params.sorting() ? $filter('orderBy')(requestsData, params.orderBy()) : requestsData;
+                    var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
+                    params.total(orderedData.length)
+                    $defer.resolve(res);
+                },
+                $scope: { $data: {} }
+            });
+
+            $scope.$watch("tableFilter", function () {
+                $scope.tableParams.reload()
+            });
+
+        });
 
 
     $scope.$on("ReloadPage", function (event) {
