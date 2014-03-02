@@ -17,6 +17,7 @@ case class Service(
   timeoutms: Long,
   recordXmlData: Boolean,
   recordData: Boolean,
+  useMockGroup: Boolean,
   environmentId: Long,
   mockGroupId: Long) {
 }
@@ -35,10 +36,11 @@ object Service {
     get[Long]("service.timeoutms") ~
     get[String]("service.recordXmlData") ~
     get[String]("service.recordData") ~
+    get[String]("service.useMockGroup") ~
     get[Long]("service.environment_id") ~
     get[Long]("service.mockGroupId") map {
-      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ environmentId ~ mockGroupId =>
-        Service(id, description, localTarget, remoteTarget, timeoutms, (recordXmlData == "true"), (recordData == "true"), environmentId, mockGroupId)
+      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ useMockGroup ~ environmentId ~ mockGroupId =>
+        Service(id, description, localTarget, remoteTarget, timeoutms, (recordXmlData == "true"), (recordData == "true"), (useMockGroup == "true"), environmentId, mockGroupId)
     }
   }
 
@@ -60,10 +62,11 @@ object Service {
       get[Long]("service.timeoutms") ~
       get[String]("service.recordXmlData") ~
       get[String]("service.recordData") ~
+      get[String]("service.useMockGroup") ~
       get[String]("environment.name") ~
       get[String]("mock_group.name") map {
-        case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ environmentName ~ mockGroupName =>
-          id + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + recordXmlData + ";" + recordData + ";" + environmentName + ";" + mockGroupName + "\n"
+        case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ useMockGroup ~ environmentName ~ mockGroupName =>
+          id + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + recordXmlData + ";" + recordData + ";" + useMockGroup + ";" + environmentName + ";" + mockGroupName + "\n"
       }
   }
 
@@ -151,8 +154,8 @@ object Service {
           SQL(
             """
             insert into service 
-              (description, localTarget, remoteTarget, timeoutms, recordXmlData, recordData, environment_id, mockGroupId) values (
-              {description}, {localTarget}, {remoteTarget}, {timeoutms}, {recordXmlData}, {recordData}, {environment_id}, {mockGroupId}
+              (description, localTarget, remoteTarget, timeoutms, recordXmlData, recordData, useMockGroup, environment_id, mockGroupId) values (
+              {description}, {localTarget}, {remoteTarget}, {timeoutms}, {recordXmlData}, {recordData}, {useMockGroup}, {environment_id}, {mockGroupId}
             )
             """).on(
               'description -> service.description,
@@ -161,6 +164,7 @@ object Service {
               'timeoutms -> service.timeoutms,
               'recordXmlData -> service.recordXmlData.toString,
               'recordData -> service.recordData.toString,
+              'useMockGroup -> service.useMockGroup.toString,
               'environment_id -> service.environmentId,
               'mockGroupId -> service.mockGroupId).executeUpdate()
       }
@@ -197,6 +201,7 @@ object Service {
           timeoutms = {timeoutms},
           recordXmlData = {recordXmlData},
           recordData = {recordData},
+          useMockGroup = {useMockGroup},
           environment_id = {environmentId},
           mockGroupId = {mockGroupId}
           where id = {id}
@@ -208,6 +213,7 @@ object Service {
             'timeoutms -> service.timeoutms,
             'recordXmlData -> service.recordXmlData.toString,
             'recordData -> service.recordData.toString,
+            'useMockGroup -> service.useMockGroup.toString,
             'environmentId -> service.environmentId,
             'mockGroupId -> service.mockGroupId).executeUpdate()
     }
@@ -346,6 +352,7 @@ object Service {
         dataCsv(csvTitle.get("timeoutms").get).toLong,
         (dataCsv(csvTitle.get("recordXmlData").get).trim == "true"),
         (dataCsv(csvTitle.get("recordData").get).trim == "true"),
+        (dataCsv(csvTitle.get("useMockGroup").get).trim == "true"),
         environment.id,
         mockGroup.id)
       Service.insert(service)
@@ -365,7 +372,6 @@ object Service {
 
     var environment = Environment.findByName(environmentName)
     if (environment == None) {
-      
       Logger.debug("Insert Environment " + environmentName)
 
       // Insert a new group which is linked to the default group

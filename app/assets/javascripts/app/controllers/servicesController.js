@@ -54,6 +54,7 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
         $scope.service = new Service(self.original);
         $scope.service.recordXmlData = UIService.fixBooleanReverse($scope.service.recordXmlData);
         $scope.service.recordData = UIService.fixBooleanReverse($scope.service.recordData);
+        $scope.service.useMockGroup = UIService.fixBooleanReverse($scope.service.useMockGroup);
 
         EnvironmentsService.findAllAndSelect($scope, null, $routeParams.group, $scope.service, false);
 
@@ -101,6 +102,7 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
     $scope.service = new Service({id: '-2'});
     $scope.service.recordXmlData = "yes";
     $scope.service.recordData = "yes";
+    $scope.service.useMockGroup = "false";
     $scope.service.timeoutms = "60000";
 
     $scope.hostname = $location.host();

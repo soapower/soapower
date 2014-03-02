@@ -12,12 +12,14 @@ create table mock (
   description                  varchar(255) not null,
   criterias                    varchar(255) not null,
   timeoutms                    int not null,
-  response                     varchar(255) not null,
+  response                     LONGTEXT not null,
   mockGroupId                  int not null,
   constraint pk_mock primary key (id)) ENGINE=InnoDB
 ;
 
 alter table service add column mockGroupId int null;
+
+alter table service add column useMockGroup enum('true','false') NOT NULL DEFAULT 'false';
 
 alter table mock_group add constraint fk_mock_groups_1 foreign key (groupId) references groups (id) on delete restrict on update restrict;
 
@@ -28,11 +30,13 @@ alter table service add constraint fk_service_mockgroups_1 foreign key(mockGroup
 insert into mock_group values (1, "NoMockGroup", 1);
 
 update service set mockGroupId = 1;
+update service set useMockGroup = 'false';
 
 # --- !Downs
 
 alter table service drop foreign key fk_service_mockgroups_1;
 alter table service drop column mockGroupId;
+alter table service drop column useMockGroup;
 alter table mock drop foreign key fk_mock_mockgroups_1;
 alter table mock_group drop foreign key fk_mock_groups_1;
 

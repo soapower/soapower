@@ -62,6 +62,7 @@ object Soap extends Controller {
           val timeoutms = 60000
           val recordXmlData = false
           val recordData = false
+          val useMockGroup = false
 
           val environmentOption = Environment.findByGroupAndByName(group, environment)
           // Check that the environment exists for the given group
@@ -75,6 +76,7 @@ object Soap extends Controller {
                 timeoutms,
                 recordXmlData,
                 recordData,
+                useMockGroup,
                 environmentReal.id,
                 MockGroup.ID_DEFAULT_NO_MOCK_GROUP)
               // Persist environment to database
