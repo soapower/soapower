@@ -16,4 +16,4 @@ Soapower->Receiver: Webservice Request
 Receiver->Soapower: Webservice Response
 Soapower->Sender: Webservice Response
 Soapower->Soapower: Store Async
-note right of Soapower: Sopower store async Request Data : \nWS Request & Response\n responseTime\nFrom & To, StartTime
+note right of Soapower: Soapower store async Request Data : \nWS Request & Response\n responseTime\nFrom & To, StartTime
