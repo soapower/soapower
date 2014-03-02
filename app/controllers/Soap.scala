@@ -134,15 +134,31 @@ object Soap extends Controller {
     val service = Service.findByLocalTargetAndEnvironmentName(localTarget, environmentName)
     service.map {
       service =>
-      // forward the request to the actual destination
-        val client = new Client(service, sender, content, headers)
-        client.sendRequestAndWaitForResponse
 
-        // forward the response to the client
-        new Results.Status(client.response.status).stream(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
-          .withHeaders("ProxyVia" -> "soapower")
-          .withHeaders(client.response.headers.toArray: _*).as(XML)
+        if (service.useMockGroup) {
+          // forward the response to the client
+          val mock = Mock.findByMockGroupAndContent(service.mockGroupId, content)
+          var responseMock : String = ""
+          if (mock.isDefined) {
+            responseMock = mock.get.response
+          } else {
+             "Error getting Mock with mockGroupId" + service.mockGroupId
+          }
+          // TODO MOCK :  Add HTTP Status configurable on mock
+          new Results.Status(200).stream(Enumerator(responseMock.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
+            .withHeaders("ProxyVia" -> "soapower")
+            //.withHeaders(client.response.headers.toArray: _*)
+            .as(XML)
+        } else {
+          // forward the request to the actual destination
+          val client = new Client(service, sender, content, headers)
+          client.sendRequestAndWaitForResponse
 
+          // forward the response to the client
+          new Results.Status(client.response.status).stream(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
+            .withHeaders("ProxyVia" -> "soapower")
+            .withHeaders(client.response.headers.toArray: _*).as(XML)
+        }
     }.getOrElse {
       val err = "environment " + environmentName + " with localTarget " + localTarget + " unknown"
       Logger.error(err)

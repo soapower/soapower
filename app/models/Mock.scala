@@ -15,7 +15,7 @@ case class Mock(id: Long,
                 timeoutms: Int = 0,
                 criterias: String,
                 response: String
-                )
+                 )
 
 object Mock {
 
@@ -141,13 +141,13 @@ object Mock {
             insert into mock (id, name, description, timeoutms, criterias, response, mockGroupId)
               values (null, {name}, {description}, {timeoutms}, {criterias}, {response}, {mockGroupId})
           """).on(
-          'name -> mock.name.trim,
-          'description -> mock.description,
-          'timeoutms -> mock.timeoutms,
-          'criterias -> mock.criterias,
-          'response -> mock.response,
-          'mockGroupId -> mock.mockGroupId
-        ).executeUpdate()
+            'name -> mock.name.trim,
+            'description -> mock.description,
+            'timeoutms -> mock.timeoutms,
+            'criterias -> mock.criterias,
+            'response -> mock.response,
+            'mockGroupId -> mock.mockGroupId
+          ).executeUpdate()
     }
     clearCache
   }
@@ -179,14 +179,14 @@ object Mock {
           mockGroupId = {mockGroupId}
           where id = {id}
           """).on(
-          'id -> mock.id,
-          'name -> mock.name.trim,
-          'description -> mock.description,
-          'timeoutms -> mock.timeoutms,
-          'criterias -> mock.criterias,
-          'response -> mock.response,
-          'mockGroupId -> mock.mockGroupId
-        ).executeUpdate()
+            'id -> mock.id,
+            'name -> mock.name.trim,
+            'description -> mock.description,
+            'timeoutms -> mock.timeoutms,
+            'criterias -> mock.criterias,
+            'response -> mock.response,
+            'mockGroupId -> mock.mockGroupId
+          ).executeUpdate()
     }
     clearCache
   }
@@ -302,4 +302,25 @@ object Mock {
       Logger.info("Insert Mock " + mock.name)
     }
   }
+
+
+  /**
+   * Retrieve an Mock from name.
+   */
+  def findByMockGroupAndContent(mockGroupId: Long, requestBody : String): Option[Mock] = DB.withConnection {
+    implicit connection =>
+
+      // TODO MOCK : Search in request body if criteria's mock matches
+
+      val mocks: List[Mock] = SQL("select * from mock where mockGroupId = {mockGroupId}").on(
+        'mockGroupId -> mockGroupId).as(Mock.simple *)
+
+      // for each mocks in group, find the first eligible
+      var ret: Mock = null
+      mocks.takeWhile(_ => ret != None).foreach(mock => ret = mock)
+
+      Some(ret)
+
+  }
+
 }
