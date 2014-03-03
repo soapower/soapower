@@ -7,12 +7,14 @@ import play.api._
 
 import anorm._
 import anorm.SqlParser._
+import org.apache.http.HttpStatus
 
 case class Mock(id: Long,
                 name: String,
                 mockGroupId: Long = 1, // 1 is default group
                 description: String,
                 timeoutms: Int = 0,
+                httpStatus: Int = 0,
                 criterias: String,
                 response: String
                  )
@@ -31,10 +33,11 @@ object Mock {
       get[Long]("mock.mockGroupId") ~
       get[String]("mock.description") ~
       get[Int]("mock.timeoutms") ~
+      get[Int]("mock.httpStatus") ~
       get[String]("mock.criterias") ~
       get[String]("mock.response") map {
-      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ criterias ~ response
-      => Mock(id, name, mockGroupId, description, timeoutms, criterias, response)
+      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ httpStatus ~ criterias ~ response
+      => Mock(id, name, mockGroupId, description, timeoutms, httpStatus, criterias, response)
     }
   }
 
@@ -47,16 +50,17 @@ object Mock {
       get[Long]("mock.mockGroupId") ~
       get[String]("mock.description") ~
       get[Int]("mock.timeoutms") ~
+      get[Int]("mock.httpStatus") ~
       get[String]("mock.criterias") map {
-      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ criterias
-      => Mock(id, name, mockGroupId, description, timeoutms, criterias, null)
+      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ httpStatus ~ criterias
+      => Mock(id, name, mockGroupId, description, timeoutms, httpStatus, criterias, null)
     }
   }
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groupName" -> 3, "description" -> 4, "timeoutms" -> 5, "criterias" -> 6, "response" -> 7)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groupName" -> 3, "description" -> 4, "timeoutms" -> 5, "httpStatus" -> 6, "criterias" -> 7, "response" -> 8)
 
   val csvKey = "mock"
 
@@ -69,10 +73,11 @@ object Mock {
       get[String]("groups.name") ~
       get[Int]("mock.description") ~
       get[Int]("mock.timeoutms") ~
-      get[Int]("mock.criterias") ~
-      get[Int]("mock.response") map {
-      case id ~ name ~ groupName ~ description ~ timeoutms ~ criterias ~ response =>
-        id + ";" + name + ";" + groupName + ";" + description + ";" + timeoutms + ";" + criterias + ";" + response + "\n"
+      get[Int]("mock.httpStatus") ~
+      get[String]("mock.criterias") ~
+      get[String]("mock.response") map {
+      case id ~ name ~ groupName ~ description ~ timeoutms ~ httpStatus ~ criterias ~ response =>
+        id + ";" + name + ";" + groupName + ";" + description + ";" + timeoutms + ";" + httpStatus + ";" + criterias + ";" + response + "\n"
     }
   }
 
@@ -138,12 +143,13 @@ object Mock {
       implicit connection =>
         SQL(
           """
-            insert into mock (id, name, description, timeoutms, criterias, response, mockGroupId)
-              values (null, {name}, {description}, {timeoutms}, {criterias}, {response}, {mockGroupId})
+            insert into mock (id, name, description, timeoutms, httpStatus, criterias, response, mockGroupId)
+              values (null, {name}, {description}, {timeoutms}, {httpStatus}, {criterias}, {response}, {mockGroupId})
           """).on(
             'name -> mock.name.trim,
             'description -> mock.description,
             'timeoutms -> mock.timeoutms,
+            'httpStatus -> mock.httpStatus,
             'criterias -> mock.criterias,
             'response -> mock.response,
             'mockGroupId -> mock.mockGroupId
@@ -174,6 +180,7 @@ object Mock {
           set name = {name},
           description = {description},
           timeoutms = {timeoutms},
+          httpStatus = {httpStatus},
           criterias = {criterias},
           response = {response},
           mockGroupId = {mockGroupId}
@@ -183,6 +190,7 @@ object Mock {
             'name -> mock.name.trim,
             'description -> mock.description,
             'timeoutms -> mock.timeoutms,
+            'httpStatus -> mock.httpStatus,
             'criterias -> mock.criterias,
             'response -> mock.response,
             'mockGroupId -> mock.mockGroupId
@@ -220,7 +228,7 @@ object Mock {
 
         val mocks = SQL(
           """
-          select mock.id, mock.name, mock.mockGroupId, mock.description, mock.timeoutms, mock.criterias
+          select mock.id, mock.name, mock.mockGroupId, mock.description, mock.timeoutms, mock.httpStatus, mock.criterias
           from mock, mock_group
           where mock.mockGroupId = mock_group.id
           and mock_group.name = {mockGroup}
@@ -295,6 +303,7 @@ object Mock {
         mockGroup.id,
         dataCsv(csvTitle.get("description").get).trim,
         dataCsv(csvTitle.get("timeoutms").get).toInt,
+        dataCsv(csvTitle.get("httpStatus").get).toInt,
         dataCsv(csvTitle.get("criterias").get).trim,
         dataCsv(csvTitle.get("response").get).trim
       )
@@ -303,24 +312,30 @@ object Mock {
     }
   }
 
-
   /**
    * Retrieve an Mock from name.
    */
-  def findByMockGroupAndContent(mockGroupId: Long, requestBody : String): Option[Mock] = DB.withConnection {
+  def findByMockGroupAndContent(mockGroupId: Long, requestBody: String): Mock = DB.withConnection {
     implicit connection =>
-
-      // TODO MOCK : Search in request body if criteria's mock matches
 
       val mocks: List[Mock] = SQL("select * from mock where mockGroupId = {mockGroupId}").on(
         'mockGroupId -> mockGroupId).as(Mock.simple *)
 
       // for each mocks in group, find the first eligible
       var ret: Mock = null
-      mocks.takeWhile(_ => ret != None).foreach(mock => ret = mock)
+      mocks.takeWhile(_ => ret == null).foreach(mock =>
+        if (mock.criterias.trim().equals("*") || requestBody.contains(mock.criterias)) {
+          ret = mock
+        }
+      )
 
-      Some(ret)
-
+      if (ret == null) {
+        ret = new Mock(-1, "mockNotFoundName", -1,
+          "mockNotFoundDescription", 0, HttpStatus.SC_INTERNAL_SERVER_ERROR, "noCriteria",
+          "Error getting Mock with mockGroupId " + mockGroupId
+        )
+      }
+      ret
   }
 
 }

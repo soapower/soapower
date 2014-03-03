@@ -12,6 +12,7 @@ create table mock (
   description                  varchar(255) not null,
   criterias                    varchar(255) not null,
   timeoutms                    int not null,
+  httpStatus                   int not null,
   response                     LONGTEXT not null,
   mockGroupId                  int not null,
   constraint pk_mock primary key (id)) ENGINE=InnoDB

@@ -52,7 +52,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     requestTimeInMillis = System.currentTimeMillis
 
     // prepare request
-    var wsRequestHolder = WS.url(service.remoteTarget).withTimeout(service.timeoutms.toInt)
+    var wsRequestHolder = WS.url(service.remoteTarget).withRequestTimeout(service.timeoutms.toInt)
     wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.X_FORWARDED_FOR -> sender))
 
     // add headers

@@ -134,18 +134,10 @@ object Soap extends Controller {
     val service = Service.findByLocalTargetAndEnvironmentName(localTarget, environmentName)
     service.map {
       service =>
-
         if (service.useMockGroup) {
           // forward the response to the client
           val mock = Mock.findByMockGroupAndContent(service.mockGroupId, content)
-          var responseMock : String = ""
-          if (mock.isDefined) {
-            responseMock = mock.get.response
-          } else {
-             "Error getting Mock with mockGroupId" + service.mockGroupId
-          }
-          // TODO MOCK :  Add HTTP Status configurable on mock
-          new Results.Status(200).stream(Enumerator(responseMock.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
+          new Results.Status(mock.httpStatus).stream(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
             .withHeaders("ProxyVia" -> "soapower")
             //.withHeaders(client.response.headers.toArray: _*)
             .as(XML)
