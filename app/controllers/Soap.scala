@@ -4,6 +4,9 @@ import play.Logger
 import play.api.mvc._
 import play.api.libs.iteratee._
 import models._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 object Soap extends Controller {
 
@@ -135,12 +138,14 @@ object Soap extends Controller {
     service.map {
       service =>
         if (service.useMockGroup) {
-          // forward the response to the client
           val mock = Mock.findByMockGroupAndContent(service.mockGroupId, content)
-          new Results.Status(mock.httpStatus).stream(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
+          val sr = new Results.Status(mock.httpStatus).stream(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
             .withHeaders("ProxyVia" -> "soapower")
-            //.withHeaders(client.response.headers.toArray: _*)
             .as(XML)
+
+
+          val timeoutFuture = play.api.libs.concurrent.Promise.timeout(sr, mock.timeoutms.milliseconds)
+          Await.result(timeoutFuture, 10.second) // 10 seconds (10000 ms) is the maximum allowed.
         } else {
           // forward the request to the actual destination
           val client = new Client(service, sender, content, headers)

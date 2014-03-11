@@ -15,7 +15,7 @@ case class Mock(id: Long,
                 description: String,
                 timeoutms: Int = 0,
                 httpStatus: Int = 0,
-                criterias: String,
+                criteria: String,
                 response: String
                  )
 
@@ -34,10 +34,10 @@ object Mock {
       get[String]("mock.description") ~
       get[Int]("mock.timeoutms") ~
       get[Int]("mock.httpStatus") ~
-      get[String]("mock.criterias") ~
+      get[String]("mock.criteria") ~
       get[String]("mock.response") map {
-      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ httpStatus ~ criterias ~ response
-      => Mock(id, name, mockGroupId, description, timeoutms, httpStatus, criterias, response)
+      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ httpStatus ~ criteria ~ response
+      => Mock(id, name, mockGroupId, description, timeoutms, httpStatus, criteria, response)
     }
   }
 
@@ -51,16 +51,16 @@ object Mock {
       get[String]("mock.description") ~
       get[Int]("mock.timeoutms") ~
       get[Int]("mock.httpStatus") ~
-      get[String]("mock.criterias") map {
-      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ httpStatus ~ criterias
-      => Mock(id, name, mockGroupId, description, timeoutms, httpStatus, criterias, null)
+      get[String]("mock.criteria") map {
+      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ httpStatus ~ criteria
+      => Mock(id, name, mockGroupId, description, timeoutms, httpStatus, criteria, null)
     }
   }
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groupName" -> 3, "description" -> 4, "timeoutms" -> 5, "httpStatus" -> 6, "criterias" -> 7, "response" -> 8)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groupName" -> 3, "description" -> 4, "timeoutms" -> 5, "httpStatus" -> 6, "criteria" -> 7, "response" -> 8)
 
   val csvKey = "mock"
 
@@ -74,10 +74,10 @@ object Mock {
       get[Int]("mock.description") ~
       get[Int]("mock.timeoutms") ~
       get[Int]("mock.httpStatus") ~
-      get[String]("mock.criterias") ~
+      get[String]("mock.criteria") ~
       get[String]("mock.response") map {
-      case id ~ name ~ groupName ~ description ~ timeoutms ~ httpStatus ~ criterias ~ response =>
-        id + ";" + name + ";" + groupName + ";" + description + ";" + timeoutms + ";" + httpStatus + ";" + criterias + ";" + response + "\n"
+      case id ~ name ~ groupName ~ description ~ timeoutms ~ httpStatus ~ criteria ~ response =>
+        id + ";" + name + ";" + groupName + ";" + description + ";" + timeoutms + ";" + httpStatus + ";" + criteria + ";" + response + "\n"
     }
   }
 
@@ -143,14 +143,14 @@ object Mock {
       implicit connection =>
         SQL(
           """
-            insert into mock (id, name, description, timeoutms, httpStatus, criterias, response, mockGroupId)
-              values (null, {name}, {description}, {timeoutms}, {httpStatus}, {criterias}, {response}, {mockGroupId})
+            insert into mock (id, name, description, timeoutms, httpStatus, criteria, response, mockGroupId)
+              values (null, {name}, {description}, {timeoutms}, {httpStatus}, {criteria}, {response}, {mockGroupId})
           """).on(
             'name -> mock.name.trim,
             'description -> mock.description,
             'timeoutms -> mock.timeoutms,
             'httpStatus -> mock.httpStatus,
-            'criterias -> mock.criterias,
+            'criteria -> mock.criteria,
             'response -> mock.response,
             'mockGroupId -> mock.mockGroupId
           ).executeUpdate()
@@ -181,7 +181,7 @@ object Mock {
           description = {description},
           timeoutms = {timeoutms},
           httpStatus = {httpStatus},
-          criterias = {criterias},
+          criteria = {criteria},
           response = {response},
           mockGroupId = {mockGroupId}
           where id = {id}
@@ -191,7 +191,7 @@ object Mock {
             'description -> mock.description,
             'timeoutms -> mock.timeoutms,
             'httpStatus -> mock.httpStatus,
-            'criterias -> mock.criterias,
+            'criteria -> mock.criteria,
             'response -> mock.response,
             'mockGroupId -> mock.mockGroupId
           ).executeUpdate()
@@ -228,7 +228,7 @@ object Mock {
 
         val mocks = SQL(
           """
-          select mock.id, mock.name, mock.mockGroupId, mock.description, mock.timeoutms, mock.httpStatus, mock.criterias
+          select mock.id, mock.name, mock.mockGroupId, mock.description, mock.timeoutms, mock.httpStatus, mock.criteria
           from mock, mock_group
           where mock.mockGroupId = mock_group.id
           and mock_group.name = {mockGroup}
@@ -250,7 +250,7 @@ object Mock {
 
         val mocks = SQL(
           """
-          select id, name, mockGroupId, description, timeoutms, criterias from mock
+          select id, name, mockGroupId, description, timeoutms, criteria from mock
           order by mock.name
           """).as(Mock.simpleWithoutResponse *)
 
@@ -304,7 +304,7 @@ object Mock {
         dataCsv(csvTitle.get("description").get).trim,
         dataCsv(csvTitle.get("timeoutms").get).toInt,
         dataCsv(csvTitle.get("httpStatus").get).toInt,
-        dataCsv(csvTitle.get("criterias").get).trim,
+        dataCsv(csvTitle.get("criteria").get).trim,
         dataCsv(csvTitle.get("response").get).trim
       )
       Mock.insert(mock)
@@ -324,7 +324,7 @@ object Mock {
       // for each mocks in group, find the first eligible
       var ret: Mock = null
       mocks.takeWhile(_ => ret == null).foreach(mock =>
-        if (mock.criterias.trim().equals("*") || requestBody.contains(mock.criterias)) {
+        if (mock.criteria.trim().equals("*") || requestBody.contains(mock.criteria)) {
           ret = mock
         }
       )

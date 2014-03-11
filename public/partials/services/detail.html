@@ -37,6 +37,9 @@
             <span ng-show="myForm.remoteTarget.$error.url" class="help-inline">Not a URL</span>
             <span class="help-block">Remote service, example : http://host:8080/myService/1.0</span>
         </div>
+        <div class="col-lg-6 help-block">When someone calls Soapower, Soapower redirect the request to a Remote Target OR, if
+            you don't have a remote target, you can let Soapower make the Response with a Mock.
+        </div>
     </div>
 
     <div class="form-group" ng-class="{error: myForm.useMockGroup.$invalid}">
@@ -53,6 +56,9 @@
                 </label>
             </div>
         </div>
+        <div class="col-lg-6 help-block">So if you want to let Soapower return a mock response and don't request a
+            remote server, you have to check "Yes" here.
+        </div>
     </div>
 
     <div class="form-group">
@@ -60,6 +66,10 @@
         <div class="col-lg-4">
             <select class="form-control" ng-model="service.mockGroup" id="mockGroup" ng-options="mockGroup.name for mockGroup in mockGroups"></select>
             <span ng-show="myForm.mockGroup.$error.required" class="help-inline">Required</span>
+        </div>
+        <div class="col-lg-6 help-block">If you chose to use mock group, Soapower check all mocks in MockGroup.
+            If a criteria of one mock is found in the body of request, Soapower render the response a the mock.
+            If there is more than one matching mock, the first found is used.
         </div>
     </div>
 
@@ -70,6 +80,9 @@
             <input class="form-control" type="number" id="timeoutms" name="timeoutms" ng-model="service.timeoutms" required>
             <span ng-show="myForm.timeoutms.$error.required" class="help-inline">Required</span>
             <span class="help-block">Timeout in milliseconds</span>
+        </div>
+        <div class="col-lg-6 help-block">If the remote target does not respond before this timeout in milliseconds,
+            Soapower return a fault Reponse with a HTTP Status 500 (Internal Server Error).
         </div>
     </div>
 

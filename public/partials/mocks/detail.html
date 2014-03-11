@@ -26,6 +26,18 @@
         </div>
     </div>
 
+    <div class="form-group" ng-class="{error: myForm.criteria.$invalid}">
+        <label for="criteria" class="col-lg-2 control-label">criteria</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="text" id="criteria" name="criteria" ng-model="mock.criteria" required>
+            <span ng-show="myForm.criteria.$error.required" class="help-inline">Required</span>
+        </div>
+        <div class="col-lg-6 help-block">If the content of the request contains this "criteria", the response
+            of this mock is return by Soapower. This is not a Regex or a XPath Query, juste a simple search.
+            But, if you put only <b>*</b> in this field, the mock will be used regardless of the content of the request.
+        </div>
+    </div>
+
     <div class="form-group" ng-class="{error: myForm.timeoutms.$invalid}">
         <label for="timeoutms" class="col-lg-2 control-label">Timeout in ms</label>
         <div class="col-lg-4">
@@ -33,13 +45,8 @@
             <span ng-show="myForm.timeoutms.$error.required" class="help-inline">Required</span>
             <span ng-show="myForm.timeoutms.$error.url" class="help-inline">Not a URL</span>
         </div>
-    </div>
-
-    <div class="form-group" ng-class="{error: myForm.criterias.$invalid}">
-        <label for="criterias" class="col-lg-2 control-label">Criterias</label>
-        <div class="col-lg-4">
-            <input class="form-control" type="text" id="criterias" name="criterias" ng-model="mock.criterias" required>
-            <span ng-show="myForm.criterias.$error.required" class="help-inline">Required</span>
+        <div class="col-lg-6 help-block">Soapower will wait n milliseconds before sending the response. If
+            you want a reponse instantly, write <b>0</b> here. 10 seconds (10000 ms) is the maximum allowed.
         </div>
     </div>
 
@@ -49,13 +56,17 @@
             <input class="form-control" type="number" id="httpStatus" name="httpStatus" ng-model="mock.httpStatus" required>
             <span ng-show="myForm.httpStatus.$error.required" class="help-inline">Required</span>
             <span ng-show="myForm.httpStatus.$error.url" class="help-inline">Not a valid Http Status</span>
+            <span class="help-block">Numeric Only</span>
+        </div>
+        <div class="col-lg-6 help-block">HTTP Status of the response. You have to write <b>200</b> for a reponse with
+            a status <b>OK</b>, <b>401</b> for a <b>Bad Request Status</b>, etc... See all Status Code <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">here</a>.
         </div>
     </div>
 
     <div class="form-group" ng-class="{error: myForm.response.$invalid}">
         <label for="response" class="col-lg-2 control-label">Response</label>
-        <div class="col-lg-4">
-            <textarea class="form-control" id="response" name="response" ng-model="mock.response" rows="5" required></textarea>
+        <div class="col-lg-10">
+            <textarea class="form-control" id="response" name="response" ng-model="mock.response" rows="10" cols=""50" required></textarea>
             <span ng-show="myForm.response.$error.required" class="help-inline">Required</span>
         </div>
     </div>

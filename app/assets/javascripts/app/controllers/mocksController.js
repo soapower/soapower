@@ -95,7 +95,7 @@ function MockNewCtrl($scope, $location, Mock, MockGroupsService, $routeParams) {
     $scope.mock.timeoutms = 0;
     $scope.mock.httpStatus = 200;
     $scope.mock.response = "";
-    $scope.mock.criterias = "*";
+    $scope.mock.criteria = "*";
 
     MockGroupsService.findAll("all").
         success(function (mockGroups) {
