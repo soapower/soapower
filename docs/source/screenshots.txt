@@ -1,0 +1,26 @@
+Screenshots
+===========
+
+Live Page
+---------
+.. image:: _static/live.png
+
+Search Page
+---------
+.. image:: _static/search.png
+
+Statistics
+---------
+.. image:: _static/stats.png
+
+Monitoring
+---------
+.. image:: _static/monitoring.png
+
+Edit a service
+---------
+.. image:: _static/editService.png
+
+Admin
+------
+.. image:: _static/admin.png

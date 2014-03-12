@@ -20,3 +20,7 @@ Administration interface is available for
 * Import / export service configurations & settings
 * Set the purges data XML Data requests & Answers, All Data / environment
 * Monitoring CPU / Heap Memory / logs file
+
+.. image:: _static/seqDiagram.png
+.. image:: _static/ucDiagram.png
+.. image:: _static/classDiagram.png

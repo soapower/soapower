@@ -20,7 +20,8 @@ Jenkins Integration
 
 If a SoapAction's response time is > threshold, a failed test is generate and visible on Jenkins.
 
-* Create a job, with a shell execution:: sh
+* Create a job, with a shell execution:
+.. code-block:: sh
      rm *.xml ; wget http://<server>:<port>/statsAsJunit/yesterday/yesterday/ -O result.xml
 
 * Add a publish test Junit to view all SoapAction's result time.

@@ -12,15 +12,8 @@ Contents:
    :maxdepth: 2
 
    overview
+   screenshots
    install
    usage
    development
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`search`
 
