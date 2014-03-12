@@ -14,3 +14,4 @@ conf/mail.conf
 documentation/
 bin
 dist
+docs/build
