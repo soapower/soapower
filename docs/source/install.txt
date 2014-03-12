@@ -1,6 +1,6 @@
 
-Installation
-=============
+Quickstart
+==========
 
 Current stable version of Soapower : 1.1.1
 
@@ -9,12 +9,14 @@ You can download it here : https://github.com/soapower/soapower/releases/downloa
 Requirements
 -----------
 
-* JDK >= 1.6, add JAVA_HOME to your path
+* JDK >= 1.7, add JAVA_HOME to your path
 * Mysql 5 with a soapower user (with password soapower, associated to a soapower database). You can choose another name or password by editing the key db.default.url in application.conf and add -Dconfig.file=/full/path/to/conf/application-prod.conf it to the soapowerctl.sh script (change CMD variable in method start)
 
 
-Commands
-----------
+Installation
+--------
+
+run these commands for a complete installation:: sh
 
     # Set Soapower Home (optional if your home is /opt/soapower/)
     $ export SOAPOWER_HOME="/opt/soapower/"
@@ -32,9 +34,12 @@ Commands
     $ ./soapowerctl.sh configtest
     $ ./soapowerctl.sh start
 
+Check Installation
+------------------
+
 * Go to http://localhost:9010
 
-Soapower Home directory after theses steps :
+Soapower Home directory after theses steps ::
 
     /opt/soapower$ ls -lart
     total 326904
@@ -52,7 +57,7 @@ Soapower Home directory after theses steps :
     drwxr-xr-x  13 yvonnickesnault  admin       442 20 aoû 22:37 .
     drwxr-xr-x   8 yvonnickesnault  admin       272 20 aoû 22:38 soapower-1.1.1
 
-With the current directory :
+With the current directory ::
 
     $ ls -lart
     total 40
@@ -65,6 +70,6 @@ With the current directory :
     -rw-r--r--   1 yvonnickesnault  admin     4 19 aoû 08:03 RUNNING_PID
     drwxr-xr-x   8 yvonnickesnault  admin   272 19 aoû 08:03 .
 
-The RUNNING_PID file contain the pid of Soapower (wich is running here)
+The RUNNING_PID file contains the pid of Soapower (wich is running here)
 
 
