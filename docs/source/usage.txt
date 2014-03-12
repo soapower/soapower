@@ -8,7 +8,7 @@ Send a request on a service already configured
 Send a request on a service not configured
 ----------------------------------------------
 Auto register service by calling 
-```http://<server>:<port>/autosoap/<group>/<environment>/<remoteTarget>``` 
+``http://<server>:<port>/autosoap/<group>/<environment>/<remoteTarget>``
 
 Example : 
 ``http://localhost:9010/autosoap/myNewGroup/myNewEnvironment/http://localhost:8080/myWebservices``

@@ -16,7 +16,9 @@ Requirements
 Installation
 --------
 
-run these commands for a complete installation:: sh
+run these commands for a complete installation:
+
+.. code-block:: sh
 
     # Set Soapower Home (optional if your home is /opt/soapower/)
     $ export SOAPOWER_HOME="/opt/soapower/"
