@@ -1,4 +1,3 @@
-
 Quickstart
 ==========
 
@@ -17,6 +16,7 @@ Installation
 --------
 
 run these commands for a complete installation :
+
 .. code-block:: sh
 
     # Set Soapower Home (optional if your home is /opt/soapower/)
@@ -41,6 +41,7 @@ Check Installation
 * Go to http://localhost:9010
 
 Soapower Home directory after theses steps :
+
 .. code-block:: sh
 
     /opt/soapower$ ls -lart
@@ -62,6 +63,7 @@ Soapower Home directory after theses steps :
 With the current directory :
 
 .. code-block:: sh
+
     $ ls -lart
     total 40
     -rwxr-xr-x   1 yvonnickesnault  admin  3060 19 aoû 07:41 start
