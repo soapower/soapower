@@ -46,8 +46,8 @@ object MockGroup {
   val csv = {
     get[Long]("mock_group.id") ~
       get[String]("mock_group.name") ~
-      get[String]("group.name") map {
-      case id ~ name ~ groupName=>
+      get[String]("groups.name") map {
+      case id ~ name ~ groupName =>
         id + ";" + name + ";" + groupName + "\n"
     }
   }
@@ -58,7 +58,7 @@ object MockGroup {
    * @return List of mockgroups, csv format
    */
   def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("select * from mock_group").as(MockGroup.csv *)
+    implicit c => SQL("select * from mock_group left join groups on mock_group.groupId = groups.id").as(MockGroup.csv *)
   }
 
 

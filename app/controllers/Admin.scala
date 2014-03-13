@@ -60,6 +60,9 @@ object Admin extends Controller {
     content += "#for key " + SoapAction.csvKey + "\n"
     SoapAction.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
     content = content.dropRight(1) + "\n"
+    content += "#for key " + MockGroup.csvKey + "\n"
+    MockGroup.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
+    content = content.dropRight(1) + "\n"
     content += "#for key " + Service.csvKey + "\n"
     Service.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
     content = content.dropRight(1) + "\n"
@@ -67,6 +70,7 @@ object Admin extends Controller {
     // data
     Environment.fetchCsv().foreach { s => content += Environment.csvKey + ";" + s }
     SoapAction.fetchCsv().foreach { s => content += SoapAction.csvKey + ";" + s }
+    MockGroup.fetchCsv().foreach { s => content += MockGroup.csvKey + ";" + s }
     Service.fetchCsv().foreach { s => content += Service.csvKey + ";" + s }
 
     // result as a file
