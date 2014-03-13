@@ -6,14 +6,14 @@ function AdminCtrl ($scope, EnvironmentsService, $http) {
 
     $scope.showResponseUpload = false;
     $scope.showUploadRunning = false;
-    $scope.uploadComplete = function (content, completed) {
-        if (completed) {
-            $scope.response = content;
-            $scope.showUploadRunning = false;
-            $scope.showResponseUpload = true;
-        } else {
-            $scope.showUploadRunning = true;
-        }
+
+    $scope.startUpload = function () {
+        $scope.showUploadRunning = true;
+    }
+    $scope.uploadComplete = function (content) {
+        $scope.response = content;
+        $scope.showUploadRunning = false;
+        $scope.showResponseUpload = true;
     };
 
     $scope.$watch('minDate', function () {
