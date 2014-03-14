@@ -11,3 +11,6 @@ libraryDependencies ++= Seq(
     "mysql" % "mysql-connector-java" % "5.1.21")
 
 playScalaSettings
+
+
+mappings in Universal <++= baseDirectory map { dir => (dir / "soapowerctl.sh").*** --- dir x relativeTo(dir) }

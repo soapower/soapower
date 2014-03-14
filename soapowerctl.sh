@@ -26,12 +26,25 @@
 # - SOAPOWER_HTTP_PORT : 9010
 ########################################
 if [[ -z "${SOAPOWER_HOME}" ]]; then
-    export SOAPOWER_HOME="/opt/soapower"
+    SOAPOWER_HOME="/opt/soapower"
 fi
 
 if [[ -z "${SOAPOWER_HTTP_PORT}" ]]; then
-    export SOAPOWER_HTTP_PORT=9010
+    SOAPOWER_HTTP_PORT=9010
 fi
+
+if [[ -z "${SOAPOWER_DB_URL}" ]]; then
+    SOAPOWER_DB_URL="jdbc:mysql://localhost/soapower"
+fi
+
+if [[ -z "${SOAPOWER_DB_USER}" ]]; then
+    SOAPOWER_DB_USER="soapower"
+fi
+
+if [[ -z "${SOAPOWER_DB_PASSWORD}" ]]; then
+    SOAPOWER_DB_PASSWORD="soapower"
+fi
+
 
 ########################################
 #          Display Usage
@@ -58,32 +71,26 @@ configtest() {
     echo "Soapower Home: ${SOAPOWER_HOME}, port : ${SOAPOWER_HTTP_PORT}"
     echo "Soapower Current: ${SOAPOWER_CURRENT}"
 
-    echo "Checking start file..."
-    chmod +x ${SOAPOWER_CURRENT}/start
+    echo "Checking bin/soapower file..."
+    chmod +x ${SOAPOWER_CURRENT}/bin/soapower
     if [ $? -ne 0 ]; then
-        echo "ERROR : Failed to chmod +x start, please check your installation"
+        echo "ERROR : Failed to chmod +x bin/soapower, please check your installation"
         ERROR=1
     fi
 
     cd ${SOAPOWER_CURRENT}
-    JAR_FILE=`ls lib/soapower*`
-    grep $JAR_FILE start >/dev/null 2>&1
+    JAR_FILE=`cd lib && ls *soapower*`
+    grep $JAR_FILE bin/soapower >/dev/null 2>&1
     if [ $? -ne 0 ]; then
-        echo "ERROR : start file does not match with jar in dir lib/, please check your installation"
-        ERROR=1
-    fi
-
-    echo "Checking logger-prod.xml file..."
-    if [ ! -f ${SOAPOWER_CURRENT}/logger-prod.xml ]; then
-        echo "ERROR : ${SOAPOWER_CURRENT}/logger-prod.xml not exist, please check your installation"
+        echo "ERROR : bin/soapower file does not match with jar in dir lib/, please check your installation"
         ERROR=1
     fi
 
     echo "Checking java version..."
     if type -p java >/dev/null 2>&1 ; then
         JAVA_VER=$(java -version 2>&1 | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
-        if [ "$JAVA_VER" -ge 16 ]; then 
-            echo "ok, java is 1.6 or newer" 
+        if [ "$JAVA_VER" -ge 17 ]; then
+            echo "ok, java is 1.7 or newer"
         else
             echo "ERROR : java version is too old..."
             ERROR=1
@@ -128,7 +135,7 @@ start() {
         fi
     fi
 
-    CMD="${SOAPOWER_CURRENT}/start -Dlogger.file=${SOAPOWER_CURRENT}/logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT} -DapplyEvolutions.default=true"
+    CMD="${SOAPOWER_CURRENT}/bin/soapower -Dlogger.file=${SOAPOWER_CURRENT}/logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT} -DapplyEvolutions.default=true -Ddb.default.url=${SOAPOWER_DB_URL} -Ddb.default.user=${SOAPOWER_DB_USER} -Ddb.default.password=${SOAPOWER_DB_PASSWORD}"
     nohup $CMD >/dev/null 2>&1 &
 
     if [ $? -ne 0 ]; then
