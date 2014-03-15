@@ -62,7 +62,6 @@ display_usage() {
 # Check the configuration of soapower : 
 # - chmod +x start file
 # - check start file with dir lib/
-# - check logger-prod.xml file
 # - check java and version (>=1.6)
 ########################################
 configtest() {
@@ -137,7 +136,7 @@ start() {
         fi
     fi
 
-    CMD="${SOAPOWER_CURRENT}/bin/soapower -Dlogger.file=${SOAPOWER_CURRENT}/logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT} -DapplyEvolutions.default=true -Ddb.default.url=${SOAPOWER_DB_URL} -Ddb.default.user=${SOAPOWER_DB_USER} -Ddb.default.password=${SOAPOWER_DB_PASSWORD}"
+    CMD="${SOAPOWER_CURRENT}/bin/soapower -Dlogger.file=${SOAPOWER_CURRENT}/conf/logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT} -DapplyEvolutions.default=true -Ddb.default.url=${SOAPOWER_DB_URL} -Ddb.default.user=${SOAPOWER_DB_USER} -Ddb.default.password=${SOAPOWER_DB_PASSWORD}"
     nohup $CMD >/dev/null 2>&1 &
 
     if [ $? -ne 0 ]; then
