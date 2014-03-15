@@ -24,6 +24,9 @@
 # Default values : 
 # - SOAPOWER_HOME : /opt/soapower
 # - SOAPOWER_HTTP_PORT : 9010
+# - SOAPOWER_DB_URL : jdbc:mysql://localhost:3306/soapower
+# - SOAPOWER_DB_USER : soapower
+# - SOAPOWER_DB_PASSWORD : soapower
 ########################################
 if [[ -z "${SOAPOWER_HOME}" ]]; then
     SOAPOWER_HOME="/opt/soapower"
@@ -34,7 +37,7 @@ if [[ -z "${SOAPOWER_HTTP_PORT}" ]]; then
 fi
 
 if [[ -z "${SOAPOWER_DB_URL}" ]]; then
-    SOAPOWER_DB_URL="jdbc:mysql://localhost/soapower"
+    SOAPOWER_DB_URL="jdbc:mysql://localhost:3306/soapower"
 fi
 
 if [[ -z "${SOAPOWER_DB_USER}" ]]; then
@@ -44,7 +47,6 @@ fi
 if [[ -z "${SOAPOWER_DB_PASSWORD}" ]]; then
     SOAPOWER_DB_PASSWORD="soapower"
 fi
-
 
 ########################################
 #          Display Usage
