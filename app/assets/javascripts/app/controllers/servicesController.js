@@ -102,7 +102,7 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
     $scope.service = new Service({id: '-2'});
     $scope.service.recordXmlData = "yes";
     $scope.service.recordData = "yes";
-    $scope.service.useMockGroup = "false";
+    $scope.service.useMockGroup = "no";
     $scope.service.timeoutms = "60000";
 
     $scope.hostname = $location.host();
@@ -111,6 +111,12 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
     MockGroupsService.findAll("all").
         success(function (mockGroups) {
             $scope.mockGroups = mockGroups.data;
+            angular.forEach(mockGroups.data, function (mockGroup, key) {
+                if (mockGroup.id == 1) { // 1 is default mock group : no mock group
+                    $scope.service.mockGroup = mockGroup;
+                    return false;
+                }
+            });
         })
         .error(function (resp) {
             console.log("Error with MockGroupsService.findAll:" + resp);
