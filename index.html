@@ -5,8 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>Soapower</title>
 
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <link rel="stylesheet" href="public/css/font-awesome.min.css">
+    <link rel="stylesheet" href="public/css/bootstrap.min.css">
+    <link rel="stylesheet" href="public/css/cover.css">
     <link rel="shortcut icon" type="image/png" href="images/soapower.png">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
@@ -14,200 +15,24 @@
     <![endif]-->
 </head>
 <body>
-<div class="wrapper">
-    <header>
-        <h1>Soapower</h1>
 
-        <p>Soapower - Monitoring Webservices</p>
-
-        <p class="view"><a href="https://github.com/soapower/soapower">View the Project on GitHub
-            <small>soapower/soapower</small>
-        </a></p>
-
-        <ul>
-            <li><a href="https://github.com/soapower/soapower/releases">Download <strong>See Releases</strong></a></li>
-            <li><a href="https://github.com/soapower/soapower">View On <strong>GitHub</strong></a></li>
-            <li><a href="https://github.com/soapower/soapower/issues?state=open">Roadmap and Bugtrack</a></li>
-        </ul>
-        <h2>Screenshots</h2>
-        <p><a href="images/screenshots/live.png" target="blank"><img src="images/screenshots/live.png" width="30%"> Live Page</a></p>
-        <p><a href="images/screenshots/search.png" target="blank"><img src="images/screenshots/search.png" width="30%"> Search Page</a></p>
-        <p><a href="images/screenshots/stats.png" target="blank"><img src="images/screenshots/stats.png" width="30%"> Statistics</a></p>
-        <p><a href="images/screenshots/monitoring.png" target="blank"><img src="images/screenshots/monitoring.png" width="30%"> Monitoring</a></p>
-        <p><a href="images/screenshots/editService.png" target="blank"><img src="images/screenshots/editService.png" width="30%"> Edit a service</a></p>
-        <p><a href="images/screenshots/admin.png" target="blank"><img src="images/screenshots/admin.png" width="30%"> Admin</a></p>
-    </header>
-    <section>
-        <h3>
-            <a name="whats-soapower-" class="anchor" href="#whats-soapower-"><span class="octicon octicon-link"></span></a>What's
-            Soapower ?</h3>
-
-        <p>Soapower provides a GUI for </p>
-
-        <ul>
-            <li>viewing webservices requests (live and search page),</li>
-            <li>download the data from the request and response,</li>
-            <li>getting response time,</li>
-            <li>viewing 90percentiles response times, etc ...</li>
-        </ul>
-        <p>Soapower allows monitoring several applications across multiple environments. </p>
-
-        <p>It is also possible to set a threshold response time on soapaction,
-            the alerts are rising if the receiver does not send the response back in time.</p>
-
-        <p>Administration interface is available for</p>
-
-        <ul>
-            <li>Configure environments and webservices (local / remote target / timeout)</li>
-            <li>Set the thresholds for response time for each soapaction</li>
-            <li>Import / export service configurations &amp; settings</li>
-            <li>Set the purges data XML Data requests &amp; Answers, All Data / environment</li>
-            <li>Monitoring CPU / Heap Memory / logs file</li>
-        </ul>
-        <p><img src="https://raw.github.com/soapower/soapower/master/public/images/soapower/ucDiagram.png"><img
-                src="https://raw.github.com/soapower/soapower/master/public/images/soapower/seqDiagram.png"><img
-                src="https://raw.github.com/soapower/soapower/master/public/images/soapower/classDiagram.png"></p>
-
-        <p>Soapower developed with Play Framework 2, with scala / java / js / html5</p>
-
-        <h1>
-            <a name="run-in-production-with-a-stable-version" class="anchor"
-               href="#run-in-production-with-a-stable-version">
-                <span class="octicon octicon-link"></span></a>
-            Run in Production with a stable version</h1>
-
-        <p>Current stable version of Soapower : <a href="https://github.com/soapower/soapower/releases/tag/1.1.1">1.1.1</a></p>
-
-        <p>You can download it here :
-            <a href="https://github.com/soapower/soapower/releases/download/1.1.1/soapower-1.1.1.zip">https://github.com/soapower/soapower/releases/download/1.1.1/soapower-1.1.1.zip</a>
+<div class="site-wrapper">
+    <div class="site-wrapper-inner">
+        <div class="cover-container">
+            <div class="inner cover">
+                <h1 class="cover-heading"><i class="fa fa-bolt fa-2x"></i> Soapower</h1>
+                <p class="lead">Soapower - Monitoring Webservices</p>
+            </div>
+        </div>
+        <p class="lead">
+            <a class="btn btn-lg btn-default" href="http://soapower.readthedocs.org"><i class="fa fa-download"></i> Documentation</a>
+            <a class="btn btn-lg btn-default" href="https://github.com/soapower/soapower/releases"><i class="fa fa-download"></i> Download</a>
+            <a class="btn btn-lg btn-default" href="https://github.com/soapower/soapower"><i class="fa fa-github"></i> View On <strong>GitHub</strong></a>
+            <a class="btn btn-lg btn-default" href="https://github.com/soapower/soapower/issues?state=open"><i class="fa fa-road"></i> Roadmap and Bugtrack <i class="fa fa-bug"></i> </a>
         </p>
-
-        <h2>
-            <a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements
-        </h2>
-
-        <ul>
-            <li>JDK &gt;= 1.6, add JAVA_HOME to your path</li>
-            <li>Mysql 5 with a <code>soapower</code> user (with password <code>soapower</code>, associated to a <code>soapower</code>
-                database). You can choose another
-                name or password by editing the key <code>db.default.url</code> in <code>application.conf</code> and add
-                <code>-Dconfig.file=/full/path/to/conf/application-prod.conf</code> it to the soapowerctl.sh script (change CMD variable in method start)
-            </li>
-        </ul>
-        <h2>
-            <a name="installation--run-in-production-with-stable-version" class="anchor"
-               href="#installation--run-in-production-with-stable-version"><span
-                    class="octicon octicon-link"></span></a>Installation &amp; Run in Production with stable version
-        </h2>
-
-<pre><code>
-    # Set Soapower Home (optional if your home is /opt/soapower/)
-    $ export SOAPOWER_HOME="/opt/soapower/"
-
-    # Set Soapower Http Listen Port (optional if your default port is 9010)
-    $ export SOAPOWER_HTTP_PORT=9010
-
-    $ mkdir -p /opt/soapower &amp;&amp; cd /opt/soapower
-    $ wget --no-check-certificate https://github.com/soapower/soapower/releases/download/1.1.1/soapower-1.1.1.zip -O soapower-1.1.1.zip
-    $ unzip soapower-1.1.1.zip
-    $ rm -f current; ln -s soapower-1.1.1 current &amp;&amp; cd current
-    $ wget --no-check-certificate http://raw.github.com/soapower/soapower/1.1.1/soapowerctl.sh
-    $ wget --no-check-certificate http://raw.github.com/soapower/soapower/1.1.1/conf/logger-prod.xml
-    $ chmod +x soapowerctl.sh
-    $ ./soapowerctl.sh configtest
-    $ ./soapowerctl.sh start
-</code></pre>
-
-        <ul>
-            <li>Go to <a href='http://localhost:9010'>http://localhost:9010</a></li>
-        </ul>
-        <p>Soapower Home directory after theses steps :</p>
-
-<pre><code>/opt/soapower$ ls -lart
-total 326904
--rw-r--r--   1 yvonnickesnault  admin  33554849  9 jul 23:30 soapower-1.0.3.zip
-drwxr-xr-x@  4 yvonnickesnault  admin       136  9 jul 23:35 ..
-drwxr-xr-x   7 yvonnickesnault  admin       238  9 jul 23:37 soapower-1.0.3
--rw-r--r--   1 yvonnickesnault  admin  33508302 12 jul 08:25 soapower-1.0.4.zip
-drwxr-xr-x   8 yvonnickesnault  admin       272  6 aoû 21:55 soapower-1.0.4
--rw-r--r--   1 yvonnickesnault  admin  33594597  6 aoû 22:07 soapower-1.1.0-beta2.zip
-drwxr-xr-x   7 yvonnickesnault  admin       238  7 aoû 14:45 soapower-1.1.0-beta2
--rw-r--r--   1 yvonnickesnault  admin  33351495 19 aoû 07:52 soapower-1.1.0.zip
-drwxr-xr-x   8 yvonnickesnault  admin       272 19 aoû 08:14 soapower-1.1.0
--rw-r--r--   1 yvonnickesnault  admin  33350992 20 aoû 22:35 soapower-1.1.1.zip
-lrwxr-xr-x   1 yvonnickesnault  admin        14 20 aoû 22:37 current -> soapower-1.1.1
-drwxr-xr-x  13 yvonnickesnault  admin       442 20 aoû 22:37 .
-drwxr-xr-x   8 yvonnickesnault  admin       272 20 aoû 22:38 soapower-1.1.1
-</code></pre>
-
-        <p>With the current directory :</p>
-
-<pre><code>$ ls -lart
-total 40
--rwxr-xr-x   1 yvonnickesnault  admin  3060 19 aoû 07:41 start
-drwxr-xr-x  57 yvonnickesnault  admin  1938 19 aoû 07:41 lib
-drwxr-xr-x  11 yvonnickesnault  admin   374 19 aoû 07:58 ..
--rwxr-xr-x   1 yvonnickesnault  admin  6924 19 aoû 08:02 soapowerctl.sh
--rw-r--r--   1 yvonnickesnault  admin   921 19 aoû 08:02 logger-prod.xml
-drwxr-xr-x   3 yvonnickesnault  admin   102 19 aoû 08:03 logs
--rw-r--r--   1 yvonnickesnault  admin     4 19 aoû 08:03 RUNNING_PID
-drwxr-xr-x   8 yvonnickesnault  admin   272 19 aoû 08:03 .
-</code></pre>
-
-        <p>The <code>RUNNING_PID</code> file contain the pid of Soapower (wich is running here)</p>
-
-        <h1>
-            <a name="jenkins-integration" class="anchor" href="#jenkins-integration">
-                <span class="octicon octicon-link"></span>
-            </a>
-            Jenkins Integration
-        </h1>
-
-        <p>If a SoapAction's response time is &gt; threshold, a failed test is generate and visible on Jenkins.</p>
-
-        <ul>
-            <li>Create a job, with a shell execution :
-                <code>rm *.xml ; wget http://&lt;server&gt;:&lt;port&gt;/statsAsJunit/yesterday/yesterday/ -O
-                    result.xml</code>
-            </li>
-            <li>Add a publish test Junit to view all SoapAction's result time.</li>
-            <li>Url parameters :
-                <code>http://&lt;server&gt;:&lt;port&gt;/statsAsJunit/&lt;minDate&gt;/&lt;maxDate&gt;/</code> with
-                minDate / maxDate like : 2012-11-29, yesterday, today
-            </li>
-        </ul>
-
-        <h1>
-            <a name="howtouse" class="anchor" href="#howtouse">
-                <span class="octicon octicon-link"></span>
-            </a>
-            How to use
-        </h1>
-
-        <p>
-            <ul>
-            <li>
-            Register manually environment, then service and call <code>http://&lt;server&gt;:&lt;port&gt;/soap/&lt;environment&gt;/&lt;localTarget&gt;</code>
-            </li>
-            <li>
-            Auto register service by calling <code>http://&lt;server&gt;:&lt;port&gt;/autosoap/&lt;group&gt;/&lt;environment&gt;/&lt;remoteTarget&gt;</code> example : <code>http://localhost:9010/autosoap/myNewGroup/myNewEnvironment/http://localhost:8080/myWebservices</code>
-            </li>
-            </ul>
-        </p>
-
-
-        <h1>
-            <a name="development" class="anchor" href="#development">
-                <span class="octicon octicon-link"></span>
-            </a>
-            Development
-        </h1>
-
-        <p>See <a href="https://github.com/soapower/soapower/wiki">https://github.com/soapower/soapower/wiki</a></p>
-
-    </section>
+    </div>
 </div>
-<script src="javascripts/scale.fix.js"></script>
+
 <script type="text/javascript">
     var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
     document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
