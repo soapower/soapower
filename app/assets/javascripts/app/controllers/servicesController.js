@@ -80,12 +80,16 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
     $scope.destroy = function () {
         self.original.destroy(function () {
             $location.path('/services');
+        }, function (response) { // error case
+            alert(response.data);
         });
     };
 
     $scope.save = function () {
         $scope.service.update(function () {
             $location.path('/services');
+        }, function (response) { // error case
+            alert(response.data);
         });
     };
 
@@ -125,6 +129,8 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
     $scope.save = function () {
         $scope.service.update(function () {
             $location.path('/services/');
+        }, function (response) { // error case
+            alert(response.data);
         });
     }
 

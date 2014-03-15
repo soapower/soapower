@@ -68,6 +68,8 @@ function SoapActionEditCtrl($scope, $routeParams, $location, SoapAction) {
     $scope.save = function () {
         $scope.soapAction.update(function () {
             $location.path('/soapactions');
+        }, function (response) { // error case
+            alert(response.data);
         });
     };
 }
