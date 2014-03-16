@@ -11,6 +11,10 @@ import models._
 import play.api.libs.json._
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
+import scala.concurrent.ExecutionContext
+import ExecutionContext.Implicits.global
+import play.modules.reactivemongo.json.BSONFormats._
+
 
 object Status extends Controller {
 
@@ -28,8 +32,10 @@ object Status extends Controller {
    * Return all status in Json Format
    * @return JSON
    */
-  def findAll = Action {
-    Ok(Json.toJson(RequestData.statusOptions)).as(JSON)
+  def findAll = Action.async {
+    RequestData.statusOptions.map { s =>
+      Ok(Json.toJson(s)).as(JSON)
+    }
   }
 
 }

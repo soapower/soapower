@@ -38,7 +38,9 @@ object Client {
 
 class Client(service: Service, sender: String, content: String, headers: Map[String, String]) {
 
-  val requestData = new RequestData(sender, extractSoapAction(headers), service.environmentId, service.id)
+  val environment = Environment.findById(service.environmentId)
+
+  val requestData = new RequestData(sender, extractSoapAction(headers), environment.get.groupId, service.environmentId, service.id)
   var response: ClientResponse = null
 
   private var futureResponse: Future[Response] = null
@@ -113,8 +115,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       scala.concurrent.Future {
         requestData.request = checkNullOrEmpty(content)
         requestData.storeSoapActionAndStatusInCache()
-        val id = RequestData.insert(requestData)
-        requestData.id = anorm.Id(id.toString.toLong)
+        RequestData.insert(requestData)
         Robot.talk(requestData)
       }.map {
         result =>

@@ -21,8 +21,7 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
             '/' + maxdate +
             '/' + code +
             '/listDatatable?' +
-            'sSearch=' +
-            '&iDisplayStart=' + 1 +
+            'iDisplayStart=' + 1 +
             '&iDisplayLength=' + 10000 +
             '&call=' + new Date();
 

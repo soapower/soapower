@@ -15,7 +15,7 @@ GET           /admin/downloadRequestDataStatsEntries                            
 POST          /admin/uploadConfiguration                                                                 controllers.Admin.uploadConfiguration
 
 # Search page
-GET           /search/:group/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable            controllers.Search.listDatatable(group, environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
+GET           /search/:group/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable            controllers.Search.listDatatable(group, environment, soapAction, minDate, maxDate, status, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
 GET           /analysis/:group/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load        controllers.Analysis.load(group, environment, soapAction, minDate, maxDate, status, statsOnly)

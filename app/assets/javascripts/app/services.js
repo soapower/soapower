@@ -257,10 +257,11 @@ spApp.factory("CodesService", function ($http) {
         findAllAndSelect: function ($scope, $routeParams) {
             $http.get('/status/findall')
                 .success(function (codes) {
-                    $scope.codes = codes;
-                    $scope.codes.unshift({id: "all", name: "all"});
+                    $scope.codes = codes.values;
+                    //$scope.codes.unshift({id: "all", name: "all"});
+                    $scope.codes.unshift("all");
                     angular.forEach($scope.codes, function (value, key) {
-                        if (value.name == $routeParams.code) $scope.code = value;
+                        if (value == $routeParams.code) $scope.code = value;
                     });
 
                 })
@@ -302,7 +303,7 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
             if ($scope.maxdate && $scope.maxdate != "" && $scope.maxdate != "All") {
                 maxdate = this.initDayToUrl($filter('date')($scope.maxdate, 'yyyy-MM-dd'), "today");
             }
-            if ($scope.code) code = $scope.code.name;
+            if ($scope.code) code = $scope.code;
 
             var path = $scope.ctrlPath + '/' + $routeParams.group + "/" + environment + "/";
 

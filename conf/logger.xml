@@ -25,6 +25,7 @@
     </logger>
     -->
 
+  <logger name="reactivemongo" level="INFO" />
   <logger name="play" level="INFO" />
   <logger name="application" level="DEBUG" />
 

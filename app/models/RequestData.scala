@@ -1,9 +1,7 @@
 package models
 
 import java.util.{GregorianCalendar, Calendar, Date}
-import play.api.db._
 import play.api.Play.current
-import play.api._
 import play.api.cache._
 import play.api.libs.json._
 import play.api.http._
@@ -14,11 +12,23 @@ import collection.mutable.Set
 import java.util.zip.{GZIPOutputStream, GZIPInputStream}
 import java.nio.charset.Charset
 import java.io.{ByteArrayOutputStream, BufferedReader, InputStreamReader, ByteArrayInputStream}
+import sun.reflect.generics.reflectiveObjects.NotImplementedException
+import play.modules.reactivemongo.json.collection.JSONCollection
+
+import reactivemongo.api._
+import play.api.{db, Logger}
+import play.modules.reactivemongo.ReactiveMongoPlugin
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import scala.concurrent.Future
+import reactivemongo.bson.{BSONObjectID, BSONDocument}
+import play.modules.reactivemongo.json.BSONFormats._
+import reactivemongo.core.commands.RawCommand
 
 case class RequestData(
-                        var id: Pk[Long],
+                        id: Option[BSONObjectID],
                         sender: String,
                         var soapAction: String,
+                        groupId: Long,
                         environmentId: Long,
                         serviceId: Long,
                         var request: String,
@@ -32,13 +42,15 @@ case class RequestData(
 
   var responseBytes: Array[Byte] = null
 
-  def this(sender: String, soapAction: String, environnmentId: Long, serviceId: Long) =
-    this(null, sender, soapAction, environnmentId, serviceId, null, null, new Date, null, null, -1, -1, false)
+  def this(sender: String, soapAction: String, groupId: Long, environnmentId: Long, serviceId: Long) =
+    this(Some(BSONObjectID.generate), sender, soapAction, groupId, environnmentId, serviceId, null, null, new Date, null, null, -1, -1, false)
 
   /**
    * Add soapAction in cache if neccessary.
    */
   def storeSoapActionAndStatusInCache() {
+    //TODO
+    /*
     if (!RequestData.soapActionOptions.exists(p => p._1 == soapAction)) {
       Logger.info("SoapAction " + soapAction + " not found in cache : add to cache")
       val inCache = RequestData.soapActionOptions ++ (List((soapAction, soapAction)))
@@ -49,6 +61,7 @@ case class RequestData(
       val inCache = RequestData.statusOptions ++ (List((status, status)))
       Cache.set(RequestData.keyCacheStatusOptions, inCache)
     }
+    */
   }
 }
 
@@ -67,35 +80,21 @@ object RequestData {
       }
   }
 
+  implicit val requestDataFormat = Json.format[RequestData]
+
+  def collection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("requestData")
+
   /**
    * Anorm Byte conversion
    */
   def bytes(columnName: String): RowParser[Array[Byte]] = get[Array[Byte]](columnName)(implicitly[Column[Array[Byte]]])
 
   /**
-   * Parse a RequestData from a ResultSet
-   */
-  val simple = {
-    get[Pk[Long]]("request_data.id") ~
-      str("request_data.sender") ~
-      str("request_data.soapAction") ~
-      long("request_data.environmentId") ~
-      long("request_data.serviceId") ~
-      get[Date]("request_data.startTime") ~
-      long("request_data.timeInMillis") ~
-      int("request_data.status") ~
-      str("request_data.purged") map {
-      case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ startTime ~ timeInMillis ~ status ~ purged =>
-        RequestData(id, sender, soapAction, environnmentId, serviceId, null, null, startTime, null, null, timeInMillis, status, (purged == "true"))
-    }
-  }
-
-  /**
    * Title of csvFile. The value is the order of title.
    */
   val csvTitle = Map("key" -> 0, "id" -> 1, "soapAction" -> 2, "startTime" -> 3, "timeInMillis" -> 4, "environmentName" -> 5)
 
-  val csvKey = "requestDataStat";
+  val csvKey = "requestDataStat"
 
   /**
    * Csv format.
@@ -115,13 +114,19 @@ object RequestData {
    * Get All RequestData, csv format.
    * @return List of RequestData, csv format
    */
-  def fetchCsv(): List[String] = DB.withConnection {
+  //def fetchCsv(): List[String] = DB.withConnection {
+  def fetchCsv(): List[String] = {
+    //TODO
+    ???
+    /*
     implicit c => SQL("SELECT *  FROM  request_data, environment WHERE environmentId = environment.id and isStats = 'true';").as(RequestData.csv.*)
+    */
   }
 
   /**
    * Parse required parts of a RequestData from a ResultSet in order to replay the request
    */
+  /* TODO
   val forReplay = {
     get[Pk[Long]]("request_data.id") ~
       str("request_data.sender") ~
@@ -135,38 +140,48 @@ object RequestData {
         new RequestData(id, sender, soapAction, environnmentId, serviceId, uncompressString(request), headers, null, null, null, -1, -1, false)
     }
   }
+  */
 
   /**
    * Construct the Map[String, String] needed to fill a select options set.
    */
-  def soapActionOptions: Seq[(String, String)] = DB.withConnection {
+  //def soapActionOptions: Seq[(String, String)] = DB.withConnection {
+  def soapActionOptions: Seq[(String, String)]  = {
+    //TODO
+  ???
+  /*
     implicit connection =>
       Cache.getOrElse[Seq[(String, String)]](keyCacheSoapAction) {
         Logger.debug("RequestData.SoapAction not found in cache: loading from db")
         SQL("select distinct(soapAction) from request_data order by soapAction asc").as((get[String]("soapAction") ~ get[String]("soapAction")) *).map(flatten)
       }
+  */
   }
 
   /**
    * Construct the Map[String, String] needed to fill a select options set.
    */
-  def statusOptions: Seq[(Int, Int)] = DB.withConnection {
-    implicit connection =>
-      Cache.getOrElse[Seq[(Int, Int)]](keyCacheStatusOptions) {
-        Logger.debug("RequestData.status not found in cache: loading from db")
-        SQL("select distinct(status) from request_data").as(get[Int]("status") *).map(c => c -> c)
-      }
+  //def statusOptions: Seq[(Int, Int)] = DB.withConnection {
+  def statusOptions: Future[BSONDocument] = {
+    collection
+    val command = RawCommand(BSONDocument("distinct" -> "requestData", "key" -> "status", "query" -> BSONDocument()))
+    ReactiveMongoPlugin.db.command(command) // result is Future[BSONDocument]
   }
 
   /**
    * find Min Date.
    */
-  def getMinStartTime: Option[Date] = DB.withConnection {
+  //def getMinStartTime: Option[Date] = DB.withConnection {
+  def getMinStartTime: Option[Date] = {
+    //TODO
+        ???
+    /*
     implicit connection =>
       Cache.getOrElse[Option[Date]](keyCacheMinStartTime) {
         Logger.debug("MinStartTime not found in cache: loading from db")
         SQL("select min(startTime) as startTimeMin from request_data").as(scalar[Option[Date]].single)
       }
+    */
   }
 
   /**
@@ -174,9 +189,10 @@ object RequestData {
    *
    * @param requestData the requestData
    */
-  def insert(requestData: RequestData): Long = {
-    var xmlRequest: Array[Byte] = null
-    var xmlResponse: Array[Byte] = null
+  def insert(requestData: RequestData) : Option[BSONObjectID] = {
+
+    var xmlRequest: String = null
+    var xmlResponse: String = null
 
     val environment = Environment.findById(requestData.environmentId).get
     val service = Service.findById(requestData.serviceId).get
@@ -187,23 +203,23 @@ object RequestData {
 
     if (!service.recordData || !environment.recordData) {
       Logger.debug("Data not recording for this service or this environment")
-      return -1
+      return None
     } else if (!service.recordXmlData) {
       val msg = "Xml Data not recording for this service. See Admin."
-      xmlRequest = compressString(msg)
-      xmlResponse = compressString(msg)
+      xmlRequest = msg
+      xmlResponse = msg
       Logger.debug(msg)
     } else if (!environment.recordXmlData) {
       val msg = "Xml Data not recording for this environment. See Admin."
-      xmlRequest = compressString(msg)
-      xmlResponse = compressString(msg)
+      xmlRequest = msg
+      xmlResponse = msg
       Logger.debug(msg)
     } else if (requestData.status != 200 || (
       environment.hourRecordXmlDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
         environment.hourRecordXmlDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
       // Record XML Data if it is a soap fault (status != 200) or
       // if we can record data with environment's configuration (hours of recording)
-      xmlRequest = compressString(requestData.request)
+      xmlRequest = requestData.request
 
       def transferEncodingResponse = requestData.responseHeaders.filter {
         _._1 == HeaderNames.CONTENT_ENCODING
@@ -212,55 +228,36 @@ object RequestData {
       transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
         case Some("gzip") =>
           Logger.debug("Response in gzip Format")
-          xmlResponse = requestData.responseBytes
+          xmlResponse = "TODO response in gzip format" // TODO requestData.responseBytes
         case _ =>
           Logger.debug("Response in plain Format")
-          xmlResponse = compressString(requestData.response)
+          xmlResponse = requestData.response
       }
     } else {
       val msg = "Xml Data not recording. Record between " + environment.hourRecordXmlDataMin + "h to " + environment.hourRecordXmlDataMax + "h for this environment."
-      xmlRequest = compressString(msg)
-      xmlResponse = compressString(msg)
+      xmlRequest = msg
+      xmlResponse = msg
       Logger.debug(msg)
     }
 
-    try {
-      DB.withConnection {
-        implicit connection =>
-          SQL(
-            """
-            insert into request_data 
-              (sender, soapAction, environmentId, serviceId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status) values (
-              {sender}, {soapAction}, {environmentId}, {serviceId}, {request}, {requestHeaders}, {startTime}, {response}, {responseHeaders}, {timeInMillis}, {status}
-            )
-            """).on(
-            'sender -> requestData.sender,
-            'soapAction -> requestData.soapAction,
-            'environmentId -> requestData.environmentId,
-            'serviceId -> requestData.serviceId,
-            'request -> xmlRequest,
-            'requestHeaders -> headersToString(requestData.requestHeaders),
-            'startTime -> requestData.startTime,
-            'response -> xmlResponse,
-            'responseHeaders -> headersToString(requestData.responseHeaders),
-            'timeInMillis -> requestData.timeInMillis,
-            'status -> requestData.status).executeInsert()
-      } match {
-        case Some(long) => long // The Primary Key
-        case None => -1
-      }
+    requestData.request = xmlRequest
+    requestData.response = xmlResponse
 
-    } catch {
-      case e: Exception => Logger.error("Error during insertion of RequestData ", e)
-        -1
+    collection.insert(requestData).map { lastError =>
+      Logger.debug(s"Successfully inserted RequestData with LastError: $lastError")
     }
+
+    requestData.id
+
   }
 
   /**
    * Insert a new RequestData.
    */
   def insertStats(environmentId: Long, soapAction: String, startTime: Date, timeInMillis: Long) = {
+    ???
 
+    /*
     try {
 
       DB.withConnection {
@@ -296,6 +293,7 @@ object RequestData {
     } catch {
       case e: Exception => Logger.error("Error during insertion of RequestData Stats", e)
     }
+    */
   }
 
   /**
@@ -306,6 +304,8 @@ object RequestData {
    * @param user use who delete the data : admin or akka
    */
   def deleteRequestResponse(environmentIn: String, minDate: Date, maxDate: Date, user: String): Int = {
+    ???
+    /*
     Logger.debug("Environment:" + environmentIn + " mindate:" + minDate.getTime + " maxDate:" + maxDate.getTime)
     Logger.debug("EnvironmentSQL:" + sqlAndEnvironnement(environmentIn))
 
@@ -332,6 +332,7 @@ object RequestData {
         Cache.remove(keyCacheStatusOptions)
         purgedRequests
     }
+    */
   }
 
   /**
@@ -341,6 +342,9 @@ object RequestData {
    * @param maxDate max date
    */
   def delete(environmentIn: String, minDate: Date, maxDate: Date): Int = {
+    //TODO
+    ???
+    /*
     DB.withConnection {
       implicit connection =>
         val deletedRequests = SQL(
@@ -356,14 +360,7 @@ object RequestData {
         Cache.remove(keyCacheStatusOptions)
         deletedRequests
     }
-  }
-
-  /*
-  * Get All RequestData, used for testing only
-  */
-  def findAll(): List[RequestData] = DB.withConnection {
-    implicit c =>
-      SQL("select * from request_data").as(RequestData.simple *)
+    */
   }
 
   /**
@@ -376,10 +373,41 @@ object RequestData {
    * @param status Status
    * @param offset offset in search
    * @param pageSize size of line in one page
-   * @param filterIn filter on soapAction. Usefull only is soapActionIn = "all"
    * @return
    */
-  def list(groupName: String, environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
+  def list(groupName: String, environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10): Future[List[RequestData]] = {
+
+    val group = Group.options.find(t => t._2 == groupName)
+
+    val query = BSONDocument()
+    if (group isDefined) query ++ ("groupdId" -> group.get._1)
+
+    if (environmentIn != "all" && Environment.optionsAll.exists(t => t._2 == environmentIn))
+      query ++ ("environmentId" -> Environment.optionsAll.find(t => t._2 == environmentIn).get._1)
+
+    if (soapAction != "all") query ++ ("soapAction" -> soapAction)
+
+    // Convert dates... bad perf anorm ?
+    val g = new GregorianCalendar()
+    g.setTime(minDate)
+    val min = UtilDate.formatDate(g)
+    g.setTime(maxDate)
+    val max = UtilDate.formatDate(g)
+
+    query ++ ("startTime" -> BSONDocument("&gte" -> min, "&lte" -> max))
+
+    if (status != "all") query ++ ("status" -> status)
+
+    // TODO offset
+    // TODO pageSize
+
+    collection.
+      find(query).
+      sort(Json.obj("startTime" -> -1)).
+      cursor[RequestData].
+      collect[List]()
+
+    /*
     val filter = "%" + filterIn + "%"
 
     // Convert dates... bad perf anorm ?
@@ -430,13 +458,15 @@ object RequestData {
 
         Page(requests, -1, offset, totalRows)
     }
+    */
   }
 
   /**
    * Load reponse times for given parameters
    */
   def findResponseTimes(groupName: String, environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, statsOnly: Boolean): List[(Long, String, Date, Long)] = {
-
+    ???
+  /*
     var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
     if (status != "all") whereClause += " and status = {status}"
     if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
@@ -469,10 +499,12 @@ object RequestData {
           .as(get[Long]("environmentId") ~ get[String]("soapAction") ~ get[Date]("startTime") ~ get[Long]("timeInMillis") *)
           .map(flatten)
     }
+    */
   }
 
   def loadAvgResponseTimesByAction(groupName: String, environmentName: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {
-    DB.withConnection {
+    ???
+    /*DB.withConnection {
       implicit connection =>
 
         var whereClause = " where status=200 and startTime >= {minDate} and startTime <= {maxDate} "
@@ -509,7 +541,7 @@ object RequestData {
             }
         }
         avgTimesByAction.toList.filterNot(_._2 == -1).sortBy(_._1)
-    }
+    }*/
   }
 
   /**
@@ -518,6 +550,8 @@ object RequestData {
    * @return list of unique date
    */
   def findDayNotCompileStats(environmentId: Long): List[Date] = {
+    ???
+    /*
     DB.withConnection {
       implicit connection =>
 
@@ -541,18 +575,21 @@ object RequestData {
         }
         uniqueStartTimePerDay.toList
     }
+    */
   }
 
   def load(id: Long): RequestData = {
-    DB.withConnection {
+    ???
+    /*DB.withConnection {
       implicit connection =>
         SQL("select id, sender, soapAction, environmentId, serviceId, request, requestHeaders from request_data where id= {id}")
           .on('id -> id).as(RequestData.forReplay.single)
-    }
+    }*/
   }
 
   def loadRequest(id: Long): Option[String] = {
-    DB.withConnection {
+    ???
+    /*DB.withConnection {
       implicit connection =>
         val request = SQL("select request from request_data where id= {id}").on('id -> id).as(bytes("request").singleOpt)
         if (request != None) {
@@ -560,11 +597,12 @@ object RequestData {
         } else {
           None
         }
-    }
+    }*/
   }
 
   def loadResponse(id: Long): Option[String] = {
-    DB.withConnection {
+    ???
+    /*DB.withConnection {
       implicit connection =>
         val response = SQL("select response from request_data where id = {id}").on('id -> id).as(bytes("response").singleOpt)
         if (response != None) {
@@ -572,9 +610,10 @@ object RequestData {
         } else {
           None
         }
-    }
+    }*/
   }
 
+  /* TO_DELETE
   private def sqlAndEnvironnement(environmentIn: String): String = {
     var environment = ""
 
@@ -587,9 +626,9 @@ object RequestData {
       environment = " and request_data.environmentId = " + Environment.optionsAll.find(t => t._1 == environmentIn).get._1
 
     environment
-  }
+  }*/
 
-  private def sqlFromAndGroup(groupName: String, environmentIn: String): (String, String) = {
+  /*private def sqlFromAndGroup(groupName: String, environmentIn: String): (String, String) = {
     var group = ""
     var from = ""
 
@@ -601,7 +640,7 @@ object RequestData {
     }
 
     (from, group)
-  }
+  }*/
 
   private def headersToString(headers: Map[String, String]): String = {
     if (headers != null) {
@@ -623,12 +662,12 @@ object RequestData {
   }
 
   // use by Json : from scala to json
-  implicit object RequestDataWrites extends Writes[RequestData] {
+  /*implicit object RequestDataWrites extends Writes[RequestData] {
 
     def writes(o: RequestData): JsValue = {
       JsObject(
         List(
-          "id" -> JsString(o.id.toString),
+          //"id" -> JsString(o.id.toString),
           "purged" -> JsString(o.purged.toString),
           "status" -> JsString(o.status.toString),
           "env" -> JsString(Environment.optionsAll.find(t => t._1 == o.environmentId.toString).get._2),
@@ -638,13 +677,14 @@ object RequestData {
           "time" -> JsString(o.timeInMillis.toString)))
     }
   }
+  */
 
-  private def explainPlan(sql: String, params: (Any, anorm.ParameterValue[_])*)(implicit connection: Connection) {
+  /*private def explainPlan(sql: String, params: (Any, anorm.ParameterValue[_])*)(implicit connection: Connection) {
     val plan = SQL("explain plan for " + sql).on(params: _*).resultSet()
     while (plan.next) {
       Logger.debug(plan.getString(1))
     }
-  }
+  }*/
 
   /**
    * Upload a csvLine => insert requestDataStat.
