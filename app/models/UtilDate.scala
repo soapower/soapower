@@ -14,23 +14,31 @@ object UtilDate {
 
   def getDate(sDate: String, addInMillis: Long = 0, isMax : Boolean = false): GregorianCalendar = {
     val gCal = new GregorianCalendar()
+
     gCal.set(Calendar.HOUR_OF_DAY, 0)
     gCal.set(Calendar.MINUTE, 0)
     gCal.set(Calendar.SECOND, 0)
 
     val mDate: GregorianCalendar = sDate match {
       case "all" => if (isMax) gCal else { gCal.setTime(RequestData.getMinStartTime.getOrElse(new Date)); gCal}
-      case "today" => gCal
-      case "yesterday" => gCal.add(Calendar.DATE, -1); gCal
-      case pattern(days) => gCal.add(Calendar.DATE, -(days.toInt)); gCal
+      case "today" =>
+        if(isMax)
+          gCal.setTimeInMillis(gCal.getTimeInMillis + v23h59min59s)
+        gCal
+      case "yesterday" =>
+        gCal.add(Calendar.DATE, -1)
+        if(isMax)
+          gCal.setTimeInMillis(gCal.getTimeInMillis + v23h59min59s)
+
+        gCal
+      case pattern(days) =>
+        gCal.add(Calendar.DATE, -(days.toInt)); gCal
       case _ =>
-        val f = new SimpleDateFormat("yyyy-MM-dd")
+        val f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm")
         gCal.setTime(f.parse(sDate))
         gCal
     }
-    mDate.setTimeInMillis(mDate.getTimeInMillis + addInMillis)
     mDate
-
   }
 
   def formatDate(gCal: GregorianCalendar): String = {
