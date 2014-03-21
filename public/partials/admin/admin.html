@@ -1,7 +1,7 @@
 <h3>Download Configuration</h3>
-<button class="btn btn-default" href="{{urlDlConfig}}">Download configuration as csv File</button>
+<a class="btn btn-default" href="{{urlDlConfig}}"><i class="fa fa-download"></i> Download configuration as csv File</a>
 
-<button href="{{urlDlRequestDataStatsEntries}}" class="btn btn-default">Download RequestData Stat Entries as csv File</button>
+<a href="{{urlDlRequestDataStatsEntries}}" class="btn btn-default"><i class="fa fa-download"></i> Download RequestData Stat Entries as csv File</a>
 <hr>
 
 <h3>Upload Configuration</h3>
@@ -19,10 +19,14 @@
     </ul>
 </div>
 
-<form action="{{urlUploadConfiguration}}" ng-upload>
+<form action="{{urlUploadConfiguration}}" ng-upload-loading="startUpload()" ng-upload="uploadComplete(content)">
     <input type="file" name="fileUploaded"/>
-    <input type="submit" value="Upload configuration" class="btn btn-default" upload-submit="uploadComplete(content, completed)"/>
+    <button type="submit" class="btn btn-default" ng-disabled="$isLoading">
+        <i class="fa fa-upload"></i> Upload Configuration
+    </button>
 </form>
+showUploadRunning : {{showUploadRunning}}
+showResponseUpload : {{showResponseUpload}}
 
 <div class="alert alert-info" ng-show="showUploadRunning">Wait... Uploading.</div>
 <div class="alert alert-{{response.code}}" ng-show="showResponseUpload">{{response.text}}</div>

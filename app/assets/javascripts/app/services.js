@@ -6,7 +6,7 @@ spApp.factory('Service', function ($resource, UIService) {
         { update: {method: 'POST'} }
     );
 
-    Service.prototype.update = function (cb) {
+    Service.prototype.update = function (cb, cbError) {
         this.recordXmlData = UIService.fixBoolean(this.recordXmlData);
         this.recordData = UIService.fixBoolean(this.recordData);
         this.useMockGroup = UIService.fixBoolean(this.useMockGroup);
@@ -15,7 +15,7 @@ spApp.factory('Service', function ($resource, UIService) {
         this.id = parseInt(this.id);
 
         return Service.update({serviceId: this.id},
-            angular.extend({}, this, {serviceId: undefined}), cb);
+            angular.extend({}, this, {serviceId: undefined}), cb, cbError);
     };
 
     Service.prototype.destroy = function (cb) {
@@ -41,8 +41,8 @@ spApp.factory('Environment', function ($resource, UIService) {
             angular.extend({}, this, {environmentId: undefined}), cb, cbError);
     };
 
-    Environment.prototype.destroy = function (cb) {
-        return Environment.remove({environmentId: this.id}, cb);
+    Environment.prototype.destroy = function (cb, cbError) {
+        return Environment.remove({environmentId: this.id}, cb, cbError);
     };
 
     return Environment;
@@ -62,8 +62,8 @@ spApp.factory('Mock', function ($resource) {
             angular.extend({}, this, {mockId: undefined}), cb, cbError);
     };
 
-    Mock.prototype.destroy = function (cb) {
-        return Mock.remove({mockId: this.id}, cb);
+    Mock.prototype.destroy = function (cb, cbError) {
+        return Mock.remove({mockId: this.id}, cb, cbError);
     };
 
     return Mock;
@@ -83,8 +83,8 @@ spApp.factory('MockGroup', function ($resource) {
             angular.extend({}, this, {mockGroupId: undefined}), cb, cbError);
     };
 
-    MockGroup.prototype.destroy = function (cb) {
-        return MockGroup.remove({mockGroupId: this.id}, cb);
+    MockGroup.prototype.destroy = function (cb, cbError) {
+        return MockGroup.remove({mockGroupId: this.id}, cb, cbError);
     };
 
     return MockGroup;
@@ -103,8 +103,8 @@ spApp.factory('Group', function ($resource, UIService) {
             angular.extend({}, this, {groupId: undefined}), cb, cbError);
     };
 
-    Group.prototype.destroy = function (cb) {
-        return Group.remove({groupId: this.id}, cb);
+    Group.prototype.destroy = function (cb, cbError) {
+        return Group.remove({groupId: this.id}, cb, cbError);
     };
 
     return Group;
@@ -116,10 +116,10 @@ spApp.factory('SoapAction', function ($resource) {
         { update: {method: 'POST'} }
     );
 
-    SoapAction.prototype.update = function (cb) {
+    SoapAction.prototype.update = function (cb, cbError) {
         this.id = parseInt(this.id);
         return SoapAction.update({soapActionId: this.id},
-            angular.extend({}, this, {soapActionId: undefined}), cb);
+            angular.extend({}, this, {soapActionId: undefined}), cb, cbError);
     };
 
     return SoapAction;

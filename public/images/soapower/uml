@@ -1,5 +1,6 @@
 // Class Diagram - http://yuml.me/diagram/scruffy/class/draw
 [Service|localTarget; remoteTarget; timeoutInMs; recordXmlData; recordData]<>-*>[RequestData]
+[Service]-[note:Each service could have a mock group instead of a remote Target. See Documentation{bg:cornsilk}]
 [Group|name]<>-*>[Environment]
 [Environment|hourRecordXmlDataMin; hourRecordXmlDataMax; nbDayKeepXmlData; nbDayKeepAllData]<>-*>[Service]
 [RequestData|sender; Request; Response;startTime;responseTime]
@@ -17,3 +18,4 @@ Receiver->Soapower: Webservice Response
 Soapower->Sender: Webservice Response
 Soapower->Soapower: Store Async
 note right of Soapower: Soapower store async Request Data : \nWS Request & Response\n responseTime\nFrom & To, StartTime
+note right of Receiver: The receiver can be Soapower \n with  the mocking feature

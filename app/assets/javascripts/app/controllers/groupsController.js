@@ -50,6 +50,8 @@ function GroupEditCtrl($scope, $routeParams, $location, Group, UIService) {
     $scope.destroy = function () {
         self.original.destroy(function () {
             $location.path('/groups');
+        }, function (response) { // error case
+            alert(response.data);
         });
     };
 

@@ -73,6 +73,8 @@ function MockEditCtrl($scope, $routeParams, $location, Mock, MockGroupsService) 
     $scope.destroy = function () {
         self.original.destroy(function () {
             $location.path('/mocks');
+        }, function (response) { // error case
+            alert(response.data);
         });
     };
 

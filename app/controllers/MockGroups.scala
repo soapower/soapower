@@ -121,8 +121,12 @@ object MockGroups extends Controller {
       val mockgroupOption = MockGroup.findById(id)
       mockgroupOption match {
         case Some(mockgroup) =>
-          MockGroup.delete(mockgroup)
-          Ok("deleted")
+          try {
+            MockGroup.delete(mockgroup)
+            Ok("deleted")
+          } catch {
+            case e : Throwable => { BadRequest("Detected error:" + e.getMessage) }
+          }
         case None =>
           Ok("failure : Mockgroup doesn't exist")
       }

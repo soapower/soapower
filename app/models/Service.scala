@@ -264,8 +264,11 @@ object Service {
    */
   def fetchCsv(): List[String] = DB.withConnection {
     implicit c =>
-      SQL("select * from service left join environment on service.environment_id = environment.id")
-        .as(Service.csv *)
+      SQL( """
+           select * from service, mock_group, environment
+           where service.environment_id = environment.id
+           and service.mockGroupId = mock_group.id
+           """).as(Service.csv *)
   }
 
   /**
