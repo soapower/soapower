@@ -13,7 +13,7 @@ import java.sql.Connection
 import collection.mutable.Set
 import java.util.zip.{GZIPOutputStream, GZIPInputStream}
 import java.nio.charset.Charset
-import java.io.{ByteArrayOutputStream, BufferedReader, InputStreamReader, ByteArrayInputStream}
+import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 
 case class RequestData(
                         var id: Pk[Long],
@@ -34,6 +34,10 @@ case class RequestData(
 
   def this(sender: String, soapAction: String, environnmentId: Long, serviceId: Long) =
     this(null, sender, soapAction, environnmentId, serviceId, null, null, new Date, null, null, -1, -1, false)
+
+  def this(mock: Mock, sender: String, soapAction: String, environnmentId: Long, serviceId: Long) =
+    this(null, sender, soapAction, environnmentId, serviceId, null, null, new Date, null, null, mock.timeoutms, mock.httpStatus, false)
+
 
   /**
    * Add soapAction in cache if neccessary.
@@ -640,9 +644,10 @@ object RequestData {
   implicit object RequestDataWrites extends Writes[RequestData] {
 
     def writes(o: RequestData): JsValue = {
+      val id = if (o.id != null) o.id.toString else "-1"
       JsObject(
         List(
-          "id" -> JsString(o.id.toString),
+          "id" -> JsString(id),
           "purged" -> JsString(o.purged.toString),
           "status" -> JsString(o.status.toString),
           "env" -> JsString(Environment.optionsAll.find(t => t._1 == o.environmentId.toString).get._2),

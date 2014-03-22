@@ -142,7 +142,8 @@ object Soap extends Controller {
           val sr = new Results.Status(mock.httpStatus).stream(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
             .withHeaders("ProxyVia" -> "soapower")
             .as(XML)
-
+          val requestData = new RequestData(mock, sender, Client.extractSoapAction(headers), service.environmentId, service.id)
+          Robot.talk(requestData)
 
           val timeoutFuture = play.api.libs.concurrent.Promise.timeout(sr, mock.timeoutms.milliseconds)
           Await.result(timeoutFuture, 10.second) // 10 seconds (10000 ms) is the maximum allowed.
