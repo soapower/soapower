@@ -259,7 +259,14 @@ spApp.factory("CodesService", function ($http) {
                 .success(function (codes) {
                     $scope.codes = codes;
                     $scope.codes.unshift({id: "all", name: "all"});
+
                     angular.forEach($scope.codes, function (value, key) {
+                        if (value.name != "all") {
+                            var valNot = "NOT_" + value.name;
+                            var objNot = {id: valNot, name: valNot}
+                            $scope.codes.push(objNot);
+                            if (valNot == $routeParams.code) $scope.code = objNot;
+                        }
                         if (value.name == $routeParams.code) $scope.code = value;
                     });
 

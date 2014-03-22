@@ -28,7 +28,7 @@ object Stats extends Controller {
       // compute average response times
       val minDate = getDate(minDateAsStr).getTime()
       val maxDate = getDate(maxDateAsStr, v23h59min59s).getTime()
-      val avgResponseTimesByAction = RequestData.loadAvgResponseTimesByAction(groupName, environmentName, minDate, maxDate, true)
+      val avgResponseTimesByAction = RequestData.loadAvgResponseTimesByAction(groupName, environmentName, status, minDate, maxDate, true)
 
       val data = avgResponseTimesByAction.map(d => (environmentName, d._1, d._2, thresholdsBySoapActions.getOrElse[Long](d._1, -1)))
 
@@ -46,7 +46,7 @@ object Stats extends Controller {
     var ret = ""
     Environment.optionsAll.foreach {
       e =>
-        val avgResponseTimesByAction = RequestData.loadAvgResponseTimesByAction(groupName, e._1, minDate, maxDate, true)
+        val avgResponseTimesByAction = RequestData.loadAvgResponseTimesByAction(groupName, e._1, "200", minDate, maxDate, true)
         val data = avgResponseTimesByAction.map(d => (d._1, d._2, thresholdsBySoapActions.getOrElse[Long](d._1, -1)))
 
         ret += "<testsuite name=\"" + e._2 + "\">"

@@ -390,7 +390,8 @@ object RequestData {
     val max = UtilDate.formatDate(g)
 
     var whereClause = " where startTime >= '" + min + "' and startTime <= '" + max + "'"
-    if (status != "all") whereClause += " and status = {status}"
+    whereClause += sqlAndStatus(status)
+
     if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
     if (filterIn != "%" && filterIn.trim != "") whereClause += " and soapAction like {filter}"
 
@@ -406,9 +407,6 @@ object RequestData {
       'pageSize -> pageSize,
       'offset -> offset * pageSize,
       'soapAction -> soapAction,
-      //'minDate -> minDate,
-      //'maxDate -> maxDate,
-      'status -> status,
       'filter -> filter)
 
     val sql = "select request_data.id, sender, soapAction, environmentId, serviceId, " +
@@ -438,7 +436,8 @@ object RequestData {
   def findResponseTimes(groupName: String, environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, statsOnly: Boolean): List[(Long, String, Date, Long)] = {
 
     var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
-    if (status != "all") whereClause += " and status = {status}"
+    whereClause += sqlAndStatus(status)
+    Logger.debug("DDDDD==>" + whereClause)
     if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
     whereClause += sqlAndEnvironnement(environmentIn)
 
@@ -447,7 +446,6 @@ object RequestData {
     whereClause += pair._2
 
     val params: Array[(Any, anorm.ParameterValue[_])] = Array(
-      'status -> status,
       'minDate -> minDate,
       'maxDate -> maxDate,
       'soapAction -> soapAction)
@@ -471,11 +469,12 @@ object RequestData {
     }
   }
 
-  def loadAvgResponseTimesByAction(groupName: String, environmentName: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {
+  def loadAvgResponseTimesByAction(groupName: String, environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {
     DB.withConnection {
       implicit connection =>
 
-        var whereClause = " where status=200 and startTime >= {minDate} and startTime <= {maxDate} "
+        var whereClause = " where startTime >= {minDate} and startTime <= {maxDate} "
+        whereClause += sqlAndStatus(status)
         if (!withStats) whereClause += " and isStats = 'false' "
 
         Logger.debug("Load Stats with env:" + environmentName)
@@ -573,6 +572,21 @@ object RequestData {
           None
         }
     }
+  }
+
+  private def sqlAndStatus(statusIn : String) : String = {
+
+    var status = ""
+    if (statusIn != "all") {
+      if (statusIn.startsWith("NOT_")) {
+        status = " and status != " + statusIn.substring(4)
+      } else {
+        status = " and status = " + statusIn
+      }
+    }
+
+    status
+
   }
 
   private def sqlAndEnvironnement(environmentIn: String): String = {
