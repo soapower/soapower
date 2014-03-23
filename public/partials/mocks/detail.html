@@ -63,10 +63,23 @@
         </div>
     </div>
 
+    <div class="form-group" ng-class="{error: myForm.httpHeaders.$invalid}">
+        <label for="httpHeaders" class="col-lg-2 control-label">HTTP Headers</label>
+        <div class="col-lg-4">
+            <textarea class="form-control" id="httpHeaders" name="httpHeaders" ng-model="mock.httpHeaders" rows="3" cols="20"></textarea>
+        </div>
+        <div class="col-lg-6 help-block">One header per line, example:
+            <pre>Content-Type -> text/xml
+                charset=utf-8
+            </pre>
+
+        </div>
+    </div>
+
     <div class="form-group" ng-class="{error: myForm.response.$invalid}">
         <label for="response" class="col-lg-2 control-label">Response</label>
         <div class="col-lg-10">
-            <textarea class="form-control" id="response" name="response" ng-model="mock.response" rows="10" cols=""50" required></textarea>
+            <textarea class="form-control" id="response" name="response" ng-model="mock.response" rows="10" cols="50" required></textarea>
             <span ng-show="myForm.response.$error.required" class="help-inline">Required</span>
         </div>
     </div>

@@ -1,14 +1,11 @@
 <span>
-
-    <span ng-if="line.id == '-1'">
+    <span ng-if="line.isMock == 'true'">
         <span class="ngCellText" title="This response is a mock defined on Soapower">Mock</span>
     </span>
-    <span ng-if="line.id != '-1'">
-        <span class="ngCellText" ng-hide="{{line.purged}}">
-            <i class="pointer" ng-click="dlResponse(true, line)" title="Download"><i class="fa fa-file"></i></i>
-            <i class="pointer" target="_blank" ng-click="dlResponse(false, line)" title="Open in new tab"><i
-                    class="fa fa-eye"></i></i>
-        </span>
-        <span class="ngCellText" ng-show="{{line.purged}}">-</span>
+    <span class="ngCellText" ng-hide="{{line.purged}}">
+        <i class="pointer" ng-click="dlResponse(true, line)" title="Download"><i class="fa fa-file"></i></i>
+        <i class="pointer" target="_blank" ng-click="dlResponse(false, line)" title="Open in new tab"><i
+                class="fa fa-eye"></i></i>
     </span>
+    <span class="ngCellText" ng-show="{{line.purged}}">-</span>
 </span>

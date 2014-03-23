@@ -1,4 +1,4 @@
-function LiveCtrl($scope, $location, $window, $routeParams, ReplayService) {
+function LiveCtrl($scope, $location, $window, $routeParams) {
     $scope.ctrlPath = "live";
     $scope.isLiveOn = false;
     $scope.isError = false;
