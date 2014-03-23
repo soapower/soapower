@@ -414,7 +414,7 @@ object RequestData {
 
     val sql = "select request_data.id, sender, soapAction, environmentId, serviceId, " +
       " startTime, timeInMillis, status, purged, isMock " + fromClause + whereClause +
-      " order by request_data.id " +
+      " order by startTime " +
       " desc limit {offset}, {pageSize}"
 
     Logger.debug("SQL (list) ====> " + sql)
