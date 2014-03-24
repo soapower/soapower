@@ -8,6 +8,7 @@ import play.api._
 import anorm._
 import anorm.SqlParser._
 import org.apache.http.HttpStatus
+import play.api.libs.json.{JsString, JsObject, JsValue, Writes}
 
 case class Mock(id: Long,
                 name: String,
@@ -15,6 +16,7 @@ case class Mock(id: Long,
                 description: String,
                 timeoutms: Int = 0,
                 httpStatus: Int = 0,
+                httpHeaders: String,
                 criteria: String,
                 response: String
                  )
@@ -34,10 +36,11 @@ object Mock {
       get[String]("mock.description") ~
       get[Int]("mock.timeoutms") ~
       get[Int]("mock.httpStatus") ~
+      get[String]("mock.httpHeaders") ~
       get[String]("mock.criteria") ~
       get[String]("mock.response") map {
-      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ httpStatus ~ criteria ~ response
-      => Mock(id, name, mockGroupId, description, timeoutms, httpStatus, criteria, response)
+      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ httpStatus ~ httpHeaders ~ criteria ~ response =>
+      new Mock(id, name, mockGroupId, description, timeoutms, httpStatus, httpHeaders, criteria, response)
     }
   }
 
@@ -51,16 +54,17 @@ object Mock {
       get[String]("mock.description") ~
       get[Int]("mock.timeoutms") ~
       get[Int]("mock.httpStatus") ~
+      get[String]("mock.httpHeaders") ~
       get[String]("mock.criteria") map {
-      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ httpStatus ~ criteria
-      => Mock(id, name, mockGroupId, description, timeoutms, httpStatus, criteria, null)
+      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ httpStatus ~ httpHeaders ~ criteria =>
+      new Mock(id, name, mockGroupId, description, timeoutms, httpStatus, httpHeaders, criteria, null)
     }
   }
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groupName" -> 3, "description" -> 4, "timeoutms" -> 5, "httpStatus" -> 6, "criteria" -> 7, "response" -> 8)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groupName" -> 3, "description" -> 4, "timeoutms" -> 5, "httpStatus" -> 6, "httpHeaders" -> 7, "criteria" -> 8, "response" -> 9)
 
   val csvKey = "mock"
 
@@ -74,10 +78,12 @@ object Mock {
       get[Int]("mock.description") ~
       get[Int]("mock.timeoutms") ~
       get[Int]("mock.httpStatus") ~
+      get[String]("mock.httpHeaders") ~
       get[String]("mock.criteria") ~
       get[String]("mock.response") map {
-      case id ~ name ~ groupName ~ description ~ timeoutms ~ httpStatus ~ criteria ~ response =>
-        id + ";" + name + ";" + groupName + ";" + description + ";" + timeoutms + ";" + httpStatus + ";" + criteria + ";" + response + "\n"
+      case id ~ name ~ groupName ~ description ~ timeoutms ~ httpStatus ~ httpHeaders ~ criteria ~ response =>
+        val headers = UtilConvert.headersFromString(httpHeaders)
+        id + ";" + name + ";" + groupName + ";" + description + ";" + timeoutms + ";" + httpStatus + ";" + headers + ";" + criteria + ";" + response + "\n"
     }
   }
 
@@ -143,13 +149,14 @@ object Mock {
       implicit connection =>
         SQL(
           """
-            insert into mock (id, name, description, timeoutms, httpStatus, criteria, response, mockGroupId)
-              values (null, {name}, {description}, {timeoutms}, {httpStatus}, {criteria}, {response}, {mockGroupId})
+            insert into mock (id, name, description, timeoutms, httpStatus, httpHeaders criteria, response, mockGroupId)
+              values (null, {name}, {description}, {timeoutms}, {httpStatus}, {httpHeaders}, {criteria}, {response}, {mockGroupId})
           """).on(
             'name -> mock.name.trim,
             'description -> mock.description,
             'timeoutms -> mock.timeoutms,
             'httpStatus -> mock.httpStatus,
+            'httpHeaders -> mock.httpHeaders,
             'criteria -> mock.criteria,
             'response -> mock.response,
             'mockGroupId -> mock.mockGroupId
@@ -181,6 +188,7 @@ object Mock {
           description = {description},
           timeoutms = {timeoutms},
           httpStatus = {httpStatus},
+          httpHeaders = {httpHeaders},
           criteria = {criteria},
           response = {response},
           mockGroupId = {mockGroupId}
@@ -191,6 +199,7 @@ object Mock {
             'description -> mock.description,
             'timeoutms -> mock.timeoutms,
             'httpStatus -> mock.httpStatus,
+            'httpHeaders -> mock.httpHeaders,
             'criteria -> mock.criteria,
             'response -> mock.response,
             'mockGroupId -> mock.mockGroupId
@@ -228,7 +237,8 @@ object Mock {
 
         val mocks = SQL(
           """
-          select mock.id, mock.name, mock.mockGroupId, mock.description, mock.timeoutms, mock.httpStatus, mock.criteria
+          select mock.id, mock.name, mock.mockGroupId, mock.description, mock.timeoutms,
+          mock.httpStatus, mock.httpHeaders, mock.criteria
           from mock, mock_group
           where mock.mockGroupId = mock_group.id
           and mock_group.name = {mockGroup}
@@ -304,6 +314,7 @@ object Mock {
         dataCsv(csvTitle.get("description").get).trim,
         dataCsv(csvTitle.get("timeoutms").get).toInt,
         dataCsv(csvTitle.get("httpStatus").get).toInt,
+        dataCsv(csvTitle.get("httpHeaders").get).trim,
         dataCsv(csvTitle.get("criteria").get).trim,
         dataCsv(csvTitle.get("response").get).trim
       )
@@ -331,11 +342,10 @@ object Mock {
 
       if (ret == null) {
         ret = new Mock(-1, "mockNotFoundName", -1,
-          "mockNotFoundDescription", 0, HttpStatus.SC_INTERNAL_SERVER_ERROR, "noCriteria",
+          "mockNotFoundDescription", 0, HttpStatus.SC_INTERNAL_SERVER_ERROR, "", "noCriteria",
           "Error getting Mock with mockGroupId " + mockGroupId
         )
       }
       ret
   }
-
 }

@@ -13,7 +13,7 @@ import java.sql.Connection
 import collection.mutable.Set
 import java.util.zip.{GZIPOutputStream, GZIPInputStream}
 import java.nio.charset.Charset
-import java.io.{ByteArrayOutputStream, BufferedReader, InputStreamReader, ByteArrayInputStream}
+import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 
 case class RequestData(
                         var id: Pk[Long],
@@ -28,12 +28,13 @@ case class RequestData(
                         var responseHeaders: Map[String, String],
                         var timeInMillis: Long,
                         var status: Int,
-                        var purged: Boolean) {
+                        var purged: Boolean,
+                        var isMock: Boolean) {
 
   var responseBytes: Array[Byte] = null
 
   def this(sender: String, soapAction: String, environnmentId: Long, serviceId: Long) =
-    this(null, sender, soapAction, environnmentId, serviceId, null, null, new Date, null, null, -1, -1, false)
+    this(null, sender, soapAction, environnmentId, serviceId, null, null, new Date, null, null, -1, -1, false, false)
 
   /**
    * Add soapAction in cache if neccessary.
@@ -84,9 +85,10 @@ object RequestData {
       get[Date]("request_data.startTime") ~
       long("request_data.timeInMillis") ~
       int("request_data.status") ~
-      str("request_data.purged") map {
-      case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ startTime ~ timeInMillis ~ status ~ purged =>
-        RequestData(id, sender, soapAction, environnmentId, serviceId, null, null, startTime, null, null, timeInMillis, status, (purged == "true"))
+      str("request_data.purged") ~
+      str("request_data.isMock") map {
+      case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ startTime ~ timeInMillis ~ status ~ purged ~ isMock =>
+        RequestData(id, sender, soapAction, environnmentId, serviceId, null, null, startTime, null, null, timeInMillis, status, (purged == "true"), (isMock == "true"))
     }
   }
 
@@ -113,7 +115,7 @@ object RequestData {
 
   /**
    * Get All RequestData, csv format.
-   * @return List of RequestData, csv format
+   * @return List of RequestData, csv format, except mock
    */
   def fetchCsv(): List[String] = DB.withConnection {
     implicit c => SQL("SELECT *  FROM  request_data, environment WHERE environmentId = environment.id and isStats = 'true';").as(RequestData.csv.*)
@@ -131,8 +133,8 @@ object RequestData {
       bytes("request_data.request") ~
       str("request_data.requestHeaders") map {
       case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ request ~ requestHeaders =>
-        val headers = headersFromString(requestHeaders)
-        new RequestData(id, sender, soapAction, environnmentId, serviceId, uncompressString(request), headers, null, null, null, -1, -1, false)
+        val headers = UtilConvert.headersFromString(requestHeaders)
+        new RequestData(id, sender, soapAction, environnmentId, serviceId, uncompressString(request), headers, null, null, null, -1, -1, false, false)
     }
   }
 
@@ -204,7 +206,6 @@ object RequestData {
       // Record XML Data if it is a soap fault (status != 200) or
       // if we can record data with environment's configuration (hours of recording)
       xmlRequest = compressString(requestData.request)
-
       def transferEncodingResponse = requestData.responseHeaders.filter {
         _._1 == HeaderNames.CONTENT_ENCODING
       }
@@ -230,8 +231,8 @@ object RequestData {
           SQL(
             """
             insert into request_data 
-              (sender, soapAction, environmentId, serviceId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status) values (
-              {sender}, {soapAction}, {environmentId}, {serviceId}, {request}, {requestHeaders}, {startTime}, {response}, {responseHeaders}, {timeInMillis}, {status}
+              (sender, soapAction, environmentId, serviceId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status, isMock) values (
+              {sender}, {soapAction}, {environmentId}, {serviceId}, {request}, {requestHeaders}, {startTime}, {response}, {responseHeaders}, {timeInMillis}, {status}, {isMock}
             )
             """).on(
             'sender -> requestData.sender,
@@ -239,12 +240,14 @@ object RequestData {
             'environmentId -> requestData.environmentId,
             'serviceId -> requestData.serviceId,
             'request -> xmlRequest,
-            'requestHeaders -> headersToString(requestData.requestHeaders),
+            'requestHeaders -> UtilConvert.headersToString(requestData.requestHeaders),
             'startTime -> requestData.startTime,
             'response -> xmlResponse,
-            'responseHeaders -> headersToString(requestData.responseHeaders),
+            'responseHeaders -> UtilConvert.headersToString(requestData.responseHeaders),
             'timeInMillis -> requestData.timeInMillis,
-            'status -> requestData.status).executeInsert()
+            'status -> requestData.status,
+            'isMock -> requestData.isMock
+            ).executeInsert()
       } match {
         case Some(long) => long // The Primary Key
         case None => -1
@@ -284,8 +287,8 @@ object RequestData {
           SQL(
             """
             insert into request_data
-              (sender, soapAction, environmentId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status, isStats) values (
-              '', {soapAction}, {environmentId}, '', '', {startTime}, '', '', {timeInMillis}, 200, 'true'
+              (sender, soapAction, environmentId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status, isStats, isMock) values (
+              '', {soapAction}, {environmentId}, '', '', {startTime}, '', '', {timeInMillis}, 200, 'true', 'false'
             )
             """).on(
             'soapAction -> soapAction,
@@ -390,7 +393,8 @@ object RequestData {
     val max = UtilDate.formatDate(g)
 
     var whereClause = " where startTime >= '" + min + "' and startTime <= '" + max + "'"
-    if (status != "all") whereClause += " and status = {status}"
+    whereClause += sqlAndStatus(status)
+
     if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
     if (filterIn != "%" && filterIn.trim != "") whereClause += " and soapAction like {filter}"
 
@@ -406,14 +410,11 @@ object RequestData {
       'pageSize -> pageSize,
       'offset -> offset * pageSize,
       'soapAction -> soapAction,
-      //'minDate -> minDate,
-      //'maxDate -> maxDate,
-      'status -> status,
       'filter -> filter)
 
     val sql = "select request_data.id, sender, soapAction, environmentId, serviceId, " +
-      " startTime, timeInMillis, status, purged  " + fromClause + whereClause +
-      " order by request_data.id " +
+      " startTime, timeInMillis, status, purged, isMock " + fromClause + whereClause +
+      " order by startTime " +
       " desc limit {offset}, {pageSize}"
 
     Logger.debug("SQL (list) ====> " + sql)
@@ -438,7 +439,8 @@ object RequestData {
   def findResponseTimes(groupName: String, environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, statsOnly: Boolean): List[(Long, String, Date, Long)] = {
 
     var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
-    if (status != "all") whereClause += " and status = {status}"
+    whereClause += sqlAndStatus(status)
+    Logger.debug("DDDDD==>" + whereClause)
     if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
     whereClause += sqlAndEnvironnement(environmentIn)
 
@@ -447,7 +449,6 @@ object RequestData {
     whereClause += pair._2
 
     val params: Array[(Any, anorm.ParameterValue[_])] = Array(
-      'status -> status,
       'minDate -> minDate,
       'maxDate -> maxDate,
       'soapAction -> soapAction)
@@ -471,11 +472,12 @@ object RequestData {
     }
   }
 
-  def loadAvgResponseTimesByAction(groupName: String, environmentName: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {
+  def loadAvgResponseTimesByAction(groupName: String, environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {
     DB.withConnection {
       implicit connection =>
 
-        var whereClause = " where status=200 and startTime >= {minDate} and startTime <= {maxDate} "
+        var whereClause = " where startTime >= {minDate} and startTime <= {maxDate} "
+        whereClause += sqlAndStatus(status)
         if (!withStats) whereClause += " and isStats = 'false' "
 
         Logger.debug("Load Stats with env:" + environmentName)
@@ -527,7 +529,7 @@ object RequestData {
         val startTimes = SQL(
           """
           select startTime from request_data
-          where environmentId={environmentId} and status=200 and isStats = 'false' and startTime < {today}
+          where environmentId={environmentId} and status=200 and isStats = 'false' and isMock = 'false' and startTime < {today}
           """
         ).on('environmentId -> environmentId, 'today -> today.getTime)
           .as(get[Date]("startTime") *).toList
@@ -575,6 +577,19 @@ object RequestData {
     }
   }
 
+  private def sqlAndStatus(statusIn : String) : String = {
+
+    var status = ""
+    if (statusIn != "all") {
+      if (statusIn.startsWith("NOT_")) {
+        status = " and status != " + statusIn.substring(4)
+      } else {
+        status = " and status = " + statusIn
+      }
+    }
+    status
+  }
+
   private def sqlAndEnvironnement(environmentIn: String): String = {
     var environment = ""
 
@@ -603,39 +618,22 @@ object RequestData {
     (from, group)
   }
 
-  private def headersToString(headers: Map[String, String]): String = {
-    if (headers != null) {
-      headers.foldLeft("") {
-        (string, header) => string + header._1 + " -> " + header._2 + "\n"
-      }
-    } else {
-      ""
-    }
-  }
-
-  private def headersFromString(headersAsStr: String): Map[String, String] = {
-    def headers = headersAsStr.split("\n").collect {
-      case header =>
-        val parts = header.split(" -> ")
-        (parts(0), parts.tail.mkString(""))
-    }
-    headers.toMap
-  }
-
   // use by Json : from scala to json
   implicit object RequestDataWrites extends Writes[RequestData] {
 
     def writes(o: RequestData): JsValue = {
+      val id = if (o.id != null) o.id.toString else "-1"
       JsObject(
         List(
-          "id" -> JsString(o.id.toString),
+          "id" -> JsString(id),
           "purged" -> JsString(o.purged.toString),
           "status" -> JsString(o.status.toString),
           "env" -> JsString(Environment.optionsAll.find(t => t._1 == o.environmentId.toString).get._2),
           "sender" -> JsString(o.sender),
           "soapAction" -> JsString(o.soapAction),
           "startTime" -> JsString(UtilDate.getDateFormatees(o.startTime)),
-          "time" -> JsString(o.timeInMillis.toString)))
+          "time" -> JsString(o.timeInMillis.toString),
+          "isMock" -> JsString(o.isMock.toString)))
     }
   }
 

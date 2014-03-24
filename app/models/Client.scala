@@ -34,15 +34,38 @@ object Client {
     }
   }
 
+  def extractSoapAction(headers: Map[String, String]): String = {
+    var soapAction = headers.get("SOAPAction").get
+
+    // drop apostrophes if present
+    if (soapAction.startsWith("\"") && soapAction.endsWith("\"")) {
+      soapAction = soapAction.drop(1).dropRight(1)
+    }
+
+    soapAction
+  }
+
 }
 
 class Client(service: Service, sender: String, content: String, headers: Map[String, String]) {
 
-  val requestData = new RequestData(sender, extractSoapAction(headers), service.environmentId, service.id)
+  val requestData = new RequestData(sender, Client.extractSoapAction(headers), service.environmentId, service.id)
   var response: ClientResponse = null
 
   private var futureResponse: Future[Response] = null
   private var requestTimeInMillis: Long = -1
+
+  def workWithMock(mock : Mock) {
+    requestData.isMock = true
+    requestData.timeInMillis = mock.timeoutms
+    requestData.status = mock.httpStatus
+
+    requestData.requestHeaders = headers
+    requestData.response = checkNullOrEmpty(mock.response)
+    requestData.responseHeaders = UtilConvert.headersFromString(mock.httpHeaders)
+    saveData(content)
+    Logger.debug("End workWithMock")
+  }
 
   def sendRequestAndWaitForResponse() {
     if (Logger.isDebugEnabled) {
@@ -107,6 +130,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
   }
 
   private def saveData(content: String) = {
+    Logger.debug("SaveData enter")
     try {
       // asynchronously writes data to the DB
       val writeStartTime = System.currentTimeMillis()
@@ -115,6 +139,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
         requestData.storeSoapActionAndStatusInCache()
         val id = RequestData.insert(requestData)
         requestData.id = anorm.Id(id.toString.toLong)
+        Logger.debug("talk")
         Robot.talk(requestData)
       }.map {
         result =>
@@ -123,17 +148,6 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     } catch {
       case e: Throwable => Logger.error("Error writing to DB", e)
     }
-  }
-
-  private def extractSoapAction(headers: Map[String, String]): String = {
-    var soapAction = headers.get("SOAPAction").get
-
-    // drop apostrophes if present
-    if (soapAction.startsWith("\"") && soapAction.endsWith("\"")) {
-      soapAction = soapAction.drop(1).dropRight(1)
-    }
-
-    soapAction
   }
 
   private def processError(step: String, exception: Throwable) {
