@@ -364,7 +364,7 @@ object Environment {
             gcal.setTimeInMillis(minDate.getTime + UtilDate.v1d)
             val maxDate = gcal.getTime
 
-            val result = RequestData.loadAvgResponseTimesByAction("all", e._1, minDate, maxDate, false)
+            val result = RequestData.loadAvgResponseTimesByAction("all", e._1, "200", minDate, maxDate, false)
             result.foreach {
               (r) =>
                 Logger.debug("call insertStats env:" + e._2 + " SoapAction:" + r._1 + " timeAverage:" + r._2 + " date:" + minDate)

@@ -258,9 +258,13 @@ spApp.factory("CodesService", function ($http) {
             $http.get('/status/findall')
                 .success(function (codes) {
                     $scope.codes = codes.values;
-                    //$scope.codes.unshift({id: "all", name: "all"});
                     $scope.codes.unshift("all");
-                    angular.forEach($scope.codes, function (value, key) {
+                    angular.forEach($scope.codes, function (value) {
+                        if (value.name != "all") {
+                            var valNot = "NOT_" + value.name;
+                            $scope.codes.push(valNot);
+                            if (valNot == $routeParams.code) $scope.code = valNot;
+                        }
                         if (value == $routeParams.code) $scope.code = value;
                     });
 
@@ -297,11 +301,10 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
             }
 
             if ($scope.mindate && $scope.mindate != "" && $scope.mindate != "All") {
-                mindate = this.initDayToUrl($filter('date')($scope.mindate, 'yyyy-MM-dd'), "today");
-
+                mindate = this.initDayToUrl($filter('date')($scope.mindate, 'yyyy-MM-ddTHH:mm'), "today");
             }
             if ($scope.maxdate && $scope.maxdate != "" && $scope.maxdate != "All") {
-                maxdate = this.initDayToUrl($filter('date')($scope.maxdate, 'yyyy-MM-dd'), "today");
+                maxdate = this.initDayToUrl($filter('date')($scope.maxdate, 'yyyy-MM-ddTHH:mm'), "today");
             }
             if ($scope.code) code = $scope.code;
 
@@ -324,8 +327,14 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
                 if (indate == "yesterday" || indate == "today") {
                     indate = this.getDay(indate);
                 }
-                var elem = indate.split('-');
-                return new Date(elem[0], elem[1] - 1, elem[2]);
+                // split to get the date and the time
+                var dateAndTime = indate.split('T');
+                // split to get the year, the month and the day
+                var elemDate = dateAndTime[0].split('-');
+                // split to get the hour and the minute
+                var elemTime = dateAndTime[1].split(':');
+                return new Date(elemDate[0], elemDate[1]-1, elemDate[2], elemTime[0], elemTime[1]);
+
             }
         },
         initDayToUrl: function (val, defaultValue) {
@@ -362,7 +371,7 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
             if (day < 10) {
                 day = "0" + day;
             }
-            return mDate.getFullYear() + "-" + month + "-" + day;
+            return mDate.getFullYear() + "-" + month + "-" + day+"T00:00";
         },
         fixBoolean: function (val) {
             return (val == "yes" || val == true) ? true : false;

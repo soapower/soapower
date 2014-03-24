@@ -36,7 +36,7 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
                 page: 1,            // show first page
                 count: 10,          // count per page
                 sorting: {
-                    'name': 'asc'     // initial sorting
+                    'startTime': 'desc'     // initial sorting
                 }
             }, {
                 total: largeLoad.data.length, // length of data
