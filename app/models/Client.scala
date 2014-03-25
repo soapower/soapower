@@ -16,6 +16,7 @@ import java.io.PrintWriter
 import play.api.Play.current
 
 object Client {
+  private val DEFAULT_NO_SOAPACTION = "Soapower_NoSoapAction"
   private val nbRequest = new java.util.concurrent.atomic.AtomicLong
 
   var lock: AnyRef = new Object()
@@ -35,14 +36,17 @@ object Client {
   }
 
   def extractSoapAction(headers: Map[String, String]): String = {
-    var soapAction = headers.get("SOAPAction").get
-
-    // drop apostrophes if present
-    if (soapAction.startsWith("\"") && soapAction.endsWith("\"")) {
-      soapAction = soapAction.drop(1).dropRight(1)
+    val soapActionHeader = headers.get("SOAPAction")
+    soapActionHeader match {
+      case Some(soapAction) =>
+        // drop apostrophes if present
+        if (soapAction.startsWith("\"") && soapAction.endsWith("\"")) {
+          soapAction.drop(1).dropRight(1)
+        } else {
+          soapAction
+        }
+      case None => DEFAULT_NO_SOAPACTION
     }
-
-    soapAction
   }
 
 }
