@@ -2,7 +2,7 @@
 
 'use strict';
 
-spApp.directive('spCriterias', function () {
+spApp.directive('spCriterias', ['$filter', function ($filter) {
     return {
         restrict: 'E',
         scope: {
@@ -13,40 +13,46 @@ spApp.directive('spCriterias', function () {
             CodesService.findAllAndSelect($scope, $routeParams);
             $scope.ctrlPath = $scope.$parent.ctrlPath;
 
+            $scope.mindate = UIService.getInputCorrectDateFormat($routeParams.mindate);
+            $scope.maxdate = UIService.getInputCorrectDateFormat($routeParams.maxdate);
+
+            // Initialise the calendars to today's date
+            $scope.mindatecalendar = new Date();
+            $scope.maxdatecalendar = new Date();
+
             $scope.showSoapactions = false;
             if ($attrs.soapactions == "yes") {
                 $scope.showSoapactions = true;
                 SoapactionsService.findAllAndSelect($scope, $routeParams);
             }
 
-            $scope.mindate = UIService.getDateFromParam($routeParams.mindate);
-            $scope.maxdate = UIService.getDateFromParam($routeParams.maxdate);
+            // Called when the mindate datetimepicker is set
+            $scope.onMinTimeSet = function (newDate, oldDate) {
+                $scope.showmindate = false;
+                $scope.mindate = $filter('date')(newDate, "yyyy-MM-dd HH:mm");
+            }
+            // Called when the maxdate datetimepicker is set
+            $scope.onMaxTimeSet = function (newDate, oldDate) {
+                $scope.showmaxdate = false;
+                $scope.maxdate = $filter('date')(newDate, "yyyy-MM-dd HH:mm");
+            }
 
             $scope.changeCriteria = function () {
-                UIService.reloadPage($scope, $scope.showSoapactions);
+                    // Check that the date inputs format are correct and that the mindate is before the maxdate
+                    if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
+                        UIService.reloadPage($scope, $scope.showSoapactions);
+                    }
+                    else {
+                        // Else, mindate and maxdate are set to yesterday's and today's dates
+                        $scope.mindate = UIService.getInputCorrectDateFormat(UIService.getDay("yesterday"));
+                        $scope.maxdate = UIService.getInputCorrectDateFormat(UIService.getDay("today"));
+                    }
             };
-
-            $scope.$watch('mindate', function () {
-                if ($scope.mindate) {
-                    $scope.showmindate = false;
-                    if ($scope.mindate > $scope.maxdate) {
-                        $scope.maxdate = $scope.mindate;
-                    }
-                }
-            });
-            $scope.$watch('maxdate', function () {
-                if ($scope.maxdate) {
-                    $scope.showmaxdate = false;
-                    if ($scope.mindate > $scope.maxdate) {
-                        $scope.maxdate = $scope.mindate;
-                    }
-                }
-            });
         },
         templateUrl: 'partials/common/criterias.html',
         replace: true
     }
-})
+}])
     .directive('spGroups', function () {
         return {
             restrict: 'E',

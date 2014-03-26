@@ -2,6 +2,7 @@ package models
 
 import java.util.{ Calendar, Date, GregorianCalendar }
 import java.text.SimpleDateFormat
+import java.text.ParseException
 import play.Logger
 
 object UtilDate {
@@ -20,7 +21,16 @@ object UtilDate {
     gCal.set(Calendar.SECOND, 0)
 
     val mDate: GregorianCalendar = sDate match {
-      case "all" => if (isMax) gCal else { gCal.setTime(RequestData.getMinStartTime.getOrElse(new Date)); gCal}
+      case "all" =>
+        if (isMax)
+        {
+          gCal.setTimeInMillis(gCal.getTimeInMillis+v23h59min59s);
+          gCal
+        }
+        else {
+          gCal.setTime(RequestData.getMinStartTime.getOrElse(new Date));
+          gCal
+        }
       case "today" =>
         if(isMax)
           gCal.setTimeInMillis(gCal.getTimeInMillis + v23h59min59s)
@@ -29,14 +39,25 @@ object UtilDate {
         gCal.add(Calendar.DATE, -1)
         if(isMax)
           gCal.setTimeInMillis(gCal.getTimeInMillis + v23h59min59s)
-
         gCal
       case pattern(days) =>
         gCal.add(Calendar.DATE, -(days.toInt)); gCal
       case _ =>
-        val f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm")
-        gCal.setTime(f.parse(sDate))
-        gCal
+        try {
+          val f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm")
+          gCal.setTime(f.parse(sDate))
+        }
+        catch {
+          case e: ParseException =>
+            if (isMax) {
+              gCal.setTimeInMillis(gCal.getTimeInMillis + v23h59min59s)
+            }
+            else {
+              gCal.add(Calendar.DATE, -1)
+            }
+            gCal
+        }
+      gCal
     }
     mDate
   }
