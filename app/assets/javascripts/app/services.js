@@ -13,7 +13,6 @@ spApp.factory('Service', function ($resource, UIService) {
         this.environmentId = parseInt(this.environment.id);
         this.mockGroupId = parseInt(this.mockGroup.id);
         this.id = parseInt(this.id);
-
         return Service.update({serviceId: this.id},
             angular.extend({}, this, {serviceId: undefined}), cb, cbError);
     };
@@ -158,7 +157,6 @@ spApp.factory("AnalysisService", function ($http) {
         }
     }
 });
-
 spApp.factory("ServicesService", function ($http) {
     return {
         findAll: function (group) {
@@ -166,7 +164,6 @@ spApp.factory("ServicesService", function ($http) {
         }
     }
 });
-
 spApp.factory("EnvironmentsService", function ($http) {
     return {
         findAll: function (group) {
@@ -193,7 +190,6 @@ spApp.factory("EnvironmentsService", function ($http) {
                             }
                         });
                     }
-
                 })
                 .error(function (resp) {
                     console.log("Error with EnvironmentsService.findAllAndSelect" + resp);
@@ -302,11 +298,11 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
                 soapaction = encodeURIComponent($scope.soapaction.name);
             }
 
-            if ($scope.mindate && $scope.mindate != "" && $scope.mindate != "All") {
-                mindate = this.initDayToUrl($filter('date')($scope.mindate, 'yyyy-MM-ddTHH:mm'), "today");
+            if ($scope.mindate && $scope.mindate != "" && $scope.mindate != "all") {
+                mindate = this.initDayToUrl(this.getURLCorrectDateFormat($scope.mindate), "yesterday");
             }
-            if ($scope.maxdate && $scope.maxdate != "" && $scope.maxdate != "All") {
-                maxdate = this.initDayToUrl($filter('date')($scope.maxdate, 'yyyy-MM-ddTHH:mm'), "today");
+            if ($scope.maxdate && $scope.maxdate != "" && $scope.maxdate != "all") {
+                maxdate = this.initDayToUrl(this.getURLCorrectDateFormat($scope.maxdate), "today");
             }
             if ($scope.code) code = $scope.code.name;
 
@@ -315,7 +311,7 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
             if (showSoapactions) path = path + soapaction + "/";
 
             path = path + mindate + "/" + maxdate + "/" + code;
-
+            console.log(path);
             console.log("UIService.reloadPage : Go to " + path);
             $location.path(path);
         },
@@ -324,19 +320,36 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
             console.log("UIService.reloadAdminPage : Go to " + path);
             $location.path(path);
         },
-        getDateFromParam: function (indate) {
+        /*
+        /* Transform a string in the format "yyyy-mm-ddThh:mm" to the
+        /* format "yyyy-mm-dd hh:mm" used to display the date
+        */
+        getInputCorrectDateFormat: function (indate) {
             if (indate && indate != "all") {
                 if (indate == "yesterday" || indate == "today") {
                     indate = this.getDay(indate);
                 }
                 // split to get the date and the time
                 var dateAndTime = indate.split('T');
-                // split to get the year, the month and the day
-                var elemDate = dateAndTime[0].split('-');
-                // split to get the hour and the minute
-                var elemTime = dateAndTime[1].split(':');
-                return new Date(elemDate[0], elemDate[1]-1, elemDate[2], elemTime[0], elemTime[1]);
-
+                // The date is set to a string in the following format : yyyy-mm-dd hh:mm
+                return dateAndTime[0]+" "+dateAndTime[1];
+            }
+        },
+        /*
+        /* Transform a string in the format "yyyy-mm-dd hh:mm" to the
+        /* format "yyyy-mm-ddThh:mm" used to pass a date in the URL
+        */
+        getURLCorrectDateFormat: function (indate) {
+            if (indate && indate != "all") {
+                // Allow the user to enter "today" or "yesterday" in the date input field
+                if (indate == "yesterday" || indate == "today") {
+                    indate = this.getDay(indate);
+                    return indate;
+                }
+                else {
+                    var dateAndTime = indate.split(' ');
+                    return dateAndTime[0]+"T"+dateAndTime[1];
+                }
             }
         },
         initDayToUrl: function (val, defaultValue) {
@@ -358,9 +371,11 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
             var mDate = new Date();
             var month = mDate.getMonth() + 1;
             var nb = -1;
+            var time = "00:00";
             switch (sDay) {
                 case "today" :
                     nb = 0;
+                    time = "23:59";
                     break;
                 case "yesterday" :
                 default :
@@ -373,7 +388,15 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
             if (day < 10) {
                 day = "0" + day;
             }
-            return mDate.getFullYear() + "-" + month + "-" + day+"T00:00";
+            return mDate.getFullYear() + "-" + month + "-" + day+"T"+time;
+        },
+        checkDatesFormatAndCompare: function(mindate, maxdate) {
+             if (mindate && maxdate) {
+                mindate = new Date(mindate);
+                maxdate = new Date(maxdate);
+
+                return !!mindate.getTime() && !!maxdate.getTime() && mindate <= maxdate;
+             }
         },
         fixBoolean: function (val) {
             return (val == "yes" || val == true) ? true : false;
@@ -401,7 +424,7 @@ spApp.factory('ReplayService', function ($http, $rootScope, $location) {
                 $rootScope.$broadcast('refreshSearchTable');
             }).error(function (resp) {
                 console.log("Error replay id" + id);
-                console.log("location:" + $location.path())
+                console.log("location:" + $location.path());
                 $rootScope.$broadcast('refreshSearchTable');
             });
         }

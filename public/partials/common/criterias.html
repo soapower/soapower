@@ -4,18 +4,18 @@
 
         <div class="form-group">
             <label for="from"> From : </label>
-            <input class="input-small" type="text" value="{{mindate | date:'yyyy-MM-dd HH:mm'}}" ng-click="showmindate = !showmindate"/>
+            <input ng-model="mindate" name="mindate" class="input-small" type="text" ng-click="showmindate = !showmindate"/>
             <div ng-show="showmindate" >
-                <datetimepicker name="mindate" ng-model="mindate" starting-day="1" data-datetimepicker-config="{ minuteStep: 1 }"></datetimepicker>
+                <datetimepicker ng-model="mindatecalendar" data-on-set-time="onMinTimeSet" starting-day="1" data-datetimepicker-config="{ minuteStep: 5 }"></datetimepicker>
             </div>
-            <input class="input-small" type="hidden" id="from" ng-model="mindate" ng-click="showmindate = !showmindate"/>
+            <input class="input-small" type="hidden" id="from" ng-model="mindatecalendar" ng-click="showmindate = !showmindate"/>
         </div>
 
         <div class="form-group">
         <label for="To"> To : </label>
-        <input class="input-small" type="text" value="{{maxdate | date:'yyyy-MM-dd HH:mm'}}" ng-click="showmaxdate = !showmaxdate"/>
+        <input name="maxdate" ng-model="maxdate" class="input-small" type="text" ng-click="showmaxdate = !showmaxdate" />
         <div ng-show="showmaxdate" >
-            <datetimepicker name="maxdate" ng-model="maxdate" starting-day="1" data-datetimepicker-config="{ minuteStep: 1 }"></datetimepicker>
+            <datetimepicker ng-model="maxdatecalendar" data-on-set-time="onMaxTimeSet" starting-day="1" data-datetimepicker-config="{ minuteStep: 5 }"></datetimepicker>
         </div>
         <input class="input-small" type="hidden" id="to" ng-model="maxdate" ng-click="showmaxdate = !showmaxdate"/>
         </div>
