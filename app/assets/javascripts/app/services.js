@@ -311,7 +311,6 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
             if (showSoapactions) path = path + soapaction + "/";
 
             path = path + mindate + "/" + maxdate + "/" + code;
-            console.log(path);
             console.log("UIService.reloadPage : Go to " + path);
             $location.path(path);
         },
