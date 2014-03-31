@@ -53,9 +53,10 @@ DELETE        /mockgroups/:id                                                   
 # Groups
 GET           /groups/options                                                                            controllers.Groups.options
 GET           /groups/listDatatable                                                                      controllers.Groups.listDatatable
-POST          /groups/:id                                                                                controllers.Groups.save(id:Long)
-GET           /groups/:id                                                                                controllers.Groups.edit(id:Long)
-DELETE        /groups/:id                                                                                controllers.Groups.delete(id:Long)
+POST          /groups                                                                                    controllers.Groups.create
+PUT           /groups/:id                                                                                controllers.Groups.update(id:String)
+GET           /groups/:id                                                                                controllers.Groups.edit(id:String)
+DELETE        /groups/:id                                                                                controllers.Groups.delete(id:String)
 
 # SoapActions list
 GET           /soapactions/findall                                                                       controllers.SoapActions.findAll

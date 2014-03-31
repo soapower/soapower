@@ -447,6 +447,9 @@ object Environment {
    */
   private def uploadEnvironment(dataCsv: Array[String], group: Group) = {
 
+    ???
+    //TODO
+    /*
     val name = dataCsv(csvTitle.get("name").get)
     val s = findByName(name)
 
@@ -470,5 +473,6 @@ object Environment {
       Environment.insert(environment)
       Logger.info("Insert Environment " + environment.name)
     }
+    */
   }
 }

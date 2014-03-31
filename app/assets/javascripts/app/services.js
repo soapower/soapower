@@ -89,23 +89,13 @@ spApp.factory('MockGroup', function ($resource) {
     return MockGroup;
 });
 
-spApp.factory('Group', function ($resource, UIService) {
+spApp.factory('Group', function ($resource) {
+
     var Group = $resource('/groups/:groupId',
-        { groupId: '@id'},
-        { update: {method: 'POST'} }
+        { groupId: '@_id.$oid'},
+        { update: {method: 'PUT'} ,
+          create: {method: 'POST'}}
     );
-
-    Group.prototype.update = function (cb, cbError) {
-        this.id = parseInt(this.id);
-
-        return Group.update({groupId: this.id},
-            angular.extend({}, this, {groupId: undefined}), cb, cbError);
-    };
-
-    Group.prototype.destroy = function (cb, cbError) {
-        return Group.remove({groupId: this.id}, cb, cbError);
-    };
-
     return Group;
 });
 
@@ -285,7 +275,7 @@ spApp.factory("LoggersService", function ($http) {
 });
 
 
-spApp.factory("UIService",function ($location, $filter, $routeParams) {
+spApp.factory("UIService", function ($location, $filter, $routeParams) {
     return {
         reloadPage: function ($scope, showSoapactions) {
             var environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
@@ -318,9 +308,9 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
             $location.path(path);
         },
         /*
-        /* Transform a string in the format "yyyy-mm-ddThh:mm" to the
-        /* format "yyyy-mm-dd hh:mm" used to display the date
-        */
+         /* Transform a string in the format "yyyy-mm-ddThh:mm" to the
+         /* format "yyyy-mm-dd hh:mm" used to display the date
+         */
         getInputCorrectDateFormat: function (indate) {
             if (indate && indate != "all") {
                 if (indate == "yesterday" || indate == "today") {
@@ -329,13 +319,13 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
                 // split to get the date and the time
                 var dateAndTime = indate.split('T');
                 // The date is set to a string in the following format : yyyy-mm-dd hh:mm
-                return dateAndTime[0]+" "+dateAndTime[1];
+                return dateAndTime[0] + " " + dateAndTime[1];
             }
         },
         /*
-        /* Transform a string in the format "yyyy-mm-dd hh:mm" to the
-        /* format "yyyy-mm-ddThh:mm" used to pass a date in the URL
-        */
+         /* Transform a string in the format "yyyy-mm-dd hh:mm" to the
+         /* format "yyyy-mm-ddThh:mm" used to pass a date in the URL
+         */
         getURLCorrectDateFormat: function (indate) {
             if (indate && indate != "all") {
                 // Allow the user to enter "today" or "yesterday" in the date input field
@@ -345,7 +335,7 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
                 }
                 else {
                     var dateAndTime = indate.split(' ');
-                    return dateAndTime[0]+"T"+dateAndTime[1];
+                    return dateAndTime[0] + "T" + dateAndTime[1];
                 }
             }
         },
@@ -385,15 +375,15 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
             if (day < 10) {
                 day = "0" + day;
             }
-            return mDate.getFullYear() + "-" + month + "-" + day+"T"+time;
+            return mDate.getFullYear() + "-" + month + "-" + day + "T" + time;
         },
-        checkDatesFormatAndCompare: function(mindate, maxdate) {
-             if (mindate && maxdate) {
+        checkDatesFormatAndCompare: function (mindate, maxdate) {
+            if (mindate && maxdate) {
                 mindate = new Date(mindate);
                 maxdate = new Date(maxdate);
 
                 return !!mindate.getTime() && !!maxdate.getTime() && mindate <= maxdate;
-             }
+            }
         },
         fixBoolean: function (val) {
             return (val == "yes" || val == true) ? true : false;
@@ -406,7 +396,7 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
 
 spApp.factory('ReplayService', function ($http, $rootScope, $location) {
     return {
-        beforeReplay: function(id) {
+        beforeReplay: function (id) {
             var url = "/download/request/" + id;
             return $http.get(url);
         },
@@ -415,7 +405,7 @@ spApp.factory('ReplayService', function ($http, $rootScope, $location) {
             $http({ method: "POST",
                 url: url,
                 data: data.data,
-                headers: { "Content-Type" : "application/xml" }
+                headers: { "Content-Type": "application/xml" }
             }).success(function (data) {
                 console.log("Success replay id" + id);
                 $rootScope.$broadcast('refreshSearchTable');

@@ -48,7 +48,7 @@ function GroupEditCtrl($scope, $routeParams, $location, Group, UIService) {
     }
 
     $scope.destroy = function () {
-        self.original.destroy(function () {
+        self.original.$remove(function () {
             $location.path('/groups');
         }, function (response) { // error case
             alert(response.data);
@@ -56,7 +56,7 @@ function GroupEditCtrl($scope, $routeParams, $location, Group, UIService) {
     };
 
     $scope.save = function () {
-        $scope.group.update(function () {
+        $scope.group.$update(function () {
             $location.path('/groups');
         }, function (response) { // error case
             alert(response.data);
@@ -68,10 +68,10 @@ function GroupNewCtrl($scope, $location, Group, GroupsService) {
 
     GroupsService.findAllAndSelect($scope);
 
-    $scope.group = new Group({id:'-1'});
+    $scope.group = new Group();
 
     $scope.save = function () {
-        $scope.group.update(function () {
+        $scope.group.$create(function () {
             $location.path('/groups/');
         }, function (response) { // error case
             alert(response.data);

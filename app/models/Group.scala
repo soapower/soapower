@@ -6,17 +6,44 @@ import play.api._
 import play.api.Play.current
 import play.api.cache._
 import play.api.db._
+import play.api.libs.json.{JsObject, Json}
+import play.modules.reactivemongo.json.collection.JSONCollection
+import play.modules.reactivemongo.ReactiveMongoPlugin
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import reactivemongo.bson.{BSONDocumentWriter, BSONDocumentReader, BSONObjectID, BSONDocument}
+import scala.concurrent.Future
+import play.modules.reactivemongo.json.BSONFormats._
+import reactivemongo.core.commands.RawCommand
+import play.api.data._
+import play.api.data.Forms._
+import play.api.data.format.Formats._
+import play.api.data.validation.Constraints._
 
 /**
- * @author Ronan Quintin - ronan.quintin@gmail.com
  *
- *         A group  can contain environments, and an environment must be contained by a group. A group does have a name.
+ * A group  can contain environments, and an environment must be contained by a group. A group does have a name.
  */
-// Defining a case class
-case class Group(id: Long, name: String)
+case class Group(_id: Option[BSONObjectID], name: String)
 
 object Group {
 
+  implicit val groupFormat = Json.format[Group]
+
+  implicit object GroupBSONReader extends BSONDocumentReader[Group] {
+    def read(doc: BSONDocument): Group =
+      Group(
+        doc.getAs[BSONObjectID]("_id"),
+        doc.getAs[String]("name").get)
+  }
+
+  implicit object GroupBSONWriter extends BSONDocumentWriter[Group] {
+    def write(group: Group): BSONDocument =
+      BSONDocument(
+        "_id" -> group._id,
+        "name" -> group.name)
+  }
+
+  //TODO Default group
   val ID_DEFAULT_GROUP = Long.box(1)
 
   /**
@@ -27,16 +54,9 @@ object Group {
   private val keyCacheByName = "group-by-name"
   private val GROUP_NAME_PATTERN = "[a-zA-Z0-9]{1,200}"
 
-  /**
-   * SQL anorm row parser. This operation indicate how to parse a sql row.
-   */
-  val simple = {
-    get[Long]("groups.id") ~
-      get[String]("groups.name") map {
-      case id ~ name
-      => Group(id, name)
-    }
-  }
+  //implicit val groupFormat = Json.format[Group]
+
+  def collection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("group")
 
   /**
    * Title of csvFile. The value is the order of title.
@@ -61,67 +81,63 @@ object Group {
    * Get all groups from the database in csv format
    * @return List of groups, csv format
    */
-  def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("select * from groups").as(Group.csv *)
+  def fetchCsv(): List[String] = {
+    //TODO
+    ???
+    //implicit c => SQL("select * from groups").as(Group.csv *)
   }
 
 
   /**
    * Construct the Map[String,String] needed to fill a select options set.
    */
-  def options: Seq[(String, String)] = DB.withConnection {
-    implicit connection =>
+  def options: Seq[(String, String)] = {
+    //TODO
+    ???
+    /*implicit connection =>
       val groups = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
         Logger.debug("Groups not found in cache: loading from db")
         SQL("select * from groups order by name").as(Group.simple *).map(c => c.id.toString -> c.name)
       }
       groups
+      */
   }
 
   /**
    * Retrieve an group from id.
    */
-  def findById(id: Long): Option[Group] = {
-    DB.withConnection {
-      implicit connection =>
-        Cache.getOrElse[Option[Group]](keyCacheById + id) {
-          SQL("select * from groups where id = {id}").on('id -> id).as(Group.simple.singleOpt)
-        }
-    }
+  def findById(id: String): Future[Option[Group]] = {
+    val objectId = new BSONObjectID(id)
+    val query = BSONDocument("_id" -> objectId)
+    collection.find(query).one[Group]
   }
 
   /**
    * Retrieve an group from it's name .
    */
-  def findByName(name: String): Option[Group] = DB.withConnection {
-    implicit connection =>
-      Cache.getOrElse[Option[Group]](keyCacheByName + name) {
-        SQL("select * from groups where name = {name}").on('name -> name).as(Group.simple.singleOpt)
-      }
+  def findByName(name: String): Future[Option[Group]] = {
+    val query = BSONDocument("name" -> name)
+    collection.find(query).one[Group]
   }
 
   /**
    * Persist a new group to database.
    *
-   * @param group The group to persist.
+   * @param json The group to persist.
    */
-  def insert(group: Group) = {
-    // Clear the cache in order to ???
-    clearCache
+  def insert(json: JsObject) = {
 
-    if (!group.name.trim.matches(GROUP_NAME_PATTERN)) {
+    /*
+    //TODOif (!group.name.trim.matches(GROUP_NAME_PATTERN)) {
       throw new Exception("Group name invalid:" + group.name.trim)
-    }
+    }*/
 
-    // Insert the new group
-    if (options.exists{g => g._2.equals(group.name.trim)}) {
+    // TODO Insert the new group
+    /*if (options.exists{g => g._2.equals(group.name.trim)}) {
       throw new Exception("Group with name " + group.name.trim + " already exist")
-    }
+    }*/
 
-    DB.withConnection {
-      implicit connection =>
-        SQL( """	insert into groups (id, name) values (null, {name})""").on('name -> group.name.trim).executeUpdate()
-    }
+    collection.insert(json)
   }
 
   /**
@@ -130,38 +146,34 @@ object Group {
    * @param group The group group.
    */
   def update(group: Group) = {
-    clearCache
 
     if (!group.name.trim.matches(GROUP_NAME_PATTERN)) {
       throw new Exception("Group name invalid:" + group.name.trim)
     }
 
-    if (options.exists{g => g._2.equals(group.name.trim) && g._1.toLong != group.id}) {
+    //TODO
+    /*if (options.exists{g => g._2.equals(group.name.trim) && g._1.toLong != group.id}) {
       throw new Exception("Group with name " + group.name.trim + " already exist")
-    }
+    }*/
 
-    Cache.remove(keyCacheById + group.id)
-    DB.withConnection {
-      implicit connection =>
-        SQL("update groups set name = {name} where id = {id}").on(
-          'id -> group.id,
-          'name -> group.name.trim
-        ).executeUpdate()
-    }
+    val selector = BSONDocument("_id" -> group._id)
+
+    val modifier = BSONDocument(
+      "$set" -> BSONDocument(
+        "name" -> group.name))
+
+    Cache.remove(keyCacheById + group._id)
+    collection.update(selector, modifier)
   }
 
   /**
    * Delete a group.
    *
-   * @param group group to delete
+   * @param id identifier of group to delete
    */
-  def delete(group: Group) = {
-    clearCache
-    Cache.remove(keyCacheById + group.id)
-    DB.withConnection {
-      implicit connection =>
-        SQL("delete from groups where id = {id}").on('id -> group.id).executeUpdate()
-    }
+  def delete(id: String) = {
+    val objectId = new BSONObjectID(id)
+    collection.remove(BSONDocument("_id" -> objectId))
   }
 
   /**
@@ -174,13 +186,12 @@ object Group {
   /**
    * Return a list of all groups.
    */
-  def findAll: List[Group] = {
-    DB.withConnection {
-      implicit connection =>
-        val groups = SQL(
-          "select * from groups order by groups.name").as(Group.simple *)
-        groups
-    }
+  def findAll: Future[List[Group]] = {
+    collection.
+      find(Json.obj()).
+      sort(Json.obj("name" -> 1)).
+      cursor[Group].
+      collect[List]()
   }
 
   /**
@@ -190,7 +201,10 @@ object Group {
    * @return group
    */
   def upload(groupName: String): Group = {
-    Logger.debug("groupName:" + groupName)
+
+    //TODO
+    ???
+    /*Logger.debug("groupName:" + groupName)
 
     var group = Group.findByName(groupName)
     if (group == None) {
@@ -202,6 +216,7 @@ object Group {
       Logger.debug("Group already exist : " + group.get.name)
     }
     group.get
+    */
   }
 
 }
