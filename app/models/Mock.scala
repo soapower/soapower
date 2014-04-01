@@ -149,7 +149,7 @@ object Mock {
       implicit connection =>
         SQL(
           """
-            insert into mock (id, name, description, timeoutms, httpStatus, httpHeaders criteria, response, mockGroupId)
+            insert into mock (id, name, description, timeoutms, httpStatus, httpHeaders, criteria, response, mockGroupId)
               values (null, {name}, {description}, {timeoutms}, {httpStatus}, {httpHeaders}, {criteria}, {response}, {mockGroupId})
           """).on(
             'name -> mock.name.trim,
