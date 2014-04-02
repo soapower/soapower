@@ -23,7 +23,9 @@ import play.api.data.validation.Constraints._
  *
  * A group  can contain environments, and an environment must be contained by a group. A group does have a name.
  */
-case class Group(_id: Option[BSONObjectID], name: String)
+case class Group(_id: Option[BSONObjectID], name: String) {
+
+}
 
 object Group {
 
@@ -68,23 +70,14 @@ object Group {
   /**
    * Csv format.
    */
-  val csv = {
-    get[Long]("groups.id") ~
-      get[String]("groups.name") map {
-      case id ~ name =>
-        id + ";" + name + ";" + "\n"
-    }
-  }
-
+  def csv (g: Group) = csvKey + ";" + g._id.get.stringify + ";" + g.name + ";" + "\n"
 
   /**
    * Get all groups from the database in csv format
    * @return List of groups, csv format
    */
-  def fetchCsv(): List[String] = {
-    //TODO
-    ???
-    //implicit c => SQL("select * from groups").as(Group.csv *)
+  def fetchCsv(): Future[List[String]] = {
+    findAll.map(groups => groups.map(g => csv(g) ))
   }
 
 

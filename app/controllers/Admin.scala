@@ -4,12 +4,11 @@ import play.api.mvc._
 import models._
 import play.api.libs.iteratee._
 import play.api.http._
-import play.api.data._
-import play.api.data.Forms._
 import java.util.Date
 import play.api._
 import play.api.libs.json.{JsError, Json, JsObject}
-
+import scala.concurrent.{Future, ExecutionContext}
+import ExecutionContext.Implicits.global
 
 object Admin extends Controller {
 
@@ -52,9 +51,12 @@ object Admin extends Controller {
       }
   }
 
-  def downloadConfiguration = Action {
+  def downloadConfiguration = Action.async {
     // Title
-    var content = "#for key " + Environment.csvKey + "\n"
+    var content = "#for key " + Group.csvKey + "\n"
+    Group.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
+    content = content.dropRight(1) + "\n" // delete last ; and add new line
+    content += "#for key " + Environment.csvKey + "\n"
     Environment.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
     content = content.dropRight(1) + "\n" // delete last ; and add new line
     content += "#for key " + SoapAction.csvKey + "\n"
@@ -67,28 +69,41 @@ object Admin extends Controller {
     Service.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
     content = content.dropRight(1) + "\n"
 
-    // data
-    Environment.fetchCsv().foreach { s => content += Environment.csvKey + ";" + s }
-    SoapAction.fetchCsv().foreach { s => content += SoapAction.csvKey + ";" + s }
-    MockGroup.fetchCsv().foreach { s => content += MockGroup.csvKey + ";" + s }
-    Service.fetchCsv().foreach { s => content += Service.csvKey + ";" + s }
+    def combine(csv : List[Object]) = { csv.foreach(s => content += s) }
+
+    def f: Future[Unit] = {
+      for {
+        groups <- Group.fetchCsv()
+        // TODO
+        environments <- Group.fetchCsv() // Environment.fetchCsv
+        soapActions <- Group.fetchCsv() // SoapAction.fetchCsv
+        mockGroups <- Group.fetchCsv() // MockGroup.fetchCsv
+        services <- Group.fetchCsv() // Service.fetchCsv
+      } yield combine(groups ++ environments ++ soapActions ++ mockGroups ++ services )
+    }
 
     // result as a file
-    val fileContent: Enumerator[Array[Byte]] = Enumerator(content.getBytes)
-    SimpleResult(
-      header = ResponseHeader(play.api.http.Status.OK),
-      body = fileContent
-    ).withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=configuration.csv")).as(BINARY)
+    f map { case _ =>
+      val fileContent: Enumerator[Array[Byte]] = Enumerator(content.getBytes)
+      SimpleResult(
+        header = ResponseHeader(play.api.http.Status.OK),
+        body = fileContent
+      ).withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=configuration.csv")).as(BINARY)
+    }
   }
 
   def downloadRequestDataStatsEntries = Action {
     // Title
     var content = "#for key " + RequestData.csvKey + "\n"
-    RequestData.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
+    RequestData.csvTitle.toList.sortBy(_._2).foreach {
+      case (k, v) => content += k + ";"
+    }
     content = content.dropRight(1) + "\n" // delete last ; and add new line
 
     // data
-    RequestData.fetchCsv().foreach { s => content += RequestData.csvKey + ";" + s }
+    RequestData.fetchCsv().foreach {
+      s => content += RequestData.csvKey + ";" + s
+    }
 
     // result as a file
     val fileContent: Enumerator[Array[Byte]] = Enumerator(content.getBytes)
@@ -100,17 +115,19 @@ object Admin extends Controller {
 
   implicit val adminFormat = Json.format[AdminForm]
 
-  def delete = Action(parse.json) { request =>
-    request.body.validate(adminFormat).map { adminForm =>
-      val maxDate = new Date(adminForm.maxDate.getTime +  ((24*60*60)-1)*1000) // 23h59,59s
-      Logger.debug("Delete min:" + adminForm.minDate + " max:" + maxDate)
-      adminForm.typeAction match {
-        case "xml-data" => RequestData.deleteRequestResponse(adminForm.environmentName, adminForm.minDate, maxDate, "Admin Soapower")
-        case "all-data" => RequestData.delete(adminForm.environmentName, adminForm.minDate, maxDate)
+  def delete = Action(parse.json) {
+    request =>
+      request.body.validate(adminFormat).map {
+        adminForm =>
+          val maxDate = new Date(adminForm.maxDate.getTime + ((24 * 60 * 60) - 1) * 1000) // 23h59,59s
+          Logger.debug("Delete min:" + adminForm.minDate + " max:" + maxDate)
+          adminForm.typeAction match {
+            case "xml-data" => RequestData.deleteRequestResponse(adminForm.environmentName, adminForm.minDate, maxDate, "Admin Soapower")
+            case "all-data" => RequestData.delete(adminForm.environmentName, adminForm.minDate, maxDate)
+          }
+          Ok(toJson("success", "Success deleting data")).as(JSON)
+      }.recoverTotal {
+        e => Ok(toJson("error", "Detected error:" + JsError.toFlatJson(e))).as(JSON)
       }
-      Ok(toJson("success", "Success deleting data")).as(JSON)
-    }.recoverTotal{
-      e => Ok(toJson("error", "Detected error:" + JsError.toFlatJson(e))).as(JSON)
-    }
   }
 }
