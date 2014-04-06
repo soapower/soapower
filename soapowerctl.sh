@@ -53,7 +53,7 @@ fi
 # Display how to use soapowerctl.sh
 ########################################
 display_usage() { 
-    echo -e "\nUsage:\n$0 [start|stop|restart|configtest|status] \n"
+    echo -e "\nUsage:\n$0 [run|start|stop|restart|configtest|status] \n"
     return 0
 }
 
@@ -103,7 +103,37 @@ configtest() {
 
     return $ERROR
 }
+########################################
+#          Run
+# Run an instance of soapower
+# on http.port ${SOAPOWER_HTTP_PORT}
+# Do nothing if Soapower is already started.
+# If Soapower is not started : 
+# - Deleting RUNNING_PID file if necessary
+# - Run
+########################################
+run() {
+    echo "Starting Soapower..."
 
+    ps -ef | grep java | grep soapower | grep "http.port=${SOAPOWER_HTTP_PORT}" | grep -v grep >/dev/null 2>&1
+
+    if [ $? -eq 0 ]; then
+        echo "Soapower is already started on port ${SOAPOWER_HTTP_PORT}. Please stop before" ; 
+        return 1;
+    fi
+
+    if [ -f ${SOAPOWER_CURRENT}/RUNNING_PID ]; then
+        echo "WARN : there is ${SOAPOWER_CURRENT}/RUNNING_PID file. Deleting it and continue starting..."
+        rm ${SOAPOWER_CURRENT}/RUNNING_PID
+        if [ $? -ne 0 ]; then
+            echo "ERROR : can't deleting ${SOAPOWER_CURRENT}/RUNNING_PID file. Abort Starting Soapower"
+            return 1;
+        fi
+    fi
+
+    CMD="${SOAPOWER_CURRENT}/bin/soapower -Dlogger.file=${SOAPOWER_CURRENT}/conf/logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT} -DapplyEvolutions.default=true -Ddb.default.url=${SOAPOWER_DB_URL} -Ddb.default.user=${SOAPOWER_DB_USER} -Ddb.default.password=${SOAPOWER_DB_PASSWORD}"
+    $CMD
+}
 
 ########################################
 #          Start
@@ -238,7 +268,7 @@ ERROR=0
 
 
 case $ACMD in
-start|stop|restart)
+start|stop|restart|run)
     action $ACMD
     ERROR=$?
     ;;
