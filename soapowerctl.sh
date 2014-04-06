@@ -105,34 +105,11 @@ configtest() {
 }
 ########################################
 #          Run
-# Run an instance of soapower
-# on http.port ${SOAPOWER_HTTP_PORT}
-# Do nothing if Soapower is already started.
-# If Soapower is not started : 
-# - Deleting RUNNING_PID file if necessary
-# - Run
+# Use start Method to start Soapower
+# without nohup command
 ########################################
 run() {
-    echo "Starting Soapower..."
-
-    ps -ef | grep java | grep soapower | grep "http.port=${SOAPOWER_HTTP_PORT}" | grep -v grep >/dev/null 2>&1
-
-    if [ $? -eq 0 ]; then
-        echo "Soapower is already started on port ${SOAPOWER_HTTP_PORT}. Please stop before" ; 
-        return 1;
-    fi
-
-    if [ -f ${SOAPOWER_CURRENT}/RUNNING_PID ]; then
-        echo "WARN : there is ${SOAPOWER_CURRENT}/RUNNING_PID file. Deleting it and continue starting..."
-        rm ${SOAPOWER_CURRENT}/RUNNING_PID
-        if [ $? -ne 0 ]; then
-            echo "ERROR : can't deleting ${SOAPOWER_CURRENT}/RUNNING_PID file. Abort Starting Soapower"
-            return 1;
-        fi
-    fi
-
-    CMD="${SOAPOWER_CURRENT}/bin/soapower -Dlogger.file=${SOAPOWER_CURRENT}/conf/logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT} -DapplyEvolutions.default=true -Ddb.default.url=${SOAPOWER_DB_URL} -Ddb.default.user=${SOAPOWER_DB_USER} -Ddb.default.password=${SOAPOWER_DB_PASSWORD}"
-    $CMD
+    start "run"
 }
 
 ########################################
@@ -147,8 +124,10 @@ run() {
 # - Check pid on ${SOAPOWER_HTTP_PORT}
 ########################################
 start() {
+    RUN=$1
+
     ERROR=0
-    echo "Starting Soapower..."
+    
 
     ps -ef | grep java | grep soapower | grep "http.port=${SOAPOWER_HTTP_PORT}" | grep -v grep >/dev/null 2>&1
 
@@ -167,26 +146,33 @@ start() {
     fi
 
     CMD="${SOAPOWER_CURRENT}/bin/soapower -Dlogger.file=${SOAPOWER_CURRENT}/conf/logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT} -DapplyEvolutions.default=true -Ddb.default.url=${SOAPOWER_DB_URL} -Ddb.default.user=${SOAPOWER_DB_USER} -Ddb.default.password=${SOAPOWER_DB_PASSWORD}"
-    nohup $CMD >/dev/null 2>&1 &
 
-    if [ $? -ne 0 ]; then
-        echo "ERROR while starting soapower. Please run this command and check the log file:"
-        echo "$CMD"
-        ERROR=1
-    fi
+    if [ "x${RUN}" = "xrun" ]; then
+        echo "Running Soapower..."
+        $CMD
+    else
+        echo "Starting Soapower (with nohup)..."
+        nohup $CMD >/dev/null 2>&1 &
 
-    sleep 3
-    status
+        if [ $? -ne 0 ]; then
+            echo "ERROR while starting soapower. Please run this command and check the log file:"
+            echo "$CMD"
+            ERROR=1
+        fi
 
-    ps -ef | grep java | grep soapower | grep "http.port=${SOAPOWER_HTTP_PORT}" | grep -v grep >/dev/null 2>&1
+        sleep 3
+        status
 
-    if [ $? -ne 0 ]; then
-        echo "ERROR while starting soapower. Please run this command and check the log file:"
-        echo "$CMD"
-        ERROR=1
-    fi
+        ps -ef | grep java | grep soapower | grep "http.port=${SOAPOWER_HTTP_PORT}" | grep -v grep >/dev/null 2>&1
 
-    return $ERROR
+        if [ $? -ne 0 ]; then
+            echo "ERROR while starting soapower. Please run this command and check the log file:"
+            echo "$CMD"
+            ERROR=1
+        fi
+
+        return $ERROR
+    fi;
 }
 
 ########################################
