@@ -14,6 +14,7 @@ import play.api.http._
 import java.io.StringWriter
 import java.io.PrintWriter
 import play.api.Play.current
+import com.ning.http.client.Realm.AuthScheme
 
 object Client {
   private val DEFAULT_NO_SOAPACTION = "Soapower_NoSoapAction"
@@ -48,12 +49,20 @@ object Client {
       case None => DEFAULT_NO_SOAPACTION
     }
   }
-
 }
 
-class Client(service: Service, sender: String, content: String, headers: Map[String, String]) {
+class Client(service: Service, sender: String, content: String, headers: Map[String, String], typeRequest: String) {
 
-  val requestData = new RequestData(sender, Client.extractSoapAction(headers), service.environmentId, service.id)
+  val requestData = {
+    if(typeRequest.equals("soap"))
+	{
+    // => Add tests to check if soapAction exists for a soapaction
+    // If the soapaction doesn't exist, serviceAction => Method + " " + localTarget
+      new RequestData(sender, Client.extractSoapAction(headers), service.environmentId, service.id)
+	} else {
+      new RequestData(sender, "GET "+service.localTarget, service.environmentId, service.id)
+	}
+  }
   var response: ClientResponse = null
 
   private var futureResponse: Future[Response] = null
@@ -71,6 +80,46 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     Logger.debug("End workWithMock")
   }
 
+  /**
+   * Send a Rest Get Request
+   * @param correctUrl
+   * @param query
+   */
+  def sendRestGetRequestAndWaitForResponse(correctUrl: String, query:Map[String, String])
+  {
+    if (Logger.isDebugEnabled) {
+      Logger.debug("RemoteTarget " + service.remoteTarget)
+    }
+
+    requestTimeInMillis = System.currentTimeMillis
+    // prepare request
+
+    var wsRequestHolder = WS.url(correctUrl).withRequestTimeout(service.timeoutms.toInt)
+    wsRequestHolder = wsRequestHolder.withQueryString(query.toList: _*)
+    wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.X_FORWARDED_FOR -> sender))
+
+    // add headers
+    def filteredHeaders = headers.filterNot {
+      _._1 == HeaderNames.TRANSFER_ENCODING
+    }
+    wsRequestHolder = wsRequestHolder.withHeaders(filteredHeaders.toArray: _*)
+
+    try {
+      // perform request
+      futureResponse = wsRequestHolder.get()
+      // wait for the response
+      waitForResponse(headers)
+
+    } catch {
+      case e: Throwable => processError("get", e)
+    }
+    // save the request and response data to DB
+    saveData(content)
+  }
+
+  /*
+  SOAP
+   */
   def sendRequestAndWaitForResponse() {
     if (Logger.isDebugEnabled) {
       Logger.debug("RemoteTarget " + service.remoteTarget)
@@ -81,7 +130,6 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     // prepare request
     var wsRequestHolder = WS.url(service.remoteTarget).withRequestTimeout(service.timeoutms.toInt)
     wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.X_FORWARDED_FOR -> sender))
-
     // add headers
     def filteredHeaders = headers.filterNot {
       _._1 == HeaderNames.TRANSFER_ENCODING
@@ -92,14 +140,14 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     try {
       // perform request
       futureResponse = wsRequestHolder.post(content)
-
       // wait for the response
       waitForResponse(headers)
 
     } catch {
-      case e: Throwable => processError("post", e)
-    }
 
+      case e: Throwable =>
+        processError("post", e)
+    }
     // save the request and response data to DB
     saveData(content)
   }
@@ -114,6 +162,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       requestData.requestHeaders = headers
       requestData.response = checkNullOrEmpty(response.body)
       requestData.responseBytes = response.bodyBytes
+
       requestData.responseHeaders = response.headers
 
       if (Logger.isDebugEnabled) {
@@ -187,6 +236,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
 class ClientResponse(wsResponse: Response = null, val responseTimeInMillis: Long) {
 
   var body: String = if (wsResponse != null) wsResponse.body else ""
+  var contentType: String =  if (wsResponse != null && wsResponse.getAHCResponse != null) wsResponse.getAHCResponse.getContentType else ""
   var bodyBytes = if (wsResponse != null && wsResponse.getAHCResponse != null) wsResponse.getAHCResponse.getResponseBodyAsBytes else null
   val status: Int = if (wsResponse != null) wsResponse.status else Status.INTERNAL_SERVER_ERROR
 
@@ -202,6 +252,8 @@ class ClientResponse(wsResponse: Response = null, val responseTimeInMillis: Long
     val res = mapAsScalaMapConverter(headersNing).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
     TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
   }
+
+
 
 }
 

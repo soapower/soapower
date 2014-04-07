@@ -66,6 +66,7 @@ object Soap extends Controller {
           val recordXmlData = false
           val recordData = false
           val useMockGroup = false
+          val typeRequest = "soap"
 
           val environmentOption = Environment.findByGroupAndByName(group, environment)
           // Check that the environment exists for the given group
@@ -73,6 +74,8 @@ object Soap extends Controller {
             environmentReal =>
             // The environment exists so the service creation can be performed
               service = new Service(id,
+                typeRequest,
+                "post",
                 description,
                 localTarget.get,
                 remoteTarget,
@@ -138,7 +141,7 @@ object Soap extends Controller {
 
     service.map {
       service =>
-        val client = new Client(service, sender, content, headers)
+        val client = new Client(service, sender, content, headers, "soap")
         if (service.useMockGroup) {
           val mock = Mock.findByMockGroupAndContent(service.mockGroupId, content)
           client.workWithMock(mock)
@@ -189,7 +192,6 @@ object Soap extends Controller {
   private def printRequest(implicit r: play.api.mvc.RequestHeader) {
     Logger.info("method:" + r)
     Logger.info("headers:" + r.headers)
-    //Logger.info("SoapAction:" + r.headers("SOAPACTION"))
     Logger.info("path:" + r.path)
     Logger.info("uri:" + r.uri)
     Logger.info("host:" + r.host)

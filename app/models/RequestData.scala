@@ -246,7 +246,7 @@ object RequestData {
             'responseHeaders -> UtilConvert.headersToString(requestData.responseHeaders),
             'timeInMillis -> requestData.timeInMillis,
             'status -> requestData.status,
-            'isMock -> requestData.isMock
+            'isMock -> requestData.isMock.toString
             ).executeInsert()
       } match {
         case Some(long) => long // The Primary Key

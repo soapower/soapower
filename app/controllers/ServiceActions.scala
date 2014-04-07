@@ -5,7 +5,7 @@ import play.api._
 import libs.json._
 import play.api.mvc._
 
-object SoapActions extends Controller {
+object ServiceActions extends Controller {
 
   implicit val soapActionFormat = Json.format[SoapAction]
 
@@ -25,9 +25,9 @@ object SoapActions extends Controller {
   }
 
   /**
-   * Display the 'edit form' of a existing SoapAction.
+   * Display the 'edit form' of an existing ServiceAction.
    *
-   * @param id Id of the soapAction to edit
+   * @param id Id of the serviceAction to edit
    */
   def edit(id: Long) = Action {
     SoapAction.findById(id).map {
@@ -37,7 +37,7 @@ object SoapActions extends Controller {
   }
 
   /**
-   * Update a soapAction.
+   * Update a serviceAction.
    */
   def save(id: Long) = Action(parse.json) {
     request =>
@@ -51,7 +51,7 @@ object SoapActions extends Controller {
   }
 
   /**
-   * Return all SoapActions in Json Format
+   * Return all ServiceActions in Json Format
    * @return JSON
    */
   def findAll = Action {
@@ -65,10 +65,10 @@ object SoapActions extends Controller {
       RequestData.soapActionOptions.foreach {
         soapAction =>
           if (SoapAction.findByName(soapAction._1) == None) {
-            Logger.debug("SoapAction not found. Insert in db")
+            Logger.debug("ServiceAction not found. Insert in db")
             SoapAction.insert(new SoapAction(-1, soapAction._1, 30000))
           } else {
-            Logger.debug("SoapAction found. Do nothing.")
+            Logger.debug("ServiceAction found. Do nothing.")
           }
       }
       Ok(Json.toJson("Success regeneration"))

@@ -81,7 +81,6 @@ object Search extends Controller {
           result.as(TEXT)
         }
       }
-
       case _ => NotFound("The response does not exist")
     }
   }

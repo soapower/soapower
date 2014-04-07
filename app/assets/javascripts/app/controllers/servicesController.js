@@ -73,6 +73,25 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
             });
     });
 
+    $scope.types = [
+            'soap',
+            'rest'
+          ];
+
+    $scope.methods = [
+                   'post',
+                   'get',
+                   'put',
+                   'delete'
+                 ];
+
+    $scope.$watch('service.typeRequest', function(newValue) {
+            if(newValue == 'soap')
+            {
+                $scope.service.httpMethod = 'post';
+            }
+        });
+
     $scope.isClean = function () {
         return angular.equals(self.original, $scope.service);
     }
@@ -97,7 +116,7 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
     $rootScope.$broadcast("showGroupsFilter", false);
 }
 
-function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, MockGroupsService, EnvironmentsService) {
+function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, MockGroupsService, EnvironmentsService, UIService) {
 
     $scope.title = "Insert new service";
 
@@ -108,6 +127,28 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
     $scope.service.recordData = "yes";
     $scope.service.useMockGroup = "no";
     $scope.service.timeoutms = "60000";
+
+    $scope.types = [
+                'soap',
+                'rest'
+    ]
+    $scope.methods = [
+               'post',
+               'get',
+               'put',
+               'delete'
+             ];
+
+    $scope.service.typeRequest = $scope.types[0];
+    $scope.service.httpMethod = $scope.methods[0];
+
+    $scope.$watch('service.typeRequest', function(newValue) {
+        if(newValue == 'soap')
+        {
+            $scope.service.httpMethod = 'post';
+        }
+    });
+
 
     $scope.hostname = $location.host();
     $scope.port = $location.port();

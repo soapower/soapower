@@ -25,6 +25,15 @@ POST          /soap/:environment/*localTarget                                   
 POST          /autosoap/:group/:environment/*remoteTarget                                                controllers.Soap.autoIndex(group, environment, remoteTarget)
 POST          /replay/:id                                                                                controllers.Soap.replay(id:Long)
 
+# Rest
+DELETE        /rest/:environment/*call                                                                   controllers.Rest.index(environment, call)
+GET           /rest/:environment/*call                                                                   controllers.Rest.index(environment, call)
+POST          /rest/:environment/*call                                                                   controllers.Rest.index(environment, call)
+PUT           /rest/:environment/*call                                                                   controllers.Rest.index(environment, call)
+
+#POST         /autorest/:group/:environment/*remoteTarget                                                controllers.Rest.autoIndex(group, environment, remoteTarget)
+#POST         /replay/:id                                                                                controllers.Rest.replay(id:Long)
+
 # Services
 GET           /services/:group/listDatatable                                                             controllers.Services.listDatatable(group:String)
 POST          /services/:id                                                                              controllers.Services.save(id:Long)
@@ -58,15 +67,15 @@ GET           /groups/:id                                                       
 DELETE        /groups/:id                                                                                controllers.Groups.delete(id:Long)
 
 # SoapActions list
-GET           /soapactions/findall                                                                       controllers.SoapActions.findAll
-GET           /soapactions/listDatatable                                                                 controllers.SoapActions.listDatatable
+GET           /soapactions/findall                                                                       controllers.ServiceActions.findAll
+GET           /soapactions/listDatatable                                                                 controllers.ServiceActions.listDatatable
 
 # Regeneration soapAction listDatatable
-GET           /soapactions/regenerate                                                                    controllers.SoapActions.regenerate
+GET           /soapactions/regenerate                                                                    controllers.ServiceActions.regenerate
 
 # Edit existing soapAction
-GET           /soapactions/:id                                                                           controllers.SoapActions.edit(id:Long)
-POST          /soapactions/:id                                                                           controllers.SoapActions.save(id:Long)
+GET           /soapactions/:id                                                                           controllers.ServiceActions.edit(id:Long)
+POST          /soapactions/:id                                                                           controllers.ServiceActions.save(id:Long)
 
 # Status list
 GET           /status/findall                                                                            controllers.Status.findAll
@@ -75,7 +84,7 @@ GET           /status/findall                                                   
 GET           /statsAsJunit/:group/:minDate/:maxDate/                                                    controllers.Stats.statsAsJunit(group, minDate, maxDate)
 GET           /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable                         controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
 
-# Download SOAP request and response
+# Download SOAP and Rest request and response
 GET           /download/request/:id                                                                      controllers.Search.downloadRequest(id:Long, asFile: Boolean ?= false)
 GET           /download/response/:id                                                                     controllers.Search.downloadResponse(id:Long, asFile: Boolean ?= false)
 
