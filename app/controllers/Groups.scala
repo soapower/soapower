@@ -19,6 +19,17 @@ import play.api.Logger
 
 object Groups extends Controller {
 
+  // use by Json : from scala to json
+  private implicit object GroupsOptionsDataWrites extends Writes[(String, String)] {
+    def writes(data: (String, String)): JsValue = {
+      JsObject(
+        List(
+          "id" -> JsString(data._1),
+          "name" -> JsString(data._2)
+        ))
+    }
+  }
+
   /**
    * Retrieve all groups and generate a DataTable's JSON format in order to be displayed in a datatable
    *
@@ -36,12 +47,8 @@ object Groups extends Controller {
   /**
    * Return all groups options
    */
-  def options = Action.async {
-    val futureDataList = Group.findAll
-    futureDataList.map {
-      list =>
-        Ok(Json.toJson(list))
-    }
+  def options = Action {
+    Ok(Json.toJson(Group.options))
   }
 
   /**
@@ -63,19 +70,23 @@ object Groups extends Controller {
     request =>
       val id = BSONObjectID.generate
       val json = request.body.as[JsObject] ++ Json.obj("_id" -> id)
-      json.validate(Group.groupFormat).map {
-        case group => {
-          Group.insert(json).map {
-            lastError =>
-              if (lastError.ok) {
-                Ok(id.stringify)
-              } else {
-                BadRequest("Detected error:%s".format(lastError))
-              }
+      try {
+        json.validate(Group.groupFormat).map {
+          case group => {
+            Group.insert(group).map {
+              lastError =>
+                if (lastError.ok) {
+                  Ok(id.stringify)
+                } else {
+                  BadRequest("Detected error:%s".format(lastError))
+                }
+            }
           }
+        }.recoverTotal {
+          case e => Future.successful(BadRequest("Detected error : " + JsError.toFlatJson(e)))
         }
-      }.recoverTotal {
-        case e => Future.successful(BadRequest("Detected error:" + JsError.toFlatJson(e)))
+      } catch {
+        case e => Future.successful(BadRequest("Detected error : " + e.getMessage))
       }
   }
 
@@ -84,22 +95,26 @@ object Groups extends Controller {
    */
   def update(id: String) = Action.async(parse.json) {
     request =>
-      val idg = BSONObjectID.parse(id).toString
-      val json = JsObject(request.body.as[JsObject].fields.filterNot(f => f._1 == "_id")) //++ Json.obj("_id" -> idg)
+      val idg = BSONObjectID.parse(id).toOption.get
+      val json = JsObject(request.body.as[JsObject].fields.filterNot(f => f._1 == "_id")) ++ Json.obj("_id" -> idg)
 
-      json.validate(Group.groupFormat).map {
-        case group => {
-          Group.update(group).map {
-            lastError =>
-              if (lastError.ok) {
-                Ok(id)
-              } else {
-                BadRequest("Detected error:%s".format(lastError))
-              }
+      try {
+        json.validate(Group.groupFormat).map {
+          case group => {
+            Group.update(group).map {
+              lastError =>
+                if (lastError.ok) {
+                  Ok(id)
+                } else {
+                  BadRequest("Detected error:%s".format(lastError))
+                }
+            }
           }
+        }.recoverTotal {
+          case e => Future.successful(BadRequest("Detected error validation : " + JsError.toFlatJson(e)))
         }
-      }.recoverTotal {
-        case e => Future.successful(BadRequest("Detected error validation:" + JsError.toFlatJson(e)))
+      } catch {
+        case e => Future.successful(BadRequest("Detected error : " + e.getMessage))
       }
   }
 

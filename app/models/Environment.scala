@@ -432,7 +432,7 @@ object Environment {
     }
 
     if (dataCsv(csvTitle.get("key").get) == csvKey) {
-      val group = Group.upload(dataCsv(csvTitle.get("groupName").get))
+      val group = Group.uploadGroup(dataCsv(csvTitle.get("groupName").get))
       uploadEnvironment(dataCsv, group)
     } else {
       Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")

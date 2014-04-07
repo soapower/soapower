@@ -27,6 +27,8 @@ object Admin extends Controller {
               try {
                 if (line.startsWith(Service.csvKey)) {
                   Service.upload(line)
+                } else if (line.startsWith(Group.csvKey)) {
+                  Group.upload(line)
                 } else if (line.startsWith(Environment.csvKey)) {
                   Environment.upload(line)
                 } else if (line.startsWith(SoapAction.csvKey)) {

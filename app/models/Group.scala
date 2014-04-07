@@ -1,23 +1,17 @@
 package models
 
-import anorm._
-import anorm.SqlParser._
 import play.api._
 import play.api.Play.current
 import play.api.cache._
-import play.api.db._
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.modules.reactivemongo.json.collection.JSONCollection
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import reactivemongo.bson.{BSONDocumentWriter, BSONDocumentReader, BSONObjectID, BSONDocument}
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import play.modules.reactivemongo.json.BSONFormats._
-import reactivemongo.core.commands.RawCommand
-import play.api.data._
-import play.api.data.Forms._
-import play.api.data.format.Formats._
-import play.api.data.validation.Constraints._
+import scala.concurrent.duration._
+
 
 /**
  *
@@ -52,11 +46,7 @@ object Group {
    * Group caches keys which are used in order to declare and manage a DB cache
    */
   private val keyCacheAllOptions = "group-options"
-  private val keyCacheById = "group-by-id"
-  private val keyCacheByName = "group-by-name"
   private val GROUP_NAME_PATTERN = "[a-zA-Z0-9]{1,200}"
-
-  //implicit val groupFormat = Json.format[Group]
 
   def collection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("group")
 
@@ -84,16 +74,11 @@ object Group {
   /**
    * Construct the Map[String,String] needed to fill a select options set.
    */
-  def options: Seq[(String, String)] = {
-    //TODO
-    ???
-    /*implicit connection =>
-      val groups = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
-        Logger.debug("Groups not found in cache: loading from db")
-        SQL("select * from groups order by name").as(Group.simple *).map(c => c.id.toString -> c.name)
-      }
-      groups
-      */
+  def options = {
+    Cache.getOrElse(keyCacheAllOptions) {
+      val f = findAll.map(groups => groups.map(g => (g._id.get.stringify, g.name) ))
+      Await result (f, 1.seconds)
+    }
   }
 
   /**
@@ -116,21 +101,19 @@ object Group {
   /**
    * Persist a new group to database.
    *
-   * @param json The group to persist.
+   * @param group The group to persist.
    */
-  def insert(json: JsObject) = {
+  def insert(group: Group) = {
 
-    /*
-    //TODOif (!group.name.trim.matches(GROUP_NAME_PATTERN)) {
+    if (!group.name.trim.matches(GROUP_NAME_PATTERN)) {
       throw new Exception("Group name invalid:" + group.name.trim)
-    }*/
+    }
 
-    // TODO Insert the new group
-    /*if (options.exists{g => g._2.equals(group.name.trim)}) {
+    if (options.exists{g => g._2.equals(group.name.trim)}) {
       throw new Exception("Group with name " + group.name.trim + " already exist")
-    }*/
+    }
 
-    collection.insert(json)
+    collection.insert(group)
   }
 
   /**
@@ -144,10 +127,9 @@ object Group {
       throw new Exception("Group name invalid:" + group.name.trim)
     }
 
-    //TODO
-    /*if (options.exists{g => g._2.equals(group.name.trim) && g._1.toLong != group.id}) {
+    if (options.exists{g => g._2.equals(group.name.trim) && g._1 != group._id.get.stringify}) {
       throw new Exception("Group with name " + group.name.trim + " already exist")
-    }*/
+    }
 
     val selector = BSONDocument("_id" -> group._id)
 
@@ -155,7 +137,6 @@ object Group {
       "$set" -> BSONDocument(
         "name" -> group.name))
 
-    Cache.remove(keyCacheById + group._id)
     collection.update(selector, modifier)
   }
 
@@ -180,36 +161,61 @@ object Group {
    * Return a list of all groups.
    */
   def findAll: Future[List[Group]] = {
-    collection.
-      find(Json.obj()).
-      sort(Json.obj("name" -> 1)).
-      cursor[Group].
-      collect[List]()
+      collection.
+        find(Json.obj()).
+        sort(Json.obj("name" -> 1)).
+        cursor[Group].
+        collect[List]()
+
+  }
+
+  def upload(csvLine: String) = {
+
+    val dataCsv = csvLine.split(";")
+
+    if (dataCsv.size != csvTitle.size) {
+      throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
+    }
+
+    if (dataCsv(csvTitle.get("key").get) == csvKey) {
+      uploadGroup(dataCsv(csvTitle.get("name").get))
+    } else {
+      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
+    }
   }
 
   /**
    * Check if group exist and insert it if not
    *
-   * @param groupName Name of the group
+   * @param name name of group
    * @return group
    */
-  def upload(groupName: String): Group = {
+  def uploadGroup(name : String): Group = {
 
-    //TODO
-    ???
-    /*Logger.debug("groupName:" + groupName)
+    Logger.debug("upload groupName:" + name)
 
-    var group = Group.findByName(groupName)
-    if (group == None) {
-      Logger.debug("Insert group " + groupName)
-      Group.insert(new Group(0, groupName))
-      group = Group.findByName(groupName)
-      if (group.get == null) Logger.error("Group insert failed : " + groupName)
-    } else {
-      Logger.debug("Group already exist : " + group.get.name)
+    val future = Group.findByName(name).map {
+      group => {
+        if (group == None) {
+          Logger.debug("Insert new group with name " + name)
+          val newGroup = new Group(Some(BSONObjectID.generate), name)
+          Group.insert(newGroup).map {
+            lastError =>
+              if (lastError.ok) {
+                newGroup
+              } else {
+                Logger.error("Detected error:%s".format(lastError))
+                throw new Exception("Error while inserting new group with name : " + name)
+              }
+          }
+          newGroup
+        } else {
+          Logger.debug("Group already exist : " + group.get.name)
+          group.get
+        }
+      }
     }
-    group.get
-    */
+    Await result (future, 1.seconds)
   }
 
 }
