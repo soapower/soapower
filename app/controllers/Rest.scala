@@ -2,6 +2,7 @@ package controllers
 
 import play.api.mvc._
 import play.Logger
+import java.net.URLDecoder
 import play.api.libs.iteratee.Enumerator
 import models.{Mock, UtilConvert, Service, Client}
 import scala.concurrent.Await
@@ -9,27 +10,23 @@ import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.http.HeaderNames
 
-/**
- * Created by glefranc on 28/03/14.
- */
 object Rest extends Controller {
 
   def index (environment: String, call: String) = Action {
     request  =>
       val sender = request.remoteAddress
       val headers = request.headers.toSimpleMap
-      val query = request.queryString.map { case (k,v) => k -> v.mkString }
-      val queryString = request.rawQueryString
-      val method = request.method
 
+      // We retrieve the query and decode each of it's component
+      val query = request.queryString.map { case (k,v) =>  URLDecoder.decode(k, "UTF-8") ->  URLDecoder.decode(v.mkString, "UTF-8") }
+      val method = request.method
       // We retrieve all the REST services that match the method and the environment
-      val localTargets = Service.findByMethodAndEnvironmentName(method, environment)
+      val localTargets = Service.findRestByMethodAndEnvironmentName(method, environment)
 
       Logger.debug(localTargets.length +" services found in db")
+
       // We retrieve the id of the correct
       val serviceId = findService(localTargets, call)
-
-
       val service = Service.findById(serviceId)
 
       service.map {
@@ -42,19 +39,23 @@ object Rest extends Controller {
             val remoteTargetWithCall = getRemoteTargetWithCall(call, service.remoteTarget, service.localTarget)
             method match {
               case "GET" =>
+                val queryString = URLDecoder.decode(request.rawQueryString, "UTF-8")
                 val content = getRequestContent(method, remoteTargetWithCall, queryString)
-                forwardGetRequest(content, query, service, sender, headers, call, remoteTargetWithCall)
-              /*
-              case "DELETE" =>
-                val content = method+" "+correctUrl;
-                forwardGetRequest(content, query, service, sender, headers, call, correctUrl)
+                forwardRequest(content, query, service, sender, headers, call, remoteTargetWithCall)
+
               case "POST" =>
                 val content = request.body.toString;
-                forwardGetRequest(content, query, service, sender, headers, call, correctUrl)
+                forwardRequest(content, query, service, sender, headers, call, remoteTargetWithCall)
+
+              case "DELETE" =>
+                val queryString = URLDecoder.decode(request.rawQueryString, "UTF-8")
+                val content = getRequestContent(method, remoteTargetWithCall, queryString)
+                forwardRequest(content, query, service, sender, headers, call, remoteTargetWithCall)
+
               case "PUT" =>
                 val content = request.body.toString;
-                forwardGetRequest(content, query, service, sender, headers, call, correctUrl)
-                */
+                forwardRequest(content, query, service, sender, headers, call, remoteTargetWithCall)
+
               case _ =>
                 val err = "Not implemented yet"
                 Logger.error(err)
@@ -68,9 +69,9 @@ object Rest extends Controller {
       }
   }
 
-  def forwardGetRequest(content: String, query: Map[String, String], service: Service, sender: String, headers: Map[String,String], call: String, correctUrl:String): SimpleResult = {
+  def forwardRequest(content: String, query: Map[String, String], service: Service, sender: String, headers: Map[String,String], call: String, correctUrl:String): SimpleResult = {
     val client = new Client(service, sender, content, headers, "get")
-    client.sendRestGetRequestAndWaitForResponse(correctUrl, query)
+    client.sendGetRequestAndWaitForResponse(service.httpMethod, correctUrl, query)
 
     new Results.Status(client.response.status).apply(client.response.bodyBytes)//.chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
       .withHeaders("ProxyVia" -> "soapower")
@@ -92,7 +93,7 @@ object Rest extends Controller {
         return serviceId
       }
     }
-    return -1;
+    return -1
   }
   /**
    * Get the correct URL for the redirection by parsing the call

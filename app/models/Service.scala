@@ -114,24 +114,24 @@ object Service {
    * @param environmentName
    * @return
    */
-  def findByMethodAndEnvironmentName(httpMethod:String, environmentName: String): Seq[(Long, String)] = {
-      val services = Cache.getOrElse[Seq[(Long, String)]](cacheKeyServiceByMethod + "get") {
-      Logger.debug("Rest "+httpMethod+" services not found in cache: loading from db")
+  def findRestByMethodAndEnvironmentName(httpMethod:String, environmentName: String): Seq[(Long, String)] = {
+      val services =
         DB.withConnection {
           implicit connection =>
             SQL(
               """
               select * from service
             left join environment on service.environment_id = environment.id
-            where service.httpMethod like {httpMethod}
+            where service.typeRequest like {typeRequest}
+            and service.httpMethod like {httpMethod}
             and environment.name like {environmentName}
               """).on(
+            'typeRequest -> "rest",
             'httpMethod -> httpMethod,
             'environmentName -> environmentName
             ).as(Service.simple *)
            .map(s => s.id -> s.localTarget)
         }
-      }
       services
   }
 

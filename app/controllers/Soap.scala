@@ -153,7 +153,7 @@ object Soap extends Controller {
           val timeoutFuture = play.api.libs.concurrent.Promise.timeout(sr, mock.timeoutms.milliseconds)
           Await.result(timeoutFuture, 10.second) // 10 seconds (10000 ms) is the maximum allowed.
         } else {
-          client.sendRequestAndWaitForResponse
+          client.sendSoapRequestAndWaitForResponse
           // forward the response to the client
           new Results.Status(client.response.status).stream(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
             .withHeaders("ProxyVia" -> "soapower")
