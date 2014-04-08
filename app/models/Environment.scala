@@ -2,7 +2,6 @@ package models
 
 import play.api.Play.current
 import play.api.cache._
-import play.api._
 
 import java.util.{Calendar, GregorianCalendar}
 import play.modules.reactivemongo.ReactiveMongoPlugin
@@ -13,6 +12,8 @@ import play.modules.reactivemongo.json.BSONFormats._
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.modules.reactivemongo.json.collection.JSONCollection
+import reactivemongo.core.commands.RawCommand
+import play.api.Logger
 
 case class Environment(_id: Option[BSONObjectID],
                        name: String,
@@ -277,6 +278,11 @@ object Environment {
    */
   def list(group: String): List[Environment] = {
     ???
+  }
+
+  def findAllGroups() : Future[BSONDocument] = {
+    val command = RawCommand(BSONDocument("distinct" -> "environments", "key" -> "groups"))
+    collection.db.command(command) // result is Future[BSONDocument]
   }
 
   /*

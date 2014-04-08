@@ -78,12 +78,12 @@ spApp.directive('spGroups', function () {
             $scope.selectGroupsOptions = {
                 'multiple': true,
                 'simple_tags': true,
-                'tags': ["trst"]
+                'tags': []
             };
 
             $scope.loadGroups = function() {
                 GroupsService.findAll().success(function(groups) {
-                    $scope.selectGroupsOptions["tags"] = groups;
+                    $scope.selectGroupsOptions["tags"] = groups.values;
                 });
             };
             $scope.loadGroups()
