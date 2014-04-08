@@ -63,10 +63,6 @@ spApp.config(function ($routeProvider) {
         .when('/mockgroups/edit/:mockGroupId', {controller: MockGroupEditCtrl, templateUrl: 'partials/mockgroups/detail.html'})
         .when('/mockgroups/:group', { controller: MockGroupsCtrl, templateUrl: 'partials/mockgroups/list.html'})
 
-        .when('/groups', { controller: GroupsCtrl, templateUrl: 'partials/groups/list.html'})
-        .when('/groups/new', {controller: GroupNewCtrl, templateUrl: 'partials/groups/detail.html'})
-        .when('/groups/edit/:groupId', {controller: GroupEditCtrl, templateUrl: 'partials/groups/detail.html'})
-
         .when('/soapactions/edit/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
         .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
 

@@ -374,10 +374,13 @@ object RequestData {
    */
   def list(groupName: String, environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10): Future[List[RequestData]] = {
 
-    val group = Group.options.find(t => t._2 == groupName)
-
     val query = BSONDocument()
+
+    // TODO Group
+    /*val group = Group.options.find(t => t._2 == groupName)
+
     if (group isDefined) query ++ ("groupdId" -> group.get._1)
+    */
 
     // TODO Environment
     /*if (environmentIn != "all" && Environment.optionsAll.exists(t => t._2 == environmentIn))

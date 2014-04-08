@@ -27,8 +27,6 @@ object Admin extends Controller {
               try {
                 if (line.startsWith(Service.csvKey)) {
                   Service.upload(line)
-                } else if (line.startsWith(Group.csvKey)) {
-                  Group.upload(line)
                 } else if (line.startsWith(Environment.csvKey)) {
                   Environment.upload(line)
                 } else if (line.startsWith(SoapAction.csvKey)) {
@@ -55,10 +53,7 @@ object Admin extends Controller {
 
   def downloadConfiguration = Action.async {
     // Title
-    var content = "#for key " + Group.csvKey + "\n"
-    Group.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
-    content = content.dropRight(1) + "\n" // delete last ; and add new line
-    content += "#for key " + Environment.csvKey + "\n"
+    var content = "#for key " + Environment.csvKey + "\n"
     Environment.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
     content = content.dropRight(1) + "\n" // delete last ; and add new line
     content += "#for key " + SoapAction.csvKey + "\n"
@@ -75,13 +70,12 @@ object Admin extends Controller {
 
     def f: Future[Unit] = {
       for {
-        groups <- Group.fetchCsv()
+        environments <- Environment.fetchCsv() // Environment.fetchCsv
         // TODO
-        environments <- Group.fetchCsv() // Environment.fetchCsv
-        soapActions <- Group.fetchCsv() // SoapAction.fetchCsv
-        mockGroups <- Group.fetchCsv() // MockGroup.fetchCsv
-        services <- Group.fetchCsv() // Service.fetchCsv
-      } yield combine(groups ++ environments ++ soapActions ++ mockGroups ++ services )
+        soapActions <- Environment.fetchCsv() // SoapAction.fetchCsv
+        mockGroups <- Environment.fetchCsv() // MockGroup.fetchCsv
+        services <- Environment.fetchCsv() // Service.fetchCsv
+      } yield combine(environments ++ soapActions ++ mockGroups ++ services )
     }
 
     // result as a file

@@ -4,7 +4,7 @@ import play.api.Play.current
 import play.api.cache._
 import play.api._
 
-import java.util.GregorianCalendar
+import java.util.{Calendar, GregorianCalendar}
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import play.api.libs.json._
 import reactivemongo.bson._
@@ -184,7 +184,6 @@ object Environment {
   def findByGroupAndByName(group: String, name: String): Option[Environment] = {
     ???
     /*implicit connection =>
-    // FIXME : add key to clearCache
     //Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
       SQL("select * from environment e, groups g where e.groupId = g.id and e.name = {name} and g.name = {group}").on(
         'name -> name, 'group -> group).as(Environment.simple.singleOpt)
@@ -210,8 +209,6 @@ object Environment {
 
     clearCache
     Logger.debug("Envir:" + environment)
-    /*Logger.debug("Envir:" + environment)
-    val doc = BSON.write(environment)*/
     collection.insert(environment)
   }
 
@@ -235,13 +232,13 @@ object Environment {
 
     val modifier = BSONDocument(
       "$set" -> BSONDocument(
-        "name" -> BSONString(environment.name),
-        "hourRecordXmlDataMin" -> BSONInteger(environment.hourRecordXmlDataMin),
-        "hourRecordXmlDataMax" -> BSONInteger(environment.hourRecordXmlDataMax),
-        "nbDayKeepXmlData" -> BSONInteger(environment.nbDayKeepXmlData),
-        "nbDayKeepAllData" -> BSONInteger(environment.nbDayKeepAllData),
-        "recordXmlData" -> BSONBoolean(environment.recordXmlData),
-        "recordData" -> BSONBoolean(environment.recordData),
+        "name" -> environment.name,
+        "hourRecordXmlDataMin" -> environment.hourRecordXmlDataMin,
+        "hourRecordXmlDataMax" -> environment.hourRecordXmlDataMax,
+        "nbDayKeepXmlData" -> environment.nbDayKeepXmlData,
+        "nbDayKeepAllData" -> environment.nbDayKeepAllData,
+        "recordXmlData" -> environment.recordXmlData,
+        "recordData" -> environment.recordData,
         "groups" -> environment.groups)
     )
 
@@ -272,7 +269,6 @@ object Environment {
       sort(Json.obj("name" -> 1)).
       cursor[Environment].
       collect[List]()
-
   }
 
   /**
@@ -322,8 +318,7 @@ object Environment {
   }
 
   private def purgeData(mode: ModePurge) {
-    ???
-    /*
+
     Logger.info("Purging " + mode + " data...")
 
     val minDate = UtilDate.getDate("all").getTime
@@ -332,9 +327,8 @@ object Environment {
     val gcal = new GregorianCalendar
     val today = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
 
-    Environment.options.foreach {
-      (e) =>
-        val env = Environment.findById(e._1)
+    Environment.findAll.map (environments => environments.map(
+      env => {
         var nbDay = 100
 
         val maxDate = new GregorianCalendar
@@ -350,10 +344,9 @@ object Environment {
           purgedRequests += RequestData.deleteRequestResponse(env.name, minDate, maxDate.getTime, user)
         else
           purgedRequests += RequestData.delete(env.name, minDate, maxDate.getTime)
-    }
+      }
+    ))
     Logger.info("Purging " + mode + " data: done (" + purgedRequests + " requests purged)")
-    */
-
   }
 
 
@@ -372,8 +365,7 @@ object Environment {
     }
 
     if (dataCsv(csvTitle.get("key").get) == csvKey) {
-      val group = Group.uploadGroup(dataCsv(csvTitle.get("groupName").get))
-      uploadEnvironment(dataCsv, group)
+      uploadEnvironment(dataCsv)
     } else {
       Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
     }
@@ -385,34 +377,39 @@ object Environment {
    * @param dataCsv line in csv file
    * @return environment (new or not)
    */
-  private def uploadEnvironment(dataCsv: Array[String], group: Group) = {
+  private def uploadEnvironment(dataCsv: Array[String]) = {
 
-    ???
-    //TODO
-    /*
     val name = dataCsv(csvTitle.get("name").get)
-    val s = findByName(name)
+    Logger.debug("upload environment:" + name)
 
-    s.map {
-      environment =>
-        Logger.warn("Warning : Environment " + environment.name + " already exist")
-        throw new Exception("Warning : Environment " + environment.name + " already exist")
-    }.getOrElse {
-
-      val environment = new Environment(
-        -1,
-        dataCsv(csvTitle.get("name").get).trim,
-        group.id,
-        dataCsv(csvTitle.get("hourRecordXmlDataMin").get).toInt,
-        dataCsv(csvTitle.get("hourRecordXmlDataMax").get).toInt,
-        dataCsv(csvTitle.get("nbDayKeepXmlData").get).toInt,
-        dataCsv(csvTitle.get("nbDayKeepAllData").get).toInt,
-        (dataCsv(csvTitle.get("recordXmlData").get).trim == "true"),
-        (dataCsv(csvTitle.get("recordData").get).trim == "true")
-      )
-      Environment.insert(environment)
-      Logger.info("Insert Environment " + environment.name)
+    findByName(name).map {
+      environment => {
+        if (environment == None) {
+          Logger.debug("Insert new environment with name " + name)
+          val newEnvironment = new Environment(Some(BSONObjectID.generate),
+            dataCsv(csvTitle.get("name").get).trim,
+            dataCsv(csvTitle.get("groups").get).split("|").toList,
+            dataCsv(csvTitle.get("hourRecordXmlDataMin").get).toInt,
+            dataCsv(csvTitle.get("hourRecordXmlDataMax").get).toInt,
+            dataCsv(csvTitle.get("nbDayKeepXmlData").get).toInt,
+            dataCsv(csvTitle.get("nbDayKeepAllData").get).toInt,
+            dataCsv(csvTitle.get("recordXmlData").get).trim == "true",
+            dataCsv(csvTitle.get("recordData").get).trim == "true"
+          )
+          insert(newEnvironment).map {
+            lastError =>
+              if (lastError.ok) {
+                Logger.debug("OK Insert new environment with name " + name)
+              } else {
+                Logger.error("Detected error:%s".format(lastError))
+                throw new Exception("Error while inserting new group with name : " + name)
+              }
+          }
+        } else {
+          Logger.warn("Warning : Environment " + name + " already exist")
+          throw new Exception("Warning : Environment " + name + " already exist")
+        }
+      }
     }
-    */
   }
 }

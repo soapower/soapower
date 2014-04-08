@@ -39,6 +39,9 @@ PUT           /environments/:id                                                 
 GET           /environments/:id                                                                          controllers.Environments.edit(id:String)
 DELETE        /environments/:id                                                                          controllers.Environments.delete(id:String)
 
+# Groups
+GET           /groups/findAll                                                                            controllers.Environments.findAllGroups
+
 # Mocks
 GET           /mocks/:mockGroup/listDatatable                                                            controllers.Mocks.listDatatable(mockGroup:String)
 POST          /mocks/:id                                                                                 controllers.Mocks.save(id:Long)
@@ -50,14 +53,6 @@ GET           /mockgroups/:group/listDatatable                                  
 POST          /mockgroups/:id                                                                            controllers.MockGroups.save(id:Long)
 GET           /mockgroups/:id                                                                            controllers.MockGroups.edit(id:Long)
 DELETE        /mockgroups/:id                                                                            controllers.MockGroups.delete(id:Long)
-
-# Groups
-GET           /groups/options                                                                            controllers.Groups.options
-GET           /groups/findAll                                                                            controllers.Groups.findAll
-POST          /groups                                                                                    controllers.Groups.create
-PUT           /groups/:id                                                                                controllers.Groups.update(id:String)
-GET           /groups/:id                                                                                controllers.Groups.edit(id:String)
-DELETE        /groups/:id                                                                                controllers.Groups.delete(id:String)
 
 # SoapActions list
 GET           /soapactions/findall                                                                       controllers.SoapActions.findAll
@@ -78,8 +73,8 @@ GET           /statsAsJunit/:group/:minDate/:maxDate/                           
 GET           /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable                         controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
 
 # Download SOAP request and response
-GET           /download/request/:id                                                                      controllers.Search.downloadRequest(id:Long, asFile: Boolean ?=         false)
-GET           /download/response/:id                                                                     controllers.Search.downloadResponse(id:Long, asFile: Boolean ?=         false)
+GET           /download/request/:id                                                                      controllers.Search.downloadRequest(id:Long, asFile: Boolean ?= false)
+GET           /download/response/:id                                                                     controllers.Search.downloadResponse(id:Long, asFile: Boolean ?= false)
 
 # Monitoring
 GET           /monitor/logfile                                                                           controllers.Monitor.logfile

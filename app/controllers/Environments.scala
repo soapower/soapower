@@ -163,5 +163,9 @@ object Environments extends Controller {
           }
       }
   }
+
+  def findAllGroups() = Action {
+    Ok(Json.toJson(List("group1", "group2")))
+  }
 }
 

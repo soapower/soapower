@@ -276,6 +276,9 @@ object Mock {
    */
   def upload(csvLine: String) = {
 
+    //TODO
+    ???
+    /*
     val dataCsv = csvLine.split(";")
 
     if (dataCsv.size != csvTitle.size) {
@@ -288,6 +291,7 @@ object Mock {
     } else {
       Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
     }
+    */
   }
 
   /**

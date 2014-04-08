@@ -314,18 +314,22 @@ object Service {
    */
   def upload(csvLine: String) = {
 
-    val dataCsv = csvLine.split(";")
+    // TODO
+    ???
+
+    /*val dataCsv = csvLine.split(";")
 
     if (dataCsv.size != csvTitle.size)
       throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
 
     if (dataCsv(csvTitle.get("key").get) == csvKey) {
       val environment = uploadEnvironment(dataCsv)
+
       val mockGroup = MockGroup.upload(dataCsv(csvTitle.get("mockGroupName").get), Group.ID_DEFAULT_GROUP)
       uploadService(dataCsv, environment, mockGroup)
     } else {
       Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
-    }
+    }*/
   }
 
   /**

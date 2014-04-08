@@ -219,32 +219,6 @@ spApp.factory("GroupsService", function ($http) {
     return {
         findAll: function () {
             return $http.get('/groups/findAll');
-        },
-        findAllAndSelect: function ($scope, $rootScope, groupName, myEnvironment, withAll) {
-            $http.get('/groups/options')
-                .success(function (groups) {
-                    $scope.groups = groups;
-                    var groupAll = {id: "all", name: "all"}
-                    if (withAll) $scope.groups.unshift(groupAll);
-                    if (groupName != null || myEnvironment != null) {
-                        angular.forEach($scope.groups, function (value, key) {
-                            $scope.group = value;
-                            if (groupName != null && value.name == groupName) {
-                                $scope.group = value;
-                            }
-                            if (myEnvironment != null && value.id == myEnvironment.groupId) {
-                                myEnvironment.group = value;
-                            }
-                        });
-                    }
-                    if ($rootScope != null && !$scope.group) {
-                        $scope.group = groupAll;
-                        $rootScope.group = groupAll;
-                    }
-                })
-                .error(function (resp) {
-                    console.log("Error with GroupsService.findAllAndSelect" + resp);
-                });
         }
     }
 });
