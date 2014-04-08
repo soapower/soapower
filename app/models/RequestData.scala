@@ -2,7 +2,6 @@ package models
 
 import java.util.{GregorianCalendar, Calendar, Date}
 import play.api.Play.current
-import play.api.cache._
 import play.api.libs.json._
 import play.api.http._
 import anorm._
@@ -11,14 +10,13 @@ import java.util.zip.{GZIPOutputStream, GZIPInputStream}
 import java.nio.charset.Charset
 
 import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
-import sun.reflect.generics.reflectiveObjects.NotImplementedException
 import play.modules.reactivemongo.json.collection.JSONCollection
 
-import reactivemongo.api._
+import scala.concurrent.duration._
 import play.api.{db, Logger}
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import reactivemongo.bson.{BSONObjectID, BSONDocument}
 import play.modules.reactivemongo.json.BSONFormats._
 import reactivemongo.core.commands.RawCommand
@@ -27,8 +25,7 @@ case class RequestData(
                         id: Option[BSONObjectID],
                         sender: String,
                         var soapAction: String,
-                        groupId: Long,
-                        environmentId: Long,
+                        environmentId: String,
                         serviceId: Long,
                         var request: String,
                         var requestHeaders: Map[String, String],
@@ -42,8 +39,8 @@ case class RequestData(
 
   var responseBytes: Array[Byte] = null
 
-  def this(sender: String, soapAction: String, groupId: Long, environnmentId: Long, serviceId: Long) =
-    this(Some(BSONObjectID.generate), sender, soapAction, groupId, environnmentId, serviceId, null, null, new Date, null, null, -1, -1, false, false)
+  def this(sender: String, soapAction: String, environnmentId: String, serviceId: Long) =
+    this(Some(BSONObjectID.generate), sender, soapAction, environnmentId, serviceId, null, null, new Date, null, null, -1, -1, false, false)
 
   /**
    * Add soapAction in cache if neccessary.
@@ -194,14 +191,16 @@ object RequestData {
     var xmlRequest: String = null
     var xmlResponse: String = null
 
-    val environment = Environment.findById(requestData.environmentId).get
+    val f = Environment.findById(requestData.environmentId).map(e => e)
+    val environment = Await result (f, 1.seconds)
+
     val service = Service.findById(requestData.serviceId).get
     val date = new Date()
     val gcal = new GregorianCalendar()
     gcal.setTime(date)
     gcal.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
 
-    if (!service.recordData || !environment.recordData) {
+    if (!service.recordData || !environment.get.recordData) {
       Logger.debug("Data not recording for this service or this environment")
       return None
     } else if (!service.recordXmlData) {
@@ -209,14 +208,14 @@ object RequestData {
       xmlRequest = msg
       xmlResponse = msg
       Logger.debug(msg)
-    } else if (!environment.recordXmlData) {
+    } else if (!environment.get.recordXmlData) {
       val msg = "Xml Data not recording for this environment. See Admin."
       xmlRequest = msg
       xmlResponse = msg
       Logger.debug(msg)
     } else if (requestData.status != 200 || (
-      environment.hourRecordXmlDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
-        environment.hourRecordXmlDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
+      environment.get.hourRecordXmlDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
+        environment.get.hourRecordXmlDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
       // Record XML Data if it is a soap fault (status != 200) or
       // if we can record data with environment's configuration (hours of recording)
       xmlRequest = requestData.request
@@ -234,7 +233,7 @@ object RequestData {
           xmlResponse = requestData.response
       }
     } else {
-      val msg = "Xml Data not recording. Record between " + environment.hourRecordXmlDataMin + "h to " + environment.hourRecordXmlDataMax + "h for this environment."
+      val msg = "Xml Data not recording. Record between " + environment.get.hourRecordXmlDataMin + "h to " + environment.get.hourRecordXmlDataMax + "h for this environment."
       xmlRequest = msg
       xmlResponse = msg
       Logger.debug(msg)
@@ -246,9 +245,7 @@ object RequestData {
     collection.insert(requestData).map { lastError =>
       Logger.debug(s"Successfully inserted RequestData with LastError: $lastError")
     }
-
     requestData.id
-
   }
 
   /**
@@ -382,8 +379,10 @@ object RequestData {
     val query = BSONDocument()
     if (group isDefined) query ++ ("groupdId" -> group.get._1)
 
-    if (environmentIn != "all" && Environment.optionsAll.exists(t => t._2 == environmentIn))
+    // TODO Environment
+    /*if (environmentIn != "all" && Environment.optionsAll.exists(t => t._2 == environmentIn))
       query ++ ("environmentId" -> Environment.optionsAll.find(t => t._2 == environmentIn).get._1)
+      */
 
     if (soapAction != "all") query ++ ("soapAction" -> soapAction)
 
@@ -690,7 +689,8 @@ object RequestData {
    * @return nothing
    */
   def upload(csvLine: String) = {
-
+    ???
+    /*
     val dataCsv = csvLine.split(";")
 
     if (dataCsv.size != csvTitle.size)
@@ -710,6 +710,7 @@ object RequestData {
         throw new Exception("Warning : Environment " + environmentName + " already exist")
       }
     }
+    */
   }
 
   /**

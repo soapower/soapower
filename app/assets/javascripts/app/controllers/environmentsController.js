@@ -17,7 +17,7 @@ function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService,
                     var environmentsData = datafilter($scope.environments, $scope.tableFilter);
                     var orderedData = params.sorting() ? $filter('orderBy')(environmentsData, params.orderBy()) : environmentsData;
                     var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
-                    params.total(orderedData.length)
+                    params.total(orderedData.length);
                     $defer.resolve(res);
                 },
                 $scope: { $data: {} }
@@ -39,23 +39,26 @@ function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService,
     });
 }
 
-function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UIService, GroupsService) {
+function EnvironmentEditCtrl($scope, $routeParams, $location, Environment) {
     var self = this;
+
+    $scope.selectGroupsOptions = {
+        'multiple': true,
+        'simple_tags': true,
+        'tags': ['tag1', 'tag2', 'tag3', 'tag4']  // Can be empty list.
+    };
 
     Environment.get({environmentId: $routeParams.environmentId}, function (environment) {
         self.original = environment;
         $scope.environment = new Environment(self.original);
-        $scope.environment.recordXmlData = UIService.fixBooleanReverse($scope.environment.recordXmlData);
-        $scope.environment.recordData = UIService.fixBooleanReverse($scope.environment.recordData);
-        GroupsService.findAllAndSelect($scope, null, null, $scope.environment, false);
     });
 
     $scope.isClean = function () {
         return angular.equals(self.original, $scope.environment);
-    }
+    };
 
     $scope.destroy = function () {
-        self.original.destroy(function () {
+        self.original.$remove(function () {
             $location.path('/environments');
         }, function (response) { // error case
             alert(response.data);
@@ -63,7 +66,7 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UISer
     };
 
     $scope.save = function () {
-        $scope.environment.update(function () {
+        $scope.environment.$update(function () {
             $location.path('/environments');
         }, function (response) { // error case
             alert(response.data);
@@ -71,20 +74,26 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UISer
     };
 }
 
-function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
+function EnvironmentNewCtrl($scope, $location, Environment) {
 
-    GroupsService.findAllAndSelect($scope, null, null, null, false);
+    // TODO GROUPS
 
-    $scope.environment = new Environment({id: '-1'});
+    $scope.environment = new Environment();
     $scope.environment.hourRecordXmlDataMin = 6;
     $scope.environment.hourRecordXmlDataMax = 22;
     $scope.environment.nbDayKeepXmlData = 2;
     $scope.environment.nbDayKeepAllData = 4;
-    $scope.environment.recordXmlData = "yes";
-    $scope.environment.recordData = "yes";
+    $scope.environment.recordXmlData = true;
+    $scope.environment.recordData = true;
+
+    $scope.selectGroupsOptions = {
+        'multiple': true,
+        'simple_tags': true,
+        'tags': ['tag1', 'tag2', 'tag3', 'tag4']  // Can be empty list.
+    };
 
     $scope.save = function () {
-        $scope.environment.update(function () {
+        $scope.environment.$create(function () {
             $location.path('/environments/');
         }, function (response) { // error case
             alert(response.data);

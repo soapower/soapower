@@ -1,17 +1,22 @@
 package models
 
-import play.api.db._
 import play.api.Play.current
 import play.api.cache._
 import play.api._
 
-import anorm._
-import anorm.SqlParser._
-import java.util.{Date, Calendar, GregorianCalendar}
+import java.util.GregorianCalendar
+import play.modules.reactivemongo.ReactiveMongoPlugin
+import play.api.libs.json._
+import reactivemongo.bson._
+import scala.concurrent.{Await, Future}
+import play.modules.reactivemongo.json.BSONFormats._
+import scala.concurrent.duration._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.modules.reactivemongo.json.collection.JSONCollection
 
-case class Environment(id: Long,
+case class Environment(_id: Option[BSONObjectID],
                        name: String,
-                       groupId: Long = 1, // 1 is default group
+                       groups: List[String],
                        hourRecordXmlDataMin: Int = 8,
                        hourRecordXmlDataMax: Int = 22,
                        nbDayKeepXmlData: Int = 2,
@@ -27,102 +32,91 @@ object ModePurge extends Enumeration {
 
 object Environment {
 
-  private val keyCacheAllOptions = "environment-options"
-  private val keyCacheById = "environment-all"
-  private val ENVIRONMENT_NAME_PATTERN = "[a-zA-Z0-9]{1,200}"
-
-  /**
-   * Parse a Environment from a ResultSet
+  /*
+   * Collection MongoDB
    */
-  val simple = {
-    get[Long]("environment.id") ~
-      get[String]("environment.name") ~
-      get[Long]("environment.groupId") ~
-      get[Int]("environment.hourRecordXmlDataMin") ~
-      get[Int]("environment.hourRecordXmlDataMax") ~
-      get[Int]("environment.nbDayKeepXmlData") ~
-      get[Int]("environment.nbDayKeepAllData") ~
-      get[String]("environment.recordXmlData") ~
-      get[String]("environment.recordData") map {
-      case id ~ name ~ groupId ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData ~ recordXmlData ~ recordData
-      => Environment(id, name, groupId, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData, nbDayKeepAllData, (recordXmlData == "true"), (recordData == "true"))
-    }
+  def collection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("environments")
+
+  implicit val environmentFormat = Json.format[Environment]
+
+  implicit object EnvironmentBSONReader extends BSONDocumentReader[Environment] {
+    def read(doc: BSONDocument): Environment =
+      Environment(
+        doc.getAs[BSONObjectID]("_id"),
+        doc.getAs[String]("name").get,
+        doc.getAs[List[String]]("groups").toList.flatten,
+        doc.getAs[Int]("hourRecordXmlDataMin").get,
+        doc.getAs[Int]("hourRecordXmlDataMax").get,
+        doc.getAs[Int]("nbDayKeepXmlData").get,
+        doc.getAs[Int]("nbDayKeepAllData").get,
+        doc.getAs[Boolean]("recordXmlData").get,
+        doc.getAs[Boolean]("recordData").get
+      )
   }
+
+  implicit object EnvironmentBSONWriter extends BSONDocumentWriter[Environment] {
+    def write(environment: Environment): BSONDocument =
+      BSONDocument(
+        "_id" -> environment._id,
+        "name" -> environment.name,
+        "hourRecordXmlDataMin" -> environment.hourRecordXmlDataMin,
+        "hourRecordXmlDataMax" -> environment.hourRecordXmlDataMax,
+        "nbDayKeepXmlData" -> environment.nbDayKeepXmlData,
+        "nbDayKeepAllData" -> environment.nbDayKeepAllData,
+        "recordXmlData" -> environment.recordXmlData,
+        "recordData" -> environment.recordData,
+        "groups" -> environment.groups)
+  }
+
+  private val keyCacheAllOptions = "environment-options"
+  private val ENVIRONMENT_NAME_PATTERN = "[a-zA-Z0-9]{1,200}"
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groupName" -> 3, "hourRecordXmlDataMin" -> 4, "hourRecordXmlDataMax" -> 5, "nbDayKeepXmlData" -> 6, "nbDayKeepAllData" -> 7, "recordXmlData" -> 8, "recordData" -> 9)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groups" -> 3, "hourRecordXmlDataMin" -> 4, "hourRecordXmlDataMax" -> 5, "nbDayKeepXmlData" -> 6, "nbDayKeepAllData" -> 7, "recordXmlData" -> 8, "recordData" -> 9)
 
   val csvKey = "environment"
 
   /**
    * Csv format.
    */
-  val csv = {
-    get[Pk[Long]]("environment.id") ~
-      get[String]("environment.name") ~
-      get[String]("groups.name") ~
-      get[Int]("environment.hourRecordXmlDataMin") ~
-      get[Int]("environment.hourRecordXmlDataMax") ~
-      get[Int]("environment.nbDayKeepXmlData") ~
-      get[Int]("environment.nbDayKeepAllData") ~
-      get[String]("environment.recordXmlData") ~
-      get[String]("environment.recordData") map {
-      case id ~ name ~ groupName ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData ~ recordXmlData ~ recordData =>
-        id + ";" + name + ";" + groupName + ";" + hourRecordXmlDataMin + ";" + hourRecordXmlDataMax + ";" + nbDayKeepXmlData + ";" + nbDayKeepAllData + ";" + recordXmlData + ";" + recordData + "\n"
-    }
+  def csv(e: Environment) = {
+    csvKey + ";" + e._id.get.stringify + ";" + e.name + ";" + e.groups + ";" + e.hourRecordXmlDataMin + ";" + e.hourRecordXmlDataMax + ";" + e.nbDayKeepXmlData + ";" + e.nbDayKeepAllData + ";" + e.recordXmlData + ";" + e.recordData + "\n"
   }
 
   /**
    * Get All environments, csv format.
    * @return List of Environements, csv format
    */
-  def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("select * from environment left join groups on environment.groupId = groups.id").as(Environment.csv *)
+  def fetchCsv(): Future[List[String]] = {
+    findAll.map(environment => environment.map(e => csv(e)))
   }
-
 
   /**
    * Construct the Map[String,String] needed to fill a select options set. Only environments which are into the given group name are retrieved
    */
-  def options(group: String): Seq[(String, String)] = DB.withConnection {
-    implicit connection =>
+  def options(group: String): Seq[(String, String)] = {
+    ???
+    /*implicit connection =>
       val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
         Logger.debug("Environments not found in cache: loading from db")
         SQL("select * from environment, groups where environment.groupId = groups.id and groups.name = {groupName} order by environment.name").on(
           'groupName -> group).as(Environment.simple *).map(c => c.id.toString -> c.name)
       }
       sortEnvs(envs)
+    */
   }
 
 
   /**
    * Construct the Map[String,String] needed to fill a select options set.
    */
-  def optionsAll: Seq[(String, String)] = DB.withConnection {
-    implicit connection =>
-      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
-        Logger.debug("Environments not found in cache: loading from db")
-        SQL("select * from environment order by name").as(Environment.simple *).map(c => c.id.toString -> c.name)
-      }
-      envs
-  }
-
-
-  /**
-   * Construct the Map[String,String] which are contained to the given group, needed to fill a select options set
-   */
-  def optionsAll(group: String): Seq[(String, String)] = DB.withConnection {
-    implicit connection =>
-      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions + group) {
-        Logger.debug("Environments not found in cache: loading from db")
-        SQL("select * from environment, groups where environment.groupId = groups.id and groups.name = {group} order by environment.name ")
-          .on('group -> group)
-          .as(Environment.simple *)
-          .map(c => c.id.toString -> c.name)
-      }
-      envs
+  def options = {
+    Cache.getOrElse(keyCacheAllOptions) {
+      val f = findAll.map(environments => environments.map(e => (e._id.get.stringify, e.name)))
+      Await result(f, 1.seconds)
+    }
   }
 
   /**
@@ -170,39 +164,32 @@ object Environment {
   /**
    * Retrieve an Environment from id.
    */
-  def findById(id: Long): Option[Environment] = {
-    DB.withConnection {
-      implicit connection =>
-        Cache.getOrElse[Option[Environment]](keyCacheById + id) {
-          SQL("select * from environment where id = {id}").on(
-            'id -> id).as(Environment.simple.singleOpt)
-        }
-    }
+  def findById(id: String): Future[Option[Environment]] = {
+    val objectId = new BSONObjectID(id)
+    val query = BSONDocument("_id" -> objectId)
+    collection.find(query).one[Environment]
   }
 
   /**
    * Retrieve an Environment from name.
    */
-  def findByName(name: String): Option[Environment] = DB.withConnection {
-      implicit connection =>
-      // FIXME : add key to clearCache
-      //Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
-        SQL("select * from environment where name = {name}").on(
-          'name -> name).as(Environment.simple.singleOpt)
-      //}
-    }
-
+  def findByName(name: String): Future[Option[Environment]] = {
+    val query = BSONDocument("name" -> name)
+    collection.find(query).one[Environment]
+  }
 
   /**
    * Retrieve an Environment from name.
    */
-  def findByGroupAndByName(group :String, name: String): Option[Environment] = DB.withConnection {
-    implicit connection =>
+  def findByGroupAndByName(group: String, name: String): Option[Environment] = {
+    ???
+    /*implicit connection =>
     // FIXME : add key to clearCache
     //Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
       SQL("select * from environment e, groups g where e.groupId = g.id and e.name = {name} and g.name = {group}").on(
         'name -> name, 'group -> group).as(Environment.simple.singleOpt)
     //}
+    */
   }
 
   /**
@@ -215,33 +202,17 @@ object Environment {
       throw new Exception("Environment name invalid:" + environment.name.trim)
     }
 
-    if (optionsAll.exists{e => e._2.equals(environment.name.trim)}) {
+    if (options.exists {
+      e => e._2.equals(environment.name.trim)
+    }) {
       throw new Exception("Environment with name " + environment.name.trim + " already exist")
     }
 
-    DB.withConnection {
-      implicit connection =>
-        SQL(
-          """
-            insert into environment (
-              id, name, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData,
-              nbDayKeepAllData, recordXmlData, recordData, groupId)
-             values (
-              null, {name}, {hourRecordXmlDataMin}, {hourRecordXmlDataMax}, {nbDayKeepXmlData},
-              {nbDayKeepAllData}, {recordXmlData}, {recordData}, {groupId}
-            )
-          """).on(
-          'name -> environment.name.trim,
-          'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
-          'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
-          'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
-          'nbDayKeepAllData -> environment.nbDayKeepAllData,
-          'recordXmlData -> environment.recordXmlData.toString,
-          'recordData -> environment.recordData.toString,
-          'groupId -> environment.groupId
-        ).executeUpdate()
-    }
     clearCache
+    Logger.debug("Envir:" + environment)
+    /*Logger.debug("Envir:" + environment)
+    val doc = BSON.write(environment)*/
+    collection.insert(environment)
   }
 
   /**
@@ -254,38 +225,28 @@ object Environment {
       throw new Exception("Environment name invalid:" + environment.name.trim)
     }
 
-    if (optionsAll.exists{e => e._2.equals(environment.name.trim) && e._1.toLong != environment.id}) {
+    if (options.exists {
+      e => e._2.equals(environment.name.trim) && e._1 != environment._id.get.stringify
+    }) {
       throw new Exception("Environment with name " + environment.name.trim + " already exist")
     }
 
-    Cache.remove(keyCacheById + environment.id)
-    DB.withConnection {
-      implicit connection =>
-        SQL(
-          """
-          update environment
-          set name = {name},
-          hourRecordXmlDataMin = {hourRecordXmlDataMin},
-          hourRecordXmlDataMax = {hourRecordXmlDataMax},
-          nbDayKeepXmlData = {nbDayKeepXmlData},
-          nbDayKeepAllData = {nbDayKeepAllData},
-          recordXmlData = {recordXmlData},
-          recordData = {recordData},
-          groupId = {groupId}
-          where id = {id}
-          """).on(
-          'id -> environment.id,
-          'name -> environment.name.trim,
-          'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
-          'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
-          'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
-          'nbDayKeepAllData -> environment.nbDayKeepAllData,
-          'recordXmlData -> environment.recordXmlData.toString,
-          'recordData -> environment.recordData.toString,
-          'groupId -> environment.groupId
-        ).executeUpdate()
-    }
+    val selector = BSONDocument("_id" -> environment._id)
+
+    val modifier = BSONDocument(
+      "$set" -> BSONDocument(
+        "name" -> BSONString(environment.name),
+        "hourRecordXmlDataMin" -> BSONInteger(environment.hourRecordXmlDataMin),
+        "hourRecordXmlDataMax" -> BSONInteger(environment.hourRecordXmlDataMax),
+        "nbDayKeepXmlData" -> BSONInteger(environment.nbDayKeepXmlData),
+        "nbDayKeepAllData" -> BSONInteger(environment.nbDayKeepAllData),
+        "recordXmlData" -> BSONBoolean(environment.recordXmlData),
+        "recordData" -> BSONBoolean(environment.recordData),
+        "groups" -> environment.groups)
+    )
+
     clearCache
+    collection.update(selector, modifier)
   }
 
   /**
@@ -293,13 +254,9 @@ object Environment {
    *
    * @param id Id of the environment to delete.
    */
-  def delete(id: Long) = {
-    Cache.remove(keyCacheById + id)
-    DB.withConnection {
-      implicit connection =>
-        SQL("delete from environment where id = {id}").on('id -> id).executeUpdate()
-    }
-    clearCache
+  def delete(id: String) = {
+    val objectId = new BSONObjectID(id)
+    collection.remove(BSONDocument("_id" -> objectId))
   }
 
   def clearCache() {
@@ -307,43 +264,23 @@ object Environment {
   }
 
   /**
+   * Return a list of all environments.
+   */
+  def findAll: Future[List[Environment]] = {
+    collection.
+      find(Json.obj()).
+      sort(Json.obj("name" -> 1)).
+      cursor[Environment].
+      collect[List]()
+
+  }
+
+  /**
    * Return a list of all Environment which are contained into the given group
    *
    */
   def list(group: String): List[Environment] = {
-
-    DB.withConnection {
-      implicit connection =>
-
-        val environments = SQL(
-          """
-          select * from environment, groups
-          where environment.groupId = groups.id
-          and groups.name = {group}
-          order by environment.groupId asc, environment.name
-          """).on('group -> group).as(Environment.simple *)
-
-        environments
-    }
-  }
-
-  /**
-   * Return a list of all Environment
-   *
-   */
-  def list(): List[Environment] = {
-
-    DB.withConnection {
-      implicit connection =>
-
-        val environments = SQL(
-          """
-          select * from environment
-          order by environment.name
-          """).as(Environment.simple *)
-
-        environments
-    }
+    ???
   }
 
   /*
@@ -353,7 +290,7 @@ object Environment {
     Logger.info("Compile Stats")
     val gcal = new GregorianCalendar
 
-    Environment.optionsAll.foreach {
+    Environment.options.foreach {
       (e) =>
         Logger.debug("Compile Stats env:" + e._2)
         val days = RequestData.findDayNotCompileStats(e._1.toLong)
@@ -385,6 +322,8 @@ object Environment {
   }
 
   private def purgeData(mode: ModePurge) {
+    ???
+    /*
     Logger.info("Purging " + mode + " data...")
 
     val minDate = UtilDate.getDate("all").getTime
@@ -393,9 +332,9 @@ object Environment {
     val gcal = new GregorianCalendar
     val today = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
 
-    Environment.optionsAll.foreach {
+    Environment.options.foreach {
       (e) =>
-        val env = Environment.findById(e._1.toInt).get
+        val env = Environment.findById(e._1)
         var nbDay = 100
 
         val maxDate = new GregorianCalendar
@@ -413,6 +352,7 @@ object Environment {
           purgedRequests += RequestData.delete(env.name, minDate, maxDate.getTime)
     }
     Logger.info("Purging " + mode + " data: done (" + purgedRequests + " requests purged)")
+    */
 
   }
 

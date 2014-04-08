@@ -2,9 +2,9 @@
     <input class="form-control" type="hidden" name="name" ng-model="environment.id">
 
     <div class="form-group" ng-class="{error: myForm.group.$invalid}">
-        <label for="group" class="col-lg-2 control-label">Group </label>
+        <label for="groups" class="col-lg-2 control-label">Groups </label>
         <div class="col-lg-4">
-            <select class="form-control" ng-model="environment.group" id="group" name="group" ng-options="group.name for group in groups" required ng-selected="{{ environment.groupId == group.id }}"></select>
+            <input class="form-control" id="groups" ui-select2="selectGroupsOptions" type="text" ng-model="environment.groups">
             <span ng-show="myForm.group.$error.required" class="help-inline">Required</span>
         </div>
     </div>
@@ -64,12 +64,12 @@
         <div class="col-lg-4">
             <div class="radio">
                 <label>
-                    <input type="radio" name="recordXmlData" ng-model="environment.recordXmlData" value="yes" ng-checked="environment.recordXmlData == 'yes'"> Yes
+                    <input type="radio" name="recordXmlData" ng-model="environment.recordXmlData" ng-value="true" ng-checked="environment.recordXmlData == true"> Yes
                 </label>
             </div>
             <div class="radio">
                 <label>
-                    <input type="radio" name="recordXmlData" ng-model="environment.recordXmlData" value="no" ng-checked="environment.recordXmlData == 'no'"> No
+                    <input type="radio" name="recordXmlData" ng-model="environment.recordXmlData" ng-value="false" ng-checked="environment.recordXmlData == false"> No
                 </label>
             </div>
         </div>
@@ -87,12 +87,12 @@
         <div class="col-lg-4">
             <div class="radio">
                 <label>
-                    <input type="radio" name="recordData" ng-model="environment.recordData" value='yes' ng-checked="environment.recordData == 'yes'"> Yes
+                    <input type="radio" name="recordData" ng-model="environment.recordData" ng-value="true" ng-checked="environment.recordData == true"> Yes
                 </label>
             </div>
             <div class="radio">
                 <label>
-                    <input type="radio" name="recordData" ng-model="environment.recordData" value='no' ng-checked="environment.recordData == 'no'"> No
+                    <input type="radio" name="recordData" ng-model="environment.recordData" ng-value="false" ng-checked="environment.recordData == false"> No
                 </label>
             </div>
         </div>

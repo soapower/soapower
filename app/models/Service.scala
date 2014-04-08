@@ -18,7 +18,7 @@ case class Service(
   recordXmlData: Boolean,
   recordData: Boolean,
   useMockGroup: Boolean,
-  environmentId: Long,
+  environmentId: String,
   mockGroupId: Long) {
 }
 
@@ -37,7 +37,7 @@ object Service {
     get[String]("service.recordXmlData") ~
     get[String]("service.recordData") ~
     get[String]("service.useMockGroup") ~
-    get[Long]("service.environment_id") ~
+    get[String]("service.environment_id") ~
     get[Long]("service.mockGroupId") map {
       case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ useMockGroup ~ environmentId ~ mockGroupId =>
         Service(id, description, localTarget, remoteTarget, timeoutms, (recordXmlData == "true"), (recordData == "true"), (useMockGroup == "true"), environmentId, mockGroupId)
@@ -147,6 +147,8 @@ object Service {
    * @param service The service values.
    */
   def insert(service: Service) = {
+    ???
+    /*
     try {
       val localTarget = checkLocalTarget(service.localTarget)
       DB.withConnection {
@@ -181,6 +183,7 @@ object Service {
       //case e:MalformedURLException => Logger.error("Bad URL")
       case e: Exception => Logger.error("Caught an exception! ", e)
     }
+    */
   }
 
   /**
@@ -252,13 +255,6 @@ object Service {
   }
 
   /**
-   * Parse a (Service,Environment) from a ResultSet
-   */
-  val withEnvironment = Service.simple ~ Environment.simple map {
-    case service ~ environment => (service, environment)
-  }
-
-  /**
    * Get All service, csv format.
    * @return List of Service, csv format
    */
@@ -275,7 +271,8 @@ object Service {
    * Return a list of Service.
    */
   def list: List[(Service, Environment)] = {
-    DB.withConnection {
+    ???
+    /*DB.withConnection {
       implicit connection =>
         val services = SQL(
           """
@@ -284,7 +281,7 @@ object Service {
           order by name asc, description asc
           """).as(Service.withEnvironment *)
         services
-    }
+    }*/
   }
 
 
@@ -292,6 +289,8 @@ object Service {
    * Return a list of Service which are linked to an environment which group is the given group
    */
   def list(group : String): List[(Service, Environment)] = {
+    ???
+    /*
     DB.withConnection {
       implicit connection =>
         val services = SQL(
@@ -304,6 +303,7 @@ object Service {
           """).on('group -> group).as(Service.withEnvironment *)
         services
     }
+    */
   }
 
   /**
@@ -356,7 +356,7 @@ object Service {
         (dataCsv(csvTitle.get("recordXmlData").get).trim == "true"),
         (dataCsv(csvTitle.get("recordData").get).trim == "true"),
         (dataCsv(csvTitle.get("useMockGroup").get).trim == "true"),
-        environment.id,
+        environment._id.get.stringify,
         mockGroup.id)
       Service.insert(service)
       Logger.info("Insert Service " + environment.name + "/" + localTarget)
@@ -370,6 +370,8 @@ object Service {
    * @return environment
    */
   private def uploadEnvironment(dataCsv: Array[String]): Environment = {
+    ???
+    /*
     val environmentName = dataCsv(csvTitle.get("environmentName").get)
     Logger.debug("environmentName:" + environmentName)
 
@@ -386,6 +388,7 @@ object Service {
       Logger.debug("Environment already exist : " + environment.get.name)
     }
     environment.get
+    */
   }
 
   /**

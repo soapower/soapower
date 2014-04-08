@@ -80,7 +80,7 @@ object Soap extends Controller {
                 recordXmlData,
                 recordData,
                 useMockGroup,
-                environmentReal.id,
+                environmentReal._id.get.stringify,
                 MockGroup.ID_DEFAULT_NO_MOCK_GROUP)
               // Persist environment to database
               Service.insert(service)
@@ -107,7 +107,7 @@ object Soap extends Controller {
     implicit request =>
       val requestData = RequestData.load(requestId)
 
-      val environmentTuple = Environment.optionsAll.find {
+      val environmentTuple = Environment.options.find {
         case (k, v) => k == requestData.environmentId.toString
       }
 

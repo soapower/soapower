@@ -6,12 +6,8 @@ import models._
 import play.api.libs.json._
 import scala.concurrent.{Future, ExecutionContext}
 import ExecutionContext.Implicits.global
-import scala.util.{Success, Failure}
-import play.api.data.Form
-import reactivemongo.bson.BSONObjectID
-import reactivemongo.bson.{BSONObjectID, BSONDocument}
+import reactivemongo.bson.{BSONObjectID}
 import play.modules.reactivemongo.json.BSONFormats._
-import play.api.Logger
 
 /**
  * This controller handle all operations related to groups
@@ -35,8 +31,8 @@ object Groups extends Controller {
    *
    * @return A group JSON datatable data
    */
-  def listDatatable = Action.async {
-    // TODO Criteria ?
+  def findAll = Action.async {
+    // TODO Criteria
     val futureDataList = Group.findAll
     futureDataList.map {
       list =>
@@ -97,7 +93,6 @@ object Groups extends Controller {
     request =>
       val idg = BSONObjectID.parse(id).toOption.get
       val json = JsObject(request.body.as[JsObject].fields.filterNot(f => f._1 == "_id")) ++ Json.obj("_id" -> idg)
-
       try {
         json.validate(Group.groupFormat).map {
           case group => {

@@ -23,6 +23,11 @@ case class Group(_id: Option[BSONObjectID], name: String) {
 
 object Group {
 
+  /*
+   * Collection MongoDB
+   */
+  def collection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("group")
+
   implicit val groupFormat = Json.format[Group]
 
   implicit object GroupBSONReader extends BSONDocumentReader[Group] {
@@ -48,8 +53,6 @@ object Group {
   private val keyCacheAllOptions = "group-options"
   private val GROUP_NAME_PATTERN = "[a-zA-Z0-9]{1,200}"
 
-  def collection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("group")
-
   /**
    * Title of csvFile. The value is the order of title.
    */
@@ -69,7 +72,6 @@ object Group {
   def fetchCsv(): Future[List[String]] = {
     findAll.map(groups => groups.map(g => csv(g) ))
   }
-
 
   /**
    * Construct the Map[String,String] needed to fill a select options set.
@@ -113,6 +115,7 @@ object Group {
       throw new Exception("Group with name " + group.name.trim + " already exist")
     }
 
+    clearCache
     collection.insert(group)
   }
 
@@ -137,6 +140,7 @@ object Group {
       "$set" -> BSONDocument(
         "name" -> group.name))
 
+    clearCache
     collection.update(selector, modifier)
   }
 

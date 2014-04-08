@@ -2,7 +2,7 @@
 
 'use strict';
 
-var spApp = angular.module('spApp', [ 'ui.bootstrap', 'ngRoute', 'ngResource', 'ngUpload', 'ngTable', 'ui.bootstrap.datetimepicker']);
+var spApp = angular.module('spApp', [ 'ui.bootstrap', 'ngRoute', 'ngResource', 'ngUpload', 'ngTable', 'ui.bootstrap.datetimepicker', 'ui.select2']);
 
 spApp.config(function ($routeProvider) {
     $routeProvider
@@ -65,7 +65,7 @@ spApp.config(function ($routeProvider) {
 
         .when('/groups', { controller: GroupsCtrl, templateUrl: 'partials/groups/list.html'})
         .when('/groups/new', {controller: GroupNewCtrl, templateUrl: 'partials/groups/detail.html'})
-        .when('/groups/:groupId', {controller: GroupEditCtrl, templateUrl: 'partials/groups/detail.html'})
+        .when('/groups/edit/:groupId', {controller: GroupEditCtrl, templateUrl: 'partials/groups/detail.html'})
 
         .when('/soapactions/edit/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
         .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
@@ -90,3 +90,4 @@ spApp.run(['$location', '$rootScope', function ($location, $rootScope) {
         $rootScope.$broadcast("showGroupsFilter", false);
     });
 }]);
+

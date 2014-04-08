@@ -24,6 +24,16 @@ spApp.factory('Service', function ($resource, UIService) {
     return Service;
 });
 
+spApp.factory('Environment', function ($resource) {
+    var Environment = $resource('/environments/:environmentId',
+        { environmentId: '@_id.$oid'},
+        { update: {method: 'PUT'} ,
+          create: {method: 'POST'}}
+    );
+    return Environment;
+});
+
+/*
 spApp.factory('Environment', function ($resource, UIService) {
     var Environment = $resource('/environments/:environmentId',
         { environmentId: '@id'},
@@ -46,6 +56,7 @@ spApp.factory('Environment', function ($resource, UIService) {
 
     return Environment;
 });
+*/
 
 spApp.factory('Mock', function ($resource) {
     var Mock = $resource('/mocks/:mockId',
@@ -157,7 +168,7 @@ spApp.factory("ServicesService", function ($http) {
 spApp.factory("EnvironmentsService", function ($http) {
     return {
         findAll: function (group) {
-            return $http.get('/environments/' + group + '/listDatatable');
+            return $http.get('/environments/' + group + '/findall');
         },
         findAllAndSelect: function ($scope, environmentName, environmentGroup, myService, addAll) {
             $http.get('/environments/' + environmentGroup + '/options')
@@ -207,7 +218,7 @@ spApp.factory("MockGroupsService", function ($http) {
 spApp.factory("GroupsService", function ($http) {
     return {
         findAll: function () {
-            return $http.get('/groups/listDatatable');
+            return $http.get('/groups/findAll');
         },
         findAllAndSelect: function ($scope, $rootScope, groupName, myEnvironment, withAll) {
             $http.get('/groups/options')
@@ -217,6 +228,7 @@ spApp.factory("GroupsService", function ($http) {
                     if (withAll) $scope.groups.unshift(groupAll);
                     if (groupName != null || myEnvironment != null) {
                         angular.forEach($scope.groups, function (value, key) {
+                            $scope.group = value;
                             if (groupName != null && value.name == groupName) {
                                 $scope.group = value;
                             }
@@ -229,7 +241,6 @@ spApp.factory("GroupsService", function ($http) {
                         $scope.group = groupAll;
                         $rootScope.group = groupAll;
                     }
-
                 })
                 .error(function (resp) {
                     console.log("Error with GroupsService.findAllAndSelect" + resp);

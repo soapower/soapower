@@ -1,17 +1,17 @@
 package controllers
 
 import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
-import play.api.data.validation.Constraints._
 import models._
 import play.api.libs.json._
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
-import anorm.Pk
+import reactivemongo.bson.BSONObjectID
+import scala.concurrent.{ExecutionContext, Future}
+import ExecutionContext.Implicits.global
+import play.modules.reactivemongo.json.BSONFormats._
+import play.api.Logger
 
 object Environments extends Controller {
-
 
   // use by Json : from scala to json
   private implicit object EnvironmentsOptionsDataWrites extends Writes[(String, String)] {
@@ -24,22 +24,47 @@ object Environments extends Controller {
     }
   }
 
-  implicit val environmentFormat = Json.format[Environment]
-
   /**
-   * Return all Environments in Json Format
+   * List to Datable table.
+   *
    * @return JSON
    */
-  def findAll = Action {
-    implicit request =>
-      val data = Environment.list
-      Ok(Json.toJson(data)).as(JSON)
+  def findAll(group: String) = Action.async {
+    // TODO Criteria and group
+    val futureDataList = Environment.findAll
+    futureDataList.map {
+      list =>
+        Ok(Json.toJson(Map("data" -> Json.toJson(list))))
+    }
   }
+  /*  def listDatatable(group: String) = Action {
+      implicit request =>
+
+        var data: List[Environment] = null.asInstanceOf[List[Environment]]
+
+        if (group != "all") {
+          data = Environment.list(group)
+        } else {
+          data = Environment.list
+        }
+
+        Ok(Json.toJson(Map(
+          "iTotalRecords" -> Json.toJson(data.size),
+          "iTotalDisplayRecords" -> Json.toJson(data.size),
+          "data" -> {
+            Json.toJson(data)
+          }
+        ))).as(JSON)
+    }*/
 
   /**
    * Return all Environments in Json Format
    * @return JSON
    */
+  def options(group: String) = Action {
+    Ok(Json.toJson(Environment.options))
+  }
+  /*
   def options(group: String) = Action {
     implicit request =>
       var data: Seq[(String, String)] = null.asInstanceOf[Seq[(String, String)]]
@@ -50,74 +75,93 @@ object Environments extends Controller {
       }
       Ok(Json.toJson(data)).as(JSON)
   }
-
-
-  /**
-   * List to Datable table.
-   *
-   * @return JSON
-   */
-  def listDatatable(group: String) = Action {
-    implicit request =>
-
-      var data: List[Environment] = null.asInstanceOf[List[Environment]]
-
-      if (group != "all") {
-        data = Environment.list(group)
-      } else {
-        data = Environment.list
-      }
-
-      Ok(Json.toJson(Map(
-        "iTotalRecords" -> Json.toJson(data.size),
-        "iTotalDisplayRecords" -> Json.toJson(data.size),
-        "data" -> {
-          Json.toJson(data)
-        }
-      ))).as(JSON)
-
-
-  }
+  */
 
   /**
    * Display the 'edit form' of a existing Environment.
    *
    * @param id Id of the environment to edit
    */
-  def edit(id: Long) = Action {
-    Environment.findById(id).map {
-      environment =>
-        Ok(Json.toJson(environment)).as(JSON)
-    }.getOrElse(NotFound)
+  def edit(id: String) = Action.async {
+    val futureEnvironment = Environment.findById(id)
+    futureEnvironment.map {
+      environment => Ok(Json.toJson(environment)).as(JSON)
+    }
   }
-
 
   /**
    * Insert or update a environment.
    */
-  def save(id: Long) = Action(parse.json) {
+  def create = Action.async(parse.json) {
     request =>
-      request.body.validate(environmentFormat).map {
-        environment =>
-          try {
-            if (id < 0) Environment.insert(environment)
-            else Environment.update(environment)
-            Ok(Json.toJson("Succesfully save environment."))
-          } catch {
-            case e : Throwable => { BadRequest("Detected error:" + e.getMessage) }
+      val id = BSONObjectID.generate
+      val json = request.body.as[JsObject] ++ Json.obj("_id" -> id)
+    Logger.debug("json:" + json)
+      try {
+        json.validate(Environment.environmentFormat).map {
+          case environment => {
+            Logger.debug("Cest mappe")
+            Environment.insert(environment).map {
+              lastError =>
+                if (lastError.ok) {
+                  Ok(id.stringify)
+                } else {
+                  BadRequest("Detected error m : %s".format(lastError))
+                }
+            }
           }
+        }.recoverTotal {
+          case e => Future.successful(BadRequest("Detected error r : " + JsError.toFlatJson(e)))
+        }
+      } catch {
+        case e => {
+          Logger.error("Error:", e)
+          Future.successful(BadRequest("Detected error c : " + e.getMessage))
+        }
+      }
+  }
 
-      }.recoverTotal {
-        e => BadRequest("Detected error:" + JsError.toFlatJson(e))
+  /**
+   * Update a group.
+   */
+  def update(id: String) = Action.async(parse.json) {
+    request =>
+      val idg = BSONObjectID.parse(id).toOption.get
+      val json = JsObject(request.body.as[JsObject].fields.filterNot(f => f._1 == "_id")) ++ Json.obj("_id" -> idg)
+
+      try {
+        json.validate(Environment.environmentFormat).map {
+          case environment => {
+            Environment.update(environment).map {
+              lastError =>
+                if (lastError.ok) {
+                  Ok(id)
+                } else {
+                  BadRequest("Detected error:%s".format(lastError))
+                }
+            }
+          }
+        }.recoverTotal {
+          case e => Future.successful(BadRequest("Detected error validation : " + JsError.toFlatJson(e)))
+        }
+      } catch {
+        case e => Future.successful(BadRequest("Detected error : " + e.getMessage))
       }
   }
 
   /**
    * Handle environment deletion.
    */
-  def delete(id: Long) = Action(parse.tolerantText) { request =>
-    Environment.delete(id)
-    Ok("deleted")
+  def delete(id: String) = Action.async(parse.tolerantText) {
+    request =>
+      Environment.delete(id).map {
+        lastError =>
+          if (lastError.ok) {
+            Ok(id)
+          } else {
+            BadRequest("Detected error:%s".format(lastError))
+          }
+      }
   }
 }
 

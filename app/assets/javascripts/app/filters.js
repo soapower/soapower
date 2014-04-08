@@ -26,3 +26,4 @@ spApp.filter("customAndSearch", function(){
         return returnArray;
     }
 });
+
