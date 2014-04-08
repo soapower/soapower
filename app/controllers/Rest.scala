@@ -19,13 +19,19 @@ object Rest extends Controller {
       val sender = request.remoteAddress
       val headers = request.headers.toSimpleMap
       val query = request.queryString.map { case (k,v) => k -> v.mkString }
+      val queryString = request.rawQueryString
       val method = request.method
 
-      Logger.debug(query.toString)
+      // We retrieve all the REST services that match the method and the environment
       val localTargets = Service.findByMethodAndEnvironmentName(method, environment)
+
       Logger.debug(localTargets.length +" services found in db")
+      // We retrieve the id of the correct
       val serviceId = findService(localTargets, call)
+
+
       val service = Service.findById(serviceId)
+
       service.map {
         service =>
           if (service.useMockGroup) {
@@ -33,11 +39,11 @@ object Rest extends Controller {
             Logger.error(err)
             BadRequest(err)
           } else {
-            val correctUrl = getCorrectUrl(call, service.remoteTarget, service.localTarget)
+            val remoteTargetWithCall = getRemoteTargetWithCall(call, service.remoteTarget, service.localTarget)
             method match {
               case "GET" =>
-                val content = method+" "+correctUrl;
-                forwardGetRequest(content, query, service, sender, headers, call, correctUrl)
+                val content = getRequestContent(method, remoteTargetWithCall, queryString)
+                forwardGetRequest(content, query, service, sender, headers, call, remoteTargetWithCall)
               /*
               case "DELETE" =>
                 val content = method+" "+correctUrl;
@@ -56,7 +62,7 @@ object Rest extends Controller {
             }
           }
       }.getOrElse {
-        val err = "No services with the environment "+environment+" matches the call "+call
+        val err = "No services with the environment "+environment+" and the HTTP method "+method+" matches the call "+call
         Logger.error(err)
         BadRequest(err)
       }
@@ -72,14 +78,15 @@ object Rest extends Controller {
   }
 
   /**
-   * Find the correct service bound to the REST call
-   * @param localTargets
+   * Find the correct service's id bound to the REST call
+   * @param localTargets list of localTargets
    * @param call
    */
   def findService(localTargets: Seq[(Long, String)], call: String): Long =
   {
     for ((serviceId, localTarget) <- localTargets)
     {
+      // For each services, check that the call starts with the localTarget
       if(call.startsWith(localTarget))
       {
         return serviceId
@@ -88,15 +95,15 @@ object Rest extends Controller {
     return -1;
   }
   /**
-   * Get the correct URL of the Rest request by parsing the call and add the effectiv call to the remoteTarget
-   * @param call
-   * @param remoteTarget
+   * Get the correct URL for the redirection by parsing the call
+   * @param call The call containing the localTarget+"/"+the effective call
+   * @param remoteTarget The remoteTarget
    * @return
    */
-  def getCorrectUrl(call: String, remoteTarget: String, localTarget: String): String = {
-    Logger.debug("call "+call)
-    val effectivCall = call.split(localTarget)
-    if(effectivCall.length > 1)
+  def getRemoteTargetWithCall(call: String, remoteTarget: String, localTarget: String): String = {
+
+    val effectiveCall = call.split(localTarget)
+    if(effectiveCall.length > 1)
     {
       return remoteTarget+call.split(localTarget)(1)
     }
@@ -104,5 +111,21 @@ object Rest extends Controller {
     {
       return remoteTarget
     }
+  }
+
+  /**
+   * Get the request content for a GET request (the request content is just the method, the remote target and the potential query
+   * @param method the HTTP method
+   * @param remoteTargetWithCall the remote target with the correct call
+   * @param queryString the query string
+   * @return
+   */
+  def getRequestContent(method: String, remoteTargetWithCall: String, queryString: String): String = {
+    var result = method + " " + remoteTargetWithCall
+    if(!queryString.isEmpty)
+    {
+      result += "?"+queryString
+    }
+    return result
   }
 }

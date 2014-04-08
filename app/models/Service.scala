@@ -109,7 +109,7 @@ object Service {
   }
 
   /**
-   * Retrieve a Rest Service from environment name and http method
+   * Retrieve the Rest Services matching the environment name and the http method
    * @param httpMethod
    * @param environmentName
    * @return
