@@ -279,7 +279,7 @@ spApp.factory("UIService", function ($location, $filter, $routeParams) {
             }
             if ($scope.code) code = $scope.code;
 
-            var path = $scope.ctrlPath + '/' + $routeParams.group + "/" + environment + "/";
+            var path = $scope.ctrlPath + '/' + $routeParams.groups + "/" + environment + "/";
 
             if (showSoapactions) path = path + soapaction + "/";
 

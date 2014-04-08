@@ -20,14 +20,14 @@ spApp.config(function ($routeProvider) {
         .when('/search', {
             redirectTo: '/search/all/all/all/yesterday/today/all'
         })
-        .when('/search/:group/:environment/:soapaction/:mindate/:maxdate/:code', {
+        .when('/search/:groups/:environment/:soapaction/:mindate/:maxdate/:code', {
             templateUrl: 'partials/search/search.html',
             controller: SearchCtrl
         })
         .when('/analysis', {
             redirectTo: '/analysis/all/all/all/yesterday/today/all'
         })
-        .when('/analysis/:group/:environment/:soapaction/:mindate/:maxdate/:code', {
+        .when('/analysis/:groups/:environment/:soapaction/:mindate/:maxdate/:code', {
             templateUrl: 'partials/analysis/analysis.html', controller: AnalysisCtrl
         })
         .when('/monitor', {
@@ -44,14 +44,14 @@ spApp.config(function ($routeProvider) {
         })
 
         .when('/services', {  redirectTo: '/services/all'})
-        .when('/services/new/:group', {controller: ServiceNewCtrl, templateUrl: 'partials/services/detail.html'})
-        .when('/services/edit/:group/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'partials/services/detail.html'})
-        .when('/services/:group', { controller: ServicesCtrl, templateUrl: 'partials/services/list.html'})
+        .when('/services/new/:groups', {controller: ServiceNewCtrl, templateUrl: 'partials/services/detail.html'})
+        .when('/services/edit/:groups/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'partials/services/detail.html'})
+        .when('/services/:groups', { controller: ServicesCtrl, templateUrl: 'partials/services/list.html'})
 
         .when('/environments', {  redirectTo: '/environments/all'})
         .when('/environments/new', {controller: EnvironmentNewCtrl, templateUrl: 'partials/environments/detail.html'})
         .when('/environments/edit/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'partials/environments/detail.html'})
-        .when('/environments/:group', { controller: EnvironmentsCtrl, templateUrl: 'partials/environments/list.html'})
+        .when('/environments/:groups', { controller: EnvironmentsCtrl, templateUrl: 'partials/environments/list.html'})
 
         .when('/mocks', {  redirectTo: '/mockgroups'})
         .when('/mocks/new/:mockGroup', {controller: MockNewCtrl, templateUrl: 'partials/mocks/detail.html'})
@@ -61,7 +61,7 @@ spApp.config(function ($routeProvider) {
         .when('/mockgroups', {  redirectTo: '/mockgroups/all'})
         .when('/mockgroups/new', {controller: MockGroupNewCtrl, templateUrl: 'partials/mockgroups/detail.html'})
         .when('/mockgroups/edit/:mockGroupId', {controller: MockGroupEditCtrl, templateUrl: 'partials/mockgroups/detail.html'})
-        .when('/mockgroups/:group', { controller: MockGroupsCtrl, templateUrl: 'partials/mockgroups/list.html'})
+        .when('/mockgroups/:groups', { controller: MockGroupsCtrl, templateUrl: 'partials/mockgroups/list.html'})
 
         .when('/soapactions/edit/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
         .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
@@ -69,7 +69,7 @@ spApp.config(function ($routeProvider) {
         .when('/stats', {
             redirectTo: '/stats/all/all/yesterday/today/all'
         })
-        .when('/stats/:group/:environment/:mindate/:maxdate/:code', {
+        .when('/stats/:groups/:environment/:mindate/:maxdate/:code', {
             templateUrl: 'partials/stats/stats.html',
             controller: StatsCtrl
         })

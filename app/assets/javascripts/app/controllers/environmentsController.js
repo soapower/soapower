@@ -1,7 +1,7 @@
 function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService, UIService, ngTableParams, $filter) {
 
     // Looking for environments with their groups and adding all informations to $scope.environments var
-    EnvironmentsService.findAll($routeParams.group).
+    EnvironmentsService.findAll($routeParams.groups).
         success(function (environments) {
             $scope.environments = environments.data;
             $scope.tableParams = new ngTableParams({
@@ -31,7 +31,7 @@ function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService,
             console.log("Error with EnvironmentsService.findAll" + resp);
         });
 
-    $rootScope.$broadcast("showGroupsFilter", $routeParams.group);
+    $rootScope.$broadcast("showGroupsFilter", $routeParams.groups);
 
     $scope.$on("ReloadPage", function (event, group) {
         $scope.ctrlPath = "environments";

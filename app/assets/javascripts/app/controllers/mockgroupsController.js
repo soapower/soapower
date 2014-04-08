@@ -1,7 +1,7 @@
 function MockGroupsCtrl($scope, $rootScope, $routeParams, MockGroupsService, UIService, ngTableParams, $filter) {
 
     // Looking for mockgroups with their groups and adding all informations to $scope.mockgroups var
-    MockGroupsService.findAll($routeParams.group).
+    MockGroupsService.findAll($routeParams.groups).
         success(function (mockgroups) {
             $scope.mockgroups = mockgroups.data;
             $scope.tableParams = new ngTableParams({
@@ -31,7 +31,7 @@ function MockGroupsCtrl($scope, $rootScope, $routeParams, MockGroupsService, UIS
             console.log("Error with MockgroupsService.findAll" + resp);
         });
 
-    $rootScope.$broadcast("showGroupsFilter", $routeParams.group);
+    $rootScope.$broadcast("showGroupsFilter", $routeParams.groups);
 
     $scope.$on("ReloadPage", function (event, group) {
         $scope.ctrlPath = "mockgroups";

@@ -23,7 +23,7 @@ case class Environment(_id: Option[BSONObjectID],
                        nbDayKeepAllData: Int = 5,
                        recordXmlData: Boolean = true,
                        recordData: Boolean = true
-                        )
+                      )
 
 object ModePurge extends Enumeration {
   type ModePurge = Value

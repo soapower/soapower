@@ -1,4 +1,3 @@
-<a ng-show="showGroup">
-    <span style="cursor:pointer" ng-show="!showSelect" ng-click="showSelect=showSelect==false">Current Group : {{ group.name }}</span>
-    <select ng-show="showSelect" id="group" ng-model="group" ng-change="changeGroup()" ng-options="group.name for group in groups"></select>
-</a>
+<div ng-show="showGroup" style="margin-top:10px">
+    <input class="form-control input-sm" style="width:260px" id="groups" ui-select2="selectGroupsOptions" type="text" ng-model="groups" placeholder="Choose a group">
+</div>

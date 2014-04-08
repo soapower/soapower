@@ -96,27 +96,25 @@ object Environments extends Controller {
     request =>
       val id = BSONObjectID.generate
       val json = request.body.as[JsObject] ++ Json.obj("_id" -> id)
-    Logger.debug("json:" + json)
       try {
         json.validate(Environment.environmentFormat).map {
-          case environment => {
-            Logger.debug("Cest mappe")
+          environment => {
             Environment.insert(environment).map {
               lastError =>
                 if (lastError.ok) {
                   Ok(id.stringify)
                 } else {
-                  BadRequest("Detected error m : %s".format(lastError))
+                  BadRequest("Detected error on insertupdate :%s".format(lastError))
                 }
             }
           }
         }.recoverTotal {
-          case e => Future.successful(BadRequest("Detected error r : " + JsError.toFlatJson(e)))
+          case e => Future.successful(BadRequest("Detected error on validation : " + JsError.toFlatJson(e)))
         }
       } catch {
         case e => {
           Logger.error("Error:", e)
-          Future.successful(BadRequest("Detected error c : " + e.getMessage))
+          Future.successful(BadRequest("Internal error : " + e.getMessage))
         }
       }
   }
@@ -128,24 +126,26 @@ object Environments extends Controller {
     request =>
       val idg = BSONObjectID.parse(id).toOption.get
       val json = JsObject(request.body.as[JsObject].fields.filterNot(f => f._1 == "_id")) ++ Json.obj("_id" -> idg)
-
       try {
         json.validate(Environment.environmentFormat).map {
-          case environment => {
+          environment => {
             Environment.update(environment).map {
               lastError =>
                 if (lastError.ok) {
                   Ok(id)
                 } else {
-                  BadRequest("Detected error:%s".format(lastError))
+                  BadRequest("Detected error on update :%s".format(lastError))
                 }
             }
           }
         }.recoverTotal {
-          case e => Future.successful(BadRequest("Detected error validation : " + JsError.toFlatJson(e)))
+          case e => Future.successful(BadRequest("Detected error on validation : " + JsError.toFlatJson(e)))
         }
       } catch {
-        case e => Future.successful(BadRequest("Detected error : " + e.getMessage))
+        case e => {
+          Logger.error("Error:", e)
+          Future.successful(BadRequest("Internal error : " + e.getMessage))
+        }
       }
   }
 
@@ -165,7 +165,8 @@ object Environments extends Controller {
   }
 
   def findAllGroups() = Action {
-    Ok(Json.toJson(List("group1", "group2")))
+    Ok(Json.toJson(List("group1", "group2", "group3")))
   }
+
 }
 

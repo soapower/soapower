@@ -1,8 +1,8 @@
 function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIService, ngTableParams, $filter) {
 
-    $scope.groupName = $routeParams.group;
+    $scope.groupName = $routeParams.groups;
 
-    ServicesService.findAll($routeParams.group).
+    ServicesService.findAll($routeParams.groups).
         success(function (services) {
             $scope.services = services.data;
 
@@ -32,7 +32,7 @@ function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIServi
         .error(function (resp) {
             console.log("Error with ServicesService.findAll" + resp);
         });
-    $rootScope.$broadcast("showGroupsFilter", $routeParams.group);
+    $rootScope.$broadcast("showGroupsFilter", $routeParams.groups);
 
     $scope.$on("ReloadPage", function (event, group) {
         $scope.ctrlPath = "services";
@@ -56,9 +56,9 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
         $scope.service.recordData = UIService.fixBooleanReverse($scope.service.recordData);
         $scope.service.useMockGroup = UIService.fixBooleanReverse($scope.service.useMockGroup);
 
-        EnvironmentsService.findAllAndSelect($scope, null, $routeParams.group, $scope.service, false);
+        EnvironmentsService.findAllAndSelect($scope, null, $routeParams.groups, $scope.service, false);
 
-        MockGroupsService.findAll($routeParams.group).
+        MockGroupsService.findAll($routeParams.groups).
             success(function (mockGroups) {
                 $scope.mockGroups = mockGroups.data;
                 angular.forEach(mockGroups.data, function (mockGroup, key) {
@@ -101,7 +101,7 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
 
     $scope.title = "Insert new service";
 
-    EnvironmentsService.findAllAndSelect($scope, null, $routeParams.group, null, false);
+    EnvironmentsService.findAllAndSelect($scope, null, $routeParams.groups, null, false);
 
     $scope.service = new Service({id: '-2'});
     $scope.service.recordXmlData = "yes";
