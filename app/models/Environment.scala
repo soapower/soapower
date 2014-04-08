@@ -82,7 +82,7 @@ object Environment {
    * Csv format.
    */
   def csv(e: Environment) = {
-    csvKey + ";" + e._id.get.stringify + ";" + e.name + ";" + e.groups + ";" + e.hourRecordXmlDataMin + ";" + e.hourRecordXmlDataMax + ";" + e.nbDayKeepXmlData + ";" + e.nbDayKeepAllData + ";" + e.recordXmlData + ";" + e.recordData + "\n"
+    csvKey + ";" + e._id.get.stringify + ";" + e.name + ";" + e.groups.mkString ("|") + ";" + e.hourRecordXmlDataMin + ";" + e.hourRecordXmlDataMax + ";" + e.nbDayKeepXmlData + ";" + e.nbDayKeepAllData + ";" + e.recordXmlData + ";" + e.recordData + "\n"
   }
 
   /**
@@ -388,7 +388,7 @@ object Environment {
           Logger.debug("Insert new environment with name " + name)
           val newEnvironment = new Environment(Some(BSONObjectID.generate),
             dataCsv(csvTitle.get("name").get).trim,
-            dataCsv(csvTitle.get("groups").get).split("|").toList,
+            dataCsv(csvTitle.get("groups").get).split('|').toList, // single quote of split is important
             dataCsv(csvTitle.get("hourRecordXmlDataMin").get).toInt,
             dataCsv(csvTitle.get("hourRecordXmlDataMax").get).toInt,
             dataCsv(csvTitle.get("nbDayKeepXmlData").get).toInt,
