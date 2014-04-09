@@ -6,7 +6,7 @@
         <label for="mockGroup" class="col-lg-2 control-label">Group </label>
         <div class="col-lg-4">
             <select class="form-control" ng-model="mock.mockGroup" id="mockGroup" name="mockGroup" ng-options="mockGroup.name for mockGroup in mockGroups" required ng-selected="{{ mock.mockGroupId == mockGroup.id }}"></select>
-            <span ng-show="myForm.mockGroup.$error.required" class="help-inline">Required</span>
+            <span ng-show="myForm.mockGroup.$error.required" class="help-block">Required</span>
         </div>
     </div>
 
@@ -14,7 +14,7 @@
         <label for="name" class="col-lg-2 control-label">Name</label>
         <div class="col-lg-4">
             <input class="form-control" id="name" type="text" name="nameMock" ng-model="mock.name"  required>
-            <span ng-show="myForm.nameMock.$error.required" class="help-inline">Required</span>
+            <span ng-show="myForm.nameMock.$error.required" class="help-block">Required</span>
         </div>
     </div>
 
@@ -22,7 +22,7 @@
         <label for="description" class="col-lg-2 control-label">Description</label>
         <div class="col-lg-4">
             <textarea class="form-control" id="description" name="description" ng-model="mock.description" rows="5" required></textarea>
-            <span ng-show="myForm.description.$error.required" class="help-inline">Required</span>
+            <span ng-show="myForm.description.$error.required" class="help-block">Required</span>
         </div>
     </div>
 
@@ -30,7 +30,7 @@
         <label for="criteria" class="col-lg-2 control-label">criteria</label>
         <div class="col-lg-4">
             <input class="form-control" type="text" id="criteria" name="criteria" ng-model="mock.criteria" required>
-            <span ng-show="myForm.criteria.$error.required" class="help-inline">Required</span>
+            <span ng-show="myForm.criteria.$error.required" class="help-block">Required</span>
         </div>
         <div class="col-lg-6 help-block">If the content of the request contains this "criteria", the response
             of this mock is return by Soapower. This is not a Regex or a XPath Query, juste a simple search.
@@ -42,8 +42,8 @@
         <label for="timeoutms" class="col-lg-2 control-label">Timeout in ms</label>
         <div class="col-lg-4">
             <input class="form-control" type="number" id="timeoutms" name="timeoutms" ng-model="mock.timeoutms" required>
-            <span ng-show="myForm.timeoutms.$error.required" class="help-inline">Required</span>
-            <span ng-show="myForm.timeoutms.$error.url" class="help-inline">Not a URL</span>
+            <span ng-show="myForm.timeoutms.$error.required" class="help-block">Required</span>
+            <span ng-show="myForm.timeoutms.$error.url" class="help-block">Not a URL</span>
         </div>
         <div class="col-lg-6 help-block">Soapower will wait n milliseconds before sending the response. If
             you want a reponse instantly, write <b>0</b> here. 10 seconds (10000 ms) is the maximum allowed.
@@ -54,8 +54,8 @@
         <label for="httpStatus" class="col-lg-2 control-label">HTTP Status</label>
         <div class="col-lg-4">
             <input class="form-control" type="number" id="httpStatus" name="httpStatus" ng-model="mock.httpStatus" required>
-            <span ng-show="myForm.httpStatus.$error.required" class="help-inline">Required</span>
-            <span ng-show="myForm.httpStatus.$error.url" class="help-inline">Not a valid Http Status</span>
+            <span ng-show="myForm.httpStatus.$error.required" class="help-block">Required</span>
+            <span ng-show="myForm.httpStatus.$error.url" class="help-block">Not a valid Http Status</span>
             <span class="help-block">Numeric Only</span>
         </div>
         <div class="col-lg-6 help-block">HTTP Status of the response. You have to write <b>200</b> for a reponse with
@@ -80,7 +80,7 @@ charset=utf-8
         <label for="response" class="col-lg-2 control-label">Response</label>
         <div class="col-lg-10">
             <textarea class="form-control" id="response" name="response" ng-model="mock.response" rows="10" cols="50" required></textarea>
-            <span ng-show="myForm.response.$error.required" class="help-inline">Required</span>
+            <span ng-show="myForm.response.$error.required" class="help-block">Required</span>
         </div>
     </div>
 

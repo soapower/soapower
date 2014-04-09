@@ -101,6 +101,8 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
 
     $scope.title = "Insert new service";
 
+    $scope.showNewGroup = false;
+
     EnvironmentsService.findAllAndSelect($scope, null, $routeParams.groups, null, false);
 
     $scope.service = new Service({id: '-2'});

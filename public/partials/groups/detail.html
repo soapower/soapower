@@ -5,9 +5,9 @@
         <label for="nameGroup" class="col-lg-2 control-label">Name</label>
         <div class="col-lg-6">
             <input class="form-control" type="text" id="nameGroup" name="nameGroup" ng-pattern="namePattern" ng-model="group.name" required>
-            <span ng-show="myForm.nameGroup.$error.required" class="help-inline">Required</span>
-            <span class="error" ng-show="myForm.nameGroup.$error.pattern">Single word only!</span>
-            <span class="help-inline">The name have to match this pattern : [a-zA-Z0-9]{1,200}</span>
+            <span ng-show="myForm.nameGroup.$error.required" class="help-block">Required</span>
+            <span class="label label-danger" ng-show="myForm.nameGroup.$error.pattern">Single word only!</span>
+            <span class="help-block">The name have to match this pattern : [a-zA-Z0-9]{1,200}</span>
         </div>
     </div>
 

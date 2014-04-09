@@ -6,7 +6,7 @@
         <label for="group" class="col-lg-2 control-label">Group </label>
         <div class="col-lg-4">
             <select class="form-control" ng-model="mockGroup.group" id="group" name="group" ng-options="group.name for group in groups" required ng-selected="{{ mockGroup.groupId == group.id }}"></select>
-            <span ng-show="myForm.group.$error.required" class="help-inline">Required</span>
+            <span ng-show="myForm.group.$error.required" class="help-block">Required</span>
         </div>
     </div>
     
@@ -14,9 +14,9 @@
         <label for="nameMockGroup" class="col-lg-2 control-label">Name</label>
         <div class="col-lg-6">
             <input class="form-control" type="text" id="nameMockGroup" name="nameMockGroup" ng-pattern="namePattern" ng-model="mockGroup.name" required>
-            <span ng-show="myForm.nameMockGroup.$error.required" class="help-inline">Required</span>
-            <span class="error" ng-show="myForm.nameMockGroup.$error.pattern">Single word only!</span>
-            <span class="help-inline">The name have to match this pattern : [a-zA-Z0-9]{1,200}</span>
+            <span ng-show="myForm.nameMockGroup.$error.required" class="help-block">Required</span>
+            <span class="label label-danger" ng-show="myForm.nameMockGroup.$error.pattern">Single word only!</span>
+            <span class="help-block">The name have to match this pattern : [a-zA-Z0-9]{1,200}</span>
         </div>
     </div>
 
