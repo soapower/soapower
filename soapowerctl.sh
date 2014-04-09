@@ -53,7 +53,7 @@ fi
 # Display how to use soapowerctl.sh
 ########################################
 display_usage() { 
-    echo -e "\nUsage:\n$0 [start|stop|restart|configtest|status] \n"
+    echo -e "\nUsage:\n$0 [run|start|stop|restart|configtest|status] \n"
     return 0
 }
 
@@ -103,7 +103,14 @@ configtest() {
 
     return $ERROR
 }
-
+########################################
+#          Run
+# Use start Method to start Soapower
+# without nohup command
+########################################
+run() {
+    start "run"
+}
 
 ########################################
 #          Start
@@ -117,8 +124,10 @@ configtest() {
 # - Check pid on ${SOAPOWER_HTTP_PORT}
 ########################################
 start() {
+    RUN=$1
+
     ERROR=0
-    echo "Starting Soapower..."
+    
 
     ps -ef | grep java | grep soapower | grep "http.port=${SOAPOWER_HTTP_PORT}" | grep -v grep >/dev/null 2>&1
 
@@ -137,26 +146,33 @@ start() {
     fi
 
     CMD="${SOAPOWER_CURRENT}/bin/soapower -Dlogger.file=${SOAPOWER_CURRENT}/conf/logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT} -DapplyEvolutions.default=true -Ddb.default.url=${SOAPOWER_DB_URL} -Ddb.default.user=${SOAPOWER_DB_USER} -Ddb.default.password=${SOAPOWER_DB_PASSWORD}"
-    nohup $CMD >/dev/null 2>&1 &
 
-    if [ $? -ne 0 ]; then
-        echo "ERROR while starting soapower. Please run this command and check the log file:"
-        echo "$CMD"
-        ERROR=1
-    fi
+    if [ "x${RUN}" = "xrun" ]; then
+        echo "Running Soapower..."
+        $CMD
+    else
+        echo "Starting Soapower (with nohup)..."
+        nohup $CMD >/dev/null 2>&1 &
 
-    sleep 3
-    status
+        if [ $? -ne 0 ]; then
+            echo "ERROR while starting soapower. Please run this command and check the log file:"
+            echo "$CMD"
+            ERROR=1
+        fi
 
-    ps -ef | grep java | grep soapower | grep "http.port=${SOAPOWER_HTTP_PORT}" | grep -v grep >/dev/null 2>&1
+        sleep 3
+        status
 
-    if [ $? -ne 0 ]; then
-        echo "ERROR while starting soapower. Please run this command and check the log file:"
-        echo "$CMD"
-        ERROR=1
-    fi
+        ps -ef | grep java | grep soapower | grep "http.port=${SOAPOWER_HTTP_PORT}" | grep -v grep >/dev/null 2>&1
 
-    return $ERROR
+        if [ $? -ne 0 ]; then
+            echo "ERROR while starting soapower. Please run this command and check the log file:"
+            echo "$CMD"
+            ERROR=1
+        fi
+
+        return $ERROR
+    fi;
 }
 
 ########################################
@@ -238,7 +254,7 @@ ERROR=0
 
 
 case $ACMD in
-start|stop|restart)
+start|stop|restart|run)
     action $ACMD
     ERROR=$?
     ;;
