@@ -6,76 +6,50 @@ var spApp = angular.module('spApp', [ 'ui.bootstrap', 'ngRoute', 'ngResource', '
 
 spApp.config(function ($routeProvider) {
     $routeProvider
-        .when('/home', {
-            templateUrl: 'partials/home/home.html'
-        })
-        .when('/live', {
-            templateUrl: 'partials/live/live.html',
-            controller: LiveCtrl
-        })
-        .when('/live/:search', {
-            templateUrl: 'partials/live/live.html',
-            controller: LiveCtrl
-        })
-        .when('/search', {
-            redirectTo: '/search/all/all/all/yesterday/today/all'
-        })
+        .when('/home', { templateUrl: 'partials/home/home.html' })
+        .when('/live', { controller: LiveCtrl, templateUrl: 'partials/live/live.html' })
+        .when('/live/:search', { controller: LiveCtrl, templateUrl: 'partials/live/live.html' })
+        .when('/search', { redirectTo: '/search/all/all/all/yesterday/today/all'})
         .when('/search/:groups/:environment/:soapaction/:mindate/:maxdate/:code', {
-            templateUrl: 'partials/search/search.html',
-            controller: SearchCtrl
+            controller: SearchCtrl, templateUrl: 'partials/search/search.html'
         })
         .when('/analysis', {
             redirectTo: '/analysis/all/all/all/yesterday/today/all'
         })
         .when('/analysis/:groups/:environment/:soapaction/:mindate/:maxdate/:code', {
-            templateUrl: 'partials/analysis/analysis.html', controller: AnalysisCtrl
+            controller: AnalysisCtrl, templateUrl: 'partials/analysis/analysis.html'
         })
-        .when('/monitor', {
-            templateUrl: 'partials/monitor/monitor.html',
-            controller: MonitorCtrl
-        })
-        .when('/loggers', {
-            templateUrl: 'partials/monitor/loggers.html',
-            controller: LoggersCtrl
-        })
-        .when('/admin', {
-            templateUrl: 'partials/admin/admin.html',
-            controller: AdminCtrl
-        })
+        .when('/stats', { redirectTo: '/stats/all/all/yesterday/today/all' })
+        .when('/stats/:groups/:environment/:mindate/:maxdate/:code', { controller: StatsCtrl, templateUrl: 'partials/stats/stats.html' })
+
+        .when('/monitor', { controller: MonitorCtrl, templateUrl: 'partials/admin/monitor/monitor.html' })
+        .when('/loggers', { controller: LoggersCtrl, templateUrl: 'partials/admin/monitor/loggers.html'})
+        .when('/admin', { controller: AdminCtrl, templateUrl: 'partials/admin/admin.html' })
 
         .when('/services', {  redirectTo: '/services/all'})
-        .when('/services/new/:groups', {controller: ServiceNewCtrl, templateUrl: 'partials/services/detail.html'})
-        .when('/services/edit/:groups/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'partials/services/detail.html'})
-        .when('/services/:groups', { controller: ServicesCtrl, templateUrl: 'partials/services/list.html'})
+        .when('/services/new/:groups', {controller: ServiceNewCtrl, templateUrl: 'partials/admin/services/detail.html'})
+        .when('/services/edit/:groups/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'partials/admin/services/detail.html'})
+        .when('/services/:groups', { controller: ServicesCtrl, templateUrl: 'partials/admin/services/list.html'})
 
         .when('/environments', {  redirectTo: '/environments/all'})
-        .when('/environments/new', {controller: EnvironmentNewCtrl, templateUrl: 'partials/environments/detail.html'})
-        .when('/environments/edit/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'partials/environments/detail.html'})
-        .when('/environments/:groups', { controller: EnvironmentsCtrl, templateUrl: 'partials/environments/list.html'})
+        .when('/environments/new', {controller: EnvironmentNewCtrl, templateUrl: 'partials/admin/environments/detail.html'})
+        .when('/environments/edit/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'partials/admin/environments/detail.html'})
+        .when('/environments/:groups', { controller: EnvironmentsCtrl, templateUrl: 'partials/admin/environments/list.html'})
 
         .when('/mocks', {  redirectTo: '/mockgroups'})
-        .when('/mocks/new/:mockGroup', {controller: MockNewCtrl, templateUrl: 'partials/mocks/detail.html'})
-        .when('/mocks/edit/:mockId', {controller: MockEditCtrl, templateUrl: 'partials/mocks/detail.html'})
-        .when('/mocks/:mockGroup', { controller: MocksCtrl, templateUrl: 'partials/mocks/list.html'})
+        .when('/mocks/new/:mockGroup', {controller: MockNewCtrl, templateUrl: 'partials/admin/mocks/detail.html'})
+        .when('/mocks/edit/:mockId', {controller: MockEditCtrl, templateUrl: 'partials/admin/mocks/detail.html'})
+        .when('/mocks/:mockGroup', { controller: MocksCtrl, templateUrl: 'partials/admin/mocks/list.html'})
 
         .when('/mockgroups', {  redirectTo: '/mockgroups/all'})
-        .when('/mockgroups/new', {controller: MockGroupNewCtrl, templateUrl: 'partials/mockgroups/detail.html'})
-        .when('/mockgroups/edit/:mockGroupId', {controller: MockGroupEditCtrl, templateUrl: 'partials/mockgroups/detail.html'})
-        .when('/mockgroups/:groups', { controller: MockGroupsCtrl, templateUrl: 'partials/mockgroups/list.html'})
+        .when('/mockgroups/new', {controller: MockGroupNewCtrl, templateUrl: 'partials/admin/mockgroups/detail.html'})
+        .when('/mockgroups/edit/:mockGroupId', {controller: MockGroupEditCtrl, templateUrl: 'partials/admin/mockgroups/detail.html'})
+        .when('/mockgroups/:groups', { controller: MockGroupsCtrl, templateUrl: 'partials/admin/mockgroups/list.html'})
 
-        .when('/soapactions/edit/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
-        .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
+        .when('/soapactions/edit/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/admin/soapactions/detail.html'})
+        .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'partials/admin/soapactions/list.html'})
 
-        .when('/stats', {
-            redirectTo: '/stats/all/all/yesterday/today/all'
-        })
-        .when('/stats/:groups/:environment/:mindate/:maxdate/:code', {
-            templateUrl: 'partials/stats/stats.html',
-            controller: StatsCtrl
-        })
-        .otherwise({
-            redirectTo: '/home'
-        });
+        .otherwise({ redirectTo: '/home' });
 });
 
 spApp.run(['$location', '$rootScope', function ($location, $rootScope) {
