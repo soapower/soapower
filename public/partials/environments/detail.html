@@ -8,7 +8,7 @@
                 <option ng-repeat="group in groups" value="{{group}}">{{group}}</option>
             </select>
 
-            <span ng-show="newGroup && !showNewGroup">You can select {{newGroup}} in list above.</span>
+            <span ng-show="newGroup && !showNewGroup">You can select the group <b class="label label-info">{{newGroup}}</b> in list above.</span>
             <a ng-hide="showNewGroup" ng-click="showNewGroup=true">New Group</a>
 
             <span ng-show="showNewGroup">

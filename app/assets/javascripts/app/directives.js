@@ -60,24 +60,40 @@ spApp.directive('spGroups', function () {
             soapactions: '='
         },
         controller: function ($scope, $rootScope, $routeParams, GroupsService) {
-            $scope.showSelect = false;
             $scope.showGroup = false;
+            $scope.lastGroupSelected = [];
             $scope.$on("showGroupsFilter", function (event, groups) {
                 $scope.showGroup = (groups != false);
-                $scope.groups = [];
-                // TODO Split group with "|" if many groups in url
-                $scope.groups.push(groups);
+                if (groups != false) {
+                    $scope.groupsSelected = groups.split(',');
+                    // if there is "all" and an other group, keep "all" only
+                    if ($scope.groupsSelected.length > 1 && $scope.groupsSelected.indexOf("all") > -1) {
+                        $scope.groupsSelected = ["all"];
+                        $rootScope.$broadcast("ReloadPage", $scope.groupsSelected);
+                    }
+                }
             });
 
             $scope.changeGroup = function () {
-                $scope.showSelect = false;
-                $rootScope.group = $scope.groups;
-                $rootScope.$broadcast("ReloadPage", $scope.groups);
+                // if user select "All" and no all before, reset groupsSelected to all only
+                if ($scope.lastGroupSelected && $scope.groupsSelected) {
+                    if ($scope.lastGroupSelected.indexOf("all") == -1 && $scope.groupsSelected.indexOf("all") > -1) {
+                        $scope.groupsSelected = ["all"];
+                    } else if ($scope.lastGroupSelected.indexOf("all") > -1 &&
+                        $scope.groupsSelected.indexOf("all") > -1 &&
+                        $scope.groupsSelected.length > 1) {
+                        // if user select not "All" but have "All" before, delete "All" from list
+                        $scope.groupsSelected.splice($scope.lastGroupSelected.indexOf("all"), 1)
+                    }
+                }
+                $scope.lastGroupSelected = $scope.groupsSelected;
+                $rootScope.$broadcast("ReloadPage", $scope.groupsSelected);
             };
 
-            $scope.loadGroups = function() {
-                GroupsService.findAll().success(function(groups) {
+            $scope.loadGroups = function () {
+                GroupsService.findAll().success(function (groups) {
                     $scope.groups = groups.values;
+                    $scope.groups.unshift("all");
                 });
             };
             $scope.loadGroups()

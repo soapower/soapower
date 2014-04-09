@@ -1,5 +1,6 @@
 <div ng-show="showGroup" style="margin-top:10px">
-    <select style="width:200px" class="form-control" ui-select2 ng-model="group" data-placeholder="Choose a group" ng-required="true">
+    <select multiple ui-select2 ng-model="groupsSelected" ng-change="changeGroup()"
+            data-placeholder="Choose on or more group" ng-required="true" style="width:200px" class="form-control">
         <option ng-repeat="group in groups" value="{{group}}">{{group}}</option>
     </select>
 </div>

@@ -76,7 +76,6 @@ function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
 
     GroupsService.findAll().success(function (groups) {
         $scope.groups = groups.values;
-        console.log($scope.groups);
     });
 
     $scope.environment = new Environment();
@@ -87,18 +86,6 @@ function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
     $scope.environment.recordXmlData = true;
     $scope.environment.recordData = true;
     $scope.environment.groups = [];
-
-    $scope.addNewGroup = function() {
-        if (!$scope.environment.groups) {
-            $scope.environment.groups = [];
-        }
-        $scope.groups.push($scope.newGroup);
-        $scope.environment.groups.push($scope.newGroup);
-        console.log("Add New group " + $scope.newGroup)
-        console.log($scope.environment.groups);
-        console.log($scope.groups);
-        $('#groups').select2("destroy").select2($('#groups').data());
-    };
 
     $scope.save = function () {
         $scope.environment.$create(function () {

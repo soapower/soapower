@@ -5,7 +5,7 @@ import models._
 import play.api.libs.json._
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
-import reactivemongo.bson.BSONObjectID
+import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
 import play.modules.reactivemongo.json.BSONFormats._
