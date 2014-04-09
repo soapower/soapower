@@ -75,15 +75,9 @@ spApp.directive('spGroups', function () {
                 $rootScope.$broadcast("ReloadPage", $scope.groups);
             };
 
-            $scope.selectGroupsOptions = {
-                'multiple': true,
-                'simple_tags': true,
-                'tags': []
-            };
-
             $scope.loadGroups = function() {
                 GroupsService.findAll().success(function(groups) {
-                    $scope.selectGroupsOptions["tags"] = groups.values;
+                    $scope.groups = groups.values;
                 });
             };
             $scope.loadGroups()

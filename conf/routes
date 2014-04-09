@@ -26,7 +26,7 @@ POST          /autosoap/:group/:environment/*remoteTarget                       
 POST          /replay/:id                                                                                controllers.Soap.replay(id:Long)
 
 # Services
-GET           /services/:group/listDatatable                                                             controllers.admin.Services.findAll(group:String)
+GET           /services/:group/findall                                                                   controllers.admin.Services.findAll(group:String)
 POST          /services                                                                                  controllers.admin.Services.create
 PUT           /services/:id                                                                              controllers.admin.Services.update(id:String)
 GET           /services/:id                                                                              controllers.admin.Services.edit(id:String)

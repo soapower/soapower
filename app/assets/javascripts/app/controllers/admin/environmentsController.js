@@ -39,14 +39,12 @@ function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService,
     });
 }
 
-function EnvironmentEditCtrl($scope, $routeParams, $location, Environment) {
+function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, GroupsService) {
     var self = this;
 
-    $scope.selectGroupsOptions = {
-        'multiple': true,
-        'simple_tags': true,
-        'tags': ['tag1', 'tag2', 'tag3', 'tag4']  // Can be empty list.
-    };
+    GroupsService.findAll().success(function (groups) {
+        $scope.groups = groups.values;
+    });
 
     Environment.get({environmentId: $routeParams.environmentId}, function (environment) {
         self.original = environment;
@@ -74,9 +72,12 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment) {
     };
 }
 
-function EnvironmentNewCtrl($scope, $location, Environment) {
+function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
 
-    // TODO GROUPS
+    GroupsService.findAll().success(function (groups) {
+        $scope.groups = groups.values;
+        console.log($scope.groups);
+    });
 
     $scope.environment = new Environment();
     $scope.environment.hourRecordXmlDataMin = 6;
@@ -85,11 +86,18 @@ function EnvironmentNewCtrl($scope, $location, Environment) {
     $scope.environment.nbDayKeepAllData = 4;
     $scope.environment.recordXmlData = true;
     $scope.environment.recordData = true;
+    $scope.environment.groups = [];
 
-    $scope.selectGroupsOptions = {
-        'multiple': true,
-        'simple_tags': true,
-        'tags': ['tag1', 'tag2', 'tag3', 'tag4']  // Can be empty list.
+    $scope.addNewGroup = function() {
+        if (!$scope.environment.groups) {
+            $scope.environment.groups = [];
+        }
+        $scope.groups.push($scope.newGroup);
+        $scope.environment.groups.push($scope.newGroup);
+        console.log("Add New group " + $scope.newGroup)
+        console.log($scope.environment.groups);
+        console.log($scope.groups);
+        $('#groups').select2("destroy").select2($('#groups').data());
     };
 
     $scope.save = function () {
@@ -98,5 +106,5 @@ function EnvironmentNewCtrl($scope, $location, Environment) {
         }, function (response) { // error case
             alert(response.data);
         });
-    }
+    };
 }

@@ -15,7 +15,7 @@ spApp.factory('Service', function ($resource) {
 spApp.factory("ServicesService", function ($http) {
     return {
         findAll: function (group) {
-            return $http.get('/services/' + group + '/listDatatable');
+            return $http.get('/services/' + group + '/findall');
         }
     }
 });

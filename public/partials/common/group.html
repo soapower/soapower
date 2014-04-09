@@ -1,3 +1,5 @@
 <div ng-show="showGroup" style="margin-top:10px">
-    <input class="form-control input-sm" style="width:260px" id="groups" ui-select2="selectGroupsOptions" type="text" ng-model="groups" placeholder="Choose a group">
+    <select style="width:200px" class="form-control" ui-select2 ng-model="group" data-placeholder="Choose a group" ng-required="true">
+        <option ng-repeat="group in groups" value="{{group}}">{{group}}</option>
+    </select>
 </div>
