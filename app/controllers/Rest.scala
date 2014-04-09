@@ -17,11 +17,12 @@ object Rest extends Controller {
       val sender = request.remoteAddress
       val headers = request.headers.toSimpleMap
 
+      val requestBody = request.body
       // We retrieve the query and decode each of it's component
       val query = request.queryString.map { case (k,v) =>  URLDecoder.decode(k, "UTF-8") ->  URLDecoder.decode(v.mkString, "UTF-8") }
-      val method = request.method
+      val httpMethod = request.method
       // We retrieve all the REST services that match the method and the environment
-      val localTargets = Service.findRestByMethodAndEnvironmentName(method, environment)
+      val localTargets = Service.findRestByMethodAndEnvironmentName(httpMethod, environment)
 
       Logger.debug(localTargets.length +" services found in db")
 
@@ -36,43 +37,51 @@ object Rest extends Controller {
             Logger.error(err)
             BadRequest(err)
           } else {
+            // Get the correct URL for the redirection by parsing the call.
             val remoteTargetWithCall = getRemoteTargetWithCall(call, service.remoteTarget, service.localTarget)
-            method match {
-              case "GET" =>
+            var requestContentType = ""
+            var requestContent = ""
+
+            httpMethod match {
+              case "GET" | "DELETE" =>
+                // We decode the query
                 val queryString = URLDecoder.decode(request.rawQueryString, "UTF-8")
-                val content = getRequestContent(method, remoteTargetWithCall, queryString)
-                forwardRequest(content, query, service, sender, headers, call, remoteTargetWithCall)
+                // The content of a GET or DELETE http request is the http method and the remote target call
+                requestContent = getRequestContent(httpMethod, remoteTargetWithCall, queryString)
+                forwardRequest(requestContent, query, service, sender, headers, call, remoteTargetWithCall, null)
 
-              case "POST" =>
-                val content = request.body.toString;
-                forwardRequest(content, query, service, sender, headers, call, remoteTargetWithCall)
-
-              case "DELETE" =>
-                val queryString = URLDecoder.decode(request.rawQueryString, "UTF-8")
-                val content = getRequestContent(method, remoteTargetWithCall, queryString)
-                forwardRequest(content, query, service, sender, headers, call, remoteTargetWithCall)
-
-              case "PUT" =>
-                val content = request.body.toString;
-                forwardRequest(content, query, service, sender, headers, call, remoteTargetWithCall)
+              case "POST" | "PUT" =>
+                requestContentType = request.contentType.get
+                // The request has a POST or a PUT http method so the request has a body in JSON or XML format
+                requestContent = requestContentType match {
+                  case "application/json" =>
+                    requestBody.asJson.get.toString
+                  case "application/xml" | "text/xml" =>
+                    requestBody.asXml.get.toString
+                  case _ =>
+                    requestBody.asText.get.toString
+                }
 
               case _ =>
-                val err = "Not implemented yet"
+                val err = "Soapower doesn't support this HTTP method"
                 Logger.error(err)
                 BadRequest(err)
             }
+            // Forward the request
+            forwardRequest(requestContent, query, service, sender, headers, call, remoteTargetWithCall, requestContentType)
           }
       }.getOrElse {
-        val err = "No services with the environment "+environment+" and the HTTP method "+method+" matches the call "+call
+        val err = "No services with the environment "+environment+" and the HTTP method "+httpMethod+" matches the call "+call
         Logger.error(err)
         BadRequest(err)
       }
   }
 
-  def forwardRequest(content: String, query: Map[String, String], service: Service, sender: String, headers: Map[String,String], call: String, correctUrl:String): SimpleResult = {
-    val client = new Client(service, sender, content, headers, "get")
-    client.sendGetRequestAndWaitForResponse(service.httpMethod, correctUrl, query)
+  def forwardRequest(content: String, query: Map[String, String], service: Service, sender: String, headers: Map[String,String], call: String, correctUrl:String,
+                     requestContentType: String): SimpleResult = {
 
+    val client = new Client(service, sender, content, headers, Service.REST, requestContentType)
+    client.sendRestRequestAndWaitForResponse(service.httpMethod, correctUrl, query)
     new Results.Status(client.response.status).apply(client.response.bodyBytes)//.chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
       .withHeaders("ProxyVia" -> "soapower")
       .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
@@ -115,7 +124,7 @@ object Rest extends Controller {
   }
 
   /**
-   * Get the request content for a GET request (the request content is just the method, the remote target and the potential query
+   * Get the request content for a GET or DELETE request (the request content is just the method with the remote target and the potential query)
    * @param method the HTTP method
    * @param remoteTargetWithCall the remote target with the correct call
    * @param queryString the query string

@@ -15,10 +15,12 @@ object Soap extends Controller {
 
       Logger.info("Request on environment:" + environment + " localTarget:" + localTarget)
 
+      val requestContentType = request.contentType.get
       val sender = request.remoteAddress
       val content = request.body.toString()
+
       val headers = request.headers.toSimpleMap
-      forwardRequest(environment, localTarget, sender, content, headers)
+      forwardRequest(environment, localTarget, sender, content, headers, requestContentType)
   }
 
   /**
@@ -38,6 +40,7 @@ object Soap extends Controller {
   def autoIndex(group: String, environment: String, remoteTarget: String) = Action(parse.xml) {
     implicit request =>
 
+      val requestContentType = request.contentType.get
       Logger.info("Automatic service detection request on group: " + group + " environment:" + environment + " remoteTarget: " + remoteTarget)
 
       // Extract local target from the remote target
@@ -66,7 +69,8 @@ object Soap extends Controller {
           val recordXmlData = false
           val recordData = false
           val useMockGroup = false
-          val typeRequest = "soap"
+          val typeRequest = Service.SOAP
+          val httpMethod = Service.POST
 
           val environmentOption = Environment.findByGroupAndByName(group, environment)
           // Check that the environment exists for the given group
@@ -75,7 +79,7 @@ object Soap extends Controller {
             // The environment exists so the service creation can be performed
               service = new Service(id,
                 typeRequest,
-                "post",
+                httpMethod,
                 description,
                 localTarget.get,
                 remoteTarget,
@@ -99,7 +103,7 @@ object Soap extends Controller {
       val sender = request.remoteAddress
       val content = request.body.toString()
       val headers = request.headers.toSimpleMap
-      forwardRequest(environment, localTarget.get, sender, content, headers)
+      forwardRequest(environment, localTarget.get, sender, content, headers, requestContentType)
   }
 
 
@@ -127,7 +131,7 @@ object Soap extends Controller {
         val environmentName = environmentTuple.get._2
         if (requestData.serviceId > 0) {
           val service = Service.findById(requestData.serviceId).get
-          forwardRequest(environmentName, service.localTarget, sender, content, headers)
+          forwardRequest(environmentName, service.localTarget, sender, content, headers, requestData.requestContentType)
         } else {
           val err = "service with id " + requestData.serviceId + " unknown"
           Logger.error(err)
@@ -136,12 +140,12 @@ object Soap extends Controller {
       }
   }
 
-  private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String]): SimpleResult = {
+  private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String], requestContentType: String): SimpleResult = {
     val service = Service.findByLocalTargetAndEnvironmentName(localTarget, environmentName)
 
     service.map {
       service =>
-        val client = new Client(service, sender, content, headers, "soap")
+        val client = new Client(service, sender, content, headers, Service.SOAP, requestContentType)
         if (service.useMockGroup) {
           val mock = Mock.findByMockGroupAndContent(service.mockGroupId, content)
           client.workWithMock(mock)
@@ -197,5 +201,4 @@ object Soap extends Controller {
     Logger.info("host:" + r.host)
     Logger.info("rawQueryString:" + r.rawQueryString)
   }
-
 }

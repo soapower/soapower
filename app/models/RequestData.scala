@@ -23,9 +23,11 @@ case class RequestData(
                         serviceId: Long,
                         var request: String,
                         var requestHeaders: Map[String, String],
+                        var requestContentType: String,
                         startTime: Date,
                         var response: String,
                         var responseHeaders: Map[String, String],
+                        var responseContentType: String,
                         var timeInMillis: Long,
                         var status: Int,
                         var purged: Boolean,
@@ -33,8 +35,8 @@ case class RequestData(
 
   var responseBytes: Array[Byte] = null
 
-  def this(sender: String, soapAction: String, environnmentId: Long, serviceId: Long) =
-    this(null, sender, soapAction, environnmentId, serviceId, null, null, new Date, null, null, -1, -1, false, false)
+  def this(sender: String, soapAction: String, environnmentId: Long, serviceId: Long, requestContentType: String) =
+    this(null, sender, soapAction, environnmentId, serviceId, null, null, requestContentType, new Date, null, null, null, -1, -1, false, false)
 
   /**
    * Add soapAction in cache if neccessary.
@@ -88,7 +90,7 @@ object RequestData {
       str("request_data.purged") ~
       str("request_data.isMock") map {
       case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ startTime ~ timeInMillis ~ status ~ purged ~ isMock =>
-        RequestData(id, sender, soapAction, environnmentId, serviceId, null, null, startTime, null, null, timeInMillis, status, (purged == "true"), (isMock == "true"))
+        RequestData(id, sender, soapAction, environnmentId, serviceId, null, null, null, startTime, null, null, null, timeInMillis, status, (purged == "true"), (isMock == "true"))
     }
   }
 
@@ -131,10 +133,11 @@ object RequestData {
       long("request_data.environmentId") ~
       long("request_data.serviceId") ~
       bytes("request_data.request") ~
-      str("request_data.requestHeaders") map {
-      case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ request ~ requestHeaders =>
+      str("request_data.requestHeaders") ~
+      str("request_data.requestContentType") map {
+      case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ request ~ requestHeaders ~ requestContentType =>
         val headers = UtilConvert.headersFromString(requestHeaders)
-        new RequestData(id, sender, soapAction, environnmentId, serviceId, uncompressString(request), headers, null, null, null, -1, -1, false, false)
+        new RequestData(id, sender, soapAction, environnmentId, serviceId, uncompressString(request), headers, requestContentType, null, null, null, null, -1, -1, false, false)
     }
   }
 
@@ -177,8 +180,8 @@ object RequestData {
    * @param requestData the requestData
    */
   def insert(requestData: RequestData): Long = {
-    var xmlRequest: Array[Byte] = null
-    var xmlResponse: Array[Byte] = null
+    var requestContent: Array[Byte] = null
+    var responseContent: Array[Byte] = null
 
     val environment = Environment.findById(requestData.environmentId).get
     val service = Service.findById(requestData.serviceId).get
@@ -192,20 +195,20 @@ object RequestData {
       return -1
     } else if (!service.recordXmlData) {
       val msg = "Xml Data not recording for this service. See Admin."
-      xmlRequest = compressString(msg)
-      xmlResponse = compressString(msg)
+      requestContent = compressString(msg)
+      responseContent = compressString(msg)
       Logger.debug(msg)
     } else if (!environment.recordXmlData) {
       val msg = "Xml Data not recording for this environment. See Admin."
-      xmlRequest = compressString(msg)
-      xmlResponse = compressString(msg)
+      requestContent = compressString(msg)
+      responseContent = compressString(msg)
       Logger.debug(msg)
     } else if (requestData.status != 200 || (
       environment.hourRecordXmlDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
         environment.hourRecordXmlDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
       // Record XML Data if it is a soap fault (status != 200) or
       // if we can record data with environment's configuration (hours of recording)
-      xmlRequest = compressString(requestData.request)
+      requestContent = compressString(requestData.request)
       def transferEncodingResponse = requestData.responseHeaders.filter {
         _._1 == HeaderNames.CONTENT_ENCODING
       }
@@ -213,15 +216,15 @@ object RequestData {
       transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
         case Some("gzip") =>
           Logger.debug("Response in gzip Format")
-          xmlResponse = requestData.responseBytes
+          responseContent = requestData.responseBytes
         case _ =>
           Logger.debug("Response in plain Format")
-          xmlResponse = compressString(requestData.response)
+          responseContent = compressString(requestData.response)
       }
     } else {
       val msg = "Xml Data not recording. Record between " + environment.hourRecordXmlDataMin + "h to " + environment.hourRecordXmlDataMax + "h for this environment."
-      xmlRequest = compressString(msg)
-      xmlResponse = compressString(msg)
+      requestContent = compressString(msg)
+      responseContent = compressString(msg)
       Logger.debug(msg)
     }
 
@@ -231,19 +234,21 @@ object RequestData {
           SQL(
             """
             insert into request_data 
-              (sender, soapAction, environmentId, serviceId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status, isMock) values (
-              {sender}, {soapAction}, {environmentId}, {serviceId}, {request}, {requestHeaders}, {startTime}, {response}, {responseHeaders}, {timeInMillis}, {status}, {isMock}
+              (sender, soapAction, environmentId, serviceId, request, requestHeaders, requestContentType, startTime, response, responseHeaders, responseContentType, timeInMillis, status, isMock) values (
+              {sender}, {soapAction}, {environmentId}, {serviceId}, {request}, {requestHeaders}, {requestContentType}, {startTime}, {response}, {responseHeaders}, {responseContentType}, {timeInMillis}, {status}, {isMock}
             )
             """).on(
             'sender -> requestData.sender,
             'soapAction -> requestData.soapAction,
             'environmentId -> requestData.environmentId,
             'serviceId -> requestData.serviceId,
-            'request -> xmlRequest,
+            'request -> requestContent,
             'requestHeaders -> UtilConvert.headersToString(requestData.requestHeaders),
+            'requestContentType -> requestData.requestContentType,
             'startTime -> requestData.startTime,
-            'response -> xmlResponse,
+            'response -> responseContent,
             'responseHeaders -> UtilConvert.headersToString(requestData.responseHeaders),
+            'responseContentType -> requestData.responseContentType,
             'timeInMillis -> requestData.timeInMillis,
             'status -> requestData.status,
             'isMock -> requestData.isMock.toString
@@ -548,7 +553,7 @@ object RequestData {
   def load(id: Long): RequestData = {
     DB.withConnection {
       implicit connection =>
-        SQL("select id, sender, soapAction, environmentId, serviceId, request, requestHeaders from request_data where id= {id}")
+        SQL("select id, sender, soapAction, environmentId, serviceId, request, requestHeaders, requestContentType from request_data where id= {id}")
           .on('id -> id).as(RequestData.forReplay.single)
     }
   }

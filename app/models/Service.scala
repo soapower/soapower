@@ -25,6 +25,21 @@ case class Service(
 }
 
 object Service {
+
+  /**
+   * HTTP methods
+   */
+  val POST = "post"
+  val GET = "get"
+  val PUT = "put"
+  val DELETE = "delete"
+
+  /**
+   * Services
+   */
+  val REST = "rest"
+  val SOAP = "soap"
+
   // -- Parsers
 
   /**

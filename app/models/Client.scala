@@ -51,16 +51,21 @@ object Client {
   }
 }
 
-class Client(service: Service, sender: String, content: String, headers: Map[String, String], typeRequest: String) {
+class Client(service: Service, sender: String, content: String, headers: Map[String, String], typeRequest: String, requestContentType: String) {
 
   val requestData = {
-    if(typeRequest.equals("soap") && (Client.extractSoapAction(headers) != Client.DEFAULT_NO_SOAPACTION))
+    var soapAction = ""
+
+    if(typeRequest.equals(Service.SOAP) && (Client.extractSoapAction(headers) != Client.DEFAULT_NO_SOAPACTION))
   	{
-      new RequestData(sender, Client.extractSoapAction(headers), service.environmentId, service.id)
+      soapAction = Client.extractSoapAction(headers)
   	} else {
-      new RequestData(sender, service.httpMethod.toUpperCase+" "+service.localTarget, service.environmentId, service.id)
+      soapAction = service.httpMethod.toUpperCase+ " " + service.localTarget
   	}
+
+    new RequestData(sender, soapAction, service.environmentId, service.id, requestContentType)
   }
+
   var response: ClientResponse = null
 
   private var futureResponse: Future[Response] = null
@@ -79,11 +84,11 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
   }
 
   /**
-   * Send a Rest Get Request
+   * Send a request to a REST service
    * @param correctUrl
    * @param query
    */
-  def sendGetRequestAndWaitForResponse(method: String, correctUrl: String, query:Map[String, String])
+  def sendRestRequestAndWaitForResponse(method: String, correctUrl: String, query:Map[String, String])
   {
     if (Logger.isDebugEnabled) {
       Logger.debug("RemoteTarget " + service.remoteTarget)
@@ -105,14 +110,15 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     try {
       // perform request
       method match {
-        case "get" =>
+        case Service.GET =>
           futureResponse = wsRequestHolder.get()
-        case "post" =>
+        case Service.POST =>
           wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.CONTENT_LENGTH -> content.getBytes.size.toString))
           futureResponse = wsRequestHolder.post(content)
-        case "delete" =>
+        case Service.DELETE =>
           futureResponse = wsRequestHolder.delete()
-        case "put" =>
+        case Service.PUT =>
+          wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.CONTENT_LENGTH -> content.getBytes.size.toString))
           futureResponse = wsRequestHolder.put(content)
       }
       // wait for the response
@@ -125,8 +131,8 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     saveData(content)
   }
 
-  /*
-  SOAP
+  /**
+   * Send a request to a SOAP service
    */
   def sendSoapRequestAndWaitForResponse() {
     if (Logger.isDebugEnabled) {
@@ -168,10 +174,12 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       requestData.status = response.status
       Client.processQueue(requestData)
       requestData.requestHeaders = headers
+
       requestData.response = checkNullOrEmpty(response.body)
       requestData.responseBytes = response.bodyBytes
 
       requestData.responseHeaders = response.headers
+      requestData.responseContentType = response.contentType
 
       if (Logger.isDebugEnabled) {
         Logger.debug("Response in " + response.responseTimeInMillis + " ms")
