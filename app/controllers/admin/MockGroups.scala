@@ -97,40 +97,45 @@ object MockGroups extends Controller {
     request =>
       if (id == MockGroup.ID_DEFAULT_NO_MOCK_GROUP) BadRequest("failure : Default Mock Group can't be updated")
       else {
-      request.body.validate(mockgroupFormat).map {
-        mockgroup =>
-          try {
-            if (id < 0) MockGroup.insert(mockgroup)
-            else MockGroup.update(mockgroup)
-            Ok(Json.toJson("Succesfully save mockgroup " + id))
-          } catch {
-            case e : Throwable => { BadRequest("Detected error:" + e.getMessage) }
-          }
-      }.recoverTotal {
-        e => BadRequest("Detected error:" + JsError.toFlatJson(e))
+        request.body.validate(mockgroupFormat).map {
+          mockgroup =>
+            try {
+              if (id < 0) MockGroup.insert(mockgroup)
+              else MockGroup.update(mockgroup)
+              Ok(Json.toJson("Succesfully save mockgroup " + id))
+            } catch {
+              case e: Throwable => {
+                BadRequest("Detected error:" + e.getMessage)
+              }
+            }
+        }.recoverTotal {
+          e => BadRequest("Detected error:" + JsError.toFlatJson(e))
+        }
       }
-    }
   }
 
   /**
    * Handle mockgroup deletion.
    */
-  def delete(id: Long) = Action(parse.tolerantText) { request =>
-    if (id == MockGroup.ID_DEFAULT_NO_MOCK_GROUP) BadRequest("failure : Default Mock Group can't be deleted")
-    else {
-      val mockgroupOption = MockGroup.findById(id)
-      mockgroupOption match {
-        case Some(mockgroup) =>
-          try {
-            MockGroup.delete(mockgroup)
-            Ok("deleted")
-          } catch {
-            case e : Throwable => { BadRequest("Detected error:" + e.getMessage) }
-          }
-        case None =>
-          Ok("failure : Mockgroup doesn't exist")
+  def delete(id: Long) = Action(parse.tolerantText) {
+    request =>
+      if (id == MockGroup.ID_DEFAULT_NO_MOCK_GROUP) BadRequest("failure : Default Mock Group can't be deleted")
+      else {
+        val mockgroupOption = MockGroup.findById(id)
+        mockgroupOption match {
+          case Some(mockgroup) =>
+            try {
+              MockGroup.delete(mockgroup)
+              Ok("deleted")
+            } catch {
+              case e: Throwable => {
+                BadRequest("Detected error:" + e.getMessage)
+              }
+            }
+          case None =>
+            Ok("failure : Mockgroup doesn't exist")
+        }
       }
-    }
   }
 
 }

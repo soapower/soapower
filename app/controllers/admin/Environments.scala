@@ -37,6 +37,7 @@ object Environments extends Controller {
         Ok(Json.toJson(Map("data" -> Json.toJson(list))))
     }
   }
+
   /*  def listDatatable(group: String) = Action {
       implicit request =>
 
@@ -64,6 +65,7 @@ object Environments extends Controller {
   def options(group: String) = Action {
     Ok(Json.toJson(Environment.options))
   }
+
   /*
   def options(group: String) = Action {
     implicit request =>
@@ -112,7 +114,7 @@ object Environments extends Controller {
           case e => Future.successful(BadRequest("Detected error on validation : " + JsError.toFlatJson(e)))
         }
       } catch {
-        case e : Throwable => {
+        case e: Throwable => {
           Logger.error("Error:", e)
           Future.successful(BadRequest("Internal error : " + e.getMessage))
         }
@@ -142,7 +144,7 @@ object Environments extends Controller {
           case e => Future.successful(BadRequest("Detected error on validation : " + JsError.toFlatJson(e)))
         }
       } catch {
-        case e : Throwable => {
+        case e: Throwable => {
           Logger.error("Error:", e)
           Future.successful(BadRequest("Internal error : " + e.getMessage))
         }

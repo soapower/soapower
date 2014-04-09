@@ -143,16 +143,16 @@ object RequestData {
    * Construct the Map[String, String] needed to fill a select options set.
    */
   //def soapActionOptions: Seq[(String, String)] = DB.withConnection {
-  def soapActionOptions: Seq[(String, String)]  = {
+  def soapActionOptions: Seq[(String, String)] = {
     //TODO
-  ???
-  /*
-    implicit connection =>
-      Cache.getOrElse[Seq[(String, String)]](keyCacheSoapAction) {
-        Logger.debug("RequestData.SoapAction not found in cache: loading from db")
-        SQL("select distinct(soapAction) from request_data order by soapAction asc").as((get[String]("soapAction") ~ get[String]("soapAction")) *).map(flatten)
-      }
-  */
+    ???
+    /*
+      implicit connection =>
+        Cache.getOrElse[Seq[(String, String)]](keyCacheSoapAction) {
+          Logger.debug("RequestData.SoapAction not found in cache: loading from db")
+          SQL("select distinct(soapAction) from request_data order by soapAction asc").as((get[String]("soapAction") ~ get[String]("soapAction")) *).map(flatten)
+        }
+    */
   }
 
   /**
@@ -171,7 +171,7 @@ object RequestData {
   //def getMinStartTime: Option[Date] = DB.withConnection {
   def getMinStartTime: Option[Date] = {
     //TODO
-        ???
+    ???
     /*
     implicit connection =>
       Cache.getOrElse[Option[Date]](keyCacheMinStartTime) {
@@ -186,13 +186,13 @@ object RequestData {
    *
    * @param requestData the requestData
    */
-  def insert(requestData: RequestData) : Option[BSONObjectID] = {
+  def insert(requestData: RequestData): Option[BSONObjectID] = {
 
     var xmlRequest: String = null
     var xmlResponse: String = null
 
     val f = Environment.findById(requestData.environmentId).map(e => e)
-    val environment = Await result (f, 1.seconds)
+    val environment = Await result(f, 1.seconds)
 
     val service = Service.findById(requestData.serviceId).get
     val date = new Date()
@@ -242,8 +242,9 @@ object RequestData {
     requestData.request = xmlRequest
     requestData.response = xmlResponse
 
-    collection.insert(requestData).map { lastError =>
-      Logger.debug(s"Successfully inserted RequestData with LastError: $lastError")
+    collection.insert(requestData).map {
+      lastError =>
+        Logger.debug(s"Successfully inserted RequestData with LastError: $lastError")
     }
     requestData.id
   }
@@ -466,40 +467,40 @@ object RequestData {
    */
   def findResponseTimes(groupName: String, environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, statsOnly: Boolean): List[(Long, String, Date, Long)] = {
     ???
-  /*
-    var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
-    whereClause += sqlAndStatus(status)
-    Logger.debug("DDDDD==>" + whereClause)
-    if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
-    whereClause += sqlAndEnvironnement(environmentIn)
+    /*
+      var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
+      whereClause += sqlAndStatus(status)
+      Logger.debug("DDDDD==>" + whereClause)
+      if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
+      whereClause += sqlAndEnvironnement(environmentIn)
 
-    val pair = sqlFromAndGroup(groupName, environmentIn)
-    val fromClause = " from request_data " + pair._1
-    whereClause += pair._2
+      val pair = sqlFromAndGroup(groupName, environmentIn)
+      val fromClause = " from request_data " + pair._1
+      whereClause += pair._2
 
-    val params: Array[(Any, anorm.ParameterValue[_])] = Array(
-      'minDate -> minDate,
-      'maxDate -> maxDate,
-      'soapAction -> soapAction)
+      val params: Array[(Any, anorm.ParameterValue[_])] = Array(
+        'minDate -> minDate,
+        'maxDate -> maxDate,
+        'soapAction -> soapAction)
 
-    var sql = "select environmentId, soapAction, startTime, timeInMillis " + fromClause + whereClause
+      var sql = "select environmentId, soapAction, startTime, timeInMillis " + fromClause + whereClause
 
-    if (statsOnly) {
-      sql += " and isStats = 'true' "
-    }
-    sql += " order by request_data.id asc"
+      if (statsOnly) {
+        sql += " and isStats = 'true' "
+      }
+      sql += " order by request_data.id asc"
 
-    Logger.debug("SQL (findResponseTimes, g:" + groupName + ") ====> " + sql)
+      Logger.debug("SQL (findResponseTimes, g:" + groupName + ") ====> " + sql)
 
-    DB.withConnection {
-      implicit connection =>
-      // explainPlan(sql, params: _*)
-        SQL(sql)
-          .on(params: _*)
-          .as(get[Long]("environmentId") ~ get[String]("soapAction") ~ get[Date]("startTime") ~ get[Long]("timeInMillis") *)
-          .map(flatten)
-    }
-    */
+      DB.withConnection {
+        implicit connection =>
+        // explainPlan(sql, params: _*)
+          SQL(sql)
+            .on(params: _*)
+            .as(get[Long]("environmentId") ~ get[String]("soapAction") ~ get[Date]("startTime") ~ get[Long]("timeInMillis") *)
+            .map(flatten)
+      }
+      */
   }
 
   def loadAvgResponseTimesByAction(groupName: String, environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {

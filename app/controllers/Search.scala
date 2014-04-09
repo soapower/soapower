@@ -19,10 +19,11 @@ object Search extends Controller {
   private val UTF8 = "UTF-8"
 
   def listDatatable(group: String, environment: String, soapAction: String, minDate: String, maxDate: String, status: String, iDisplayStart: Int, iDisplayLength: Int) = Action.async {
-    val futureDataList = RequestData.list(group, environment, URLDecoder.decode(soapAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (iDisplayStart-1), iDisplayLength)
+    val futureDataList = RequestData.list(group, environment, URLDecoder.decode(soapAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (iDisplayStart - 1), iDisplayLength)
 
-    futureDataList.map { list =>
-      Ok(Json.toJson(Map("data" -> Json.toJson(list))))
+    futureDataList.map {
+      list =>
+        Ok(Json.toJson(Map("data" -> Json.toJson(list))))
     }
   }
 
@@ -35,7 +36,7 @@ object Search extends Controller {
         try {
           formattedXml = new PrettyPrinter(250, 4).format(scala.xml.XML.loadString(str))
         } catch {
-          case e:SAXParseException => formattedXml = str
+          case e: SAXParseException => formattedXml = str
         }
         val filename = "request-" + id + ".xml"
 
@@ -63,7 +64,7 @@ object Search extends Controller {
         try {
           formattedXml = new PrettyPrinter(250, 4).format(scala.xml.XML.loadString(str))
         } catch {
-          case e:SAXParseException => formattedXml = str
+          case e: SAXParseException => formattedXml = str
         }
 
         val filename = "response-" + id + ".xml"

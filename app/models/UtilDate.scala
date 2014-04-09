@@ -1,6 +1,6 @@
 package models
 
-import java.util.{ Calendar, Date, GregorianCalendar }
+import java.util.{Calendar, Date, GregorianCalendar}
 import java.text.SimpleDateFormat
 import java.text.ParseException
 import play.Logger
@@ -13,7 +13,7 @@ object UtilDate {
   val longFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
   val defaultGCal = new GregorianCalendar()
 
-  def getDate(sDate: String, addInMillis: Long = 0, isMax : Boolean = false): GregorianCalendar = {
+  def getDate(sDate: String, addInMillis: Long = 0, isMax: Boolean = false): GregorianCalendar = {
     val gCal = new GregorianCalendar()
 
     gCal.set(Calendar.HOUR_OF_DAY, 0)
@@ -22,9 +22,8 @@ object UtilDate {
 
     val mDate: GregorianCalendar = sDate match {
       case "all" =>
-        if (isMax)
-        {
-          gCal.setTimeInMillis(gCal.getTimeInMillis+v23h59min59s);
+        if (isMax) {
+          gCal.setTimeInMillis(gCal.getTimeInMillis + v23h59min59s);
           gCal
         }
         else {
@@ -32,12 +31,12 @@ object UtilDate {
           gCal
         }
       case "today" =>
-        if(isMax)
+        if (isMax)
           gCal.setTimeInMillis(gCal.getTimeInMillis + v23h59min59s)
         gCal
       case "yesterday" =>
         gCal.add(Calendar.DATE, -1)
-        if(isMax)
+        if (isMax)
           gCal.setTimeInMillis(gCal.getTimeInMillis + v23h59min59s)
         gCal
       case pattern(days) =>
@@ -57,7 +56,7 @@ object UtilDate {
             }
             gCal
         }
-      gCal
+        gCal
     }
     mDate
   }
@@ -84,7 +83,7 @@ object UtilDate {
     rDate
   }
 
-  def parse(date : String): Date = {
+  def parse(date: String): Date = {
     longFormat.parse(date)
   }
 

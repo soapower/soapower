@@ -68,7 +68,9 @@ object Mocks extends Controller {
             else Mock.update(mock)
             Ok(Json.toJson("Succesfully save mock."))
           } catch {
-            case e : Throwable => { BadRequest("Detected error:" + e.getMessage) }
+            case e: Throwable => {
+              BadRequest("Detected error:" + e.getMessage)
+            }
           }
 
       }.recoverTotal {
@@ -79,9 +81,10 @@ object Mocks extends Controller {
   /**
    * Handle mock deletion.
    */
-  def delete(id: Long) = Action(parse.tolerantText) { request =>
-    Mock.delete(id)
-    Ok("deleted")
+  def delete(id: Long) = Action(parse.tolerantText) {
+    request =>
+      Mock.delete(id)
+      Ok("deleted")
   }
 }
 

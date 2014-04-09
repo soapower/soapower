@@ -56,7 +56,7 @@ object Monitor extends Controller {
     val loggersList = scala.collection.mutable.ListBuffer[JsonLogger]()
     loggerContext.getLoggerList.toList.foreach {
       logger =>
-        loggersList.add (new JsonLogger(logger.getName, logger.getEffectiveLevel().toString()))
+        loggersList.add(new JsonLogger(logger.getName, logger.getEffectiveLevel().toString()))
     }
     Ok(Json.toJson(loggersList)).as(JSON)
   }

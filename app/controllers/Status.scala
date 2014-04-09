@@ -33,8 +33,9 @@ object Status extends Controller {
    * @return JSON
    */
   def findAll = Action.async {
-    RequestData.statusOptions.map { s =>
-      Ok(Json.toJson(s)).as(JSON)
+    RequestData.statusOptions.map {
+      s =>
+        Ok(Json.toJson(s)).as(JSON)
     }
   }
 

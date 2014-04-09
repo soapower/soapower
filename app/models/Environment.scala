@@ -24,7 +24,7 @@ case class Environment(_id: Option[BSONObjectID],
                        nbDayKeepAllData: Int = 5,
                        recordXmlData: Boolean = true,
                        recordData: Boolean = true
-                      )
+                        )
 
 object ModePurge extends Enumeration {
   type ModePurge = Value
@@ -83,7 +83,7 @@ object Environment {
    * Csv format.
    */
   def csv(e: Environment) = {
-    csvKey + ";" + e._id.get.stringify + ";" + e.name + ";" + e.groups.mkString ("|") + ";" + e.hourRecordXmlDataMin + ";" + e.hourRecordXmlDataMax + ";" + e.nbDayKeepXmlData + ";" + e.nbDayKeepAllData + ";" + e.recordXmlData + ";" + e.recordData + "\n"
+    csvKey + ";" + e._id.get.stringify + ";" + e.name + ";" + e.groups.mkString("|") + ";" + e.hourRecordXmlDataMin + ";" + e.hourRecordXmlDataMax + ";" + e.nbDayKeepXmlData + ";" + e.nbDayKeepAllData + ";" + e.recordXmlData + ";" + e.recordData + "\n"
   }
 
   /**
@@ -280,7 +280,7 @@ object Environment {
     ???
   }
 
-  def findAllGroups() : Future[BSONDocument] = {
+  def findAllGroups(): Future[BSONDocument] = {
     val command = RawCommand(BSONDocument("distinct" -> "environments", "key" -> "groups"))
     collection.db.command(command) // result is Future[BSONDocument]
   }
@@ -333,7 +333,7 @@ object Environment {
     val gcal = new GregorianCalendar
     val today = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
 
-    Environment.findAll.map (environments => environments.map(
+    Environment.findAll.map(environments => environments.map(
       env => {
         var nbDay = 100
 

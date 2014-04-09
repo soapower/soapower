@@ -20,7 +20,7 @@ object Analysis extends Controller {
         "env" -> JsString(Environment.options.find(t => t._1 == data._1.toString).get._2),
         "soapaction" -> JsString(data._2),
         "x" -> JsNumber(data._3.getTime)
-        )
+      )
     )
   }
 
@@ -35,13 +35,14 @@ object Analysis extends Controller {
 
       var x = JsArray()
 
-      data.foreach{ d =>
-        x ++= Json.arr(
-          Json.obj(
-            "key" -> d._1,
-            "values" -> d._2.tuples
+      data.foreach {
+        d =>
+          x ++= Json.arr(
+            Json.obj(
+              "key" -> d._1,
+              "values" -> d._2.tuples
+            )
           )
-        )
 
       }
       Logger.debug("x =>" + x)
@@ -49,19 +50,20 @@ object Analysis extends Controller {
     }
   }
 
-  class Entity(soapAction: String, var tuples:List[(Long, Long)])
+  class Entity(soapAction: String, var tuples: List[(Long, Long)])
 
-  def load(groupName: String, environment: String, soapAction: String, minDate: String, maxDate : String, status: String, statsOnly: String) = Action {
+  def load(groupName: String, environment: String, soapAction: String, minDate: String, maxDate: String, status: String, statsOnly: String) = Action {
     val responsesTimesByDate = RequestData.findResponseTimes(groupName, environment, soapAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s).getTime, status, true)
 
-    val a:Map[String, Entity] = Map()
+    val a: Map[String, Entity] = Map()
 
-    responsesTimesByDate.foreach{ r =>
-      if (a.contains(r._2)) {
-        (a.get(r._2).get).tuples ++= List((r._3.getTime, r._4))
-      } else {
-        (a.put(r._2, new Entity(r._2, List((r._3.getTime, r._4)))))
-      }
+    responsesTimesByDate.foreach {
+      r =>
+        if (a.contains(r._2)) {
+          (a.get(r._2).get).tuples ++= List((r._3.getTime, r._4))
+        } else {
+          (a.put(r._2, new Entity(r._2, List((r._3.getTime, r._4)))))
+        }
     }
 
     Ok(Json.toJson(a)).as(JSON)

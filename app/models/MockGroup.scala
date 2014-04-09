@@ -110,7 +110,9 @@ object MockGroup {
     }
 
     // Insert the new MockGroup
-    if (options.exists{g => g._2.equals(mockGroup.name.trim)}) {
+    if (options.exists {
+      g => g._2.equals(mockGroup.name.trim)
+    }) {
       throw new Exception("MockGroup with name " + mockGroup.name.trim + " already exist")
     }
 
@@ -122,9 +124,9 @@ object MockGroup {
             )
           """
         ).on(
-          'name -> mockGroup.name.trim,
-          'groupId -> mockGroup.groupId
-        ).executeUpdate()
+            'name -> mockGroup.name.trim,
+            'groupId -> mockGroup.groupId
+          ).executeUpdate()
     }
   }
 
@@ -140,7 +142,9 @@ object MockGroup {
       throw new Exception("Mockgroup name invalid:" + mockGroup.name.trim)
     }
 
-    if (options.exists{g => g._2.equals(mockGroup.name.trim) && g._1.toLong != mockGroup.id}) {
+    if (options.exists {
+      g => g._2.equals(mockGroup.name.trim) && g._1.toLong != mockGroup.id
+    }) {
       throw new Exception("Mockgroup with name " + mockGroup.name.trim + " already exist")
     }
 
@@ -149,10 +153,10 @@ object MockGroup {
       implicit connection =>
         SQL("update mock_group set name = {name}, groupId = {groupId} " +
           " where id = {id}").on(
-          'id -> mockGroup.id,
-          'name -> mockGroup.name.trim,
-          'groupId -> mockGroup.groupId
-        ).executeUpdate()
+            'id -> mockGroup.id,
+            'name -> mockGroup.name.trim,
+            'groupId -> mockGroup.groupId
+          ).executeUpdate()
     }
   }
 
@@ -180,13 +184,13 @@ object MockGroup {
   /**
    * Return a list of all mockgroups.
    */
-  def findAll : List[MockGroup] = {
+  def findAll: List[MockGroup] = {
     DB.withConnection {
       implicit connection =>
         val mockGroups = SQL(
           " select * from mock_group " +
-          " order by mock_group.name"
-          ).as(MockGroup.simple *)
+            " order by mock_group.name"
+        ).as(MockGroup.simple *)
         mockGroups
     }
   }
@@ -205,7 +209,7 @@ object MockGroup {
           or mock_group.id = {defaultMockGroudId})
           order by mock_group.name
           """
-          ).on(
+        ).on(
             'groupName -> groupName,
             'defaultMockGroudId -> ID_DEFAULT_NO_MOCK_GROUP
           ).as(MockGroup.simple *)

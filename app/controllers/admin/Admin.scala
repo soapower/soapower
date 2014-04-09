@@ -54,19 +54,29 @@ object Admin extends Controller {
   def downloadConfiguration = Action.async {
     // Title
     var content = "#for key " + Environment.csvKey + "\n"
-    Environment.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
+    Environment.csvTitle.toList.sortBy(_._2).foreach {
+      case (k, v) => content += k + ";"
+    }
     content = content.dropRight(1) + "\n" // delete last ; and add new line
     content += "#for key " + SoapAction.csvKey + "\n"
-    SoapAction.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
+    SoapAction.csvTitle.toList.sortBy(_._2).foreach {
+      case (k, v) => content += k + ";"
+    }
     content = content.dropRight(1) + "\n"
     content += "#for key " + MockGroup.csvKey + "\n"
-    MockGroup.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
+    MockGroup.csvTitle.toList.sortBy(_._2).foreach {
+      case (k, v) => content += k + ";"
+    }
     content = content.dropRight(1) + "\n"
     content += "#for key " + Service.csvKey + "\n"
-    Service.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
+    Service.csvTitle.toList.sortBy(_._2).foreach {
+      case (k, v) => content += k + ";"
+    }
     content = content.dropRight(1) + "\n"
 
-    def combine(csv : List[Object]) = { csv.foreach(s => content += s) }
+    def combine(csv: List[Object]) = {
+      csv.foreach(s => content += s)
+    }
 
     def f: Future[Unit] = {
       for {
@@ -75,16 +85,17 @@ object Admin extends Controller {
         soapActions <- Environment.fetchCsv() // SoapAction.fetchCsv
         mockGroups <- Environment.fetchCsv() // MockGroup.fetchCsv
         services <- Environment.fetchCsv() // Service.fetchCsv
-      } yield combine(environments ++ soapActions ++ mockGroups ++ services )
+      } yield combine(environments ++ soapActions ++ mockGroups ++ services)
     }
 
     // result as a file
-    f map { case _ =>
-      val fileContent: Enumerator[Array[Byte]] = Enumerator(content.getBytes)
-      SimpleResult(
-        header = ResponseHeader(play.api.http.Status.OK),
-        body = fileContent
-      ).withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=configuration.csv")).as(BINARY)
+    f map {
+      case _ =>
+        val fileContent: Enumerator[Array[Byte]] = Enumerator(content.getBytes)
+        SimpleResult(
+          header = ResponseHeader(play.api.http.Status.OK),
+          body = fileContent
+        ).withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=configuration.csv")).as(BINARY)
     }
   }
 

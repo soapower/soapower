@@ -16,7 +16,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 
 object Robot {
 
-  var liveRoom : ActorRef = null
+  var liveRoom: ActorRef = null
 
   def apply(room: ActorRef) {
     liveRoom = room
@@ -33,15 +33,15 @@ object Robot {
     }
   }
 
-  def talkMsg(msg:String, typeMsg:String) {
+  def talkMsg(msg: String, typeMsg: String) {
     Akka.system.scheduler.scheduleOnce(
-    0 seconds,
-    liveRoom,
+      0 seconds,
+      liveRoom,
       Talk("Robot", msg, typeMsg)
     )
   }
 
-  def talk(requestData:RequestData) {
+  def talk(requestData: RequestData) {
     Akka.system.scheduler.scheduleOnce(
       0 seconds,
       liveRoom,
@@ -64,35 +64,37 @@ object LiveRoom {
     roomActor
   }
 
-  def init{
+  def init {
     Logger.info("Init LiveRoom")
     default
   }
 
-  def join(username:String):scala.concurrent.Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
+  def join(username: String): scala.concurrent.Future[(Iteratee[JsValue, _], Enumerator[JsValue])] = {
 
     (default ? Join(username)).map {
 
       case Connected(enumerator) =>
 
         // Create an Iteratee to consume the feed
-        val iteratee = Iteratee.foreach[JsValue] { event =>
-          default ! Talk(username, (event \ "text").as[String], "talk")
-        }.map { _ =>
-          default ! Quit(username)
+        val iteratee = Iteratee.foreach[JsValue] {
+          event =>
+            default ! Talk(username, (event \ "text").as[String], "talk")
+        }.map {
+          _ =>
+            default ! Quit(username)
         }
 
-        (iteratee,enumerator)
+        (iteratee, enumerator)
 
       case CannotConnect(error) =>
         // Connection error
         // A finished Iteratee sending EOF
-        val iteratee = Done[JsValue,Unit]((),Input.EOF)
+        val iteratee = Done[JsValue, Unit]((), Input.EOF)
 
         // Send an error and close the socket
-        val enumerator =  Enumerator[JsValue](JsObject(Seq("error" -> JsString(error)))).andThen(Enumerator.enumInput(Input.EOF))
+        val enumerator = Enumerator[JsValue](JsObject(Seq("error" -> JsString(error)))).andThen(Enumerator.enumInput(Input.EOF))
 
-        (iteratee,enumerator)
+        (iteratee, enumerator)
 
     }
   }
@@ -106,7 +108,7 @@ class LiveRoom extends Actor {
   def receive = {
 
     case Join(username) => {
-      if(members.contains(username)) {
+      if (members.contains(username)) {
         sender ! CannotConnect("You have already a navigator on this page !")
       } else {
         members = members + username
@@ -165,10 +167,15 @@ class LiveRoom extends Actor {
 }
 
 case class Join(username: String)
+
 case class Quit(username: String)
+
 case class TalkRequestData(username: String, requestData: RequestData)
+
 case class Talk(username: String, text: String, typeMsg: String)
+
 case class NotifyJoin(username: String)
 
-case class Connected(enumerator:Enumerator[JsValue])
+case class Connected(enumerator: Enumerator[JsValue])
+
 case class CannotConnect(msg: String)

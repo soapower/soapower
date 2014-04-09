@@ -6,7 +6,6 @@ import play.api.libs.json._
 
 object Services extends Controller {
 
-
   private implicit object ServicesDataWrites extends Writes[(Service, Environment)] {
     def writes(data: (Service, Environment)): JsValue = {
       JsObject(
@@ -76,9 +75,10 @@ object Services extends Controller {
   /**
    * Handle service deletion.
    */
-  def delete(id: Long) = Action(parse.tolerantText) { request =>
-    Service.delete(id)
-    Ok("deleted")
+  def delete(id: Long) = Action(parse.tolerantText) {
+    request =>
+      Service.delete(id)
+      Ok("deleted")
   }
 
 }

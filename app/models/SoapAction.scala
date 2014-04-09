@@ -18,8 +18,8 @@ object SoapAction {
    */
   val simple = {
     get[Long]("soapaction.id") ~
-    get[String]("soapaction.name") ~
-    get[Long]("soapaction.thresholdms") map {
+      get[String]("soapaction.name") ~
+      get[Long]("soapaction.thresholdms") map {
       case id ~ name ~ thresholdms =>
         SoapAction(id, name, thresholdms)
     }
@@ -37,8 +37,8 @@ object SoapAction {
    */
   val csv = {
     get[Pk[Long]]("soapaction.id") ~
-    get[String]("soapaction.name") ~
-    get[Long]("soapaction.thresholdms") map {
+      get[String]("soapaction.name") ~
+      get[Long]("soapaction.thresholdms") map {
       case id ~ name ~ thresholdms =>
         id + ";" + name + ";" + thresholdms + "\n"
     }
@@ -72,11 +72,11 @@ object SoapAction {
     }
   }
 
-	/**
-	* Insert a new SoapAction.
-	*
-	* @param soapAction The SoapAction values.
-	*/
+  /**
+   * Insert a new SoapAction.
+   *
+   * @param soapAction The SoapAction values.
+   */
   def insert(soapAction: SoapAction) = {
     DB.withConnection {
       implicit connection =>
@@ -88,8 +88,8 @@ object SoapAction {
               {thresholdms}
             )
           """).on(
-          'name -> soapAction.name,
-          'thresholdms -> soapAction.thresholdms).executeUpdate()
+            'name -> soapAction.name,
+            'thresholdms -> soapAction.thresholdms).executeUpdate()
     }
   }
 
@@ -107,12 +107,12 @@ object SoapAction {
           set thresholdms = {thresholdms}
           where id = {id}
           """).on(
-          'id -> soapAction.id,
-          'thresholdms -> soapAction.thresholdms).executeUpdate()
+            'id -> soapAction.id,
+            'thresholdms -> soapAction.thresholdms).executeUpdate()
     }
   }
 
-   /**
+  /**
    * Return a list of (SoapAction).
    */
   def list: List[SoapAction] = {
@@ -129,9 +129,10 @@ object SoapAction {
         soapactions
     }
   }
-  
+
   def loadAll(): List[SoapAction] = {
-    DB.withConnection { implicit connection =>
+    DB.withConnection {
+      implicit connection =>
         SQL("select * from soapaction").as(SoapAction.simple *)
     }
   }

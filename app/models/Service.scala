@@ -7,19 +7,19 @@ import play.api._
 
 import anorm._
 import anorm.SqlParser._
-import scala.collection.mutable.{ Map, HashMap }
+import scala.collection.mutable.{Map, HashMap}
 
 case class Service(
-  id: Long,
-  description: String,
-  localTarget: String,
-  remoteTarget: String,
-  timeoutms: Long,
-  recordXmlData: Boolean,
-  recordData: Boolean,
-  useMockGroup: Boolean,
-  environmentId: String,
-  mockGroupId: Long) {
+                    id: Long,
+                    description: String,
+                    localTarget: String,
+                    remoteTarget: String,
+                    timeoutms: Long,
+                    recordXmlData: Boolean,
+                    recordData: Boolean,
+                    useMockGroup: Boolean,
+                    environmentId: String,
+                    mockGroupId: Long) {
 }
 
 object Service {
@@ -30,15 +30,15 @@ object Service {
    */
   val simple = {
     get[Long]("service.id") ~
-    get[String]("service.description") ~
-    get[String]("service.localTarget") ~
-    get[String]("service.remoteTarget") ~
-    get[Long]("service.timeoutms") ~
-    get[String]("service.recordXmlData") ~
-    get[String]("service.recordData") ~
-    get[String]("service.useMockGroup") ~
-    get[String]("service.environment_id") ~
-    get[Long]("service.mockGroupId") map {
+      get[String]("service.description") ~
+      get[String]("service.localTarget") ~
+      get[String]("service.remoteTarget") ~
+      get[Long]("service.timeoutms") ~
+      get[String]("service.recordXmlData") ~
+      get[String]("service.recordData") ~
+      get[String]("service.useMockGroup") ~
+      get[String]("service.environment_id") ~
+      get[Long]("service.mockGroupId") map {
       case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ useMockGroup ~ environmentId ~ mockGroupId =>
         Service(id, description, localTarget, remoteTarget, timeoutms, (recordXmlData == "true"), (recordData == "true"), (useMockGroup == "true"), environmentId, mockGroupId)
     }
@@ -55,7 +55,7 @@ object Service {
    * Csv format.
    */
   val csv = {
-		  get[Long]("service.id") ~
+    get[Long]("service.id") ~
       get[String]("service.description") ~
       get[String]("service.localTarget") ~
       get[String]("service.remoteTarget") ~
@@ -65,9 +65,9 @@ object Service {
       get[String]("service.useMockGroup") ~
       get[String]("environment.name") ~
       get[String]("mock_group.name") map {
-        case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ useMockGroup ~ environmentName ~ mockGroupName =>
-          id + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + recordXmlData + ";" + recordData + ";" + useMockGroup + ";" + environmentName + ";" + mockGroupName + "\n"
-      }
+      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ useMockGroup ~ environmentName ~ mockGroupName =>
+        id + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + recordXmlData + ";" + recordData + ";" + useMockGroup + ";" + environmentName + ";" + mockGroupName + "\n"
+    }
   }
 
   /**
@@ -139,7 +139,7 @@ object Service {
       }
     }
   }
-  
+
 
   /**
    * Insert a new service.
@@ -288,7 +288,7 @@ object Service {
   /**
    * Return a list of Service which are linked to an environment which group is the given group
    */
-  def list(group : String): List[(Service, Environment)] = {
+  def list(group: String): List[(Service, Environment)] = {
     ???
     /*
     DB.withConnection {
@@ -340,7 +340,7 @@ object Service {
    * @param mockGroup service's Mock Group
    * @return service (new or not)
    */
-  private def uploadService(dataCsv: Array[String], environment: Environment, mockGroup : MockGroup) = {
+  private def uploadService(dataCsv: Array[String], environment: Environment, mockGroup: MockGroup) = {
 
     val localTarget = dataCsv(csvTitle.get("localTarget").get)
     val s = findByLocalTargetAndEnvironmentName(localTarget, environment.name)

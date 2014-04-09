@@ -40,7 +40,7 @@ object Mock {
       get[String]("mock.criteria") ~
       get[String]("mock.response") map {
       case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ httpStatus ~ httpHeaders ~ criteria ~ response =>
-      new Mock(id, name, mockGroupId, description, timeoutms, httpStatus, httpHeaders, criteria, response)
+        new Mock(id, name, mockGroupId, description, timeoutms, httpStatus, httpHeaders, criteria, response)
     }
   }
 
@@ -57,7 +57,7 @@ object Mock {
       get[String]("mock.httpHeaders") ~
       get[String]("mock.criteria") map {
       case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ httpStatus ~ httpHeaders ~ criteria =>
-      new Mock(id, name, mockGroupId, description, timeoutms, httpStatus, httpHeaders, criteria, null)
+        new Mock(id, name, mockGroupId, description, timeoutms, httpStatus, httpHeaders, criteria, null)
     }
   }
 

@@ -61,7 +61,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
   private var futureResponse: Future[Response] = null
   private var requestTimeInMillis: Long = -1
 
-  def workWithMock(mock : Mock) {
+  def workWithMock(mock: Mock) {
     requestData.isMock = true
     requestData.timeInMillis = mock.timeoutms
     requestData.status = mock.httpStatus
