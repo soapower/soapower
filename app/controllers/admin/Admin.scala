@@ -1,4 +1,4 @@
-package controllers
+package controllers.admin
 
 import play.api.mvc._
 import models._
@@ -6,7 +6,7 @@ import play.api.libs.iteratee._
 import play.api.http._
 import java.util.Date
 import play.api._
-import play.api.libs.json.{JsError, Json, JsObject}
+import play.api.libs.json.{JsError, Json}
 import scala.concurrent.{Future, ExecutionContext}
 import ExecutionContext.Implicits.global
 

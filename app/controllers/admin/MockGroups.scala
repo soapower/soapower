@@ -1,4 +1,4 @@
-package controllers
+package controllers.admin
 
 import play.api.mvc._
 

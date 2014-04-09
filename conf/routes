@@ -9,10 +9,10 @@ GET           /                                                                 
 GET           /live/socket                                                                               controllers.Live.socket
 
 # Admin page
-POST          /admin/delete                                                                              controllers.Admin.delete
-GET           /admin/downloadConfiguration                                                               controllers.Admin.downloadConfiguration
-GET           /admin/downloadRequestDataStatsEntries                                                     controllers.Admin.downloadRequestDataStatsEntries
-POST          /admin/uploadConfiguration                                                                 controllers.Admin.uploadConfiguration
+POST          /admin/delete                                                                              controllers.admin.Admin.delete
+GET           /admin/downloadConfiguration                                                               controllers.admin.Admin.downloadConfiguration
+GET           /admin/downloadRequestDataStatsEntries                                                     controllers.admin.Admin.downloadRequestDataStatsEntries
+POST          /admin/uploadConfiguration                                                                 controllers.admin.Admin.uploadConfiguration
 
 # Search page
 GET           /search/:group/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable            controllers.Search.listDatatable(group, environment, soapAction, minDate, maxDate, status, iDisplayStart: Int, iDisplayLength: Int)
@@ -26,44 +26,44 @@ POST          /autosoap/:group/:environment/*remoteTarget                       
 POST          /replay/:id                                                                                controllers.Soap.replay(id:Long)
 
 # Services
-GET           /services/:group/listDatatable                                                             controllers.Services.listDatatable(group:String)
-POST          /services/:id                                                                              controllers.Services.save(id:Long)
-GET           /services/:id                                                                              controllers.Services.edit(id:Long)
-DELETE        /services/:id                                                                              controllers.Services.delete(id:Long)
+GET           /services/:group/listDatatable                                                             controllers.admin.Services.listDatatable(group:String)
+POST          /services/:id                                                                              controllers.admin.Services.save(id:Long)
+GET           /services/:id                                                                              controllers.admin.Services.edit(id:Long)
+DELETE        /services/:id                                                                              controllers.admin.Services.delete(id:Long)
 
 # Environments
-GET           /environments/:group/options                                                               controllers.Environments.options(group:String)
-GET           /environments/:group/findall                                                               controllers.Environments.findAll(group:String)
-POST          /environments                                                                              controllers.Environments.create
-PUT           /environments/:id                                                                          controllers.Environments.update(id:String)
-GET           /environments/:id                                                                          controllers.Environments.edit(id:String)
-DELETE        /environments/:id                                                                          controllers.Environments.delete(id:String)
+GET           /environments/:group/options                                                               controllers.admin.Environments.options(group:String)
+GET           /environments/:group/findall                                                               controllers.admin.Environments.findAll(group:String)
+POST          /environments                                                                              controllers.admin.Environments.create
+PUT           /environments/:id                                                                          controllers.admin.Environments.update(id:String)
+GET           /environments/:id                                                                          controllers.admin.Environments.edit(id:String)
+DELETE        /environments/:id                                                                          controllers.admin.Environments.delete(id:String)
 
 # Groups
-GET           /groups/findAll                                                                            controllers.Environments.findAllGroups
+GET           /groups/findAll                                                                            controllers.admin.Environments.findAllGroups
 
 # Mocks
-GET           /mocks/:mockGroup/listDatatable                                                            controllers.Mocks.listDatatable(mockGroup:String)
-POST          /mocks/:id                                                                                 controllers.Mocks.save(id:Long)
-GET           /mocks/:id                                                                                 controllers.Mocks.edit(id:Long)
-DELETE        /mocks/:id                                                                                 controllers.Mocks.delete(id:Long)
+GET           /mocks/:mockGroup/listDatatable                                                            controllers.admin.Mocks.listDatatable(mockGroup:String)
+POST          /mocks/:id                                                                                 controllers.admin.Mocks.save(id:Long)
+GET           /mocks/:id                                                                                 controllers.admin.Mocks.edit(id:Long)
+DELETE        /mocks/:id                                                                                 controllers.admin.Mocks.delete(id:Long)
 
 # Mock Groups
-GET           /mockgroups/:group/listDatatable                                                           controllers.MockGroups.listDatatable(group:String)
-POST          /mockgroups/:id                                                                            controllers.MockGroups.save(id:Long)
-GET           /mockgroups/:id                                                                            controllers.MockGroups.edit(id:Long)
-DELETE        /mockgroups/:id                                                                            controllers.MockGroups.delete(id:Long)
+GET           /mockgroups/:group/listDatatable                                                           controllers.admin.MockGroups.listDatatable(group:String)
+POST          /mockgroups/:id                                                                            controllers.admin.MockGroups.save(id:Long)
+GET           /mockgroups/:id                                                                            controllers.admin.MockGroups.edit(id:Long)
+DELETE        /mockgroups/:id                                                                            controllers.admin.MockGroups.delete(id:Long)
 
 # SoapActions list
-GET           /soapactions/findall                                                                       controllers.SoapActions.findAll
-GET           /soapactions/listDatatable                                                                 controllers.SoapActions.listDatatable
+GET           /soapactions/findall                                                                       controllers.admin.SoapActions.findAll
+GET           /soapactions/listDatatable                                                                 controllers.admin.SoapActions.listDatatable
 
 # Regeneration soapAction listDatatable
-GET           /soapactions/regenerate                                                                    controllers.SoapActions.regenerate
+GET           /soapactions/regenerate                                                                    controllers.admin.SoapActions.regenerate
 
 # Edit existing soapAction
-GET           /soapactions/:id                                                                           controllers.SoapActions.edit(id:Long)
-POST          /soapactions/:id                                                                           controllers.SoapActions.save(id:Long)
+GET           /soapactions/:id                                                                           controllers.admin.SoapActions.edit(id:Long)
+POST          /soapactions/:id                                                                           controllers.admin.SoapActions.save(id:Long)
 
 # Status list
 GET           /status/findall                                                                            controllers.Status.findAll
@@ -77,12 +77,12 @@ GET           /download/request/:id                                             
 GET           /download/response/:id                                                                     controllers.Search.downloadResponse(id:Long, asFile: Boolean ?= false)
 
 # Monitoring
-GET           /monitor/logfile                                                                           controllers.Monitor.logfile
-GET           /monitor/socket                                                                            controllers.Monitor.socket
-GET           /monitor/downloadLogFile                                                                   controllers.Monitor.downloadLogFile
-POST          /gc!                                                                                       controllers.Monitor.gc
-GET           /loggers                                                                                   controllers.Monitor.loggers
-GET           /loggers/change/:loggerName/:newLevel                                                      controllers.Monitor.changeLevel(loggerName: String, newLevel : String)
+GET           /monitor/logfile                                                                           controllers.admin.Monitor.logfile
+GET           /monitor/socket                                                                            controllers.admin.Monitor.socket
+GET           /monitor/downloadLogFile                                                                   controllers.admin.Monitor.downloadLogFile
+POST          /gc!                                                                                       controllers.admin.Monitor.gc
+GET           /loggers                                                                                   controllers.admin.Monitor.loggers
+GET           /loggers/change/:loggerName/:newLevel                                                      controllers.admin.Monitor.changeLevel(loggerName: String, newLevel : String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET           /*file                                                                                     controllers.Assets.at(path="/public", file)

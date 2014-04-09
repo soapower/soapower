@@ -1,18 +1,15 @@
-package controllers
+package controllers.admin
 
 import play.api.mvc._
-import play.api.libs.json.{Writes, Json, JsValue}
+import play.api.libs.json.Json
 import play.api.libs.iteratee._
 import play.api.libs.concurrent.Promise
 import java.util.concurrent.TimeUnit
 import play.api.libs.concurrent.Execution.Implicits._
-import scala.concurrent.stm._
-import scala.concurrent.duration._
-import java.io.File
 import java.util.Date
 import ch.qos.logback.classic.spi.ILoggingEvent
 import java.text.SimpleDateFormat
-import models.{Mock, Client}
+import models.Client
 import org.slf4j.LoggerFactory
 import ch.qos.logback.classic.{Level, LoggerContext}
 import scala.collection.JavaConversions._

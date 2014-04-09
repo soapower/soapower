@@ -1,4 +1,4 @@
-package controllers
+package controllers.admin
 
 import play.api.mvc._
 import models._
@@ -112,7 +112,7 @@ object Environments extends Controller {
           case e => Future.successful(BadRequest("Detected error on validation : " + JsError.toFlatJson(e)))
         }
       } catch {
-        case e => {
+        case e : Throwable => {
           Logger.error("Error:", e)
           Future.successful(BadRequest("Internal error : " + e.getMessage))
         }
@@ -142,7 +142,7 @@ object Environments extends Controller {
           case e => Future.successful(BadRequest("Detected error on validation : " + JsError.toFlatJson(e)))
         }
       } catch {
-        case e => {
+        case e : Throwable => {
           Logger.error("Error:", e)
           Future.successful(BadRequest("Internal error : " + e.getMessage))
         }

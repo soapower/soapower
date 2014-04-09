@@ -2,7 +2,7 @@ package models;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
-import controllers.Streams;
+import controllers.admin.Streams;
 
 /**
 * Soapower logging appender.
