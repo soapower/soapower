@@ -1,6 +1,26 @@
 'use strict';
 
-spApp.factory('Service', function ($resource, UIService) {
+/***************************************
+ *  SERVICES
+ ***************************************/
+spApp.factory('Service', function ($resource) {
+    var Service = $resource('/services/:serviceId',
+        { serviceId: '@_id.$oid'},
+        { update: {method: 'PUT'},
+            create: {method: 'POST'}}
+    );
+    return Service;
+});
+
+spApp.factory("ServicesService", function ($http) {
+    return {
+        findAll: function (group) {
+            return $http.get('/services/' + group + '/listDatatable');
+        }
+    }
+});
+
+/*spApp.factory('Service', function ($resource, UIService) {
     var Service = $resource('/services/:serviceId',
         { serviceId: '@id'},
         { update: {method: 'POST'} }
@@ -23,40 +43,78 @@ spApp.factory('Service', function ($resource, UIService) {
 
     return Service;
 });
+*/
 
+/***************************************
+ *  ENVIRONMENTS
+ ***************************************/
 spApp.factory('Environment', function ($resource) {
     var Environment = $resource('/environments/:environmentId',
         { environmentId: '@_id.$oid'},
-        { update: {method: 'PUT'} ,
-          create: {method: 'POST'}}
+        { update: {method: 'PUT'},
+            create: {method: 'POST'}}
     );
     return Environment;
+});
+
+spApp.factory("EnvironmentsService", function ($http) {
+    return {
+        findAll: function (group) {
+            return $http.get('/environments/' + group + '/findall');
+        },
+        findAllAndSelect: function ($scope, environmentName, environmentGroup, myService, addAll) {
+            $http.get('/environments/' + environmentGroup + '/options')
+                .success(function (environments) {
+                    $scope.environments = environments;
+                    if (environments.length == 0) {
+                        console.log("No environments have been founded")
+                        $scope.environments.unshift({id: "error", name: "error. No Env with this group"});
+                    } else if (addAll) {
+                        $scope.environments.unshift({id: "all", name: "all"});
+                    }
+
+                    if (environmentName != null || myService != null) {
+                        angular.forEach($scope.environments, function (value, key) {
+                            if (environmentName != null && value.name == environmentName) {
+                                $scope.environment = value;
+                            }
+                            if (myService != null && value.id == myService.environmentId) {
+                                myService.environment = value;
+                            }
+                        });
+                    }
+                })
+                .error(function (resp) {
+                    console.log("Error with EnvironmentsService.findAllAndSelect" + resp);
+                });
+        }
+    }
 });
 
 /*
-spApp.factory('Environment', function ($resource, UIService) {
-    var Environment = $resource('/environments/:environmentId',
-        { environmentId: '@id'},
-        { update: {method: 'POST'} }
-    );
+ spApp.factory('Environment', function ($resource, UIService) {
+ var Environment = $resource('/environments/:environmentId',
+ { environmentId: '@id'},
+ { update: {method: 'POST'} }
+ );
 
-    Environment.prototype.update = function (cb, cbError) {
-        this.recordXmlData = UIService.fixBoolean(this.recordXmlData);
-        this.recordData = UIService.fixBoolean(this.recordData);
-        this.id = parseInt(this.id);
-        this.groupId = parseInt(this.group.id);
+ Environment.prototype.update = function (cb, cbError) {
+ this.recordXmlData = UIService.fixBoolean(this.recordXmlData);
+ this.recordData = UIService.fixBoolean(this.recordData);
+ this.id = parseInt(this.id);
+ this.groupId = parseInt(this.group.id);
 
-        return Environment.update({environmentId: this.id},
-            angular.extend({}, this, {environmentId: undefined}), cb, cbError);
-    };
+ return Environment.update({environmentId: this.id},
+ angular.extend({}, this, {environmentId: undefined}), cb, cbError);
+ };
 
-    Environment.prototype.destroy = function (cb, cbError) {
-        return Environment.remove({environmentId: this.id}, cb, cbError);
-    };
+ Environment.prototype.destroy = function (cb, cbError) {
+ return Environment.remove({environmentId: this.id}, cb, cbError);
+ };
 
-    return Environment;
-});
-*/
+ return Environment;
+ });
+ */
 
 spApp.factory('Mock', function ($resource) {
     var Mock = $resource('/mocks/:mockId',
@@ -104,8 +162,8 @@ spApp.factory('Group', function ($resource) {
 
     var Group = $resource('/groups/:groupId',
         { groupId: '@_id.$oid'},
-        { update: {method: 'PUT'} ,
-          create: {method: 'POST'}}
+        { update: {method: 'PUT'},
+            create: {method: 'POST'}}
     );
     return Group;
 });
@@ -121,7 +179,6 @@ spApp.factory('SoapAction', function ($resource) {
         return SoapAction.update({soapActionId: this.id},
             angular.extend({}, this, {soapActionId: undefined}), cb, cbError);
     };
-
     return SoapAction;
 });
 
@@ -155,46 +212,6 @@ spApp.factory("AnalysisService", function ($http) {
     return {
         findAll: function () {
             return $http.get('/soapactions/listDatatable');
-        }
-    }
-});
-spApp.factory("ServicesService", function ($http) {
-    return {
-        findAll: function (group) {
-            return $http.get('/services/' + group + '/listDatatable');
-        }
-    }
-});
-spApp.factory("EnvironmentsService", function ($http) {
-    return {
-        findAll: function (group) {
-            return $http.get('/environments/' + group + '/findall');
-        },
-        findAllAndSelect: function ($scope, environmentName, environmentGroup, myService, addAll) {
-            $http.get('/environments/' + environmentGroup + '/options')
-                .success(function (environments) {
-                    $scope.environments = environments;
-                    if (environments.length == 0) {
-                        console.log("No environments have been founded")
-                        $scope.environments.unshift({id: "error", name: "error. No Env with this group"});
-                    } else if (addAll) {
-                        $scope.environments.unshift({id: "all", name: "all"});
-                    }
-
-                    if (environmentName != null || myService != null) {
-                        angular.forEach($scope.environments, function (value, key) {
-                            if (environmentName != null && value.name == environmentName) {
-                                $scope.environment = value;
-                            }
-                            if (myService != null && value.id == myService.environmentId) {
-                                myService.environment = value;
-                            }
-                        });
-                    }
-                })
-                .error(function (resp) {
-                    console.log("Error with EnvironmentsService.findAllAndSelect" + resp);
-                });
         }
     }
 });

@@ -1,48 +1,67 @@
 package models
 
-import play.api.db._
-import play.api.cache._
 import play.api.Play.current
-import play.api._
 
-import anorm._
-import anorm.SqlParser._
-import scala.collection.mutable.{Map, HashMap}
+import scala.collection.mutable.Map
+import reactivemongo.bson._
+import play.modules.reactivemongo.json.BSONFormats._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.modules.reactivemongo.json.collection.JSONCollection
+import play.modules.reactivemongo.ReactiveMongoPlugin
+import play.api.libs.json.Json
+import scala.concurrent.Future
 
-case class Service(
-                    id: Long,
-                    description: String,
-                    localTarget: String,
-                    remoteTarget: String,
-                    timeoutms: Long,
-                    recordXmlData: Boolean,
-                    recordData: Boolean,
-                    useMockGroup: Boolean,
-                    environmentId: String,
-                    mockGroupId: Long) {
-}
+case class Service(_id: Option[BSONObjectID],
+                   description: String,
+                   localTarget: String,
+                   remoteTarget: String,
+                   timeoutms: Int,
+                   recordXmlData: Boolean,
+                   recordData: Boolean,
+                   useMockGroup: Boolean,
+                   environmentId: String,
+                   mockGroupId: String)
 
 object Service {
-  // -- Parsers
 
-  /**
-   * Parse a Service from a ResultSet
+  /*
+   * Collection MongoDB
    */
-  val simple = {
-    get[Long]("service.id") ~
-      get[String]("service.description") ~
-      get[String]("service.localTarget") ~
-      get[String]("service.remoteTarget") ~
-      get[Long]("service.timeoutms") ~
-      get[String]("service.recordXmlData") ~
-      get[String]("service.recordData") ~
-      get[String]("service.useMockGroup") ~
-      get[String]("service.environment_id") ~
-      get[Long]("service.mockGroupId") map {
-      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ useMockGroup ~ environmentId ~ mockGroupId =>
-        Service(id, description, localTarget, remoteTarget, timeoutms, (recordXmlData == "true"), (recordData == "true"), (useMockGroup == "true"), environmentId, mockGroupId)
-    }
+  def collection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("services")
+
+  implicit val serviceFormat = Json.format[Service]
+
+  implicit object ServiceBSONReader extends BSONDocumentReader[Service] {
+    def read(doc: BSONDocument): Service =
+      Service(
+        doc.getAs[BSONObjectID]("_id"),
+        doc.getAs[String]("description").get,
+        doc.getAs[String]("localTarget").get,
+        doc.getAs[String]("remoteTarget").get,
+        doc.getAs[Int]("timeoutms").get,
+        doc.getAs[Boolean]("recordXmlData").get,
+        doc.getAs[Boolean]("recordData").get,
+        doc.getAs[Boolean]("useMockGroup").get,
+        doc.getAs[String]("environmentId").get,
+        doc.getAs[String]("mockGroupId").get
+      )
   }
+
+  implicit object ServiceBSONWriter extends BSONDocumentWriter[Service] {
+    def write(service: Service): BSONDocument =
+      BSONDocument(
+        "_id" -> service._id,
+        "description" -> service.description,
+        "localTarget" -> service.localTarget,
+        "remoteTarget" -> service.remoteTarget,
+        "timeoutms" -> service.timeoutms,
+        "recordXmlData" -> service.recordXmlData,
+        "recordData" -> service.recordData,
+        "useMockGroup" -> service.useMockGroup,
+        "environmentId" -> service.environmentId,
+        "mockGroupId" -> service.mockGroupId)
+  }
+
 
   /**
    * Title of csvFile. The value is the order of title.
@@ -54,51 +73,26 @@ object Service {
   /**
    * Csv format.
    */
-  val csv = {
-    get[Long]("service.id") ~
-      get[String]("service.description") ~
-      get[String]("service.localTarget") ~
-      get[String]("service.remoteTarget") ~
-      get[Long]("service.timeoutms") ~
-      get[String]("service.recordXmlData") ~
-      get[String]("service.recordData") ~
-      get[String]("service.useMockGroup") ~
-      get[String]("environment.name") ~
-      get[String]("mock_group.name") map {
-      case id ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ useMockGroup ~ environmentName ~ mockGroupName =>
-        id + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + recordXmlData + ";" + recordData + ";" + useMockGroup + ";" + environmentName + ";" + mockGroupName + "\n"
-    }
+
+  def csv(s: Service) = {
+    csvKey + ";" + s._id.get.stringify + ";" + s.description + ";" + s.localTarget + ";" + s.remoteTarget + ";" + s.timeoutms + ";" + s.recordXmlData + ";" + s.recordData + ";" + s.useMockGroup + ";" + s.environmentId + ";" + s.mockGroupId + "\n"
   }
 
   /**
-   * 3 Caches :
-   * - one with key "environmentName + localTarget" and value : service
-   * -> fill in findByLocalTargetAndEnvironmentName
-   * -> clear in update and delete
-   * - another with key cacheKey + service.id and value : environmentName + localTarget
-   * -> used to update and delete from first cache
-   * - another with key servicekeybyid
-   * -> fill in findById
-   * -> clear in update and delete
+   * Get All service, csv format.
+   * @return List of Service, csv format
    */
-  private val cacheKey = "servicekey-"
-
-  private val cacheKeyServiceById = "servicekeybyid-"
-
-  // -- Queries
+  def fetchCsv(): Future[List[String]] = {
+    findAll.map(service => service.map(s => csv(s)))
+  }
 
   /**
    * Retrieve a Service from id.
    */
-  def findById(id: Long): Option[Service] = {
-    Cache.getOrElse[Option[Service]](cacheKeyServiceById + id) {
-      Logger.debug("Service " + id + " not found in cache: loading from db")
-      DB.withConnection {
-        implicit connection =>
-          SQL("select * from service where id = {id}").on(
-            'id -> id).as(Service.simple.singleOpt)
-      }
-    }
+  def findById(id: String): Future[Option[Service]] = {
+    val objectId = new BSONObjectID(id)
+    val query = BSONDocument("_id" -> objectId)
+    collection.find(query).one[Service]
   }
 
   /**
@@ -109,6 +103,8 @@ object Service {
    * @return service
    */
   def findByLocalTargetAndEnvironmentName(localTarget: String, environmentName: String): Option[Service] = {
+    ???
+    /*
     val serviceKey = environmentName + "/" + localTarget
     val service = Cache.getAs[Service](serviceKey);
 
@@ -138,6 +134,7 @@ object Service {
         None
       }
     }
+    */
   }
 
 
@@ -147,43 +144,8 @@ object Service {
    * @param service The service values.
    */
   def insert(service: Service) = {
-    ???
-    /*
-    try {
-      val localTarget = checkLocalTarget(service.localTarget)
-      DB.withConnection {
-        implicit connection =>
-          SQL(
-            """
-            insert into service 
-              (description, localTarget, remoteTarget, timeoutms, recordXmlData, recordData, useMockGroup, environment_id, mockGroupId) values (
-              {description}, {localTarget}, {remoteTarget}, {timeoutms}, {recordXmlData}, {recordData}, {useMockGroup}, {environment_id}, {mockGroupId}
-            )
-            """).on(
-              'description -> service.description,
-              'localTarget -> localTarget,
-              'remoteTarget -> service.remoteTarget,
-              'timeoutms -> service.timeoutms,
-              'recordXmlData -> service.recordXmlData.toString,
-              'recordData -> service.recordData.toString,
-              'useMockGroup -> service.useMockGroup.toString,
-              'environment_id -> service.environmentId,
-              'mockGroupId -> service.mockGroupId).executeUpdate()
-      }
-
-      val serviceKey = localTarget + Environment.optionsAll.find(t => t._1 == service.environmentId.toString).get._2
-      val inst = Cache.get(serviceKey)
-      if (inst isDefined) {
-        Logger.debug("Insert new service - Delete from cache key:" + serviceKey)
-        Cache.remove(serviceKey)
-      }
-
-    } catch {
-      //case e:SQLException => Logger.error("Database error")
-      //case e:MalformedURLException => Logger.error("Bad URL")
-      case e: Exception => Logger.error("Caught an exception! ", e)
-    }
-    */
+    // TODO Call checkLocalTarget(service.localTarget) ?
+    collection.insert(service)
   }
 
   /**
@@ -192,53 +154,24 @@ object Service {
    * @param service The service values.
    */
   def update(service: Service) = {
-    deleteFromCache(service.id)
-    DB.withConnection {
-      implicit connection =>
-        SQL(
-          """
-          update service
-          set description = {description}, 
-          localTarget = {localTarget}, 
-          remoteTarget = {remoteTarget}, 
-          timeoutms = {timeoutms},
-          recordXmlData = {recordXmlData},
-          recordData = {recordData},
-          useMockGroup = {useMockGroup},
-          environment_id = {environmentId},
-          mockGroupId = {mockGroupId}
-          where id = {id}
-          """).on(
-            'id -> service.id,
-            'description -> service.description,
-            'localTarget -> checkLocalTarget(service.localTarget),
-            'remoteTarget -> service.remoteTarget,
-            'timeoutms -> service.timeoutms,
-            'recordXmlData -> service.recordXmlData.toString,
-            'recordData -> service.recordData.toString,
-            'useMockGroup -> service.useMockGroup.toString,
-            'environmentId -> service.environmentId,
-            'mockGroupId -> service.mockGroupId).executeUpdate()
-    }
-  }
 
-  /**
-   * Delete a service from cache.
-   *
-   * @param id id of service
-   */
-  private def deleteFromCache(id: Long) {
-    val serviceKey = Cache.get(cacheKey + id);
-    if (serviceKey isDefined) {
-      Logger.debug("remove key cache 1 " + serviceKey.get.toString + " from cache")
-      Cache.remove(serviceKey.get.toString)
-      Logger.debug("remove key cache 2 " + cacheKey + id + " from cache")
-      Cache.remove(cacheKey + id)
-    }
-    if (Cache.get(cacheKeyServiceById + id) isDefined) {
-      Logger.debug("remove key cache 3 " + cacheKeyServiceById + id + " from cache")
-      Cache.remove(cacheKeyServiceById + id)
-    }
+    val selector = BSONDocument("_id" -> service._id)
+
+    val modifier = BSONDocument(
+      "$set" -> BSONDocument(
+        "description" -> service.description,
+        "localTarget" -> service.localTarget,
+        "remoteTarget" -> service.remoteTarget,
+        "timeoutms" -> service.timeoutms,
+        "recordXmlData" -> service.recordXmlData,
+        "recordData" -> service.recordData,
+        "useMockGroup" -> service.useMockGroup,
+        "environmentId" -> service.environmentId,
+        "mockGroupId" -> service.mockGroupId)
+    )
+
+    collection.update(selector, modifier)
+
   }
 
   /**
@@ -246,25 +179,20 @@ object Service {
    *
    * @param id Id of the service to delete.
    */
-  def delete(id: Long) = {
-    deleteFromCache(id)
-    DB.withConnection {
-      implicit connection =>
-        SQL("delete from service where id = {id}").on('id -> id).executeUpdate()
-    }
+  def delete(id: String) = {
+    val objectId = new BSONObjectID(id)
+    collection.remove(BSONDocument("_id" -> objectId))
   }
 
   /**
-   * Get All service, csv format.
-   * @return List of Service, csv format
+   * Return a list of all services.
    */
-  def fetchCsv(): List[String] = DB.withConnection {
-    implicit c =>
-      SQL( """
-           select * from service, mock_group, environment
-           where service.environment_id = environment.id
-           and service.mockGroupId = mock_group.id
-           """).as(Service.csv *)
+  def findAll: Future[List[Service]] = {
+    collection.
+      find(Json.obj()).
+      sort(Json.obj("localTarget" -> 1)).
+      cursor[Service].
+      collect[List]()
   }
 
   /**
@@ -342,6 +270,9 @@ object Service {
    */
   private def uploadService(dataCsv: Array[String], environment: Environment, mockGroup: MockGroup) = {
 
+    ???
+
+    /*
     val localTarget = dataCsv(csvTitle.get("localTarget").get)
     val s = findByLocalTargetAndEnvironmentName(localTarget, environment.name)
 
@@ -365,6 +296,7 @@ object Service {
       Service.insert(service)
       Logger.info("Insert Service " + environment.name + "/" + localTarget)
     }
+    */
   }
 
   /**

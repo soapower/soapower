@@ -13,7 +13,7 @@ import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 import play.modules.reactivemongo.json.collection.JSONCollection
 
 import scala.concurrent.duration._
-import play.api.{db, Logger}
+import play.api.Logger
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.{Await, Future}
@@ -26,7 +26,7 @@ case class RequestData(
                         sender: String,
                         var soapAction: String,
                         environmentId: String,
-                        serviceId: Long,
+                        serviceId: String,
                         var request: String,
                         var requestHeaders: Map[String, String],
                         startTime: Date,
@@ -39,7 +39,7 @@ case class RequestData(
 
   var responseBytes: Array[Byte] = null
 
-  def this(sender: String, soapAction: String, environnmentId: String, serviceId: Long) =
+  def this(sender: String, soapAction: String, environnmentId: String, serviceId: String) =
     this(Some(BSONObjectID.generate), sender, soapAction, environnmentId, serviceId, null, null, new Date, null, null, -1, -1, false, false)
 
   /**
@@ -188,6 +188,9 @@ object RequestData {
    */
   def insert(requestData: RequestData): Option[BSONObjectID] = {
 
+    //TODO
+    ???
+    /*
     var xmlRequest: String = null
     var xmlResponse: String = null
 
@@ -241,6 +244,7 @@ object RequestData {
 
     requestData.request = xmlRequest
     requestData.response = xmlResponse
+*/
 
     collection.insert(requestData).map {
       lastError =>

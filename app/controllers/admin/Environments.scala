@@ -25,7 +25,7 @@ object Environments extends Controller {
   }
 
   /**
-   * List to Datable table.
+   * All.
    *
    * @return JSON
    */
@@ -106,7 +106,7 @@ object Environments extends Controller {
                 if (lastError.ok) {
                   Ok(id.stringify)
                 } else {
-                  BadRequest("Detected error on insertupdate :%s".format(lastError))
+                  BadRequest("Detected error on insert :%s".format(lastError))
                 }
             }
           }

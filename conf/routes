@@ -26,10 +26,11 @@ POST          /autosoap/:group/:environment/*remoteTarget                       
 POST          /replay/:id                                                                                controllers.Soap.replay(id:Long)
 
 # Services
-GET           /services/:group/listDatatable                                                             controllers.admin.Services.listDatatable(group:String)
-POST          /services/:id                                                                              controllers.admin.Services.save(id:Long)
-GET           /services/:id                                                                              controllers.admin.Services.edit(id:Long)
-DELETE        /services/:id                                                                              controllers.admin.Services.delete(id:Long)
+GET           /services/:group/listDatatable                                                             controllers.admin.Services.findAll(group:String)
+POST          /services                                                                                  controllers.admin.Services.create
+PUT           /services/:id                                                                              controllers.admin.Services.update(id:String)
+GET           /services/:id                                                                              controllers.admin.Services.edit(id:String)
+DELETE        /services/:id                                                                              controllers.admin.Services.delete(id:String)
 
 # Environments
 GET           /environments/:group/options                                                               controllers.admin.Environments.options(group:String)

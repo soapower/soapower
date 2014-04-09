@@ -132,7 +132,7 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
         }, function (response) { // error case
             alert(response.data);
         });
-    }
+    };
 
     $rootScope.$broadcast("showGroupsFilter", false);
 

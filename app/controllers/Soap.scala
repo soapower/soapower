@@ -7,6 +7,7 @@ import models._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import reactivemongo.bson.BSONObjectID
 
 object Soap extends Controller {
 
@@ -72,7 +73,7 @@ object Soap extends Controller {
           environmentOption.map {
             environmentReal =>
             // The environment exists so the service creation can be performed
-              service = new Service(id,
+              service = new Service(Some(BSONObjectID.generate),
                 description,
                 localTarget.get,
                 remoteTarget,
@@ -81,7 +82,7 @@ object Soap extends Controller {
                 recordData,
                 useMockGroup,
                 environmentReal._id.get.stringify,
-                MockGroup.ID_DEFAULT_NO_MOCK_GROUP)
+                MockGroup.ID_DEFAULT_NO_MOCK_GROUP.toString)
               // Persist environment to database
               Service.insert(service)
           }.getOrElse {
@@ -104,6 +105,10 @@ object Soap extends Controller {
    * Replay a given request.
    */
   def replay(requestId: Long) = Action {
+          //TODO
+        ???
+    BadRequest("TODO")
+    /*
     implicit request =>
       val requestData = RequestData.load(requestId)
 
@@ -131,9 +136,12 @@ object Soap extends Controller {
           BadRequest(err)
         }
       }
+      */
   }
 
   private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String]): SimpleResult = {
+    ???
+    /*
     val service = Service.findByLocalTargetAndEnvironmentName(localTarget, environmentName)
 
     service.map {
@@ -161,6 +169,7 @@ object Soap extends Controller {
       Logger.error(err)
       BadRequest(err)
     }
+    */
   }
 
   /**
