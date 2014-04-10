@@ -30,12 +30,12 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
             $scope.onMinTimeSet = function (newDate, oldDate) {
                 $scope.showmindate = false;
                 $scope.mindate = $filter('date')(newDate, "yyyy-MM-dd HH:mm");
-            }
+            };
             // Called when the maxdate datetimepicker is set
             $scope.onMaxTimeSet = function (newDate, oldDate) {
                 $scope.showmaxdate = false;
                 $scope.maxdate = $filter('date')(newDate, "yyyy-MM-dd HH:mm");
-            }
+            };
 
             $scope.changeCriteria = function () {
                 // Check that the date inputs format are correct and that the mindate is before the maxdate
@@ -69,8 +69,20 @@ spApp.directive('spGroups', function () {
                     // if there is "all" and an other group, keep "all" only
                     if ($scope.groupsSelected.length > 1 && $scope.groupsSelected.indexOf("all") > -1) {
                         $scope.groupsSelected = ["all"];
-                        $rootScope.$broadcast("ReloadPage", $scope.groupsSelected);
                     }
+
+                    // Check if all groups in URL exists in list of groups (except ALL)
+                    // Url to test : http://localhost:9000/#/services/new
+                    $scope.loadGroups(function () {
+                        angular.forEach($scope.groupsSelected, function (g) {
+                            if ($scope.groups.indexOf(g) == -1) {
+                                console.log("Group not exist:" + g);
+                                $scope.groupsSelected.splice($scope.groupsSelected.indexOf(g), 1);
+                            }
+                        });
+                        if ($scope.groupsSelected.length == 0) $scope.groupsSelected = ["all"];
+                        $rootScope.$broadcast("ReloadPage", $scope.groupsSelected);
+                    });
                 }
             });
 
@@ -90,10 +102,11 @@ spApp.directive('spGroups', function () {
                 $rootScope.$broadcast("ReloadPage", $scope.groupsSelected);
             };
 
-            $scope.loadGroups = function () {
+            $scope.loadGroups = function (callBack) {
                 GroupsService.findAll().success(function (groups) {
                     $scope.groups = groups.values;
                     $scope.groups.unshift("all");
+                    if (callBack) callBack();
                 });
             };
             $scope.loadGroups()
@@ -143,7 +156,7 @@ spApp.directive('spGraphtimes', function () {
 
                 // push the accumulated count onto the back, and reset the count
                 //data.push(Math.min(30, count));
-                data.push(newValue)
+                data.push(newValue);
                 //  count = 0;
 
                 // redraw the line
@@ -166,7 +179,7 @@ spApp.directive('spGraphtimes', function () {
 
                 // pop the old data point off the front
                 data.shift();
-            };
+            }
 
             var x = d3.time.scale()
                 .domain([now - (n - 2) * duration, now - duration])
