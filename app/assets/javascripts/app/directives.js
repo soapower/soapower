@@ -263,6 +263,9 @@ spApp.directive('spReplayEdit', function () {
         controller: function ($scope, ReplayService) {
             $scope.replayReq = function (row) {
                 $scope.idSelected = row.id;
+                $scope.idService = row.service;
+                $scope.requestContentType = row.requestContentType;
+
                 ReplayService.beforeReplay(row.id).then(function(data) {
                     $scope.replayContent = data;
                     $('#myModal').modal('show')
@@ -270,7 +273,7 @@ spApp.directive('spReplayEdit', function () {
             };
 
             $scope.sendReplayReq = function () {
-                ReplayService.replay($scope.idSelected, $scope.replayContent);
+                ReplayService.replay($scope.idSelected, $scope.idService, $scope.requestContentType, $scope.replayContent);
                 $('#myModal').modal('hide')
             };
         }

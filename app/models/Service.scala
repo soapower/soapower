@@ -151,7 +151,7 @@ object Service {
   }
 
   /**
-   * Retrieve a Service from localTarget / environmentName
+   * Retrieve a Soap Service from localTarget / environmentName
    *
    * @param localTarget localTarget
    * @param environmentName Name of environment
@@ -172,11 +172,14 @@ object Service {
             """
             select * from service
             left join environment on service.environment_id = environment.id
-            where service.localTarget like {localTarget}
+            where service.typeRequest like {typeRequest}
+            and service.localTarget like {localTarget}
             and environment.name like {environmentName}
             """).on(
+              'typeRequest -> "soap",
               'localTarget -> localTarget,
-              'environmentName -> environmentName).as(Service.simple.singleOpt)
+              'environmentName -> environmentName
+            ).as(Service.simple.singleOpt)
       }
       if (serviceInDb isDefined) {
         Cache.set(serviceKey, serviceInDb.get)

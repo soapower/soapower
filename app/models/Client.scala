@@ -268,9 +268,6 @@ class ClientResponse(wsResponse: Response = null, val responseTimeInMillis: Long
     val res = mapAsScalaMapConverter(headersNing).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
     TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
   }
-
-
-
 }
 
 

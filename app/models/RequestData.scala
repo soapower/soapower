@@ -84,13 +84,14 @@ object RequestData {
       str("request_data.soapAction") ~
       long("request_data.environmentId") ~
       long("request_data.serviceId") ~
+      str("request_data.requestContentType") ~
       get[Date]("request_data.startTime") ~
       long("request_data.timeInMillis") ~
       int("request_data.status") ~
       str("request_data.purged") ~
       str("request_data.isMock") map {
-      case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ startTime ~ timeInMillis ~ status ~ purged ~ isMock =>
-        RequestData(id, sender, soapAction, environnmentId, serviceId, null, null, null, startTime, null, null, null, timeInMillis, status, (purged == "true"), (isMock == "true"))
+      case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ requestContentType ~ startTime ~ timeInMillis ~ status ~ purged ~ isMock =>
+        RequestData(id, sender, soapAction, environnmentId, serviceId, null, null, requestContentType, startTime, null, null, null, timeInMillis, status, (purged == "true"), (isMock == "true"))
     }
   }
 
@@ -417,7 +418,7 @@ object RequestData {
       'soapAction -> soapAction,
       'filter -> filter)
 
-    val sql = "select request_data.id, sender, soapAction, environmentId, serviceId, " +
+    val sql = "select request_data.id, sender, soapAction, environmentId, serviceId, requestContentType," +
       " startTime, timeInMillis, status, purged, isMock " + fromClause + whereClause +
       " order by startTime " +
       " desc limit {offset}, {pageSize}"
@@ -627,6 +628,7 @@ object RequestData {
   implicit object RequestDataWrites extends Writes[RequestData] {
 
     def writes(o: RequestData): JsValue = {
+      Logger.debug(o.toString)
       val id = if (o.id != null) o.id.toString else "-1"
       JsObject(
         List(
@@ -635,6 +637,8 @@ object RequestData {
           "status" -> JsString(o.status.toString),
           "env" -> JsString(Environment.optionsAll.find(t => t._1 == o.environmentId.toString).get._2),
           "sender" -> JsString(o.sender),
+          "service" -> JsString(o.serviceId.toString),
+          "requestContentType" -> JsString(o.requestContentType),
           "soapAction" -> JsString(o.soapAction),
           "startTime" -> JsString(UtilDate.getDateFormatees(o.startTime)),
           "time" -> JsString(o.timeInMillis.toString),

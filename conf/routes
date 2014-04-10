@@ -30,6 +30,7 @@ DELETE        /rest/:environment/*call                                          
 GET           /rest/:environment/*call                                                                   controllers.Rest.index(environment, call)
 POST          /rest/:environment/*call                                                                   controllers.Rest.index(environment, call)
 PUT           /rest/:environment/*call                                                                   controllers.Rest.index(environment, call)
+POST          /replay/rest/:id                                                                           controllers.Rest.replay(id:Long)
 
 #POST         /autorest/:group/:environment/*remoteTarget                                                controllers.Rest.autoIndex(group, environment, remoteTarget)
 #POST         /replay/:id                                                                                controllers.Rest.replay(id:Long)

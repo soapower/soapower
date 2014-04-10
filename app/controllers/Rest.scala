@@ -39,7 +39,7 @@ object Rest extends Controller {
           } else {
             // Get the correct URL for the redirection by parsing the call.
             val remoteTargetWithCall = getRemoteTargetWithCall(call, service.remoteTarget, service.localTarget)
-            var requestContentType = ""
+            var requestContentType= "None"
             var requestContent = ""
 
             httpMethod match {
@@ -48,18 +48,19 @@ object Rest extends Controller {
                 val queryString = URLDecoder.decode(request.rawQueryString, "UTF-8")
                 // The content of a GET or DELETE http request is the http method and the remote target call
                 requestContent = getRequestContent(httpMethod, remoteTargetWithCall, queryString)
-                forwardRequest(requestContent, query, service, sender, headers, call, remoteTargetWithCall, null)
 
               case "POST" | "PUT" =>
                 requestContentType = request.contentType.get
                 // The request has a POST or a PUT http method so the request has a body in JSON or XML format
-                requestContent = requestContentType match {
+                requestContentType match {
                   case "application/json" =>
-                    requestBody.asJson.get.toString
+                    requestContent = requestBody.asJson.get.toString
                   case "application/xml" | "text/xml" =>
-                    requestBody.asXml.get.toString
+                    requestContent = requestBody.asXml.get.toString
                   case _ =>
-                    requestBody.asText.get.toString
+                    val err = "Soapower doesn't support request body in this format"
+                    Logger.error(err)
+                    BadRequest(err)
                 }
 
               case _ =>
@@ -71,15 +72,20 @@ object Rest extends Controller {
             forwardRequest(requestContent, query, service, sender, headers, call, remoteTargetWithCall, requestContentType)
           }
       }.getOrElse {
-        val err = "No services with the environment "+environment+" and the HTTP method "+httpMethod+" matches the call "+call
+        val err = "No REST services with the environment "+environment+" and the HTTP method "+httpMethod+" matches the call "+call
         Logger.error(err)
         BadRequest(err)
       }
   }
 
+  def replay(requestData: Long) = Action {
+    val err = "Replay is not implemented yet for REST services"
+    Logger.error(err)
+    BadRequest(err)
+  }
+
   def forwardRequest(content: String, query: Map[String, String], service: Service, sender: String, headers: Map[String,String], call: String, correctUrl:String,
                      requestContentType: String): SimpleResult = {
-
     val client = new Client(service, sender, content, headers, Service.REST, requestContentType)
     client.sendRestRequestAndWaitForResponse(service.httpMethod, correctUrl, query)
     new Results.Status(client.response.status).apply(client.response.bodyBytes)//.chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))

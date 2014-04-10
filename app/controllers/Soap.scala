@@ -132,6 +132,7 @@ object Soap extends Controller {
         if (requestData.serviceId > 0) {
           val service = Service.findById(requestData.serviceId).get
           forwardRequest(environmentName, service.localTarget, sender, content, headers, requestData.requestContentType)
+          
         } else {
           val err = "service with id " + requestData.serviceId + " unknown"
           Logger.error(err)
@@ -159,7 +160,7 @@ object Soap extends Controller {
         } else {
           client.sendSoapRequestAndWaitForResponse
           // forward the response to the client
-          new Results.Status(client.response.status).stream(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
+          new Results.Status(client.response.status).apply(client.response.bodyBytes)//.chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
             .withHeaders("ProxyVia" -> "soapower")
             .withHeaders(client.response.headers.toArray: _*).as(XML)
         }
@@ -179,7 +180,7 @@ object Soap extends Controller {
    */
   private def extractPathFromURL(textualURL: String): Option[String] = {
     try {
-      // Search the firt "/" since index 10 (http://) to find the third "/"
+      // Search the first "/" since index 10 (http://) to find the third "/"
       // and take the String from this index
       // Add +1 to remove the / to have path instead of /path
       // Using substring and not java.net.URL,

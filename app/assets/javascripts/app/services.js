@@ -406,26 +406,57 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
     }
 });
 
-spApp.factory('ReplayService', function ($http, $rootScope, $location) {
+spApp.factory('ReplayService', function ($http, $rootScope, $location, $resource) {
     return {
         beforeReplay: function(id) {
             var url = "/download/request/" + id;
             return $http.get(url);
         },
-        replay: function (id, data) {
-            var url = '/replay/' + id;
-            $http({ method: "POST",
-                url: url,
-                data: data.data,
-                headers: { "Content-Type" : "application/xml" }
-            }).success(function (data) {
-                console.log("Success replay id" + id);
-                $rootScope.$broadcast('refreshSearchTable');
-            }).error(function (resp) {
-                console.log("Error replay id" + id);
-                console.log("location:" + $location.path());
-                $rootScope.$broadcast('refreshSearchTable');
-            });
+        replay: function (id, idService, requestContentType, data) {
+            var Service = $resource('/services/:serviceId',
+                                   { serviceId: '@id'}
+                                   );
+            var service = Service.get({serviceId:idService},function() {
+                if(service.typeRequest == "soap")
+                {
+                    // SOAP service
+                    var url = '/replay/' + id;
+                    var contentType = "application/xml"
+                }
+                else
+                {
+                    // REST service
+                    var url = '/replay/rest/'+ id;
+                    if (service.httpMethod == "get")
+                     {
+                        // We set a contentType even if it will not be needed
+                        var contentType = "text/html";
+                     }
+                     else
+                     {
+                        var contentType = service.requestContentType
+                     }
+                }
+                // perform the request
+                $http({ method: "POST",
+                    url: url,
+                    data: data.data,
+                    headers: { "Content-Type" : contentType }
+                }).success(function (data) {
+                    console.log("Success replay id" + id);
+                    $rootScope.$broadcast('refreshSearchTable');
+                }).error(function (resp) {
+                    console.log("Error replay id" + id);
+                    console.log("location:" + $location.path());
+                    $rootScope.$broadcast('refreshSearchTable');
+                });
+            }, function() {
+                 // Called when the ressource cannot get retrieve
+                 console.log("Error replay id" + id);
+                 console.log("location:" + $location.path());
+                 $rootScope.$broadcast('refreshSearchTable');
+                 }
+            );
         }
     }
 });
