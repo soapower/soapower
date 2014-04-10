@@ -31,7 +31,7 @@ function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService,
             console.log("Error with EnvironmentsService.findAll" + resp);
         });
 
-    $rootScope.$broadcast("showGroupsFilter", $routeParams.groups);
+    $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "EnvironmentsCtrl");
 
     $scope.$on("ReloadPage", function (event, group) {
         $scope.ctrlPath = "environments";

@@ -31,7 +31,7 @@ function MockGroupsCtrl($scope, $rootScope, $routeParams, MockGroupsService, UIS
             console.log("Error with MockgroupsService.findAll" + resp);
         });
 
-    $rootScope.$broadcast("showGroupsFilter", $routeParams.groups);
+    $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "MockGroupsCtrl");
 
     $scope.$on("ReloadPage", function (event, group) {
         $scope.ctrlPath = "mockgroups";

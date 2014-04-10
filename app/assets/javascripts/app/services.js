@@ -305,7 +305,7 @@ spApp.factory("UIService", function ($location, $filter, $routeParams) {
             $location.path(path);
         },
         reloadAdminPage: function ($scope, group) {
-            var path = $scope.ctrlPath + '/' + group;
+            var path = $scope.ctrlPath + '/list/' + group;
             console.log("UIService.reloadAdminPage : Go to " + path);
             $location.path(path);
         },

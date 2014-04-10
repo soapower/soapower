@@ -19,7 +19,7 @@ function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIServi
                     var servicesData = datafilter($scope.services, $scope.tableFilter);
                     var orderedData = params.sorting() ? $filter('orderBy')(servicesData, params.orderBy()) : servicesData;
                     var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
-                    params.total(orderedData.length)
+                    params.total(orderedData.length);
                     $defer.resolve(res);
                 },
                 $scope: { $data: {} }
@@ -32,7 +32,9 @@ function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIServi
         .error(function (resp) {
             console.log("Error with ServicesService.findAll" + resp);
         });
-    $rootScope.$broadcast("showGroupsFilter", $routeParams.groups);
+
+    console.log("Ask showGroupsFilter  with group " + $routeParams.groups);
+    $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "ServicesCtrl");
 
     $scope.$on("ReloadPage", function (event, group) {
         $scope.ctrlPath = "services";
@@ -75,7 +77,7 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
 
     $scope.isClean = function () {
         return angular.equals(self.original, $scope.service);
-    }
+    };
 
     $scope.destroy = function () {
         self.original.destroy(function () {
@@ -94,7 +96,7 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
     };
 
     // not using filter on edit services
-    $rootScope.$broadcast("showGroupsFilter", false);
+    $rootScope.$broadcast("showGroupsFilter", false, "ServiceEditCtrl");
 }
 
 function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, MockGroupsService, EnvironmentsService) {
@@ -136,10 +138,11 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
         });
     };
 
-    $rootScope.$broadcast("showGroupsFilter", false);
+    $rootScope.$broadcast("showGroupsFilter", false, "ServiceNewCtrl");
 
-    $scope.$on("ReloadPage", function (event, group) {
+    $scope.$on("ReloadPage", function (event, group, caller) {
         var path = "services/new/" + group;
+        console.log("ServiceNewCtrl receive from " + caller + " ReloadPage : " + path);
         $location.path(path);
     });
 }

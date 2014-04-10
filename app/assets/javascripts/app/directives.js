@@ -62,7 +62,9 @@ spApp.directive('spGroups', function () {
         controller: function ($scope, $rootScope, $routeParams, GroupsService) {
             $scope.showGroup = false;
             $scope.lastGroupSelected = [];
-            $scope.$on("showGroupsFilter", function (event, groups) {
+            $scope.$on("showGroupsFilter", function (event, groups, caller) {
+
+                console.log("caller " + caller + " showGroupsFilter with groups: " + groups);
                 $scope.showGroup = (groups != false);
                 if (groups != false) {
                     $scope.groupsSelected = groups.split(',');
@@ -75,13 +77,13 @@ spApp.directive('spGroups', function () {
                     // Url to test : http://localhost:9000/#/services/new
                     $scope.loadGroups(function () {
                         angular.forEach($scope.groupsSelected, function (g) {
-                            if ($scope.groups.indexOf(g) == -1) {
+                            if (g != "all" && $scope.groups.indexOf(g) == -1) {
                                 console.log("Group not exist:" + g);
                                 $scope.groupsSelected.splice($scope.groupsSelected.indexOf(g), 1);
                             }
                         });
                         if ($scope.groupsSelected.length == 0) $scope.groupsSelected = ["all"];
-                        $rootScope.$broadcast("ReloadPage", $scope.groupsSelected);
+                        $rootScope.$broadcast("ReloadPage", $scope.groupsSelected, "spGroups.on showGroupsFilter");
                     });
                 }
             });
@@ -99,7 +101,7 @@ spApp.directive('spGroups', function () {
                     }
                 }
                 $scope.lastGroupSelected = $scope.groupsSelected;
-                $rootScope.$broadcast("ReloadPage", $scope.groupsSelected);
+                if ($scope.showGroup) $rootScope.$broadcast("ReloadPage", $scope.groupsSelected, "spGroups.change()");
             };
 
             $scope.loadGroups = function (callBack) {
