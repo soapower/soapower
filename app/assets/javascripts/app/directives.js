@@ -66,7 +66,7 @@ spApp.directive('spGroups', function () {
 
                 console.log("caller " + caller + " showGroupsFilter with groups: " + groups);
                 $scope.showGroup = (groups != false);
-                if (groups != false) {
+                if (groups && groups != false) {
                     $scope.groupsSelected = groups.split(',');
                     // if there is "all" and an other group, keep "all" only
                     if ($scope.groupsSelected.length > 1 && $scope.groupsSelected.indexOf("all") > -1) {
