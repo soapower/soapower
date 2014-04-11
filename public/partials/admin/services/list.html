@@ -10,7 +10,7 @@
     <tr ng-repeat="line in $data">
         <td data-title="'Edit'"><a href="#/services/edit/{{ groupName }}/{{ line.id }}"><i class="fa fa-pencil"></i></a></td>
         <td data-title="'Environment'" sortable="'env'">
-            {{line.env}}
+            {{line.environmentId}}
         </td>
         <td data-title="'Description'" sortable="'description'">
             {{line.description}}
@@ -22,7 +22,7 @@
             {{line.remoteTarget}}
         </td>
         <td data-title="'Timeout in ms'" sortable="'timeoutInMs'">
-            {{line.timeoutInMs}}
+            {{line.timeoutms}}
         </td>
         <td data-title="'Record Xml'" sortable="'recordXmlData'">
             {{line.recordXmlData}}

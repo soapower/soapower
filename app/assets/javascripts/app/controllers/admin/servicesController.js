@@ -105,7 +105,10 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
 
     $scope.showNewGroup = false;
 
-    EnvironmentsService.findAllAndSelect($scope, null, $routeParams.groups, null, false);
+    EnvironmentsService.findOptions($routeParams.groups).success(function (environments) {
+            $scope.environments = environments;
+        }
+    );
 
     $scope.service = new Service();
     $scope.service.useMockGroup = false;

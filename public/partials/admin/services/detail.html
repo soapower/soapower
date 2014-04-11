@@ -13,7 +13,9 @@
     <div class="form-group" ng-class="{error: myForm.environment.$invalid}">
         <label for="environment" class="col-lg-2 control-label">Environment</label>
         <div class="col-lg-4">
-            <select class="form-control" ng-model="service.environment" id="environment" ng-options="environment.name for environment in environments" required></select>
+            <select class="form-control" id="environment" ui-select2 ng-model="service.environmentId" data-placeholder="Pick one environment" ng-required="true">
+                <option ng-repeat="environment in environments" value="{{environment.id}}">{{environment.name}}</option>
+            </select>
             <span ng-show="myForm.environment.$error.required" class="label label-danger">Required</span>
         </div>
     </div>
@@ -25,7 +27,7 @@
             <input class="form-control" type="text" id="localTarget" name="localTarget" ng-model="service.localTarget" required>
             <span ng-show="myForm.localTarget.$error.required" class="label label-danger">Required</span>
             <span ng-show="myForm.localTarget.$error.required" class="label label-danger">Enter service1 to have http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>service1</b></span>
-            <span ng-show="!myForm.localTarget.$error.required" class="label label-danger">Local Target : http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>{{ service.localTarget }}</b> </span>
+            <span ng-show="!myForm.localTarget.$error.required" class="label label-info">Local Target : http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>{{ service.localTarget }}</b> </span>
         </div>
     </div>
 
@@ -64,7 +66,9 @@
     <div class="form-group">
         <label for="mockGroup" class="col-lg-2 control-label">Mock Group</label>
         <div class="col-lg-4">
-            <select class="form-control" ng-model="service.mockGroup" id="mockGroup" ng-options="mockGroup.name for mockGroup in mockGroups"></select>
+            <select class="form-control" id="mockGroup" ui-select2 ng-model="service.mockGroupId" data-placeholder="Pick one Mock Group">
+                <option ng-repeat="mockGroup in mockGroups" value="{{mockGroup.id}}">{{mockGroup.name}}</option>
+            </select>
             <span ng-show="myForm.mockGroup.$error.required" class="label label-danger">Required</span>
         </div>
         <div class="col-lg-6 help-block">If you chose to use mock group, Soapower check all mocks in MockGroup.
@@ -123,7 +127,6 @@
                </label>
             </div>
         </div>
-
     </div>
 
     <div class="form-group">
@@ -132,7 +135,6 @@
             <button ng-click="save()" ng-disabled="isClean() || myForm.$invalid"
                     class="btn btn-primary">Save
             </button>
-
             <span ng-show="service.id > 0">
                 <button ng-click="askDelete=true" ng-hide="askDelete" class="btn btn-danger">
                     Delete

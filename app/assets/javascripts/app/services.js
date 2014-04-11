@@ -20,31 +20,6 @@ spApp.factory("ServicesService", function ($http) {
     }
 });
 
-/*spApp.factory('Service', function ($resource, UIService) {
-    var Service = $resource('/services/:serviceId',
-        { serviceId: '@id'},
-        { update: {method: 'POST'} }
-    );
-
-    Service.prototype.update = function (cb, cbError) {
-        this.recordXmlData = UIService.fixBoolean(this.recordXmlData);
-        this.recordData = UIService.fixBoolean(this.recordData);
-        this.useMockGroup = UIService.fixBoolean(this.useMockGroup);
-        this.environmentId = parseInt(this.environment.id);
-        this.mockGroupId = parseInt(this.mockGroup.id);
-        this.id = parseInt(this.id);
-        return Service.update({serviceId: this.id},
-            angular.extend({}, this, {serviceId: undefined}), cb, cbError);
-    };
-
-    Service.prototype.destroy = function (cb) {
-        return Service.remove({serviceId: this.id}, cb);
-    };
-
-    return Service;
-});
-*/
-
 /***************************************
  *  ENVIRONMENTS
  ***************************************/
@@ -61,6 +36,9 @@ spApp.factory("EnvironmentsService", function ($http) {
     return {
         findAll: function (group) {
             return $http.get('/environments/' + group + '/findall');
+        },
+        findOptions: function (group) {
+            return $http.get('/environments/' + group + '/options');
         },
         findAllAndSelect: function ($scope, environmentName, environmentGroup, myService, addAll) {
             $http.get('/environments/' + environmentGroup + '/options')
@@ -91,30 +69,6 @@ spApp.factory("EnvironmentsService", function ($http) {
     }
 });
 
-/*
- spApp.factory('Environment', function ($resource, UIService) {
- var Environment = $resource('/environments/:environmentId',
- { environmentId: '@id'},
- { update: {method: 'POST'} }
- );
-
- Environment.prototype.update = function (cb, cbError) {
- this.recordXmlData = UIService.fixBoolean(this.recordXmlData);
- this.recordData = UIService.fixBoolean(this.recordData);
- this.id = parseInt(this.id);
- this.groupId = parseInt(this.group.id);
-
- return Environment.update({environmentId: this.id},
- angular.extend({}, this, {environmentId: undefined}), cb, cbError);
- };
-
- Environment.prototype.destroy = function (cb, cbError) {
- return Environment.remove({environmentId: this.id}, cb, cbError);
- };
-
- return Environment;
- });
- */
 
 /***************************************
  *  MOCK GROUPS
@@ -139,6 +93,11 @@ spApp.factory("MockGroupsService", function ($http) {
 
 
 /*************************************** */
+/*************************************** */
+/*************************************** */
+/*************************************** */
+/*************************************** */
+
 spApp.factory('Mock', function ($resource) {
     var Mock = $resource('/mocks/:mockId',
         { mockId: '@id'},
