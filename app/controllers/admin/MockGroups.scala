@@ -44,6 +44,7 @@ object MockGroups extends Controller {
    * @param id Id of the mockGroup to edit
    */
   def edit(id: String) = Action.async {
+    Logger.debug("EDIT id:" + id)
     val futureMockGroup = MockGroup.findById(id)
     futureMockGroup.map {
       mockGroup => Ok(Json.toJson(mockGroup)).as(JSON)

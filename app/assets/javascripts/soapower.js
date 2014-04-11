@@ -36,15 +36,15 @@ spApp.config(function ($routeProvider) {
         .when('/environments/edit/:environmentId', {controller: EnvironmentEditCtrl, templateUrl: 'partials/admin/environments/detail.html'})
         .when('/environments/list/:groups', { controller: EnvironmentsCtrl, templateUrl: 'partials/admin/environments/list.html'})
 
-        .when('/mocks', {  redirectTo: '/mockgroups/list/all'})
-        .when('/mocks/new/:mockGroup', {controller: MockNewCtrl, templateUrl: 'partials/admin/mocks/detail.html'})
-        .when('/mocks/edit/:mockId', {controller: MockEditCtrl, templateUrl: 'partials/admin/mocks/detail.html'})
-        .when('/mocks/list/:mockGroup', { controller: MocksCtrl, templateUrl: 'partials/admin/mocks/list.html'})
-
         .when('/mockgroups', {  redirectTo: '/mockgroups/list/all'})
         .when('/mockgroups/new', {controller: MockGroupNewCtrl, templateUrl: 'partials/admin/mockgroups/detail.html'})
         .when('/mockgroups/edit/:mockGroupId', {controller: MockGroupEditCtrl, templateUrl: 'partials/admin/mockgroups/detail.html'})
         .when('/mockgroups/list/:groups', { controller: MockGroupsCtrl, templateUrl: 'partials/admin/mockgroups/list.html'})
+
+        .when('/mocks', {  redirectTo: '/mockgroups/list/all'})
+        .when('/mocks/new/:mockGroup', {controller: MockNewCtrl, templateUrl: 'partials/admin/mocks/detail.html'})
+        .when('/mocks/edit/:mockId', {controller: MockEditCtrl, templateUrl: 'partials/admin/mocks/detail.html'})
+        .when('/mocks/list/:mockGroup', { controller: MocksCtrl, templateUrl: 'partials/admin/mocks/list.html'})
 
         .when('/soapactions', {  redirectTo: '/soapactions/list'})
         .when('/soapactions/edit/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/admin/soapactions/detail.html'})

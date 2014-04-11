@@ -49,7 +49,7 @@ function MockGroupEditCtrl($scope, $routeParams, $location, MockGroup, GroupsSer
         $scope.groups = groups.values;
     });
 
-    MockGroup.get({mockGroupId: $routeParams.mockGroupId}, function (mockGroup) {
+    MockGroup.get({mockgroupId: $routeParams.mockGroupId}, function (mockGroup) {
         self.original = mockGroup;
         $scope.mockGroup = new MockGroup(self.original);
     });
@@ -60,7 +60,7 @@ function MockGroupEditCtrl($scope, $routeParams, $location, MockGroup, GroupsSer
 
     $scope.destroy = function () {
         self.original.$remove(function () {
-            $location.path('/mockGroups');
+            $location.path('/mockgroups');
         }, function (response) { // error case
             alert(response.data);
         });
@@ -68,7 +68,7 @@ function MockGroupEditCtrl($scope, $routeParams, $location, MockGroup, GroupsSer
 
     $scope.save = function () {
         $scope.mockGroup.$update(function () {
-            $location.path('/mockGroups');
+            $location.path('/mockgroups');
         }, function (response) { // error case
             alert(response.data);
         });

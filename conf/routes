@@ -43,18 +43,18 @@ DELETE        /environments/:id                                                 
 # Groups
 GET           /groups/findAll                                                                            controllers.admin.Environments.findAllGroups
 
-# Mocks
-GET           /mocks/:mockGroup/listDatatable                                                            controllers.admin.Mocks.listDatatable(mockGroup:String)
-POST          /mocks/:id                                                                                 controllers.admin.Mocks.save(id:Long)
-GET           /mocks/:id                                                                                 controllers.admin.Mocks.edit(id:Long)
-DELETE        /mocks/:id                                                                                 controllers.admin.Mocks.delete(id:Long)
-
 # Mock Groups
 GET           /mockgroups/:group/findall                                                                 controllers.admin.MockGroups.findAll(group:String)
 POST          /mockgroups                                                                                controllers.admin.MockGroups.create
 PUT           /mockgroups/:id                                                                            controllers.admin.MockGroups.update(id:String)
 GET           /mockgroups/:id                                                                            controllers.admin.MockGroups.edit(id:String)
 DELETE        /mockgroups/:id                                                                            controllers.admin.MockGroups.delete(id:String)
+
+# Mocks
+GET           /mocks/:mockGroup/listDatatable                                                            controllers.admin.Mocks.listDatatable(mockGroup:String)
+POST          /mocks/:id                                                                                 controllers.admin.Mocks.save(id:Long)
+GET           /mocks/:id                                                                                 controllers.admin.Mocks.edit(id:Long)
+DELETE        /mocks/:id                                                                                 controllers.admin.Mocks.delete(id:Long)
 
 # SoapActions list
 GET           /soapactions/findall                                                                       controllers.admin.SoapActions.findAll
