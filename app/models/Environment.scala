@@ -209,7 +209,6 @@ object Environment {
     }
 
     clearCache
-    Logger.debug("Envir:" + environment)
     collection.insert(environment)
   }
 

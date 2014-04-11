@@ -38,7 +38,10 @@ object Soap extends Controller {
    */
   def autoIndex(group: String, environment: String, remoteTarget: String) = Action(parse.xml) {
     implicit request =>
+      ???
 
+      // TODO
+    /*
       Logger.info("Automatic service detection request on group: " + group + " environment:" + environment + " remoteTarget: " + remoteTarget)
 
       // Extract local target from the remote target
@@ -98,6 +101,8 @@ object Soap extends Controller {
       val content = request.body.toString()
       val headers = request.headers.toSimpleMap
       forwardRequest(environment, localTarget.get, sender, content, headers)
+      */
+      BadRequest("TODO")
   }
 
 

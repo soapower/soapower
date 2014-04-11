@@ -1,20 +1,20 @@
 package controllers.admin
 
 import play.api.mvc._
-
 import models._
 import play.api.libs.json._
 import play.api.libs.json.JsObject
 import play.api.libs.json.JsString
-
-/**
- * This controller handle all operations related to mockgroups
- */
+import reactivemongo.bson.BSONObjectID
+import scala.concurrent.{ExecutionContext, Future}
+import ExecutionContext.Implicits.global
+import play.modules.reactivemongo.json.BSONFormats._
+import play.api.Logger
 
 object MockGroups extends Controller {
 
   // use by Json : from scala to json
-  private implicit object MockgroupsOptionsDataWrites extends Writes[(String, String)] {
+  private implicit object MockGroupsOptionsDataWrites extends Writes[(String, String)] {
     def writes(data: (String, String)): JsValue = {
       JsObject(
         List(
@@ -25,117 +25,105 @@ object MockGroups extends Controller {
   }
 
   /**
-   * Mockgroup format
-   */
-  implicit val mockgroupFormat = Json.format[MockGroup]
-
-  /**
-   * Retrieve all mockgroups and generate a DataTable's JSON format in order to be displayed in a datatable
+   * All.
    *
-   * @return A mockgroup JSON datatable data
-   */
-  def listDatatable(group: String) = Action {
-    implicit request =>
-
-      var data: List[MockGroup] = null.asInstanceOf[List[MockGroup]]
-
-      if (group != "all") {
-        data = MockGroup.list(group)
-      } else {
-        data = MockGroup.findAll
-      }
-
-      Ok(Json.toJson(Map(
-        "iTotalRecords" -> Json.toJson(data.size),
-        "iTotalDisplayRecords" -> Json.toJson(data.size),
-        "data" -> {
-          Json.toJson(data)
-        }
-      ))).as(JSON)
-  }
-
-  /**
-   * Return all Mockgroups in Json Format.
    * @return JSON
    */
-  def findAll = Action {
-    implicit request =>
-      val data = MockGroup.findAll
-      Ok(Json.toJson(data)).as(JSON)
-  }
-
-  /**
-   * Return all mockgroups options
-   */
-  def options = Action {
-    implicit request =>
-      val data = MockGroup.options
-      Ok(Json.toJson(data)).as(JSON)
-  }
-
-
-  /**
-   * Display the 'edit form' of a existing Mockgroup.
-   *
-   * @param id Id of the mockgroup to edit
-   */
-  def edit(id: Long) = Action {
-    if (id == MockGroup.ID_DEFAULT_NO_MOCK_GROUP) BadRequest("failure : Default Mock Group can't be edited")
-    else {
-      MockGroup.findById(id).map {
-        mockgroup =>
-          Ok(Json.toJson(mockgroup)).as(JSON)
-      }.getOrElse(NotFound)
+  def findAll(group: String) = Action.async {
+    // TODO Criteria and group
+    val futureDataList = MockGroup.findAll
+    futureDataList.map {
+      list =>
+        Ok(Json.toJson(Map("data" -> Json.toJson(list))))
     }
   }
 
+  /**
+   * Display the 'edit form' of a existing MockGroup.
+   *
+   * @param id Id of the mockGroup to edit
+   */
+  def edit(id: String) = Action.async {
+    val futureMockGroup = MockGroup.findById(id)
+    futureMockGroup.map {
+      mockGroup => Ok(Json.toJson(mockGroup)).as(JSON)
+    }
+  }
 
   /**
-   * Insert or update a mockgroup.
+   * Insert or update a mockGroup.
    */
-  def save(id: Long) = Action(parse.json) {
+  def create = Action.async(parse.json) {
     request =>
-      if (id == MockGroup.ID_DEFAULT_NO_MOCK_GROUP) BadRequest("failure : Default Mock Group can't be updated")
-      else {
-        request.body.validate(mockgroupFormat).map {
-          mockgroup =>
-            try {
-              if (id < 0) MockGroup.insert(mockgroup)
-              else MockGroup.update(mockgroup)
-              Ok(Json.toJson("Succesfully save mockgroup " + id))
-            } catch {
-              case e: Throwable => {
-                BadRequest("Detected error:" + e.getMessage)
-              }
+      val id = BSONObjectID.generate
+      val json = request.body.as[JsObject] ++ Json.obj("_id" -> id)
+      try {
+        json.validate(MockGroup.mockGroupFormat).map {
+          mockGroup => {
+            MockGroup.insert(mockGroup).map {
+              lastError =>
+                if (lastError.ok) {
+                  Ok(id.stringify)
+                } else {
+                  BadRequest("Detected error on insert :%s".format(lastError))
+                }
             }
+          }
         }.recoverTotal {
-          e => BadRequest("Detected error:" + JsError.toFlatJson(e))
+          case e => Future.successful(BadRequest("Detected error on validation : " + JsError.toFlatJson(e)))
+        }
+      } catch {
+        case e: Throwable => {
+          Logger.error("Error:", e)
+          Future.successful(BadRequest("Internal error : " + e.getMessage))
         }
       }
   }
 
   /**
-   * Handle mockgroup deletion.
+   * Update a group.
    */
-  def delete(id: Long) = Action(parse.tolerantText) {
+  def update(id: String) = Action.async(parse.json) {
     request =>
-      if (id == MockGroup.ID_DEFAULT_NO_MOCK_GROUP) BadRequest("failure : Default Mock Group can't be deleted")
-      else {
-        val mockgroupOption = MockGroup.findById(id)
-        mockgroupOption match {
-          case Some(mockgroup) =>
-            try {
-              MockGroup.delete(mockgroup)
-              Ok("deleted")
-            } catch {
-              case e: Throwable => {
-                BadRequest("Detected error:" + e.getMessage)
-              }
+      val idg = BSONObjectID.parse(id).toOption.get
+      val json = JsObject(request.body.as[JsObject].fields.filterNot(f => f._1 == "_id")) ++ Json.obj("_id" -> idg)
+      try {
+        json.validate(MockGroup.mockGroupFormat).map {
+          mockGroup => {
+            MockGroup.update(mockGroup).map {
+              lastError =>
+                if (lastError.ok) {
+                  Ok(id)
+                } else {
+                  BadRequest("Detected error on update :%s".format(lastError))
+                }
             }
-          case None =>
-            Ok("failure : Mockgroup doesn't exist")
+          }
+        }.recoverTotal {
+          case e => Future.successful(BadRequest("Detected error on validation : " + JsError.toFlatJson(e)))
         }
+      } catch {
+        case e: Throwable => {
+          Logger.error("Error:", e)
+          Future.successful(BadRequest("Internal error : " + e.getMessage))
+        }
+      }
+  }
+
+  /**
+   * Handle mockGroup deletion.
+   */
+  def delete(id: String) = Action.async(parse.tolerantText) {
+    request =>
+      MockGroup.delete(id).map {
+        lastError =>
+          if (lastError.ok) {
+            Ok(id)
+          } else {
+            BadRequest("Detected error:%s".format(lastError))
+          }
       }
   }
 
 }
+

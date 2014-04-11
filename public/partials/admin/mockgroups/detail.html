@@ -3,10 +3,21 @@
     <input type="hidden" name="name" ng-model="mockGroup.id">
 
     <div class="form-group" ng-class="{error: myForm.group.$invalid}">
-        <label for="group" class="col-lg-2 control-label">Group </label>
+        <label for="groups" class="col-lg-2 control-label">Groups </label>
         <div class="col-lg-4">
-            <select class="form-control" ng-model="mockGroup.group" id="group" name="group" ng-options="group.name for group in groups" required ng-selected="{{ mockGroup.groupId == group.id }}"></select>
-            <span ng-show="myForm.group.$error.required" class="label label-danger">Required</span>
+            <select class="form-control" id="groups" ui-select2 multiple ng-model="mockGroup.groups" data-placeholder="Pick on or many groups" ng-required="true">
+                <option ng-repeat="group in groups" value="{{group}}">{{group}}</option>
+            </select>
+
+            <span ng-show="newGroup && !showNewGroup">You can select the group <b class="label label-info">{{newGroup}}</b> in list above.</span>
+            <a ng-hide="showNewGroup" ng-click="showNewGroup=true">New Group</a>
+
+            <span ng-show="showNewGroup">
+                <input class="form-control" type="text" id="newGroup" name="newGroup" ng-pattern="namePattern" ng-model="newGroup" placeholder="Enter a new group">
+                <a ng-click="groups.push(newGroup);showNewGroup=false" class="btn btn-default" ng-disabled="myForm.newGroup.$error.pattern">Add new Group</a>
+                <span class="label label-danger" ng-show="myForm.newGroup.$error.pattern">Single word only! </span>
+                <span class="help-block">The name have to match this pattern : [a-zA-Z0-9]{1,200}</span>
+            </span>
         </div>
     </div>
     
@@ -37,10 +48,6 @@
                     Yes, I confirm <i class="fa fa-exclamation-triangle"></i>
                 </button>
             </span>
-            <div ng-show="mockGroup.id == 1" class="alert alert-info">
-                <strong>Information!</strong> This is the default mocking group, it can't be deleted, but you can change it's name
-            </div>
-
         </div>
     </div>
 </form>

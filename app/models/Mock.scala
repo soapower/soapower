@@ -303,6 +303,9 @@ object Mock {
    */
   private def uploadMock(dataCsv: Array[String], mockGroup: MockGroup) = {
 
+    ???
+    // TODO
+    /*
     val name = dataCsv(csvTitle.get("name").get)
     val s = findByName(name)
 
@@ -314,7 +317,7 @@ object Mock {
       val mock = new Mock(
         -1,
         dataCsv(csvTitle.get("name").get).trim,
-        mockGroup.id,
+        mockGroup._id.get.stringify,
         dataCsv(csvTitle.get("description").get).trim,
         dataCsv(csvTitle.get("timeoutms").get).toInt,
         dataCsv(csvTitle.get("httpStatus").get).toInt,
@@ -325,6 +328,7 @@ object Mock {
       Mock.insert(mock)
       Logger.info("Insert Mock " + mock.name)
     }
+    */
   }
 
   /**

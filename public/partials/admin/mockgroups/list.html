@@ -2,7 +2,7 @@
 
 <a class="btn btn-primary" href="#/mockgroups/new"><i class="fa fa-plus"></i> Add a new Mock Group</a>
 
-<p>There are {{ mockgroups.length - 1 }} Mock Groups.</p>
+<p>There are {{ mockgroups.length }} Mock Groups.</p>
 
 <sp-showresults></sp-showresults>
 
@@ -11,7 +11,7 @@
         <td data-title="'Name'" sortable="'name'">
             {{line.name}}
         </td>
-        <td data-title="'Edit'"><a href="#/mockgroups/edit/{{ line.id }}"><i class="fa fa-pencil"></i></a></td>
+        <td data-title="'Edit'"><a href="#/mockgroups/edit/{{ line._id.$oid }}"><i class="fa fa-pencil"></i></a></td>
         <td data-title="'Mocks'"><a href="#/mocks/{{ line.name }}">View Mocks</a></td>
     </tr>
 </table>

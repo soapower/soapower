@@ -116,6 +116,29 @@ spApp.factory("EnvironmentsService", function ($http) {
  });
  */
 
+/***************************************
+ *  MOCK GROUPS
+ ***************************************/
+
+spApp.factory('MockGroup', function ($resource) {
+    var MockGroup = $resource('/mockgroups/:mockgroupId',
+        { mockgroupId: '@_id.$oid'},
+        { update: {method: 'PUT'},
+            create: {method: 'POST'}}
+    );
+    return MockGroup;
+});
+
+spApp.factory("MockGroupsService", function ($http) {
+    return {
+        findAll: function (group) {
+            return $http.get('/mockgroups/' + group + '/findall');
+        }
+    }
+});
+
+
+/*************************************** */
 spApp.factory('Mock', function ($resource) {
     var Mock = $resource('/mocks/:mockId',
         { mockId: '@id'},
@@ -137,26 +160,7 @@ spApp.factory('Mock', function ($resource) {
     return Mock;
 });
 
-spApp.factory('MockGroup', function ($resource) {
-    var MockGroup = $resource('/mockgroups/:mockGroupId',
-        { mockGroupId: '@id'},
-        { update: {method: 'POST'} }
-    );
 
-    MockGroup.prototype.update = function (cb, cbError) {
-        this.id = parseInt(this.id);
-        this.groupId = parseInt(this.group.id);
-
-        return MockGroup.update({mockGroupId: this.id},
-            angular.extend({}, this, {mockGroupId: undefined}), cb, cbError);
-    };
-
-    MockGroup.prototype.destroy = function (cb, cbError) {
-        return MockGroup.remove({mockGroupId: this.id}, cb, cbError);
-    };
-
-    return MockGroup;
-});
 
 spApp.factory('Group', function ($resource) {
 
@@ -220,14 +224,6 @@ spApp.factory("MocksService", function ($http) {
     return {
         findAll: function (mockGroup) {
             return $http.get('/mocks/' + mockGroup + '/listDatatable');
-        }
-    }
-});
-
-spApp.factory("MockGroupsService", function ($http) {
-    return {
-        findAll: function (group) {
-            return $http.get('/mockgroups/' + group + '/listDatatable');
         }
     }
 });
