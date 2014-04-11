@@ -6,7 +6,7 @@
         <label for="description" class="col-lg-2 control-label">Service Description</label>
         <div class="col-lg-4">
             <input class="form-control" type="text" id="description" name="description" ng-model="service.description" required>
-            <span ng-show="myForm.description.$error.required" class="help-block">Required</span>
+            <span ng-show="myForm.description.$error.required" class="label label-danger">Required</span>
         </div>
     </div>
 
@@ -14,7 +14,7 @@
         <label for="environment" class="col-lg-2 control-label">Environment</label>
         <div class="col-lg-4">
             <select class="form-control" ng-model="service.environment" id="environment" ng-options="environment.name for environment in environments" required></select>
-            <span ng-show="myForm.environment.$error.required" class="help-block">Required</span>
+            <span ng-show="myForm.environment.$error.required" class="label label-danger">Required</span>
         </div>
     </div>
 
@@ -23,9 +23,9 @@
         <label for="localTarget" class="col-lg-2 control-label">Local Target</label>
         <div class="col-lg-4">
             <input class="form-control" type="text" id="localTarget" name="localTarget" ng-model="service.localTarget" required>
-            <span ng-show="myForm.localTarget.$error.required" class="help-block">Required</span>
-            <span ng-show="myForm.localTarget.$error.required" class="help-block">Enter service1 to have http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>service1</b></span>
-            <span ng-show="!myForm.localTarget.$error.required" class="help-block">Local Target : http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>{{ service.localTarget }}</b> </span>
+            <span ng-show="myForm.localTarget.$error.required" class="label label-danger">Required</span>
+            <span ng-show="myForm.localTarget.$error.required" class="label label-danger">Enter service1 to have http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>service1</b></span>
+            <span ng-show="!myForm.localTarget.$error.required" class="label label-danger">Local Target : http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>{{ service.localTarget }}</b> </span>
         </div>
     </div>
 
@@ -34,7 +34,7 @@
         <label for="remoteTarget" class="col-lg-2 control-label">Remote Target</label>
         <div class="col-lg-4">
             <input class="form-control" type="url" id="remoteTarget" name="remoteTarget" ng-model="service.remoteTarget">
-            <span ng-show="myForm.remoteTarget.$error.url" class="help-block">Not a URL</span>
+            <span ng-show="myForm.remoteTarget.$error.url" class="label label-danger">{{remoteTarget}} is not a valid URL</span>
             <span class="help-block">Remote service, example : http://host:8080/myService/1.0</span>
         </div>
         <div class="col-lg-6 help-block">When someone calls Soapower, Soapower redirect the request to a Remote Target OR, if
@@ -47,12 +47,12 @@
         <div class="col-lg-4">
             <div class="radio">
                 <label>
-                    <input type="radio" name="useMockGroup" ng-model="service.useMockGroup" value="yes" ng-checked="service.useMockGroup == 'yes'"> Yes
+                    <input type="radio" name="useMockGroup" ng-model="service.useMockGroup" ng-value=true ng-checked="service.useMockGroup == true"> Yes
                 </label>
             </div>
             <div class="radio">
                 <label>
-                    <input type="radio" name="useMockGroup" ng-model="service.useMockGroup" value="no" ng-checked="service.useMockGroup == 'no'"> No
+                    <input type="radio" name="useMockGroup" ng-model="service.useMockGroup" ng-value=false ng-checked="service.useMockGroup == false"> No
                 </label>
             </div>
         </div>
@@ -65,7 +65,7 @@
         <label for="mockGroup" class="col-lg-2 control-label">Mock Group</label>
         <div class="col-lg-4">
             <select class="form-control" ng-model="service.mockGroup" id="mockGroup" ng-options="mockGroup.name for mockGroup in mockGroups"></select>
-            <span ng-show="myForm.mockGroup.$error.required" class="help-block">Required</span>
+            <span ng-show="myForm.mockGroup.$error.required" class="label label-danger">Required</span>
         </div>
         <div class="col-lg-6 help-block">If you chose to use mock group, Soapower check all mocks in MockGroup.
             If a criteria of one mock is found in the body of request, Soapower render the response a the mock.
@@ -78,7 +78,7 @@
         <label for="timeoutms" class="col-lg-2 control-label">Timeout ms</label>
         <div class="col-lg-4">
             <input class="form-control" type="number" id="timeoutms" name="timeoutms" ng-model="service.timeoutms" required>
-            <span ng-show="myForm.timeoutms.$error.required" class="help-block">Required</span>
+            <span ng-show="myForm.timeoutms.$error.required" class="label label-danger">Required</span>
             <span class="help-block">Timeout in milliseconds</span>
         </div>
         <div class="col-lg-6 help-block">If the remote target does not respond before this timeout in milliseconds,
@@ -94,12 +94,12 @@
         <div class="col-lg-4">
             <div class="radio">
                 <label>
-                    <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="yes" ng-checked="service.recordXmlData == 'yes'"> Yes
+                    <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" ng-value=true ng-checked="service.recordXmlData == true"> Yes
                </label>
             </div>
             <div class="radio">
                <label>
-                    <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="no" ng-checked="service.recordXmlData == 'no'"> No
+                    <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" ng-value=false ng-checked="service.recordXmlData == false"> No
                </label>
             </div>
         </div>
@@ -114,12 +114,12 @@
         <div class="col-lg-6">
             <div class="radio">
                <label>
-                    <input type="radio" name="recordData" ng-model="service.recordData" value="yes" ng-checked="service.recordData == 'yes'"> Yes
+                    <input type="radio" name="recordData" ng-model="service.recordData" ng-value=true ng-checked="service.recordData == true"> Yes
                </label>
             </div>
             <div class="radio">
                <label>
-                    <input type="radio" name="recordData" ng-model="service.recordData" value="no" ng-checked="service.recordData == 'no'"> No
+                    <input type="radio" name="recordData" ng-model="service.recordData" ng-value=false ng-checked="service.recordData == false"> No
                </label>
             </div>
         </div>

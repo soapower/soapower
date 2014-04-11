@@ -40,6 +40,9 @@ function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService,
 }
 
 function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, GroupsService) {
+
+    $scope.title = "Edit an environment";
+
     var self = this;
 
     GroupsService.findAll().success(function (groups) {
@@ -73,6 +76,8 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, Group
 }
 
 function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
+
+    $scope.title = "Insert new environment";
 
     GroupsService.findAll().success(function (groups) {
         $scope.groups = groups.values;

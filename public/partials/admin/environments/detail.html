@@ -24,7 +24,7 @@
         <label for="name" class="col-lg-2 control-label">Name</label>
         <div class="col-lg-4">
             <input class="form-control" type="text" id="name" name="nameEnv" ng-pattern="namePattern" ng-model="environment.name" required>
-            <span ng-show="myForm.nameEnv.$error.required" class="help-block">Required</span>
+            <span ng-show="myForm.nameEnv.$error.required" class="label label-danger">Required</span>
             <span class="label label-danger" ng-show="myForm.nameEnv.$error.pattern">Single word only! </span>
             <span class="help-block">The name have to match this pattern : [a-zA-Z0-9]{1,200}</span>
         </div>
@@ -35,7 +35,7 @@
         <div class="col-lg-4">
             <input class="form-control" type="number" id="hourRecordXmlDataMin" name="hourRecordXmlDataMin" ng-model="environment.hourRecordXmlDataMin"
                     required>
-            <span ng-show="myForm.hourRecordXmlDataMin.$error.required" class="help-block">Required</span>
+            <span ng-show="myForm.hourRecordXmlDataMin.$error.required" class="label label-danger">Required</span>
         </div>
     </div>
 
@@ -44,8 +44,7 @@
         <div class="col-lg-4">
             <input class="form-control" type="number" id="hourRecordXmlDataMax" name="hourRecordXmlDataMax" ng-model="environment.hourRecordXmlDataMax"
                     required>
-            <span ng-show="myForm.hourRecordXmlDataMax.$error.required" class="help-block">Required</span>
-            <span ng-show="myForm.hourRecordXmlDataMax.$error.url" class="help-block">Not a URL</span>
+            <span ng-show="myForm.hourRecordXmlDataMax.$error.required" class="label label-danger">Required</span>
         </div>
     </div>
 
@@ -53,7 +52,7 @@
         <label for="nbDayKeepXmlData" class="col-lg-2 control-label">Xml Data : Nb days keep</label>
         <div class="col-lg-4">
             <input class="form-control" type="number" id="nbDayKeepXmlData" name="nbDayKeepXmlData" ng-model="environment.nbDayKeepXmlData" required>
-            <span ng-show="myForm.nbDayKeepXmlData.$error.required" class="help-block">Required</span>
+            <span ng-show="myForm.nbDayKeepXmlData.$error.required" class="label label-danger">Required</span>
         </div>
     </div>
 
@@ -61,7 +60,7 @@
         <label for="nbDayKeepAllData" class="col-lg-2 control-label">All Data : Nb days keep</label>
         <div class="col-lg-4">
             <input class="form-control" type="number" id="nbDayKeepAllData" name="nbDayKeepAllData" ng-model="environment.nbDayKeepAllData" required>
-            <span ng-show="myForm.nbDayKeepAllData.$error.required" class="help-block">Required</span>
+            <span ng-show="myForm.nbDayKeepAllData.$error.required" class="label label-danger">Required</span>
         </div>
     </div>
 

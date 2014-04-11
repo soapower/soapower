@@ -107,11 +107,11 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
 
     EnvironmentsService.findAllAndSelect($scope, null, $routeParams.groups, null, false);
 
-    $scope.service = new Service({id: '-2'});
-    $scope.service.recordXmlData = "yes";
-    $scope.service.recordData = "yes";
-    $scope.service.useMockGroup = "no";
-    $scope.service.timeoutms = "60000";
+    $scope.service = new Service();
+    $scope.service.useMockGroup = false;
+    $scope.service.timeoutms = 60000;
+    $scope.service.recordXmlData = true;
+    $scope.service.recordData = true;
 
     $scope.hostname = $location.host();
     $scope.port = $location.port();
@@ -131,7 +131,7 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
         });
 
     $scope.save = function () {
-        $scope.service.update(function () {
+        $scope.service.$create(function () {
             $location.path('/services/');
         }, function (response) { // error case
             alert(response.data);
