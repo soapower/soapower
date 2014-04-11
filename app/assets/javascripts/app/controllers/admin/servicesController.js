@@ -42,7 +42,7 @@ function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIServi
     });
 }
 
-function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, EnvironmentsService, MockGroupsService, UIService) {
+function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, EnvironmentsService, MockGroupsService) {
 
     $scope.title = "Update a service";
 
@@ -54,25 +54,14 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
     Service.get({serviceId: $routeParams.serviceId}, function (service) {
         self.original = service;
         $scope.service = new Service(self.original);
-        $scope.service.recordXmlData = UIService.fixBooleanReverse($scope.service.recordXmlData);
-        $scope.service.recordData = UIService.fixBooleanReverse($scope.service.recordData);
-        $scope.service.useMockGroup = UIService.fixBooleanReverse($scope.service.useMockGroup);
 
-        EnvironmentsService.findAllAndSelect($scope, null, $routeParams.groups, $scope.service, false);
+        EnvironmentsService.findOptions($routeParams.groups).success(function (environments) {
+            $scope.environments = environments;
+        });
 
-        MockGroupsService.findAll($routeParams.groups).
-            success(function (mockGroups) {
-                $scope.mockGroups = mockGroups.data;
-                angular.forEach(mockGroups.data, function (mockGroup, key) {
-                    if (mockGroup.id == $scope.service.mockGroupId) {
-                        $scope.service.mockGroup = mockGroup;
-                        return false;
-                    }
-                });
-            })
-            .error(function (resp) {
-                console.log("Error with MockGroupsService.findAll:" + resp);
-            });
+        MockGroupsService.findAll($routeParams.groups).success(function (mockGroups) {
+            $scope.mockGroups = mockGroups.data;
+        })
     });
 
     $scope.isClean = function () {
@@ -80,7 +69,7 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
     };
 
     $scope.destroy = function () {
-        self.original.destroy(function () {
+        self.original.$remove(function () {
             $location.path('/services');
         }, function (response) { // error case
             alert(response.data);
@@ -88,7 +77,7 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
     };
 
     $scope.save = function () {
-        $scope.service.update(function () {
+        $scope.service.$update(function () {
             $location.path('/services');
         }, function (response) { // error case
             alert(response.data);
@@ -106,9 +95,12 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
     $scope.showNewGroup = false;
 
     EnvironmentsService.findOptions($routeParams.groups).success(function (environments) {
-            $scope.environments = environments;
-        }
-    );
+        $scope.environments = environments;
+    });
+
+    MockGroupsService.findAll("all").success(function (mockGroups) {
+        $scope.mockGroups = mockGroups.data;
+    });
 
     $scope.service = new Service();
     $scope.service.useMockGroup = false;
@@ -119,20 +111,6 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
     $scope.hostname = $location.host();
     $scope.port = $location.port();
 
-    MockGroupsService.findAll("all").
-        success(function (mockGroups) {
-            $scope.mockGroups = mockGroups.data;
-            angular.forEach(mockGroups.data, function (mockGroup, key) {
-                if (mockGroup.id == 1) { // 1 is default mock group : no mock group
-                    $scope.service.mockGroup = mockGroup;
-                    return false;
-                }
-            });
-        })
-        .error(function (resp) {
-            console.log("Error with MockGroupsService.findAll:" + resp);
-        });
-
     $scope.save = function () {
         $scope.service.$create(function () {
             $location.path('/services/');
@@ -141,11 +119,11 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
         });
     };
 
-    $rootScope.$broadcast("showGroupsFilter", false, "ServiceNewCtrl");
-
     $scope.$on("ReloadPage", function (event, group, caller) {
         var path = "services/new/" + group;
         console.log("ServiceNewCtrl receive from " + caller + " ReloadPage : " + path);
         $location.path(path);
     });
+
+    $rootScope.$broadcast("showGroupsFilter", false, "ServiceNewCtrl");
 }

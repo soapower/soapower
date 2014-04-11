@@ -8,7 +8,7 @@
 
 <table ng-table="tableParams" class="table table-striped table-bordered">
     <tr ng-repeat="line in $data">
-        <td data-title="'Edit'"><a href="#/services/edit/{{ groupName }}/{{ line.id }}"><i class="fa fa-pencil"></i></a></td>
+        <td data-title="'Edit'"><a href="#/services/edit/{{ groupName }}/{{ line._id.$oid }}"><i class="fa fa-pencil"></i></a></td>
         <td data-title="'Environment'" sortable="'env'">
             {{line.environmentId}}
         </td>

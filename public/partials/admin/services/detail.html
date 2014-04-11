@@ -135,7 +135,7 @@
             <button ng-click="save()" ng-disabled="isClean() || myForm.$invalid"
                     class="btn btn-primary">Save
             </button>
-            <span ng-show="service.id > 0">
+            <span ng-show="service._id.$oid">
                 <button ng-click="askDelete=true" ng-hide="askDelete" class="btn btn-danger">
                     Delete
                 </button>

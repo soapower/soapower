@@ -37,7 +37,7 @@
             <button ng-click="save()" ng-disabled="isClean() || myForm.$invalid" class="btn btn-primary">
                 Save
             </button>
-            <span ng-show="mockGroup.id > 1">
+            <span ng-show="mockGroup._id.$oid">
                 <button ng-click="askDelete=true" ng-hide="askDelete" class="btn btn-danger">
                     Delete
                 </button>
