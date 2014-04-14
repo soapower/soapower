@@ -9,6 +9,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
 import play.api.libs.json.Json
 import play.api.Logger
+import models.Services
 
 case class Service(_id: Option[BSONObjectID],
                    description: String,
@@ -134,10 +135,9 @@ object Service {
   def insert(service: Service) = {
     // TODO Call checkLocalTarget(service.localTarget) ?
 
-    val subdoc = BSONDocument("services" -> BSONArray(service))
-    val update = BSONDocument("$pushAll" -> subdoc)
     val selectorEnv = BSONDocument("name" -> service.environmentName)
-    Environment.collection.update(selectorEnv, update)
+    val insert = BSONDocument("$push" -> BSONDocument("services" -> service))
+    Environment.collection.update(selectorEnv, insert)
   }
 
   /**
@@ -146,33 +146,24 @@ object Service {
    * @param service The service values.
    */
   def update(service: Service) = {
-    ???
-    //TODO
-    val selector = BSONDocument("_id" -> service._id)
-    val modifierService = BSONDocument(
-      "$set" -> BSONDocument(
-        "description" -> service.description,
-        "localTarget" -> service.localTarget,
-        "remoteTarget" -> service.remoteTarget,
-        "timeoutms" -> service.timeoutms,
-        "recordXmlData" -> service.recordXmlData,
-        "recordData" -> service.recordData,
-        "useMockGroup" -> service.useMockGroup,
-        "mockGroupId" -> service.mockGroupId)
+    val selector = BSONDocument(
+      "name" -> service.environmentName,
+      "services._id" -> service._id
     )
-    Environment.collection.update(selector, modifierService)
+    val update = BSONDocument("$set" -> BSONDocument("services.$" -> service))
+    Environment.collection.update(selector, update)
   }
 
   /**
    * Delete a service.
-   *
-   * @param id Id of the service to delete.
+   * @param environmentName environment name wich contains the service
+   * @param serviceId id of the service to delete
+   * @return
    */
-  def delete(id: String) = {
-    ???
-    //TODO
-    val objectId = new BSONObjectID(id)
-    Environment.collection.remove(BSONDocument("_id" -> objectId))
+  def delete(environmentName: String, serviceId: String) = {
+    val selector = BSONDocument("name" -> environmentName)
+    val update = BSONDocument("$pull" -> BSONDocument("services" -> BSONDocument("_id" -> BSONObjectID(serviceId))))
+    Environment.collection.update(selector, update)
   }
 
   def findAll(environmentName: String): Future[Option[Services]] = {

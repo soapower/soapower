@@ -43,10 +43,11 @@ object Services extends Controller {
   }
 
   /**
-   * Insert or update a service.
-   * @return
+   * Insert a service.
+   * @param environmentName Environment Name wich contains the new service
+   * @return 200 if ok, with id of the new service
    */
-  def create = Action.async(parse.json) {
+  def create(environmentName: String) = Action.async(parse.json) {
     request =>
       val id = BSONObjectID.generate
       val json = request.body.as[JsObject] ++ Json.obj("_id" -> id)
@@ -74,10 +75,10 @@ object Services extends Controller {
   }
 
   /**
-   * Update a group.
-   * @param environmentName
-   * @param serviceId
-   * @return
+   * Update a service.
+   * @param environmentName environment name of the service to update
+   * @param serviceId identifier of the service to update
+   * @return 200 if of, with the Id of the updated service
    */
   def update(environmentName: String, serviceId: String) = Action.async(parse.json) {
     request =>
@@ -109,11 +110,9 @@ object Services extends Controller {
   /**
    * Handle service deletion.
    */
-  def delete(environmentId: String, serviceId: String) = Action.async(parse.tolerantText) {
+  def delete(environmentName: String, serviceId: String) = Action.async(parse.tolerantText) {
     request =>
-      ???
-      //TODO
-      Service.delete(serviceId).map {
+      Service.delete(environmentName, serviceId).map {
         lastError =>
           if (lastError.ok) {
             Ok(serviceId)

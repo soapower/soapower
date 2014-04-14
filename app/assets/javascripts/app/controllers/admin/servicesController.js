@@ -52,9 +52,9 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
     var self = this;
 
     Service.get({environmentName: $routeParams.environmentName, serviceId: $routeParams.serviceId}, function (service) {
+        service.environmentName = $routeParams.environmentName;
         self.original = service;
         $scope.service = new Service(self.original);
-        $scope.service.environmentName = $routeParams.environmentName;
 
         EnvironmentsService.findOptions($routeParams.groups).success(function (environments) {
             $scope.environments = environments;
