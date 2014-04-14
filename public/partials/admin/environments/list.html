@@ -1,6 +1,6 @@
 <h2>Environments</h2>
 
-<a class="btn btn-primary" href="#/environments/new"><i class="fa fa-plus"></i> Add a new environment</a>
+<a class="btn btn-primary" href="#/environments/new/{{ line.name }}/{{ groups }}"><i class="fa fa-plus"></i> Add a new environment</a>
 
 <p>There are {{ environments.length }} environments.</p>
 
@@ -29,6 +29,7 @@
         <td data-title="'Record Data'" sortable="'recordData'">
             {{line.recordData}}
         </td>
+        <td data-title="'Services'"><a href="#/services/list/{{ line.name }}/{{ groups }}">View Services</a></td>
         <td data-title="'Edit'"><a href="#/environments/edit/{{ line._id.$oid }}"><i class="fa fa-pencil"></i></a></td>
     </tr>
 </table>

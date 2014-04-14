@@ -4,8 +4,8 @@
  *  SERVICES
  ***************************************/
 spApp.factory('Service', function ($resource) {
-    var Service = $resource('/services/:serviceId',
-        { serviceId: '@_id.$oid'},
+    var Service = $resource('/services/:environmentName/:serviceId',
+        { environmentName: '@environmentName', serviceId: '@_id.$oid'},
         { update: {method: 'PUT'},
             create: {method: 'POST'}}
     );
@@ -14,8 +14,8 @@ spApp.factory('Service', function ($resource) {
 
 spApp.factory("ServicesService", function ($http) {
     return {
-        findAll: function (group) {
-            return $http.get('/services/' + group + '/findall');
+        findAll: function (environmentId) {
+            return $http.get('/services/' + environmentId + '/findall');
         }
     }
 });

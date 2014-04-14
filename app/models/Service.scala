@@ -6,45 +6,62 @@ import scala.collection.mutable.Map
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.modules.reactivemongo.json.collection.JSONCollection
-import play.modules.reactivemongo.ReactiveMongoPlugin
-import play.api.libs.json.Json
 import scala.concurrent.Future
+import play.api.libs.json.Json
+import play.api.Logger
 
 case class Service(_id: Option[BSONObjectID],
                    description: String,
                    localTarget: String,
                    remoteTarget: String,
-                   timeoutms: Int,
+                   timeoutms: Double,
                    recordXmlData: Boolean,
                    recordData: Boolean,
                    useMockGroup: Boolean,
-                   environmentId: String,
-                   mockGroupId: String)
+                   mockGroupId: Option[String],
+                   environmentName: Option[String]) {
+
+  def this(serviceDoc: BSONDocument, environmentName: Option[String]) =
+    this(
+      serviceDoc.getAs[BSONObjectID]("_id"),
+      serviceDoc.getAs[String]("description").get,
+      serviceDoc.getAs[String]("localTarget").get,
+      serviceDoc.getAs[String]("remoteTarget").get,
+      serviceDoc.getAs[Double]("timeoutms").get,
+      serviceDoc.getAs[Boolean]("recordXmlData").get,
+      serviceDoc.getAs[Boolean]("recordData").get,
+      serviceDoc.getAs[Boolean]("useMockGroup").get,
+      serviceDoc.getAs[String]("mockGroupId"),
+      environmentName)
+}
+
+
+case class Services(services: List[Service])
 
 object Service {
 
-  /*
-   * Collection MongoDB
-   */
-  def collection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("services")
-
   implicit val serviceFormat = Json.format[Service]
+  implicit val servicesFormat = Json.format[Services]
 
-  implicit object ServiceBSONReader extends BSONDocumentReader[Service] {
-    def read(doc: BSONDocument): Service =
-      Service(
-        doc.getAs[BSONObjectID]("_id"),
-        doc.getAs[String]("description").get,
-        doc.getAs[String]("localTarget").get,
-        doc.getAs[String]("remoteTarget").get,
-        doc.getAs[Int]("timeoutms").get,
-        doc.getAs[Boolean]("recordXmlData").get,
-        doc.getAs[Boolean]("recordData").get,
-        doc.getAs[Boolean]("useMockGroup").get,
-        doc.getAs[String]("environmentId").get,
-        doc.getAs[String]("mockGroupId").get
-      )
+  implicit object ServicesReader extends BSONDocumentReader[Services] {
+    def read(doc: BSONDocument): Services = {
+      Logger.debug("Environemnt: " + BSONDocument.pretty(doc))
+      if (doc.getAs[List[BSONDocument]]("services") isDefined) {
+        val list = doc.getAs[List[BSONDocument]]("services").get.map(
+          s => new Service(s, doc.getAs[String]("name"))
+        )
+        Services(list)
+      } else {
+        Services(List())
+      }
+    }
+  }
+
+  implicit object ServiceReader extends BSONDocumentReader[Service] {
+    def read(doc: BSONDocument): Service = {
+      val s = doc.getAs[List[BSONDocument]]("services").get.head
+      new Service(s, doc.getAs[String]("name"))
+    }
   }
 
   implicit object ServiceBSONWriter extends BSONDocumentWriter[Service] {
@@ -58,7 +75,6 @@ object Service {
         "recordXmlData" -> service.recordXmlData,
         "recordData" -> service.recordData,
         "useMockGroup" -> service.useMockGroup,
-        "environmentId" -> service.environmentId,
         "mockGroupId" -> service.mockGroupId)
   }
 
@@ -68,14 +84,14 @@ object Service {
    */
   val csvTitle = Map("key" -> 0, "id" -> 1, "description" -> 2, "localTarget" -> 3, "remoteTarget" -> 4, "timeoutms" -> 5, "recordXmlData" -> 6, "recordData" -> 7, "environmentName" -> 8, "mockGroupName" -> 9)
 
-  val csvKey = "service";
+  val csvKey = "service"
 
   /**
    * Csv format.
    */
 
   def csv(s: Service) = {
-    csvKey + ";" + s._id.get.stringify + ";" + s.description + ";" + s.localTarget + ";" + s.remoteTarget + ";" + s.timeoutms + ";" + s.recordXmlData + ";" + s.recordData + ";" + s.useMockGroup + ";" + s.environmentId + ";" + s.mockGroupId + "\n"
+    csvKey + ";" + s._id.get.stringify + ";" + s.description + ";" + s.localTarget + ";" + s.remoteTarget + ";" + s.timeoutms + ";" + s.recordXmlData + ";" + s.recordData + ";" + s.useMockGroup + ";" + s.environmentName + ";" + s.mockGroupId + "\n"
   }
 
   /**
@@ -87,12 +103,16 @@ object Service {
   }
 
   /**
-   * Retrieve a Service from id.
+   * Retrieve a Service.
+   * @param environmentName Name of environement
+   * @param serviceId ObjectID of service
+   * @return Option of service
    */
-  def findById(id: String): Future[Option[Service]] = {
-    val objectId = new BSONObjectID(id)
-    val query = BSONDocument("_id" -> objectId)
-    collection.find(query).one[Service]
+  def findById(environmentName: String, serviceId: String): Future[Option[Service]] = {
+    val query = BSONDocument("name" -> environmentName)
+    val projection = BSONDocument("services" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("_id" -> BSONObjectID(serviceId))))
+    Environment.collection.find(query, projection).cursor[Service].headOption
   }
 
   /**
@@ -104,39 +124,7 @@ object Service {
    */
   def findByLocalTargetAndEnvironmentName(localTarget: String, environmentName: String): Option[Service] = {
     ???
-    /*
-    val serviceKey = environmentName + "/" + localTarget
-    val service = Cache.getAs[Service](serviceKey);
-
-    if (service nonEmpty) {
-      service
-    } else {
-      Logger.debug("Service " + environmentName + "/" + localTarget + " not found in cache: loading from db")
-
-      val serviceInDb = DB.withConnection {
-        implicit connection =>
-          SQL(
-            """
-            select * from service
-            left join environment on service.environment_id = environment.id
-            where service.localTarget like {localTarget}
-            and environment.name like {environmentName}
-            """).on(
-              'localTarget -> localTarget,
-              'environmentName -> environmentName).as(Service.simple.singleOpt)
-      }
-      if (serviceInDb isDefined) {
-        Cache.set(serviceKey, serviceInDb.get)
-        Cache.set(cacheKey + serviceInDb.get.id, serviceKey)
-        Logger.debug("Service " + environmentName + "/" + localTarget + " put in cache with key " + cacheKey + serviceInDb.get.id)
-        serviceInDb
-      } else {
-        None
-      }
-    }
-    */
   }
-
 
   /**
    * Insert a new service.
@@ -145,7 +133,11 @@ object Service {
    */
   def insert(service: Service) = {
     // TODO Call checkLocalTarget(service.localTarget) ?
-    collection.insert(service)
+
+    val subdoc = BSONDocument("services" -> BSONArray(service))
+    val update = BSONDocument("$pushAll" -> subdoc)
+    val selectorEnv = BSONDocument("name" -> service.environmentName)
+    Environment.collection.update(selectorEnv, update)
   }
 
   /**
@@ -154,10 +146,10 @@ object Service {
    * @param service The service values.
    */
   def update(service: Service) = {
-
+    ???
+    //TODO
     val selector = BSONDocument("_id" -> service._id)
-
-    val modifier = BSONDocument(
+    val modifierService = BSONDocument(
       "$set" -> BSONDocument(
         "description" -> service.description,
         "localTarget" -> service.localTarget,
@@ -166,12 +158,9 @@ object Service {
         "recordXmlData" -> service.recordXmlData,
         "recordData" -> service.recordData,
         "useMockGroup" -> service.useMockGroup,
-        "environmentId" -> service.environmentId,
         "mockGroupId" -> service.mockGroupId)
     )
-
-    collection.update(selector, modifier)
-
+    Environment.collection.update(selector, modifierService)
   }
 
   /**
@@ -180,19 +169,29 @@ object Service {
    * @param id Id of the service to delete.
    */
   def delete(id: String) = {
+    ???
+    //TODO
     val objectId = new BSONObjectID(id)
-    collection.remove(BSONDocument("_id" -> objectId))
+    Environment.collection.remove(BSONDocument("_id" -> objectId))
+  }
+
+  def findAll(environmentName: String): Future[Option[Services]] = {
+    val query = BSONDocument("name" -> environmentName)
+    Environment.collection.find(query).cursor[Services].headOption
   }
 
   /**
    * Return a list of all services.
    */
   def findAll: Future[List[Service]] = {
+    ???
+    /*
     collection.
       find(Json.obj()).
-      sort(Json.obj("localTarget" -> 1)).
+      sort(Json.obj("description" -> 1)).
       cursor[Service].
       collect[List]()
+      */
   }
 
   /**

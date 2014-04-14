@@ -1,5 +1,7 @@
 function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService, UIService, ngTableParams, $filter) {
 
+    $scope.groups = $routeParams.groups;
+
     // Looking for environments with their groups and adding all informations to $scope.environments var
     EnvironmentsService.findAll($routeParams.groups).
         success(function (environments) {

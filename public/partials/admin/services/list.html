@@ -1,6 +1,6 @@
-<h2>Services</h2>
+<h2>Services of environment {{environmentName}}</h2>
 
-<a class="btn btn-primary" href="#/services/new/{{groupName}}"><i class="fa fa-plus"></i> Add a new service</a>
+<a class="btn btn-primary" href="#/services/new/{{ environmentName }}/{{ groups }}"><i class="fa fa-plus"></i> Add a new service</a>
 
 <p>There are {{ services.length }} services.</p>
 
@@ -8,10 +8,6 @@
 
 <table ng-table="tableParams" class="table table-striped table-bordered">
     <tr ng-repeat="line in $data">
-        <td data-title="'Edit'"><a href="#/services/edit/{{ groupName }}/{{ line._id.$oid }}"><i class="fa fa-pencil"></i></a></td>
-        <td data-title="'Environment'" sortable="'env'">
-            {{line.environmentId}}
-        </td>
         <td data-title="'Description'" sortable="'description'">
             {{line.description}}
         </td>
@@ -30,5 +26,6 @@
         <td data-title="'Record Data'" sortable="'recordData'">
             {{line.recordData}}
         </td>
+        <td data-title="'Edit'"><a href="#/services/edit/{{ environmentName }}/{{ line._id.$oid }}/{{ groups }}"><i class="fa fa-pencil"></i></a></td>
     </tr>
 </table>

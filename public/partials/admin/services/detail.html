@@ -11,12 +11,9 @@
     </div>
 
     <div class="form-group" ng-class="{error: myForm.environment.$invalid}">
-        <label for="environment" class="col-lg-2 control-label">Environment</label>
+        <label class="col-lg-2 control-label">Environment</label>
         <div class="col-lg-4">
-            <select class="form-control" id="environment" ui-select2 ng-model="service.environmentId" data-placeholder="Pick one environment" ng-required="true">
-                <option ng-repeat="environment in environments" value="{{environment.id}}">{{environment.name}}</option>
-            </select>
-            <span ng-show="myForm.environment.$error.required" class="label label-danger">Required</span>
+            <label class="control-label">{{ service.environmentName }}</label>
         </div>
     </div>
 
@@ -131,7 +128,7 @@
 
     <div class="form-group">
         <div class="col-lg-offset-2 col-lg-10">
-            <a href="#/services" class="btn btn-default">Cancel</a>
+            <a href="#/services/list/{{ service.environmentName }}/{{ groups }}" class="btn btn-default">Cancel</a>
             <button ng-click="save()" ng-disabled="isClean() || myForm.$invalid"
                     class="btn btn-primary">Save
             </button>

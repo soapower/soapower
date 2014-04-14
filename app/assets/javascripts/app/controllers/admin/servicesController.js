@@ -1,10 +1,11 @@
-function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIService, ngTableParams, $filter) {
+function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, $location, ngTableParams, $filter) {
 
-    $scope.groupName = $routeParams.groups;
+    $scope.groups = $routeParams.groups;
+    $scope.environmentName = $routeParams.environmentName;
 
-    ServicesService.findAll($routeParams.groups).
-        success(function (services) {
-            $scope.services = services.data;
+    ServicesService.findAll($routeParams.environmentName).
+        success(function (data) {
+            $scope.services = data.services;
 
             $scope.tableParams = new ngTableParams({
                 page: 1,            // show first page
@@ -36,24 +37,24 @@ function ServicesCtrl($scope, $rootScope, $routeParams, ServicesService, UIServi
     console.log("Ask showGroupsFilter  with group " + $routeParams.groups);
     $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "ServicesCtrl");
 
-    $scope.$on("ReloadPage", function (event, group) {
-        $scope.ctrlPath = "services";
-        UIService.reloadAdminPage($scope, group);
+    $scope.$on("ReloadPage", function (event, groups) {
+        console.log("Receive ReloadPage");
+        var path = 'services/list/' + $scope.environmentName + "/" + groups;
+        $location.path(path);
     });
 }
 
 function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, EnvironmentsService, MockGroupsService) {
 
     $scope.title = "Update a service";
+    $scope.groups = $routeParams.groups;
 
     var self = this;
 
-    $scope.hostname = $location.host();
-    $scope.port = $location.port();
-
-    Service.get({serviceId: $routeParams.serviceId}, function (service) {
+    Service.get({environmentName: $routeParams.environmentName, serviceId: $routeParams.serviceId}, function (service) {
         self.original = service;
         $scope.service = new Service(self.original);
+        $scope.service.environmentName = $routeParams.environmentName;
 
         EnvironmentsService.findOptions($routeParams.groups).success(function (environments) {
             $scope.environments = environments;
@@ -64,13 +65,16 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
         })
     });
 
+    $scope.hostname = $location.host();
+    $scope.port = $location.port();
+
     $scope.isClean = function () {
         return angular.equals(self.original, $scope.service);
     };
 
     $scope.destroy = function () {
         self.original.$remove(function () {
-            $location.path('/services');
+            $location.path("/services/list/" + $routeParams.environmentName + "/" + $routeParams.groups);
         }, function (response) { // error case
             alert(response.data);
         });
@@ -78,7 +82,7 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
 
     $scope.save = function () {
         $scope.service.$update(function () {
-            $location.path('/services');
+            $location.path("/services/list/" + $routeParams.environmentName + "/" + $routeParams.groups);
         }, function (response) { // error case
             alert(response.data);
         });
@@ -91,36 +95,33 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
 function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, MockGroupsService, EnvironmentsService) {
 
     $scope.title = "Insert new service";
-
+    $scope.groups = $routeParams.groups;
     $scope.showNewGroup = false;
-
-    EnvironmentsService.findOptions($routeParams.groups).success(function (environments) {
-        $scope.environments = environments;
-    });
-
-    MockGroupsService.findAll("all").success(function (mockGroups) {
-        $scope.mockGroups = mockGroups.data;
-    });
 
     $scope.service = new Service();
     $scope.service.useMockGroup = false;
     $scope.service.timeoutms = 60000;
     $scope.service.recordXmlData = true;
     $scope.service.recordData = true;
+    $scope.service.environmentName = $routeParams.environmentName;
+
+    MockGroupsService.findAll("all").success(function (mockGroups) {
+        $scope.mockGroups = mockGroups.data;
+    });
 
     $scope.hostname = $location.host();
     $scope.port = $location.port();
 
     $scope.save = function () {
         $scope.service.$create(function () {
-            $location.path('/services/');
+            $location.path("/services/list/" + $routeParams.environmentName + "/" + $routeParams.groups);
         }, function (response) { // error case
             alert(response.data);
         });
     };
 
     $scope.$on("ReloadPage", function (event, group, caller) {
-        var path = "services/new/" + group;
+        var path = "services/new/" + $routeParams.environmentName + "/" + group;
         console.log("ServiceNewCtrl receive from " + caller + " ReloadPage : " + path);
         $location.path(path);
     });

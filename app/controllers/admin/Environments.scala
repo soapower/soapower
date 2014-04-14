@@ -25,7 +25,7 @@ object Environments extends Controller {
   }
 
   /**
-   * All.
+   * All Environment attached to groups.
    *
    * @return JSON
    */
@@ -85,7 +85,7 @@ object Environments extends Controller {
    * @param id Id of the environment to edit
    */
   def edit(id: String) = Action.async {
-    val futureEnvironment = Environment.findById(id)
+    val futureEnvironment = Environment.findById(BSONObjectID(id))
     futureEnvironment.map {
       environment => Ok(Json.toJson(environment)).as(JSON)
     }

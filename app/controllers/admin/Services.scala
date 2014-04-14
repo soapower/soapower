@@ -12,34 +12,39 @@ import play.api.Logger
 
 object Services extends Controller {
 
+
   /**
-   * All.
+   * All services for one environment Id.
    *
    * @return JSON
    */
-  def findAll(group: String) = Action.async {
-    // TODO Criteria and group
-    val futureDataList = Service.findAll
+  def findAll(environmentName: String) = Action.async {
+    import Service.servicesFormat
+    val futureDataList = Service.findAll(environmentName)
     futureDataList.map {
-      list =>
-        Ok(Json.toJson(Map("data" -> Json.toJson(list))))
+      services => Ok(Json.toJson(services.get))
     }
   }
 
   /**
    * Display the 'edit form' of a existing Service.
-   *
-   * @param id Id of the service to edit
+   * @param environmentName Name of environment containing the service
+   * @param serviceId Id of the service to edit
+   * @return 200 if ok with the service in Json Format
    */
-  def edit(id: String) = Action.async {
-    val futureService = Service.findById(id)
+  def edit(environmentName: String, serviceId: String) = Action.async {
+    val futureService = Service.findById(environmentName, serviceId)
     futureService.map {
-      service => Ok(Json.toJson(service)).as(JSON)
+      service => {
+        Logger.debug("Service:" + service)
+        Ok(Json.toJson(service.get)).as(JSON)
+      }
     }
   }
 
   /**
    * Insert or update a service.
+   * @return
    */
   def create = Action.async(parse.json) {
     request =>
@@ -70,10 +75,13 @@ object Services extends Controller {
 
   /**
    * Update a group.
+   * @param environmentName
+   * @param serviceId
+   * @return
    */
-  def update(id: String) = Action.async(parse.json) {
+  def update(environmentName: String, serviceId: String) = Action.async(parse.json) {
     request =>
-      val idg = BSONObjectID.parse(id).toOption.get
+      val idg = BSONObjectID.parse(serviceId).toOption.get
       val json = JsObject(request.body.as[JsObject].fields.filterNot(f => f._1 == "_id")) ++ Json.obj("_id" -> idg)
       try {
         json.validate(Service.serviceFormat).map {
@@ -81,7 +89,7 @@ object Services extends Controller {
             Service.update(service).map {
               lastError =>
                 if (lastError.ok) {
-                  Ok(id)
+                  Ok(serviceId)
                 } else {
                   BadRequest("Detected error on update :%s".format(lastError))
                 }
@@ -101,12 +109,14 @@ object Services extends Controller {
   /**
    * Handle service deletion.
    */
-  def delete(id: String) = Action.async(parse.tolerantText) {
+  def delete(environmentId: String, serviceId: String) = Action.async(parse.tolerantText) {
     request =>
-      Service.delete(id).map {
+      ???
+      //TODO
+      Service.delete(serviceId).map {
         lastError =>
           if (lastError.ok) {
-            Ok(id)
+            Ok(serviceId)
           } else {
             BadRequest("Detected error:%s".format(lastError))
           }

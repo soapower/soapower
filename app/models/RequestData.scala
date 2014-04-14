@@ -25,7 +25,7 @@ case class RequestData(
                         id: Option[BSONObjectID],
                         sender: String,
                         var soapAction: String,
-                        environmentId: String,
+                        environmentName: String,
                         serviceId: String,
                         var request: String,
                         var requestHeaders: Map[String, String],
@@ -39,8 +39,8 @@ case class RequestData(
 
   var responseBytes: Array[Byte] = null
 
-  def this(sender: String, soapAction: String, environnmentId: String, serviceId: String) =
-    this(Some(BSONObjectID.generate), sender, soapAction, environnmentId, serviceId, null, null, new Date, null, null, -1, -1, false, false)
+  def this(sender: String, soapAction: String, environnmentName: String, serviceId: String) =
+    this(Some(BSONObjectID.generate), sender, soapAction, environnmentName, serviceId, null, null, new Date, null, null, -1, -1, false, false)
 
   /**
    * Add soapAction in cache if neccessary.
@@ -557,7 +557,7 @@ object RequestData {
    * @param environmentId environment id
    * @return list of unique date
    */
-  def findDayNotCompileStats(environmentId: Long): List[Date] = {
+  def findDayNotCompileStats(environmentId: String): List[Date] = {
     ???
     /*
     DB.withConnection {

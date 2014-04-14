@@ -26,10 +26,10 @@ spApp.config(function ($routeProvider) {
         .when('/loggers', { controller: LoggersCtrl, templateUrl: 'partials/admin/monitor/loggers.html'})
         .when('/admin', { controller: AdminCtrl, templateUrl: 'partials/admin/admin.html' })
 
-        .when('/services', {  redirectTo: '/services/list/all'})
-        .when('/services/new/:groups', {controller: ServiceNewCtrl, templateUrl: 'partials/admin/services/detail.html'})
-        .when('/services/edit/:groups/:serviceId', {controller: ServiceEditCtrl, templateUrl: 'partials/admin/services/detail.html'})
-        .when('/services/list/:groups', { controller: ServicesCtrl, templateUrl: 'partials/admin/services/list.html'})
+        .when('/services', { redirectTo: '/services/list/all'})
+        .when('/services/new/:environmentName/:groups', {controller: ServiceNewCtrl, templateUrl: 'partials/admin/services/detail.html'})
+        .when('/services/edit/:environmentName/:serviceId/:groups', {controller: ServiceEditCtrl, templateUrl: 'partials/admin/services/detail.html'})
+        .when('/services/list/:environmentName/:groups', { controller: ServicesCtrl, templateUrl: 'partials/admin/services/list.html'})
 
         .when('/environments', {  redirectTo: '/environments/list/all'})
         .when('/environments/new', {controller: EnvironmentNewCtrl, templateUrl: 'partials/admin/environments/detail.html'})

@@ -14,6 +14,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.modules.reactivemongo.json.collection.JSONCollection
 import reactivemongo.core.commands.RawCommand
 import play.api.Logger
+import reactivemongo.api.collections.default.BSONCollection
 
 case class Environment(_id: Option[BSONObjectID],
                        name: String,
@@ -23,8 +24,7 @@ case class Environment(_id: Option[BSONObjectID],
                        nbDayKeepXmlData: Int = 2,
                        nbDayKeepAllData: Int = 5,
                        recordXmlData: Boolean = true,
-                       recordData: Boolean = true
-                        )
+                       recordData: Boolean = true)
 
 object ModePurge extends Enumeration {
   type ModePurge = Value
@@ -36,12 +36,13 @@ object Environment {
   /*
    * Collection MongoDB
    */
-  def collection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("environments")
+  def collection: BSONCollection = ReactiveMongoPlugin.db.collection[BSONCollection]("environments")
 
   implicit val environmentFormat = Json.format[Environment]
 
   implicit object EnvironmentBSONReader extends BSONDocumentReader[Environment] {
-    def read(doc: BSONDocument): Environment =
+    def read(doc: BSONDocument): Environment = {
+      Logger.debug("Doc : " + BSONDocument.pretty(doc))
       Environment(
         doc.getAs[BSONObjectID]("_id"),
         doc.getAs[String]("name").get,
@@ -53,19 +54,20 @@ object Environment {
         doc.getAs[Boolean]("recordXmlData").get,
         doc.getAs[Boolean]("recordData").get
       )
+    }
   }
 
   implicit object EnvironmentBSONWriter extends BSONDocumentWriter[Environment] {
     def write(environment: Environment): BSONDocument =
       BSONDocument(
         "_id" -> environment._id,
-        "name" -> environment.name,
-        "hourRecordXmlDataMin" -> environment.hourRecordXmlDataMin,
-        "hourRecordXmlDataMax" -> environment.hourRecordXmlDataMax,
-        "nbDayKeepXmlData" -> environment.nbDayKeepXmlData,
-        "nbDayKeepAllData" -> environment.nbDayKeepAllData,
-        "recordXmlData" -> environment.recordXmlData,
-        "recordData" -> environment.recordData,
+        "name" -> BSONString(environment.name),
+        "hourRecordXmlDataMin" -> BSONInteger(environment.hourRecordXmlDataMin),
+        "hourRecordXmlDataMax" -> BSONInteger(environment.hourRecordXmlDataMax),
+        "nbDayKeepXmlData" -> BSONInteger(environment.nbDayKeepXmlData),
+        "nbDayKeepAllData" -> BSONInteger(environment.nbDayKeepAllData),
+        "recordXmlData" -> BSONBoolean(environment.recordXmlData),
+        "recordData" -> BSONBoolean(environment.recordData),
         "groups" -> environment.groups)
   }
 
@@ -116,6 +118,7 @@ object Environment {
   def options = {
     Cache.getOrElse(keyCacheAllOptions) {
       val f = findAll.map(environments => environments.map(e => (e._id.get.stringify, e.name)))
+      //TODO sortEnvs(Await result(f, 1.seconds))
       Await result(f, 1.seconds)
     }
   }
@@ -165,8 +168,7 @@ object Environment {
   /**
    * Retrieve an Environment from id.
    */
-  def findById(id: String): Future[Option[Environment]] = {
-    val objectId = new BSONObjectID(id)
+  def findById(objectId: BSONObjectID): Future[Option[Environment]] = {
     val query = BSONDocument("_id" -> objectId)
     collection.find(query).one[Environment]
   }
@@ -265,8 +267,8 @@ object Environment {
    */
   def findAll: Future[List[Environment]] = {
     collection.
-      find(Json.obj()).
-      sort(Json.obj("name" -> 1)).
+      find(BSONDocument()).
+      sort(BSONDocument("name" -> 1)).
       cursor[Environment].
       collect[List]()
   }
@@ -294,7 +296,7 @@ object Environment {
     Environment.options.foreach {
       (e) =>
         Logger.debug("Compile Stats env:" + e._2)
-        val days = RequestData.findDayNotCompileStats(e._1.toLong)
+        val days = RequestData.findDayNotCompileStats(e._1)
 
         days.foreach {
           minDate =>

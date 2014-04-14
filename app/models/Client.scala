@@ -53,9 +53,9 @@ object Client {
 
 class Client(service: Service, sender: String, content: String, headers: Map[String, String]) {
 
-  val environment = Environment.findById(service.environmentId)
+  val environment = Environment.findByName(service.environmentName.get)
 
-  val requestData = new RequestData(sender, Client.extractSoapAction(headers), service.environmentId, service._id.get.stringify)
+  val requestData = new RequestData(sender, Client.extractSoapAction(headers), service.environmentName.get, service._id.get.stringify)
   var response: ClientResponse = null
 
   private var futureResponse: Future[Response] = null
