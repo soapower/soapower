@@ -1,6 +1,7 @@
 package controllers
 
 import play.api.mvc._
+import play.Logger
 import models._
 import play.api.libs.json._
 
@@ -22,7 +23,7 @@ object Services extends Controller {
           },
           "remoteTarget" -> JsString(data._1.remoteTarget),
           "timeoutInMs" -> JsNumber(data._1.timeoutms),
-          "recordXmlData" -> JsBoolean(data._1.recordXmlData),
+          "recordContentData" -> JsBoolean(data._1.recordContentData),
           "recordData" -> JsBoolean(data._1.recordData)
         ))
     }

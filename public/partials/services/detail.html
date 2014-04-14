@@ -114,18 +114,18 @@
 
     <div class="form-group">
         <div class="col-lg-4">
-            <label class="control-label"> Record Xml Data, Check this if you want to record Xml Request and Xml Response for this service:</label>
+            <label class="control-label"> Record content Data, Check this if you want to record XML, JSON or text Request and Response for this service:</label>
         </div>
 
         <div class="col-lg-4">
             <div class="radio">
                 <label>
-                    <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="yes" ng-checked="service.recordXmlData == 'yes'"> Yes
+                    <input type="radio" name="recordContentData" ng-model="service.recordContentData" value="yes" ng-checked="service.recordContentData == 'yes'"> Yes
                </label>
             </div>
             <div class="radio">
                <label>
-                    <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="no" ng-checked="service.recordXmlData == 'no'"> No
+                    <input type="radio" name="recordContentData" ng-model="service.recordContentData" value="no" ng-checked="service.recordContentData == 'no'"> No
                </label>
             </div>
         </div>
@@ -135,7 +135,7 @@
         <div class="col-lg-6">
             <label class="control-label"> Record Data, Check Yes this if you want to record Data (time, responseTime, etc...) on Request / Response for this
                 service. If it is unchecked, you can see requests on live page only and no stats are computed for this
-                service. You must check this if you want to record XML Data :</label>
+                service. You must check this if you want to record content Data :</label>
         </div>
         <div class="col-lg-6">
             <div class="radio">

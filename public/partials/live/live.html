@@ -42,7 +42,7 @@ Live status :
         <td ng-click="predicate = 'status'; reverse=!reverse">Status</td>
         <td ng-click="predicate = 'env'; reverse=!reverse">Environment</td>
         <td ng-click="predicate = 'sender'; reverse=!reverse">Sender</td>
-        <td ng-click="predicate = 'soapAction'; reverse=!reverse">ServiceAction</td>
+        <td ng-click="predicate = 'serviceAction'; reverse=!reverse">ServiceAction</td>
         <td ng-click="predicate = 'startTime'; reverse=!reverse">StartTime</td>
         <td ng-click="predicate = 'time'; reverse=!reverse">TimeInMillis</td>
         <td>Request</td>
@@ -56,7 +56,7 @@ Live status :
         </td>
         <td style="width: '100px'">{{ line.env }}</td>
         <td style="width: '100px'">{{ line.sender }}</td>
-        <td style="width: '100px'">{{ line.soapAction }}</td>
+        <td style="width: '100px'">{{ line.serviceAction }}</td>
         <td style="width: '200px'">{{ line.startTime }}</td>
         <td style="width: '100px'">{{ line.time }}</td>
         <td style="width: '80px'">

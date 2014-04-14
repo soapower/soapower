@@ -4,11 +4,12 @@ import play.api.mvc._
 import play.Logger
 import java.net.URLDecoder
 import play.api.libs.iteratee.Enumerator
-import models.{Mock, UtilConvert, Service, Client}
+import models._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.http.HeaderNames
+import play.api.mvc.SimpleResult
 
 object Rest extends Controller {
 
@@ -39,7 +40,8 @@ object Rest extends Controller {
           } else {
             // Get the correct URL for the redirection by parsing the call.
             val remoteTargetWithCall = getRemoteTargetWithCall(call, service.remoteTarget, service.localTarget)
-            var requestContentType= "None"
+            // The contentType is set to none by default
+            var contentType= "None"
             var requestContent = ""
 
             httpMethod match {
@@ -47,12 +49,14 @@ object Rest extends Controller {
                 // We decode the query
                 val queryString = URLDecoder.decode(request.rawQueryString, "UTF-8")
                 // The content of a GET or DELETE http request is the http method and the remote target call
-                requestContent = getRequestContent(httpMethod, remoteTargetWithCall, queryString)
+                requestContent = getRequestContent(remoteTargetWithCall, queryString)
+
 
               case "POST" | "PUT" =>
-                requestContentType = request.contentType.get
+                // The contentType is set to the content type of the request
+                contentType = request.contentType.get
                 // The request has a POST or a PUT http method so the request has a body in JSON or XML format
-                requestContentType match {
+                contentType match {
                   case "application/json" =>
                     requestContent = requestBody.asJson.get.toString
                   case "application/xml" | "text/xml" =>
@@ -69,7 +73,7 @@ object Rest extends Controller {
                 BadRequest(err)
             }
             // Forward the request
-            forwardRequest(requestContent, query, service, sender, headers, call, remoteTargetWithCall, requestContentType)
+            forwardRequest(requestContent, query, service, sender, headers, remoteTargetWithCall, contentType)
           }
       }.getOrElse {
         val err = "No REST services with the environment "+environment+" and the HTTP method "+httpMethod+" matches the call "+call
@@ -78,13 +82,45 @@ object Rest extends Controller {
       }
   }
 
-  def replay(requestData: Long) = Action {
-    val err = "Replay is not implemented yet for REST services"
-    Logger.error(err)
-    BadRequest(err)
+  def replay(requestId: Long) = Action {
+    implicit request =>
+      val requestData = RequestData.loadForREST(requestId)
+
+      // The http method is retrieved from the service
+      val headers = requestData.requestHeaders
+      val service = Service.findById(requestData.serviceId).get
+      val httpMethod = service.httpMethod
+      var requestContentType= "None"
+      var requestContent = ""
+
+      httpMethod match {
+        case "get" | "delete" =>
+          requestContent = getRequestContent(requestData.requestCall, "")
+        case "post" | "delete" =>
+          requestContentType = request.contentType.get
+          requestContentType match {
+            case "application/json" =>
+              request.body.asJson.get.toString
+            case "application/xml" | "text/xml" =>
+              requestContent = request.body.asXml.get.toString
+          }
+      }
+
+      val sender = requestData.sender
+      val requestCall = requestData.requestCall
+      val query = request.queryString.map{ case (k,v) =>  k ->  v.mkString }
+
+      Logger.debug("--------------------------------------------------------------------------------------------")
+      Logger.debug("SENDER : "+sender)
+      Logger.debug("HEADERS : "+headers.toString)
+      Logger.debug("REQUEST CALL : "+requestCall)
+      Logger.debug("QUERY : "+query)
+      Logger.debug("--------------------------------------------------------------------------------------------")
+
+    forwardRequest(requestContent, query, service, sender, headers, requestCall, requestContentType)
   }
 
-  def forwardRequest(content: String, query: Map[String, String], service: Service, sender: String, headers: Map[String,String], call: String, correctUrl:String,
+  def forwardRequest(content: String, query: Map[String, String], service: Service, sender: String, headers: Map[String,String], correctUrl:String,
                      requestContentType: String): SimpleResult = {
     val client = new Client(service, sender, content, headers, Service.REST, requestContentType)
     client.sendRestRequestAndWaitForResponse(service.httpMethod, correctUrl, query)
@@ -131,13 +167,12 @@ object Rest extends Controller {
 
   /**
    * Get the request content for a GET or DELETE request (the request content is just the method with the remote target and the potential query)
-   * @param method the HTTP method
    * @param remoteTargetWithCall the remote target with the correct call
    * @param queryString the query string
    * @return
    */
-  def getRequestContent(method: String, remoteTargetWithCall: String, queryString: String): String = {
-    var result = method + " " + remoteTargetWithCall
+  def getRequestContent(remoteTargetWithCall: String, queryString: String): String = {
+    var result = remoteTargetWithCall
     if(!queryString.isEmpty)
     {
       result += "?"+queryString

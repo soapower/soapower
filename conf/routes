@@ -15,10 +15,10 @@ GET           /admin/downloadRequestDataStatsEntries                            
 POST          /admin/uploadConfiguration                                                                 controllers.Admin.uploadConfiguration
 
 # Search page
-GET           /search/:group/:environment/:soapAction/:minDate/:maxDate/:status/listDatatable            controllers.Search.listDatatable(group, environment, soapAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
+GET           /search/:group/:environment/:serviceAction/:minDate/:maxDate/:status/listDatatable            controllers.Search.listDatatable(group, environment, serviceAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
-GET           /analysis/:group/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load        controllers.Analysis.load(group, environment, soapAction, minDate, maxDate, status, statsOnly)
+GET           /analysis/:group/:environment/:serviceAction/:minDate/:maxDate/:status/:statsOnly/load        controllers.Analysis.load(group, environment, serviceAction, minDate, maxDate, status, statsOnly)
 
 # Soap
 POST          /soap/:environment/*localTarget                                                            controllers.Soap.index(environment, localTarget)
@@ -67,21 +67,21 @@ POST          /groups/:id                                                       
 GET           /groups/:id                                                                                controllers.Groups.edit(id:Long)
 DELETE        /groups/:id                                                                                controllers.Groups.delete(id:Long)
 
-# SoapActions list
-GET           /soapactions/findall                                                                       controllers.ServiceActions.findAll
-GET           /soapactions/listDatatable                                                                 controllers.ServiceActions.listDatatable
+# ServiceActions list
+GET           /serviceactions/findall                                                                    controllers.ServiceActions.findAll
+GET           /serviceactions/listDatatable                                                              controllers.ServiceActions.listDatatable
 
-# Regeneration soapAction listDatatable
-GET           /soapactions/regenerate                                                                    controllers.ServiceActions.regenerate
+# Regeneration serviceAction listDatatable
+GET           /serviceactions/regenerate                                                                 controllers.ServiceActions.regenerate
 
-# Edit existing soapAction
-GET           /soapactions/:id                                                                           controllers.ServiceActions.edit(id:Long)
-POST          /soapactions/:id                                                                           controllers.ServiceActions.save(id:Long)
+# Edit existing serviceAction
+GET           /serviceactions/:id                                                                        controllers.ServiceActions.edit(id:Long)
+POST          /serviceactions/:id                                                                        controllers.ServiceActions.save(id:Long)
 
 # Status list
 GET           /status/findall                                                                            controllers.Status.findAll
 
-# Statistics on SoapActions by environments
+# Statistics on ServiceActions by environments
 GET           /statsAsJunit/:group/:minDate/:maxDate/                                                    controllers.Stats.statsAsJunit(group, minDate, maxDate)
 GET           /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable                         controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
 

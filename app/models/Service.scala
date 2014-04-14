@@ -17,7 +17,7 @@ case class Service(
   localTarget: String,
   remoteTarget: String,
   timeoutms: Long,
-  recordXmlData: Boolean,
+  recordContentData: Boolean,
   recordData: Boolean,
   useMockGroup: Boolean,
   environmentId: Long,
@@ -53,20 +53,20 @@ object Service {
     get[String]("service.localTarget") ~
     get[String]("service.remoteTarget") ~
     get[Long]("service.timeoutms") ~
-    get[String]("service.recordXmlData") ~
+    get[String]("service.recordContentData") ~
     get[String]("service.recordData") ~
     get[String]("service.useMockGroup") ~
     get[Long]("service.environment_id") ~
     get[Long]("service.mockGroupId") map {
-      case id ~ typeRequest ~ httpMethod ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ useMockGroup ~ environmentId ~ mockGroupId =>
-        Service(id, typeRequest, httpMethod, description, localTarget, remoteTarget, timeoutms, (recordXmlData == "true"), (recordData == "true"), (useMockGroup == "true"), environmentId, mockGroupId)
+      case id ~ typeRequest ~ httpMethod ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordContentData ~ recordData ~ useMockGroup ~ environmentId ~ mockGroupId =>
+        Service(id, typeRequest, httpMethod, description, localTarget, remoteTarget, timeoutms, (recordContentData == "true"), (recordData == "true"), (useMockGroup == "true"), environmentId, mockGroupId)
     }
   }
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "typeRequest" -> 2, "description" -> 3, "localTarget" -> 4, "remoteTarget" -> 5, "timeoutms" -> 6, "recordXmlData" -> 7, "recordData" -> 8, "environmentName" -> 9, "mockGroupName" -> 10)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "typeRequest" -> 2, "description" -> 3, "localTarget" -> 4, "remoteTarget" -> 5, "timeoutms" -> 6, "recordContentData" -> 7, "recordData" -> 8, "environmentName" -> 9, "mockGroupName" -> 10)
 
   val csvKey = "service";
 
@@ -80,13 +80,13 @@ object Service {
       get[String]("service.localTarget") ~
       get[String]("service.remoteTarget") ~
       get[Long]("service.timeoutms") ~
-      get[String]("service.recordXmlData") ~
+      get[String]("service.recordContentData") ~
       get[String]("service.recordData") ~
       get[String]("service.useMockGroup") ~
       get[String]("environment.name") ~
       get[String]("mock_group.name") map {
-        case id ~ typeRequest ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordXmlData ~ recordData ~ useMockGroup ~ environmentName ~ mockGroupName =>
-          id + ";" + typeRequest + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + recordXmlData + ";" + recordData + ";" + useMockGroup + ";" + environmentName + ";" + mockGroupName + "\n"
+        case id ~ typeRequest ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordContentData ~ recordData ~ useMockGroup ~ environmentName ~ mockGroupName =>
+          id + ";" + typeRequest + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + recordContentData + ";" + recordData + ";" + useMockGroup + ";" + environmentName + ";" + mockGroupName + "\n"
       }
   }
 
@@ -206,8 +206,8 @@ object Service {
           SQL(
             """
             insert into service 
-              (description, typeRequest, httpMethod, localTarget, remoteTarget, timeoutms, recordXmlData, recordData, useMockGroup, environment_id, mockGroupId) values (
-              {description}, {typeRequest}, {httpMethod}, {localTarget}, {remoteTarget}, {timeoutms}, {recordXmlData}, {recordData}, {useMockGroup}, {environment_id}, {mockGroupId}
+              (description, typeRequest, httpMethod, localTarget, remoteTarget, timeoutms, recordContentData, recordData, useMockGroup, environment_id, mockGroupId) values (
+              {description}, {typeRequest}, {httpMethod}, {localTarget}, {remoteTarget}, {timeoutms}, {recordContentData}, {recordData}, {useMockGroup}, {environment_id}, {mockGroupId}
             )
             """).on(
               'typeRequest -> service.typeRequest,
@@ -216,7 +216,7 @@ object Service {
               'localTarget -> localTarget,
               'remoteTarget -> service.remoteTarget,
               'timeoutms -> service.timeoutms,
-              'recordXmlData -> service.recordXmlData.toString,
+              'recordContentData -> service.recordContentData.toString,
               'recordData -> service.recordData.toString,
               'useMockGroup -> service.useMockGroup.toString,
               'environment_id -> service.environmentId,
@@ -255,7 +255,7 @@ object Service {
           localTarget = {localTarget}, 
           remoteTarget = {remoteTarget}, 
           timeoutms = {timeoutms},
-          recordXmlData = {recordXmlData},
+          recordContentData = {recordContentData},
           recordData = {recordData},
           useMockGroup = {useMockGroup},
           environment_id = {environmentId},
@@ -269,7 +269,7 @@ object Service {
             'localTarget -> checkLocalTarget(service.localTarget),
             'remoteTarget -> service.remoteTarget,
             'timeoutms -> service.timeoutms,
-            'recordXmlData -> service.recordXmlData.toString,
+            'recordContentData -> service.recordContentData.toString,
             'recordData -> service.recordData.toString,
             'useMockGroup -> service.useMockGroup.toString,
             'environmentId -> service.environmentId,
@@ -413,7 +413,7 @@ object Service {
         dataCsv(csvTitle.get("localTarget").get).trim,
         dataCsv(csvTitle.get("remoteTarget").get).trim,
         dataCsv(csvTitle.get("timeoutms").get).toLong,
-        (dataCsv(csvTitle.get("recordXmlData").get).trim == "true"),
+        (dataCsv(csvTitle.get("recordContentData").get).trim == "true"),
         (dataCsv(csvTitle.get("recordData").get).trim == "true"),
         (dataCsv(csvTitle.get("useMockGroup").get).trim == "true"),
         environment.id,

@@ -7,7 +7,7 @@ import play.api.mvc._
 
 object ServiceActions extends Controller {
 
-  implicit val soapActionFormat = Json.format[SoapAction]
+  implicit val serviceActionFormat = Json.format[ServiceAction]
 
   /**
    * List to Datable table.
@@ -16,7 +16,7 @@ object ServiceActions extends Controller {
    */
   def listDatatable = Action {
     implicit request =>
-      val data = SoapAction.list
+      val data = ServiceAction.list
       Ok(Json.toJson(Map(
         "iTotalRecords" -> Json.toJson(data.size),
         "iTotalDisplayRecords" -> Json.toJson(data.size),
@@ -30,9 +30,9 @@ object ServiceActions extends Controller {
    * @param id Id of the serviceAction to edit
    */
   def edit(id: Long) = Action {
-    SoapAction.findById(id).map {
-      soapAction =>
-        Ok(Json.toJson(soapAction)).as(JSON)
+    ServiceAction.findById(id).map {
+      serviceAction =>
+        Ok(Json.toJson(serviceAction)).as(JSON)
     }.getOrElse(NotFound)
   }
 
@@ -41,10 +41,10 @@ object ServiceActions extends Controller {
    */
   def save(id: Long) = Action(parse.json) {
     request =>
-      request.body.validate(soapActionFormat).map {
-        soapAction =>
-          SoapAction.update(soapAction)
-          Ok(Json.toJson("Succesfully save soapAction."))
+      request.body.validate(serviceActionFormat).map {
+        serviceAction =>
+          ServiceAction.update(serviceAction)
+          Ok(Json.toJson("Succesfully save serviceAction."))
       }.recoverTotal {
         e => BadRequest("Detected error:" + JsError.toFlatJson(e))
       }
@@ -56,17 +56,17 @@ object ServiceActions extends Controller {
    */
   def findAll = Action {
     implicit request =>
-      val data = SoapAction.list
+      val data = ServiceAction.list
       Ok(Json.toJson(data)).as(JSON)
   }
 
   def regenerate() = Action {
     implicit request =>
-      RequestData.soapActionOptions.foreach {
-        soapAction =>
-          if (SoapAction.findByName(soapAction._1) == None) {
+      RequestData.serviceActionOptions.foreach {
+        serviceAction =>
+          if (ServiceAction.findByName(serviceAction._1) == None) {
             Logger.debug("ServiceAction not found. Insert in db")
-            SoapAction.insert(new SoapAction(-1, soapAction._1, 30000))
+            ServiceAction.insert(new ServiceAction(-1, serviceAction._1, 30000))
           } else {
             Logger.debug("ServiceAction found. Do nothing.")
           }

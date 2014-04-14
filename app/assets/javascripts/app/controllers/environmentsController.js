@@ -45,7 +45,7 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, UISer
     Environment.get({environmentId: $routeParams.environmentId}, function (environment) {
         self.original = environment;
         $scope.environment = new Environment(self.original);
-        $scope.environment.recordXmlData = UIService.fixBooleanReverse($scope.environment.recordXmlData);
+        $scope.environment.recordContentData = UIService.fixBooleanReverse($scope.environment.recordContentData);
         $scope.environment.recordData = UIService.fixBooleanReverse($scope.environment.recordData);
         GroupsService.findAllAndSelect($scope, null, null, $scope.environment, false);
     });
@@ -76,17 +76,18 @@ function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
     GroupsService.findAllAndSelect($scope, null, null, null, false);
 
     $scope.environment = new Environment({id: '-1'});
-    $scope.environment.hourRecordXmlDataMin = 6;
-    $scope.environment.hourRecordXmlDataMax = 22;
-    $scope.environment.nbDayKeepXmlData = 2;
+    $scope.environment.hourRecordContentDataMin = 6;
+    $scope.environment.hourRecordContentDataMax = 22;
+    $scope.environment.nbDayKeepContentData = 2;
     $scope.environment.nbDayKeepAllData = 4;
-    $scope.environment.recordXmlData = "yes";
+    $scope.environment.recordContentData = "yes";
     $scope.environment.recordData = "yes";
 
     $scope.save = function () {
         $scope.environment.update(function () {
             $location.path('/environments/');
         }, function (response) { // error case
+            console.log(response);
             alert(response.data);
         });
     }
