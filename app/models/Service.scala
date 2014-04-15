@@ -66,7 +66,7 @@ object Service {
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "typeRequest" -> 2, "description" -> 3, "localTarget" -> 4, "remoteTarget" -> 5, "timeoutms" -> 6, "recordContentData" -> 7, "recordData" -> 8, "environmentName" -> 9, "mockGroupName" -> 10)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "typeRequest" -> 2, "httpMethod"-> 3, "description" -> 4, "localTarget" -> 5, "remoteTarget" -> 6, "timeoutms" -> 7, "recordContentData" -> 8, "recordData" -> 9, "environmentName" -> 10, "mockGroupName" -> 11)
 
   val csvKey = "service";
 
@@ -76,6 +76,7 @@ object Service {
   val csv = {
 		  get[Long]("service.id") ~
       get[String]("service.typeRequest") ~
+      get[String]("service.httpMethod") ~
       get[String]("service.description") ~
       get[String]("service.localTarget") ~
       get[String]("service.remoteTarget") ~
@@ -85,8 +86,8 @@ object Service {
       get[String]("service.useMockGroup") ~
       get[String]("environment.name") ~
       get[String]("mock_group.name") map {
-        case id ~ typeRequest ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordContentData ~ recordData ~ useMockGroup ~ environmentName ~ mockGroupName =>
-          id + ";" + typeRequest + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + recordContentData + ";" + recordData + ";" + useMockGroup + ";" + environmentName + ";" + mockGroupName + "\n"
+        case id ~ typeRequest ~ httpMethod ~ description ~ localTarget ~ remoteTarget ~ timeoutms ~ recordContentData ~ recordData ~ useMockGroup ~ environmentName ~ mockGroupName =>
+          id + ";" + typeRequest + ";" + httpMethod + ";" + description + ";" + localTarget + ";" + remoteTarget + ";" + timeoutms + ";" + recordContentData + ";" + recordData + ";" + useMockGroup + ";" + environmentName + ";" + mockGroupName + "\n"
       }
   }
 
@@ -104,8 +105,6 @@ object Service {
   private val cacheKey = "servicekey-"
 
   private val cacheKeyServiceById = "servicekeybyid-"
-
-  private val cacheKeyServiceByMethod = "servicekeybymethod-"
 
   // -- Queries
 
