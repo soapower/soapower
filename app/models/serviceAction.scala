@@ -8,6 +8,7 @@ import play.api._
 import anorm._
 import anorm.SqlParser._
 
+
 case class ServiceAction(id: Long, name: String, thresholdms: Long)
 
 object ServiceAction {

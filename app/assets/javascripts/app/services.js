@@ -92,34 +92,32 @@ spApp.factory("MockGroupsService", function ($http) {
 });
 
 
-/*************************************** */
-/*************************************** */
-/*************************************** */
-/*************************************** */
-/*************************************** */
-
+/***************************************
+ *  MOCKS
+ ***************************************/
 spApp.factory('Mock', function ($resource) {
-    var Mock = $resource('/mocks/:mockId',
-        { mockId: '@id'},
-        { update: {method: 'POST'} }
+    var Service = $resource('/mocks/:mockGroupName/:mockId',
+        { mockGroupName: '@mockGroupName', mockId: '@_id.$oid'},
+        { update: {method: 'PUT'},
+            create: {method: 'POST'}}
     );
+    return Service;
+});
 
-    Mock.prototype.update = function (cb, cbError) {
-        this.id = parseInt(this.id);
-        this.mockGroupId = parseInt(this.mockGroup.id);
-
-        return Mock.update({mockId: this.id},
-            angular.extend({}, this, {mockId: undefined}), cb, cbError);
-    };
-
-    Mock.prototype.destroy = function (cb, cbError) {
-        return Mock.remove({mockId: this.id}, cb, cbError);
-    };
-
-    return Mock;
+spApp.factory("MocksService", function ($http) {
+    return {
+        findAll: function (mockGroupId) {
+            return $http.get('/mocks/' + mockGroupId + '/findall');
+        }
+    }
 });
 
 
+/*************************************** */
+/*************************************** */
+/*************************************** */
+/*************************************** */
+/*************************************** */
 
 spApp.factory('Group', function ($resource) {
 
@@ -175,14 +173,6 @@ spApp.factory("AnalysisService", function ($http) {
     return {
         findAll: function () {
             return $http.get('/serviceactions/listDatatable');
-        }
-    }
-});
-
-spApp.factory("MocksService", function ($http) {
-    return {
-        findAll: function (mockGroup) {
-            return $http.get('/mocks/' + mockGroup + '/listDatatable');
         }
     }
 });

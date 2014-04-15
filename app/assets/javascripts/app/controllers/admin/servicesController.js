@@ -102,16 +102,13 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
     $scope.types = [
         'soap',
         'rest'
-    ]
+    ];
     $scope.methods = [
         'post',
         'get',
         'put',
         'delete'
     ];
-
-    $scope.service.typeRequest = $scope.types[0];
-    $scope.service.httpMethod = $scope.methods[0];
 
     $scope.$watch('service.typeRequest', function(newValue) {
         if(newValue == 'soap')
@@ -120,13 +117,14 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
         }
     });
 
-
     $scope.service = new Service();
     $scope.service.useMockGroup = false;
     $scope.service.timeoutms = 60000;
     $scope.service.recordXmlData = true;
     $scope.service.recordData = true;
     $scope.service.environmentName = $routeParams.environmentName;
+    $scope.service.typeRequest = $scope.types[0];
+    $scope.service.httpMethod = $scope.methods[0];
 
     MockGroupsService.findAll("all").success(function (mockGroups) {
         $scope.mockGroups = mockGroups.data;
