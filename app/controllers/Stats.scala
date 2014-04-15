@@ -14,7 +14,7 @@ object Stats extends Controller {
       JsObject(
         List(
           "env" -> JsString(data._1),
-          "soapAction" -> JsString(data._2),
+          "serviceAction" -> JsString(data._2),
           "avgTime" -> JsNumber(data._3),
           "threshold" -> JsNumber(data._4)))
     }
@@ -23,14 +23,14 @@ object Stats extends Controller {
   def listDataTable(groupName: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String, status: String) = Action {
     implicit request =>
     // load thresholds
-      val thresholdsBySoapActions = SoapAction.loadAll().map(action => (action.name, action.thresholdms)).toMap
+      val thresholdsByServiceActions = ServiceAction.loadAll().map(action => (action.name, action.thresholdms)).toMap
 
       // compute average response times
       val minDate = getDate(minDateAsStr).getTime()
       val maxDate = getDate(maxDateAsStr, v23h59min59s).getTime()
       val avgResponseTimesByAction = RequestData.loadAvgResponseTimesByAction(groupName, environmentName, status, minDate, maxDate, true)
 
-      val data = avgResponseTimesByAction.map(d => (environmentName, d._1, d._2, thresholdsBySoapActions.getOrElse[Long](d._1, -1)))
+      val data = avgResponseTimesByAction.map(d => (environmentName, d._1, d._2, thresholdsByServiceActions.getOrElse[Long](d._1, -1)))
 
       Ok(Json.toJson(Map(
         "iTotalRecords" -> Json.toJson(data.size),
@@ -41,13 +41,13 @@ object Stats extends Controller {
   def statsAsJunit(groupName: String, minDateAsStr: String, maxDateAsStr: String) = Action {
     val minDate = getDate(minDateAsStr).getTime()
     val maxDate = getDate(maxDateAsStr, v23h59min59s).getTime()
-    val thresholdsBySoapActions = SoapAction.loadAll().map(action => (action.name, action.thresholdms)).toMap
+    val thresholdsByServiceActions = ServiceAction.loadAll().map(action => (action.name, action.thresholdms)).toMap
 
     var ret = ""
     Environment.options.foreach {
       e =>
         val avgResponseTimesByAction = RequestData.loadAvgResponseTimesByAction(groupName, e._1, "200", minDate, maxDate, true)
-        val data = avgResponseTimesByAction.map(d => (d._1, d._2, thresholdsBySoapActions.getOrElse[Long](d._1, -1)))
+        val data = avgResponseTimesByAction.map(d => (d._1, d._2, thresholdsByServiceActions.getOrElse[Long](d._1, -1)))
 
         ret += "<testsuite name=\"" + e._2 + "\">"
         data.foreach {

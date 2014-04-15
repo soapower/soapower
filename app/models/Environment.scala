@@ -18,16 +18,16 @@ import reactivemongo.api.collections.default.BSONCollection
 case class Environment(_id: Option[BSONObjectID],
                        name: String,
                        groups: List[String],
-                       hourRecordXmlDataMin: Int = 8,
-                       hourRecordXmlDataMax: Int = 22,
-                       nbDayKeepXmlData: Int = 2,
+                       hourRecordContentDataMin: Int = 8,
+                       hourRecordContentDataMax: Int = 22,
+                       nbDayKeepContentData: Int = 2,
                        nbDayKeepAllData: Int = 5,
-                       recordXmlData: Boolean = true,
+                       recordContentData: Boolean = true,
                        recordData: Boolean = true)
 
 object ModePurge extends Enumeration {
   type ModePurge = Value
-  val XML, ALL = Value
+  val CONTENT, ALL = Value
 }
 
 object Environment {
@@ -45,11 +45,11 @@ object Environment {
         doc.getAs[BSONObjectID]("_id"),
         doc.getAs[String]("name").get,
         doc.getAs[List[String]]("groups").toList.flatten,
-        doc.getAs[Int]("hourRecordXmlDataMin").get,
-        doc.getAs[Int]("hourRecordXmlDataMax").get,
-        doc.getAs[Int]("nbDayKeepXmlData").get,
+        doc.getAs[Int]("hourRecordContentDataMin").get,
+        doc.getAs[Int]("hourRecordContentDataMax").get,
+        doc.getAs[Int]("nbDayKeepContentData").get,
         doc.getAs[Int]("nbDayKeepAllData").get,
-        doc.getAs[Boolean]("recordXmlData").get,
+        doc.getAs[Boolean]("recordContentData").get,
         doc.getAs[Boolean]("recordData").get
       )
     }
@@ -60,11 +60,11 @@ object Environment {
       BSONDocument(
         "_id" -> environment._id,
         "name" -> BSONString(environment.name),
-        "hourRecordXmlDataMin" -> BSONInteger(environment.hourRecordXmlDataMin),
-        "hourRecordXmlDataMax" -> BSONInteger(environment.hourRecordXmlDataMax),
-        "nbDayKeepXmlData" -> BSONInteger(environment.nbDayKeepXmlData),
+        "hourRecordContentDataMin" -> BSONInteger(environment.hourRecordContentDataMin),
+        "hourRecordContentDataMax" -> BSONInteger(environment.hourRecordContentDataMax),
+        "nbDayKeepContentData" -> BSONInteger(environment.nbDayKeepContentData),
         "nbDayKeepAllData" -> BSONInteger(environment.nbDayKeepAllData),
-        "recordXmlData" -> BSONBoolean(environment.recordXmlData),
+        "recordContentData" -> BSONBoolean(environment.recordContentData),
         "recordData" -> BSONBoolean(environment.recordData),
         "groups" -> environment.groups)
   }
@@ -75,7 +75,7 @@ object Environment {
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groups" -> 3, "hourRecordXmlDataMin" -> 4, "hourRecordXmlDataMax" -> 5, "nbDayKeepXmlData" -> 6, "nbDayKeepAllData" -> 7, "recordXmlData" -> 8, "recordData" -> 9)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groups" -> 3, "hourRecordContentDataMin" -> 4, "hourRecordContentDataMax" -> 5, "nbDayKeepContentData" -> 6, "nbDayKeepAllData" -> 7, "recordContentData" -> 8, "recordData" -> 9)
 
   val csvKey = "environment"
 
@@ -83,7 +83,7 @@ object Environment {
    * Csv format.
    */
   def csv(e: Environment) = {
-    csvKey + ";" + e._id.get.stringify + ";" + e.name + ";" + e.groups.mkString("|") + ";" + e.hourRecordXmlDataMin + ";" + e.hourRecordXmlDataMax + ";" + e.nbDayKeepXmlData + ";" + e.nbDayKeepAllData + ";" + e.recordXmlData + ";" + e.recordData + "\n"
+    csvKey + ";" + e._id.get.stringify + ";" + e.name + ";" + e.groups.mkString("|") + ";" + e.hourRecordContentDataMin + ";" + e.hourRecordContentDataMax + ";" + e.nbDayKeepContentData + ";" + e.nbDayKeepAllData + ";" + e.recordContentData + ";" + e.recordData + "\n"
   }
 
   /**
@@ -207,7 +207,6 @@ object Environment {
     }) {
       throw new Exception("Environment with name " + environment.name.trim + " already exist")
     }
-
     clearCache
     collection.insert(environment)
   }
@@ -233,15 +232,14 @@ object Environment {
     val modifier = BSONDocument(
       "$set" -> BSONDocument(
         "name" -> environment.name,
-        "hourRecordXmlDataMin" -> environment.hourRecordXmlDataMin,
-        "hourRecordXmlDataMax" -> environment.hourRecordXmlDataMax,
-        "nbDayKeepXmlData" -> environment.nbDayKeepXmlData,
+        "hourRecordContentDataMin" -> environment.hourRecordContentDataMin,
+        "hourRecordContentDataMax" -> environment.hourRecordContentDataMax,
+        "nbDayKeepContentData" -> environment.nbDayKeepContentData,
         "nbDayKeepAllData" -> environment.nbDayKeepAllData,
-        "recordXmlData" -> environment.recordXmlData,
+        "recordContentData" -> environment.recordContentData,
         "recordData" -> environment.recordData,
         "groups" -> environment.groups)
     )
-
     clearCache
     collection.update(selector, modifier)
   }
@@ -305,7 +303,7 @@ object Environment {
             val result = RequestData.loadAvgResponseTimesByAction("all", e._1, "200", minDate, maxDate, false)
             result.foreach {
               (r) =>
-                Logger.debug("call insertStats env:" + e._2 + " SoapAction:" + r._1 + " timeAverage:" + r._2 + " date:" + minDate)
+                Logger.debug("call insertStats env:" + e._2 + " ServiceAction:" + r._1 + " timeAverage:" + r._2 + " date:" + minDate)
                 RequestData.insertStats(e._1.toLong, r._1, minDate, r._2)
             }
         }
@@ -314,8 +312,8 @@ object Environment {
 
   import ModePurge._
 
-  def purgeXmlData() {
-    purgeData(ModePurge.XML)
+  def purgeContentData() {
+    purgeData(ModePurge.CONTENT)
   }
 
   def purgeAllData() {
@@ -337,15 +335,15 @@ object Environment {
         var nbDay = 100
 
         val maxDate = new GregorianCalendar
-        if (mode == ModePurge.XML)
-          nbDay = env.nbDayKeepXmlData
+        if (mode == ModePurge.CONTENT)
+          nbDay = env.nbDayKeepContentData
         else
           nbDay = env.nbDayKeepAllData
 
         maxDate.setTimeInMillis(today.getTimeInMillis - UtilDate.v1d * nbDay)
         Logger.debug("Purge env: " + env.name + " NbDaysKeep: " + nbDay + " MinDate:" + minDate + " MaxDate:" + maxDate.getTime)
         val user = "Soapower Akka Scheduler (keep " + mode + " data for " + nbDay + " days for this env " + env.name + ")"
-        if (mode == ModePurge.XML)
+        if (mode == ModePurge.CONTENT)
           purgedRequests += RequestData.deleteRequestResponse(env.name, minDate, maxDate.getTime, user)
         else
           purgedRequests += RequestData.delete(env.name, minDate, maxDate.getTime)
@@ -385,6 +383,7 @@ object Environment {
   private def uploadEnvironment(dataCsv: Array[String]) = {
 
     val name = dataCsv(csvTitle.get("name").get)
+
     Logger.debug("upload environment:" + name)
 
     findByName(name).map {
@@ -394,11 +393,11 @@ object Environment {
           val newEnvironment = new Environment(Some(BSONObjectID.generate),
             dataCsv(csvTitle.get("name").get).trim,
             dataCsv(csvTitle.get("groups").get).split('|').toList, // single quote of split is important
-            dataCsv(csvTitle.get("hourRecordXmlDataMin").get).toInt,
-            dataCsv(csvTitle.get("hourRecordXmlDataMax").get).toInt,
-            dataCsv(csvTitle.get("nbDayKeepXmlData").get).toInt,
+            dataCsv(csvTitle.get("hourRecordContentDataMin").get).toInt,
+            dataCsv(csvTitle.get("hourRecordContentDataMax").get).toInt,
+            dataCsv(csvTitle.get("nbDayKeepContentData").get).toInt,
             dataCsv(csvTitle.get("nbDayKeepAllData").get).toInt,
-            dataCsv(csvTitle.get("recordXmlData").get).trim == "true",
+            dataCsv(csvTitle.get("recordContentData").get).trim == "true",
             dataCsv(csvTitle.get("recordData").get).trim == "true"
           )
           insert(newEnvironment).map {

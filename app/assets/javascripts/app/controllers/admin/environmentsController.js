@@ -86,11 +86,11 @@ function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
     });
 
     $scope.environment = new Environment();
-    $scope.environment.hourRecordXmlDataMin = 6;
-    $scope.environment.hourRecordXmlDataMax = 22;
-    $scope.environment.nbDayKeepXmlData = 2;
+    $scope.environment.hourRecordContentDataMin = 6;
+    $scope.environment.hourRecordContentDataMax = 22;
+    $scope.environment.nbDayKeepContentData = 2;
     $scope.environment.nbDayKeepAllData = 4;
-    $scope.environment.recordXmlData = true;
+    $scope.environment.recordContentData = true;
     $scope.environment.recordData = true;
     $scope.environment.groups = [];
 
@@ -98,6 +98,7 @@ function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
         $scope.environment.$create(function () {
             $location.path('/environments/');
         }, function (response) { // error case
+            console.log(response);
             alert(response.data);
         });
     };

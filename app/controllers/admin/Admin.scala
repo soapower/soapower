@@ -29,8 +29,8 @@ object Admin extends Controller {
                   Service.upload(line)
                 } else if (line.startsWith(Environment.csvKey)) {
                   Environment.upload(line)
-                } else if (line.startsWith(SoapAction.csvKey)) {
-                  SoapAction.upload(line)
+                } else if (line.startsWith(ServiceAction.csvKey)) {
+                  ServiceAction.upload(line)
                 } else if (line.startsWith(RequestData.csvKey)) {
                   RequestData.upload(line)
                 }
@@ -58,8 +58,8 @@ object Admin extends Controller {
       case (k, v) => content += k + ";"
     }
     content = content.dropRight(1) + "\n" // delete last ; and add new line
-    content += "#for key " + SoapAction.csvKey + "\n"
-    SoapAction.csvTitle.toList.sortBy(_._2).foreach {
+    content += "#for key " + ServiceAction.csvKey + "\n"
+    ServiceAction.csvTitle.toList.sortBy(_._2).foreach {
       case (k, v) => content += k + ";"
     }
     content = content.dropRight(1) + "\n"
@@ -82,10 +82,10 @@ object Admin extends Controller {
       for {
         environments <- Environment.fetchCsv() // Environment.fetchCsv
         // TODO
-        soapActions <- Environment.fetchCsv() // SoapAction.fetchCsv
+        servicesActions <- Environment.fetchCsv() // ServiceAction.fetchCsv
         mockGroups <- Environment.fetchCsv() // MockGroup.fetchCsv
         services <- Environment.fetchCsv() // Service.fetchCsv
-      } yield combine(environments ++ soapActions ++ mockGroups ++ services)
+      } yield combine(environments ++ serviceActions ++ mockGroups ++ services)
     }
 
     // result as a file
@@ -123,6 +123,9 @@ object Admin extends Controller {
   implicit val adminFormat = Json.format[AdminForm]
 
   def delete = Action(parse.json) {
+        ???
+        //TODO
+        /*
     request =>
       request.body.validate(adminFormat).map {
         adminForm =>
@@ -136,5 +139,6 @@ object Admin extends Controller {
       }.recoverTotal {
         e => Ok(toJson("error", "Detected error:" + JsError.toFlatJson(e))).as(JSON)
       }
+      */
   }
 }

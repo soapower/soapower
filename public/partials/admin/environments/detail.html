@@ -30,29 +30,29 @@
         </div>
     </div>
 
-    <div class="form-group" ng-class="{error: myForm.hourRecordXmlDataMin.$invalid}">
-        <label for="hourRecordXmlDataMin" class="col-lg-2 control-label">Start Record Hour</label>
+    <div class="form-group" ng-class="{error: myForm.hourRecordContentDataMin.$invalid}">
+        <label for="hourRecordContentDataMin" class="col-lg-2 control-label">Start Record Hour</label>
         <div class="col-lg-4">
-            <input class="form-control" type="number" id="hourRecordXmlDataMin" name="hourRecordXmlDataMin" ng-model="environment.hourRecordXmlDataMin"
+            <input class="form-control" type="number" id="hourRecordContentDataMin" name="hourRecordContentDataMin" ng-model="environment.hourRecordContentDataMin"
                     required>
-            <span ng-show="myForm.hourRecordXmlDataMin.$error.required" class="label label-danger">Required</span>
+            <span ng-show="myForm.hourRecordContentDataMin.$error.required" class="label label-danger">Required</span>
         </div>
     </div>
 
-    <div class="form-group" ng-class="{error: myForm.hourRecordXmlDataMax.$invalid}">
-        <label for="hourRecordXmlDataMax" class="col-lg-2 control-label">End Record Hour</label>
+    <div class="form-group" ng-class="{error: myForm.hourRecordContentDataMax.$invalid}">
+        <label for="hourRecordContentDataMax" class="col-lg-2 control-label">End Record Hour</label>
         <div class="col-lg-4">
-            <input class="form-control" type="number" id="hourRecordXmlDataMax" name="hourRecordXmlDataMax" ng-model="environment.hourRecordXmlDataMax"
+            <input class="form-control" type="number" id="hourRecordContentDataMax" name="hourRecordContentDataMax" ng-model="environment.hourRecordContentDataMax"
                     required>
-            <span ng-show="myForm.hourRecordXmlDataMax.$error.required" class="label label-danger">Required</span>
+            <span ng-show="myForm.hourRecordContentDataMax.$error.required" class="label label-danger">Required</span>
         </div>
     </div>
 
-    <div class="form-group" ng-class="{error: myForm.nbDayKeepXmlData.$invalid}">
-        <label for="nbDayKeepXmlData" class="col-lg-2 control-label">Xml Data : Nb days keep</label>
+    <div class="form-group" ng-class="{error: myForm.nbDayKeepContentData.$invalid}">
+        <label for="nbDayKeepContentData" class="col-lg-2 control-label">Xml Data : Nb days keep</label>
         <div class="col-lg-4">
-            <input class="form-control" type="number" id="nbDayKeepXmlData" name="nbDayKeepXmlData" ng-model="environment.nbDayKeepXmlData" required>
-            <span ng-show="myForm.nbDayKeepXmlData.$error.required" class="label label-danger">Required</span>
+            <input class="form-control" type="number" id="nbDayKeepContentData" name="nbDayKeepContentData" ng-model="environment.nbDayKeepContentData" required>
+            <span ng-show="myForm.nbDayKeepContentData.$error.required" class="label label-danger">Required</span>
         </div>
     </div>
 
@@ -66,7 +66,7 @@
 
     <div class="form-group">
         <div class="col-lg-4">
-            <label class="control-label"> Record Xml Data, Check this if you want to record Xml Request and Xml Response for
+            <label class="control-label"> Record Content Data, Check this if you want to record Request (in XML, JSON or text format) and Response for
                 ALL services attached to this environment: </label>
             </label>
         </div>
@@ -74,12 +74,12 @@
         <div class="col-lg-4">
             <div class="radio">
                 <label>
-                    <input type="radio" name="recordXmlData" ng-model="environment.recordXmlData" ng-value="true" ng-checked="environment.recordXmlData == true"> Yes
+                    <input type="radio" name="recordContentData" ng-model="environment.recordContentData" ng-value="true" ng-checked="environment.recordContentData == true"> Yes
                 </label>
             </div>
             <div class="radio">
                 <label>
-                    <input type="radio" name="recordXmlData" ng-model="environment.recordXmlData" ng-value="false" ng-checked="environment.recordXmlData == false"> No
+                    <input type="radio" name="recordContentData" ng-model="environment.recordContentData" ng-value="false" ng-checked="environment.recordContentData == false"> No
                 </label>
             </div>
         </div>
@@ -91,7 +91,7 @@
             <label class="control-label"> Record Data, Check this if you want to record Data (startTime, responseTime,
                 etc...) on Request for ALL services attached to this environment. If it is unchecked, you can see requests
                 on live page only and no stats are computed for this environment. You must check this if you want to record
-                XML Data : </label>
+                Content Data : </label>
         </div>
 
         <div class="col-lg-4">

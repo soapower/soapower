@@ -3,19 +3,19 @@ function AnalysisCtrl($scope, $rootScope, $routeParams, $http, UIService) {
 
     var groups = $routeParams.groups ? $routeParams.groups : 'all';
     var environment = $routeParams.environment ? $routeParams.environment : 'all';
-    var soapaction = $routeParams.soapaction ? $routeParams.soapaction : 'all';
+    var serviceaction = $routeParams.serviceaction ? $routeParams.serviceaction : 'all';
     var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
     var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
     var code = $routeParams.code ? $routeParams.code : 'all';
     var url = '/analysis/' + groups +
         '/' + environment +
-        '/' + encodeURIComponent(soapaction) +
+        '/' + encodeURIComponent(serviceaction) +
         '/' + mindate +
         '/' + maxdate +
         '/' + code +
         '/true/load?call=' + new Date();
 
-    ///analysis/:environment/:soapAction/:minDate/:maxDate/:status/:statsOnly/load
+    ///analysis/:environment/:serviceAction/:minDate/:maxDate/:status/:statsOnly/load
 
     $http({
         method: 'GET',

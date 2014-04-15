@@ -24,11 +24,13 @@ import reactivemongo.core.commands.RawCommand
 case class RequestData(
                         id: Option[BSONObjectID],
                         sender: String,
-                        var soapAction: String,
+                        var serviceAction: String,
                         environmentName: String,
                         serviceId: String,
                         var request: String,
                         var requestHeaders: Map[String, String],
+                        var contentType: String,
+                        var requestCall: String,
                         startTime: Date,
                         var response: String,
                         var responseHeaders: Map[String, String],
@@ -39,22 +41,23 @@ case class RequestData(
 
   var responseBytes: Array[Byte] = null
 
-  def this(sender: String, soapAction: String, environnmentName: String, serviceId: String) =
-    this(Some(BSONObjectID.generate), sender, soapAction, environnmentName, serviceId, null, null, new Date, null, null, -1, -1, false, false)
+
+  def this(sender: String, serviceAction: String, environnmentName: String, serviceId: String, contentType: String) =
+    this(Some(BSONObjectID.generate), sender, serviceAction, environnmentName, serviceId, null, null, contentType, null, new Date, null, null, -1, -1, false, false)
 
   /**
-   * Add soapAction in cache if neccessary.
+   * Add serviceAction in cache if neccessary.
    */
-  def storeSoapActionAndStatusInCache() {
+  def storeServiceActionAndStatusInCache() {
     //TODO
     /*
-    if (!RequestData.soapActionOptions.exists(p => p._1 == soapAction)) {
-      Logger.info("SoapAction " + soapAction + " not found in cache : add to cache")
-      val inCache = RequestData.soapActionOptions ++ (List((soapAction, soapAction)))
-      Cache.set(RequestData.keyCacheSoapAction, inCache)
+    if (!RequestData.serviceActionOptions.exists(p => p._1 == serviceAction)) {
+      Logger.info("ServiceAction " + serviceAction + " not found in cache : add to cache")
+      val inCache = RequestData.serviceActionOptions ++ (List((serviceAction, serviceAction)))
+      Cache.set(RequestData.keyCacheServiceAction, inCache)
     }
     if (!RequestData.statusOptions.exists(p => p._1 == status)) {
-      Logger.info("Status " + soapAction + " not found in cache : add to cache")
+      Logger.info("Status " + serviceAction + " not found in cache : add to cache")
       val inCache = RequestData.statusOptions ++ (List((status, status)))
       Cache.set(RequestData.keyCacheStatusOptions, inCache)
     }
@@ -64,7 +67,7 @@ case class RequestData(
 
 object RequestData {
 
-  val keyCacheSoapAction = "soapaction-options"
+  val keyCacheServiceAction = "serviceaction-options"
   val keyCacheStatusOptions = "status-options"
   val keyCacheMinStartTime = "minStartTime"
 
@@ -89,35 +92,14 @@ object RequestData {
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "soapAction" -> 2, "startTime" -> 3, "timeInMillis" -> 4, "environmentName" -> 5)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "serviceAction" -> 2, "startTime" -> 3, "timeInMillis" -> 4, "environmentName" -> 5)
 
   val csvKey = "requestDataStat"
 
-  /**
-   * Csv format.
-   */
-  val csv = {
-    get[Pk[Long]]("request_data.id") ~
-      get[String]("request_data.soapAction") ~
-      get[Date]("request_data.startTime") ~
-      get[Long]("request_data.timeInMillis") ~
-      get[String]("environment.name") map {
-      case id ~ soapAction ~ startTime ~ timeInMillis ~ environmentName =>
-        id + ";" + soapAction + ";" + startTime + ";" + timeInMillis + ";" + environmentName + "\n"
-    }
-  }
-
-  /**
-   * Get All RequestData, csv format.
-   * @return List of RequestData, csv format, except mock
-   */
   //def fetchCsv(): List[String] = DB.withConnection {
   def fetchCsv(): List[String] = {
     //TODO
     ???
-    /*
-    implicit c => SQL("SELECT *  FROM  request_data, environment WHERE environmentId = environment.id and isStats = 'true';").as(RequestData.csv.*)
-    */
   }
 
   /**
@@ -127,14 +109,30 @@ object RequestData {
   val forReplay = {
     get[Pk[Long]]("request_data.id") ~
       str("request_data.sender") ~
-      str("request_data.soapAction") ~
+      str("request_data.serviceAction") ~
       long("request_data.environmentId") ~
       long("request_data.serviceId") ~
       bytes("request_data.request") ~
-      str("request_data.requestHeaders") map {
-      case id ~ sender ~ soapAction ~ environnmentId ~ serviceId ~ request ~ requestHeaders =>
+      str("request_data.requestHeaders") ~
+      str("request_data.contentType") map {
+      case id ~ sender ~ serviceAction ~ environnmentId ~ serviceId ~ request ~ requestHeaders ~ contentType =>
         val headers = UtilConvert.headersFromString(requestHeaders)
-        new RequestData(id, sender, soapAction, environnmentId, serviceId, uncompressString(request), headers, null, null, null, -1, -1, false, false)
+        new RequestData(id, sender, serviceAction, environnmentId, serviceId, uncompressString(request), headers, contentType, null, null, null, null, -1, -1, false, false)
+    }
+  }
+
+  val forRESTReplay = {
+    get[Pk[Long]]("request_data.id") ~
+      str("request_data.sender") ~
+      str("request_data.serviceAction") ~
+      long("request_data.environmentId") ~
+      long("request_data.serviceId") ~
+      bytes("request_data.request") ~
+      str("request_data.requestHeaders") ~
+      str("request_data.requestCall") map {
+      case id ~ sender ~ serviceAction ~ environnmentId ~ serviceId ~ request ~ requestHeaders ~ requestCall =>
+        val headers = UtilConvert.headersFromString(requestHeaders)
+        new RequestData(id, sender, serviceAction, environnmentId, serviceId, uncompressString(request), headers, null, requestCall, null, null, null, -1, -1, false, false)
     }
   }
   */
@@ -142,15 +140,15 @@ object RequestData {
   /**
    * Construct the Map[String, String] needed to fill a select options set.
    */
-  //def soapActionOptions: Seq[(String, String)] = DB.withConnection {
-  def soapActionOptions: Seq[(String, String)] = {
+  //def serviceActionOptions: Seq[(String, String)] = DB.withConnection {
+  def serviceActionOptions: Seq[(String, String)] = {
     //TODO
     ???
     /*
       implicit connection =>
-        Cache.getOrElse[Seq[(String, String)]](keyCacheSoapAction) {
-          Logger.debug("RequestData.SoapAction not found in cache: loading from db")
-          SQL("select distinct(soapAction) from request_data order by soapAction asc").as((get[String]("soapAction") ~ get[String]("soapAction")) *).map(flatten)
+        Cache.getOrElse[Seq[(String, String)]](keyCacheServiceAction) {
+          Logger.debug("RequestData.ServiceAction not found in cache: loading from db")
+          SQL("select distinct(serviceAction) from request_data order by serviceAction asc").as((get[String]("serviceAction") ~ get[String]("serviceAction")) *).map(flatten)
         }
     */
   }
@@ -191,8 +189,8 @@ object RequestData {
     //TODO
     ???
     /*
-    var xmlRequest: String = null
-    var xmlResponse: String = null
+    var contentRequest: String = null
+    var contentResponse: String = null
 
     val f = Environment.findById(requestData.environmentId).map(e => e)
     val environment = Await result(f, 1.seconds)
@@ -206,22 +204,22 @@ object RequestData {
     if (!service.recordData || !environment.get.recordData) {
       Logger.debug("Data not recording for this service or this environment")
       return None
-    } else if (!service.recordXmlData) {
-      val msg = "Xml Data not recording for this service. See Admin."
-      xmlRequest = msg
-      xmlResponse = msg
+    } else if (!service.recordContentData) {
+      val msg = "Content Data not recording for this service. See Admin."
+      requestContent = compressString(msg)
+      responseContent = compressString(msg)
       Logger.debug(msg)
-    } else if (!environment.get.recordXmlData) {
-      val msg = "Xml Data not recording for this environment. See Admin."
-      xmlRequest = msg
-      xmlResponse = msg
+    } else if (!environment.recordContentData) {
+      val msg = "Content Data not recording for this environment. See Admin."
+      requestContent = compressString(msg)
+      responseContent = compressString(msg)
       Logger.debug(msg)
     } else if (requestData.status != 200 || (
-      environment.get.hourRecordXmlDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
-        environment.get.hourRecordXmlDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
-      // Record XML Data if it is a soap fault (status != 200) or
+      environment.hourRecordContentDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
+      environment.hourRecordContentDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
+      // Record Data if it is a soap fault (status != 200) or
       // if we can record data with environment's configuration (hours of recording)
-      xmlRequest = requestData.request
+      requestContent = compressString(requestData.request)
 
       def transferEncodingResponse = requestData.responseHeaders.filter {
         _._1 == HeaderNames.CONTENT_ENCODING
@@ -230,20 +228,20 @@ object RequestData {
       transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
         case Some("gzip") =>
           Logger.debug("Response in gzip Format")
-          xmlResponse = "TODO response in gzip format" // TODO requestData.responseBytes
+          contentResponse = "TODO response in gzip format" // TODO requestData.responseBytes
         case _ =>
           Logger.debug("Response in plain Format")
-          xmlResponse = requestData.response
+          contentResponse = requestData.response
       }
     } else {
-      val msg = "Xml Data not recording. Record between " + environment.get.hourRecordXmlDataMin + "h to " + environment.get.hourRecordXmlDataMax + "h for this environment."
-      xmlRequest = msg
-      xmlResponse = msg
+      val msg = "Content Data not recording. Record between " + environment.get.hourRecordContentDataMin + "h to " + environment.get.hourRecordContentDataMax + "h for this environment."
+      contentRequest = msg
+      contentResponse = msg
       Logger.debug(msg)
     }
 
-    requestData.request = xmlRequest
-    requestData.response = xmlResponse
+    requestData.request = contentRequest
+    requestData.response = contentResponse
 */
 
     collection.insert(requestData).map {
@@ -256,9 +254,7 @@ object RequestData {
   /**
    * Insert a new RequestData.
    */
-  def insertStats(environmentId: Long, soapAction: String, startTime: Date, timeInMillis: Long) = {
-    ???
-
+  def insertStats(environmentId: Long, serviceAction: String, startTime: Date, timeInMillis: Long) = {
     /*
     try {
 
@@ -271,23 +267,23 @@ object RequestData {
             where isStats = 'true'
             and environmentId = {environmentId}
             and startTime >= {startTime} and startTime <= {startTime}
-            and soapAction = {soapAction}
+            and serviceAction = {serviceAction}
             """
           ).on(
-            'soapAction -> soapAction,
+            'serviceAction -> serviceAction,
             'environmentId -> environmentId,
             'startTime -> startTime).executeUpdate()
 
-          Logger.debug("Purged " + purgedStats + " existing stats for:" + environmentId + " soapAction: " + soapAction + " and startTime:" + startTime)
+          Logger.debug("Purged " + purgedStats + " existing stats for:" + environmentId + " serviceAction: " + serviceAction + " and startTime:" + startTime)
 
           SQL(
             """
             insert into request_data
-              (sender, soapAction, environmentId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status, isStats, isMock) values (
-              '', {soapAction}, {environmentId}, '', '', {startTime}, '', '', {timeInMillis}, 200, 'true', 'false'
+              (sender, serviceAction, environmentId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status, isStats, isMock) values (
+              '', {serviceAction}, {environmentId}, '', '', {startTime}, '', '', {timeInMillis}, 200, 'true', 'false'
             )
             """).on(
-            'soapAction -> soapAction,
+            'serviceAction -> serviceAction,
             'environmentId -> environmentId,
             'startTime -> startTime,
             'timeInMillis -> timeInMillis).executeUpdate()
@@ -299,7 +295,7 @@ object RequestData {
   }
 
   /**
-   * Delete XML data (request & reponse) between min and max date
+   * Delete data (request & reponse) between min and max date
    * @param environmentIn environmement or "" / all if all
    * @param minDate min date
    * @param maxDate max date
@@ -330,7 +326,7 @@ object RequestData {
           'minDate -> minDate,
           'maxDate -> maxDate).executeUpdate()
 
-        Cache.remove(keyCacheSoapAction)
+        Cache.remove(keyCacheServiceAction)
         Cache.remove(keyCacheStatusOptions)
         purgedRequests
     }
@@ -358,7 +354,7 @@ object RequestData {
             + sqlAndEnvironnement(environmentIn)).on(
           'minDate -> minDate,
           'maxDate -> maxDate).executeUpdate()
-        Cache.remove(keyCacheSoapAction)
+        Cache.remove(keyCacheServiceAction)
         Cache.remove(keyCacheStatusOptions)
         deletedRequests
     }
@@ -369,7 +365,7 @@ object RequestData {
    * Return a page of RequestData
    * @param groupName group name
    * @param environmentIn name of environnement, "all" default
-   * @param soapAction soapAction, "all" default
+   * @param serviceAction serviceAction, "all" default
    * @param minDate Min Date
    * @param maxDate Max Date
    * @param status Status
@@ -377,7 +373,7 @@ object RequestData {
    * @param pageSize size of line in one page
    * @return
    */
-  def list(groupName: String, environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10): Future[List[RequestData]] = {
+  def list(groupName: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10): Future[List[RequestData]] = {
 
     val query = BSONDocument()
 
@@ -392,7 +388,7 @@ object RequestData {
       query ++ ("environmentId" -> Environment.optionsAll.find(t => t._2 == environmentIn).get._1)
       */
 
-    if (soapAction != "all") query ++ ("soapAction" -> soapAction)
+    if (serviceAction != "all") query ++ ("serviceAction" -> serviceAction)
 
     // Convert dates... bad perf anorm ?
     val g = new GregorianCalendar()
@@ -413,69 +409,18 @@ object RequestData {
       sort(Json.obj("startTime" -> -1)).
       cursor[RequestData].
       collect[List]()
-
-    /*
-    val filter = "%" + filterIn + "%"
-
-    // Convert dates... bad perf anorm ?
-    val g = new GregorianCalendar()
-    g.setTime(minDate)
-    val min = UtilDate.formatDate(g)
-    g.setTime(maxDate)
-    val max = UtilDate.formatDate(g)
-
-    var whereClause = " where startTime >= '" + min + "' and startTime <= '" + max + "'"
-    whereClause += sqlAndStatus(status)
-
-    if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
-    if (filterIn != "%" && filterIn.trim != "") whereClause += " and soapAction like {filter}"
-
-    whereClause += " and isStats = 'false' "
-    whereClause += sqlAndEnvironnement(environmentIn)
-    val pair = sqlFromAndGroup(groupName, environmentIn)
-    val fromClause = "from request_data " + pair._1
-    whereClause += pair._2
-
-    Logger.debug("Offset:" + offset + " pageSize x pageSize:" + (offset * pageSize) + " offset:" + offset);
-
-    val params: Array[(Any, anorm.ParameterValue[_])] = Array(
-      'pageSize -> pageSize,
-      'offset -> offset * pageSize,
-      'soapAction -> soapAction,
-      'filter -> filter)
-
-    val sql = "select request_data.id, sender, soapAction, environmentId, serviceId, " +
-      " startTime, timeInMillis, status, purged, isMock " + fromClause + whereClause +
-      " order by startTime " +
-      " desc limit {offset}, {pageSize}"
-
-    Logger.debug("SQL (list) ====> " + sql)
-    DB.withConnection {
-      implicit connection =>
-        val requestTimeInMillis = System.currentTimeMillis
-        val requests = SQL(sql).on(params: _*).as(RequestData.simple *)
-        val middle = System.currentTimeMillis
-        Logger.debug("Middle : " + (System.currentTimeMillis - requestTimeInMillis))
-
-        val totalRows = SQL(
-          "select count(request_data.id) " + fromClause + whereClause).on(params: _*).as(scalar[Long].single)
-        Logger.debug("End : " + (System.currentTimeMillis - middle) + " totalrows:" + totalRows + " where:" + whereClause);
-
-        Page(requests, -1, offset, totalRows)
-    }
-    */
   }
 
   /**
    * Load reponse times for given parameters
    */
-  def findResponseTimes(groupName: String, environmentIn: String, soapAction: String, minDate: Date, maxDate: Date, status: String, statsOnly: Boolean): List[(Long, String, Date, Long)] = {
+  def findResponseTimes(groupName: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, statsOnly: Boolean): List[(Long, String, Date, Long)] = {
     ???
     /*
       var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
       whereClause += sqlAndStatus(status)
       Logger.debug("DDDDD==>" + whereClause)
-      if (soapAction != "all") whereClause += " and soapAction = {soapAction}"
+      if (serviceAction != "all") whereClause += " and serviceAction = {serviceAction}"
       whereClause += sqlAndEnvironnement(environmentIn)
 
       val pair = sqlFromAndGroup(groupName, environmentIn)
@@ -485,9 +430,9 @@ object RequestData {
       val params: Array[(Any, anorm.ParameterValue[_])] = Array(
         'minDate -> minDate,
         'maxDate -> maxDate,
-        'soapAction -> soapAction)
+        'serviceAction -> serviceAction)
 
-      var sql = "select environmentId, soapAction, startTime, timeInMillis " + fromClause + whereClause
+      var sql = "select environmentId, serviceAction, startTime, timeInMillis " + fromClause + whereClause
 
       if (statsOnly) {
         sql += " and isStats = 'true' "
@@ -501,10 +446,10 @@ object RequestData {
         // explainPlan(sql, params: _*)
           SQL(sql)
             .on(params: _*)
-            .as(get[Long]("environmentId") ~ get[String]("soapAction") ~ get[Date]("startTime") ~ get[Long]("timeInMillis") *)
+            .as(get[Long]("environmentId") ~ get[String]("serviceAction") ~ get[Date]("startTime") ~ get[Long]("timeInMillis") *)
             .map(flatten)
-      }
-      */
+      }*/
+
   }
 
   def loadAvgResponseTimesByAction(groupName: String, environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {
@@ -525,7 +470,7 @@ object RequestData {
         val fromClause = " from request_data " + pair._1
         whereClause += pair._2
 
-        val sql = "select soapAction, timeInMillis " + fromClause + whereClause + " order by timeInMillis asc "
+        val sql = "select serviceAction, timeInMillis " + fromClause + whereClause + " order by timeInMillis asc "
 
         Logger.debug("SQL (loadAvgResponseTimesByAction) ====> " + sql)
 
@@ -533,7 +478,7 @@ object RequestData {
           .on(
           'minDate -> minDate,
           'maxDate -> maxDate)
-          .as(get[String]("soapAction") ~ get[Long]("timeInMillis") *)
+          .as(get[String]("serviceAction") ~ get[Long]("timeInMillis") *)
           .map(flatten)
 
         val avgTimesByAction = responseTimes.groupBy(_._1).mapValues {
@@ -590,7 +535,7 @@ object RequestData {
     ???
     /*DB.withConnection {
       implicit connection =>
-        SQL("select id, sender, soapAction, environmentId, serviceId, request, requestHeaders from request_data where id= {id}")
+        SQL("select id, sender, serviceAction, environmentId, serviceId, request, requestHeaders, contentType, requestCall from request_data where id= {id}")
           .on('id -> id).as(RequestData.forReplay.single)
     }*/
   }
@@ -599,24 +544,38 @@ object RequestData {
     ???
     /*DB.withConnection {
       implicit connection =>
-        val request = SQL("select request from request_data where id= {id}").on('id -> id).as(bytes("request").singleOpt)
-        if (request != None) {
-          Some(uncompressString(request.get))
+        val request = SQL("select request, contentType from request_data where id= {id}").on('id -> id).as((bytes("request") ~ get[String]("contentType")).singleOpt)
+        if (!request.get._1.equals(None)) {
+          (Some(uncompressString(request.get._1)), request.get._2)
         } else {
-          None
+          (None, request.get._2)
         }
     }*/
   }
 
-  def loadResponse(id: Long): Option[String] = {
+  def loadForREST(id: Long): RequestData = {
     ???
+    // TO KEEP ?
+
     /*DB.withConnection {
       implicit connection =>
-        val response = SQL("select response from request_data where id = {id}").on('id -> id).as(bytes("response").singleOpt)
-        if (response != None) {
-          Some(uncompressString(response.get))
+        SQL("select id, sender, serviceAction, environmentId, serviceId, request, requestHeaders, requestCall from request_data where id= {id}")
+          .on('id -> id).as(RequestData.forRESTReplay.single)
+    }*/
+  }
+
+
+  def loadResponse(id: Long): (Option[String], String) = {
+    ???
+    /*
+    DB.withConnection {
+
+      implicit connection =>
+        val response = SQL("select response, contentType from request_data where id = {id}").on('id -> id).as((bytes("response") ~ get[String]("contentType")).singleOpt)
+        if (!(response.get._1.equals(None))) {
+          (Some(uncompressString(response.get._1)), response.get._2)
         } else {
-          None
+          (None, response.get._2)
         }
     }*/
   }
@@ -675,7 +634,9 @@ object RequestData {
           "status" -> JsString(o.status.toString),
           "env" -> JsString(Environment.optionsAll.find(t => t._1 == o.environmentId.toString).get._2),
           "sender" -> JsString(o.sender),
-          "soapAction" -> JsString(o.soapAction),
+          "service" -> JsString(o.serviceId.toString),
+          "contentType" -> JsString(o.contentType),
+          "serviceAction" -> JsString(o.serviceAction),
           "startTime" -> JsString(UtilDate.getDateFormatees(o.startTime)),
           "time" -> JsString(o.timeInMillis.toString),
           "isMock" -> JsString(o.isMock.toString)))
@@ -712,7 +673,7 @@ object RequestData {
 
       e.map {
         environment =>
-          insertStats(environment.id, dataCsv(csvTitle.get("soapAction").get).trim, UtilDate.parse(dataCsv(csvTitle.get("startTime").get).trim), dataCsv(csvTitle.get("timeInMillis").get).toLong)
+          insertStats(environment.id, dataCsv(csvTitle.get("serviceAction").get).trim, UtilDate.parse(dataCsv(csvTitle.get("startTime").get).trim), dataCsv(csvTitle.get("timeInMillis").get).toLong)
       }.getOrElse {
         Logger.warn("Warning : Environment " + environmentName + " unknown")
         throw new Exception("Warning : Environment " + environmentName + " already exist")

@@ -10,13 +10,13 @@ spApp.config(function ($routeProvider) {
         .when('/live', { controller: LiveCtrl, templateUrl: 'partials/live/live.html' })
         .when('/live/:search', { controller: LiveCtrl, templateUrl: 'partials/live/live.html' })
         .when('/search', { redirectTo: '/search/all/all/all/yesterday/today/all'})
-        .when('/search/:groups/:environment/:soapaction/:mindate/:maxdate/:code', {
+        .when('/search/:groups/:environment/:serviceaction/:mindate/:maxdate/:code', {
             controller: SearchCtrl, templateUrl: 'partials/search/search.html'
         })
         .when('/analysis', {
             redirectTo: '/analysis/all/all/all/yesterday/today/all'
         })
-        .when('/analysis/:groups/:environment/:soapaction/:mindate/:maxdate/:code', {
+        .when('/analysis/:groups/:environment/:serviceaction/:mindate/:maxdate/:code', {
             controller: AnalysisCtrl, templateUrl: 'partials/analysis/analysis.html'
         })
         .when('/stats', { redirectTo: '/stats/all/all/yesterday/today/all' })
@@ -46,9 +46,8 @@ spApp.config(function ($routeProvider) {
         .when('/mocks/edit/:mockId', {controller: MockEditCtrl, templateUrl: 'partials/admin/mocks/detail.html'})
         .when('/mocks/list/:mockGroup', { controller: MocksCtrl, templateUrl: 'partials/admin/mocks/list.html'})
 
-        .when('/soapactions', {  redirectTo: '/soapactions/list'})
-        .when('/soapactions/edit/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/admin/soapactions/detail.html'})
-        .when('/soapactions/list', { controller: SoapActionsCtrl, templateUrl: 'partials/admin/soapactions/list.html'})
+        .when('/serviceactions/edit/:serviceActionId', {controller: ServiceActionEditCtrl, templateUrl: 'partials/serviceactions/detail.html'})
+        .when('/serviceactions', { controller: ServiceActionsCtrl, templateUrl: 'partials/serviceactions/list.html'})
 
         .otherwise({ redirectTo: '/home' });
 });

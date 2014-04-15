@@ -32,6 +32,7 @@ spApp.factory('Environment', function ($resource) {
     return Environment;
 });
 
+
 spApp.factory("EnvironmentsService", function ($http) {
     return {
         findAll: function (group) {
@@ -50,7 +51,6 @@ spApp.factory("EnvironmentsService", function ($http) {
                     } else if (addAll) {
                         $scope.environments.unshift({id: "all", name: "all"});
                     }
-
                     if (environmentName != null || myService != null) {
                         angular.forEach($scope.environments, function (value, key) {
                             if (environmentName != null && value.name == environmentName) {
@@ -131,41 +131,41 @@ spApp.factory('Group', function ($resource) {
     return Group;
 });
 
-spApp.factory('SoapAction', function ($resource) {
-    var SoapAction = $resource('/soapactions/:soapActionId',
-        { soapActionId: '@id'},
+spApp.factory('ServiceAction', function ($resource) {
+    var ServiceAction = $resource('/serviceactions/:serviceActionId',
+        { serviceActionId: '@id'},
         { update: {method: 'POST'} }
     );
 
-    SoapAction.prototype.update = function (cb, cbError) {
+    ServiceAction.prototype.update = function (cb, cbError) {
         this.id = parseInt(this.id);
-        return SoapAction.update({soapActionId: this.id},
-            angular.extend({}, this, {soapActionId: undefined}), cb, cbError);
+        return ServiceAction.update({serviceActionId: this.id},
+            angular.extend({}, this, {serviceActionId: undefined}), cb, cbError);
     };
-    return SoapAction;
+    return ServiceAction;
 });
 
-spApp.factory("SoapactionsService", function ($http) {
+spApp.factory("ServiceactionsService", function ($http) {
     return {
         findAll: function () {
-            return $http.get('/soapactions/listDatatable');
+            return $http.get('/serviceactions/listDatatable');
         },
         findAllAndSelect: function ($scope, $routeParams) {
-            $http.get('/soapactions/findall')
-                .success(function (soapactions) {
-                    $scope.soapactions = soapactions;
-                    $scope.soapactions.unshift({id: "all", name: "all"});
-                    angular.forEach($scope.soapactions, function (value, key) {
-                        if (encodeURIComponent(value.name) == $routeParams.soapaction) $scope.soapaction = value;
+            $http.get('/serviceactions/findall')
+                .success(function (serviceactions) {
+                    $scope.serviceactions = serviceactions;
+                    $scope.serviceactions.unshift({id: "all", name: "all"});
+                    angular.forEach($scope.serviceactions, function (value, key) {
+                        if (encodeURIComponent(value.name) == $routeParams.serviceaction) $scope.serviceaction = value;
                     });
 
                 })
                 .error(function (resp) {
-                    console.log("Error with SoapActionsService.findAllAndSelect" + resp);
+                    console.log("Error with ServiceActionsService.findAllAndSelect" + resp);
                 });
         },
         regenerate: function () {
-            return $http.get('/soapactions/regenerate');
+            return $http.get('/serviceactions/regenerate');
 
         }
     }
@@ -174,7 +174,7 @@ spApp.factory("SoapactionsService", function ($http) {
 spApp.factory("AnalysisService", function ($http) {
     return {
         findAll: function () {
-            return $http.get('/soapactions/listDatatable');
+            return $http.get('/serviceactions/listDatatable');
         }
     }
 });
@@ -213,7 +213,7 @@ spApp.factory("CodesService", function ($http) {
 
                 })
                 .error(function (resp) {
-                    console.log("Error with SoapActionsService.findAllAndSelect" + resp);
+                    console.log("Error with ServiceActionsService.findAllAndSelect" + resp);
                 });
         }
     }
@@ -234,13 +234,13 @@ spApp.factory("LoggersService", function ($http) {
 
 spApp.factory("UIService", function ($location, $filter, $routeParams) {
     return {
-        reloadPage: function ($scope, showSoapactions) {
-            var environment = "all", soapaction = "all", mindate = "all", maxdate = "all", code = "all";
+        reloadPage: function ($scope, showServiceactions) {
+            var environment = "all", serviceaction = "all", mindate = "all", maxdate = "all", code = "all";
 
             if ($scope.environment) environment = $scope.environment.name;
 
-            if (showSoapactions && $scope.soapaction) {
-                soapaction = encodeURIComponent($scope.soapaction.name);
+            if (showServiceactions && $scope.serviceaction) {
+                serviceaction = encodeURIComponent($scope.serviceaction.name);
             }
 
             if ($scope.mindate && $scope.mindate != "" && $scope.mindate != "all") {
@@ -253,7 +253,7 @@ spApp.factory("UIService", function ($location, $filter, $routeParams) {
 
             var path = $scope.ctrlPath + '/' + $routeParams.groups + "/" + environment + "/";
 
-            if (showSoapactions) path = path + soapaction + "/";
+            if (showServiceactions) path = path + serviceaction + "/";
 
             path = path + mindate + "/" + maxdate + "/" + code;
             console.log("UIService.reloadPage : Go to " + path);
@@ -351,26 +351,49 @@ spApp.factory("UIService", function ($location, $filter, $routeParams) {
     }
 });
 
-spApp.factory('ReplayService', function ($http, $rootScope, $location) {
+spApp.factory('ReplayService', function ($http, $rootScope, $location, $resource) {
     return {
         beforeReplay: function (id) {
             var url = "/download/request/" + id;
             return $http.get(url);
         },
-        replay: function (id, data) {
-            var url = '/replay/' + id;
-            $http({ method: "POST",
-                url: url,
-                data: data.data,
-                headers: { "Content-Type": "application/xml" }
-            }).success(function (data) {
-                console.log("Success replay id" + id);
-                $rootScope.$broadcast('refreshSearchTable');
-            }).error(function (resp) {
-                console.log("Error replay id" + id);
-                console.log("location:" + $location.path());
-                $rootScope.$broadcast('refreshSearchTable');
-            });
+        replay: function (id, idService, contentType, data) {
+            var Service = $resource('/services/:serviceId',
+                                   { serviceId: '@id'}
+                                   );
+            var service = Service.get({serviceId:idService},function() {
+                if(service.typeRequest == "soap") {
+                    // SOAP service
+                    var url = '/replay/' + id;
+                    var contentTypeForRequest = "application/xml"
+                } else {
+                    // REST service
+                    var url = '/replay/rest/'+ id;
+                    if (service.httpMethod == "get" || service.httpMethod == "delete") {
+                        // The content is just the HTTP method and the URL in text format
+                        var contentTypeForRequest = "text/html";
+                     } else {
+                        var contentTypeForRequest = contentType;
+                     }
+                }
+                // perform the request
+                $http({ method: "POST",
+                    url: url,
+                    data: data.data,
+                    headers: { "Content-Type" : contentTypeForRequest }
+                }).success(function (data) {
+                    console.log("Success replay id" + id);
+                    $rootScope.$broadcast('refreshSearchTable');
+                }).error(function (resp) {
+                    console.log("Error replay id" + id);
+                    console.log("location:" + $location.path());
+                    $rootScope.$broadcast('refreshSearchTable');
+                });
+            }, function() {
+                     // Called when the resource cannot get retrieve
+                     console.log("Error replay id" + id);
+                 }
+            );
         }
     }
 });
