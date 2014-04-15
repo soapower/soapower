@@ -101,7 +101,7 @@ object Service {
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "description" -> 2, "typeRequest" -> 3, "httpMethod" -> 4, "localTarget" -> 5, "remoteTarget" -> 6, "timeoutms" -> 7, "recordContentData" -> 8, "recordData" -> 9, "environmentName" -> 10, "mockGroupName" -> 11)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "typeRequest" -> 2, "httpMethod"-> 3, "description" -> 4, "localTarget" -> 5, "remoteTarget" -> 6, "timeoutms" -> 7, "recordContentData" -> 8, "recordData" -> 9, "environmentName" -> 10, "mockGroupName" -> 11)
 
   val csvKey = "service"
 
@@ -111,7 +111,7 @@ object Service {
    * @return csv format of the service (String)
    */
   def csv(s: Service) = {
-    csvKey + ";" + s._id.get.stringify + ";" + s.description + ";" + s.localTarget + ";" + s.remoteTarget + ";" + s.timeoutms + ";" + s.recordContentData + ";" + s.recordData + ";" + s.useMockGroup + ";" + s.environmentName + ";" + s.mockGroupId + "\n"
+    csvKey + ";" + s._id.get.stringify + ";" + s.typeRequest + ";" + s.httpMethod + ";" + s.description + ";" + s.localTarget + ";" + s.remoteTarget + ";" + s.timeoutms + ";" + s.recordContentData + ";" + s.recordData + ";" + s.useMockGroup + ";" + s.environmentName + ";" + s.mockGroupId + "\n"
   }
 
   /**
@@ -126,8 +126,6 @@ object Service {
   private val cacheKey = "servicekey-"
 
   private val cacheKeyServiceById = "servicekeybyid-"
-
-  private val cacheKeyServiceByMethod = "servicekeybymethod-"
 
   /**
    * Retrieve a Service.

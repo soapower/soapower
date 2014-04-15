@@ -187,7 +187,7 @@ object Rest extends Controller {
   }
 
   /**
-   * Get the request content for a GET or DELETE request (the request content is just the method with the remote target and the potential query)
+   * Get the request content for a GET or DELETE request (the request content is just the remote target and the potential query)
    * @param remoteTargetWithCall the remote target with the correct call
    * @param queryString the query string
    * @return
