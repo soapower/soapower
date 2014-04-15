@@ -22,7 +22,7 @@ case class Environment(id: Long,
 
 object ModePurge extends Enumeration {
   type ModePurge = Value
-  val XML, ALL = Value
+  val CONTENT, ALL = Value
 }
 
 object Environment {
@@ -376,8 +376,8 @@ object Environment {
 
   import ModePurge._
 
-  def purgeXmlData() {
-    purgeData(ModePurge.XML)
+  def purgeContentData() {
+    purgeData(ModePurge.CONTENT)
   }
 
   def purgeAllData() {
@@ -399,7 +399,7 @@ object Environment {
         var nbDay = 100
 
         val maxDate = new GregorianCalendar
-        if (mode == ModePurge.XML)
+        if (mode == ModePurge.CONTENT)
           nbDay = env.nbDayKeepContentData
         else
           nbDay = env.nbDayKeepAllData
@@ -407,7 +407,7 @@ object Environment {
         maxDate.setTimeInMillis(today.getTimeInMillis - UtilDate.v1d * nbDay)
         Logger.debug("Purge env: " + env.name + " NbDaysKeep: " + nbDay + " MinDate:" + minDate + " MaxDate:" + maxDate.getTime)
         val user = "Soapower Akka Scheduler (keep " + mode + " data for " + nbDay + " days for this env " + env.name + ")"
-        if (mode == ModePurge.XML)
+        if (mode == ModePurge.CONTENT)
           purgedRequests += RequestData.deleteRequestResponse(env.name, minDate, maxDate.getTime, user)
         else
           purgedRequests += RequestData.delete(env.name, minDate, maxDate.getTime)
