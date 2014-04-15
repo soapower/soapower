@@ -20,17 +20,17 @@ GET           /search/:group/:environment/:serviceAction/:minDate/:maxDate/:stat
 # Analysis page
 GET           /analysis/:group/:environment/:serviceAction/:minDate/:maxDate/:status/:statsOnly/load        controllers.Analysis.load(group, environment, serviceAction, minDate, maxDate, status, statsOnly)
 
-# Soap
-POST          /soap/:environment/*localTarget                                                               controllers.Soap.index(environment, localTarget)
-POST          /autosoap/:group/:environment/*remoteTarget                                                   controllers.Soap.autoIndex(group, environment, remoteTarget)
-POST          /replay/:id                                                                                   controllers.Soap.replay(id:Long)
-
-# Rest
+# REST
 DELETE        /rest/:environment/*call                                                                      controllers.Rest.index(environment, call)
 GET           /rest/:environment/*call                                                                      controllers.Rest.index(environment, call)
 POST          /rest/:environment/*call                                                                      controllers.Rest.index(environment, call)
 PUT           /rest/:environment/*call                                                                      controllers.Rest.index(environment, call)
 POST          /replay/rest/:id                                                                              controllers.Rest.replay(id:Long)
+
+# Soap
+POST          /soap/:environment/*localTarget                                                               controllers.Soap.index(environment, localTarget)
+POST          /autosoap/:group/:environment/*remoteTarget                                                   controllers.Soap.autoIndex(group, environment, remoteTarget)
+POST          /replay/:id                                                                                   controllers.Soap.replay(id:Long)
 
 #POST         /autorest/:group/:environment/*remoteTarget                                                controllers.Rest.autoIndex(group, environment, remoteTarget)
 #POST         /replay/:id                                                                                controllers.Rest.replay(id:Long)
@@ -86,8 +86,8 @@ GET           /statsAsJunit/:group/:minDate/:maxDate/                           
 GET           /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable                            controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
 
 # Download SOAP and Rest request and response
-GET           /download/request/:id                                                                         controllers.Search.downloadRequest(id:Long, asFile: Boolean ?=         false)
-GET           /download/response/:id                                                                        controllers.Search.downloadResponse(id:Long, asFile: Boolean ?=         false)
+GET           /download/request/:id                                                                         controllers.Search.downloadRequest(id:Long, asFile: Boolean ?=                         false)
+GET           /download/response/:id                                                                        controllers.Search.downloadResponse(id:Long, asFile: Boolean ?=                         false)
 
 # Monitoring
 GET           /monitor/logfile                                                                              controllers.admin.Monitor.logfile
