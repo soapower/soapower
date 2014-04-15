@@ -18,14 +18,40 @@
         </div>
     </div>
 
+    <h4>SOAP or REST service</h4>
+    <div class="form-group" ng-class="{error: myForm.environment.$invalid}">
+        <label class="col-lg-2 control-label">Type</label>
+        <div class="col-lg-4">
+            <div class="radio">
+                <label>
+                    <input type="radio" name="soap" ng-model="service.typeRequest" value="soap" ng-checked="service.typeRequest == 'soap'"> SOAP
+                </label>
+            </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="rest" ng-model="service.typeRequest" value="rest" ng-checked="service.typeRequest == 'rest'"> REST
+                </label>
+            </div>
+
+            <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
+        </div>
+    </div>
+    <div class="form-group" ng-class="{error: myForm.environment.$invalid}" ng-show="service.typeRequest == 'rest'">
+        <label for="methods" class="col-lg-2 control-label">HTTP Method</label>
+        <div class="col-lg-4">
+            <select class="form-control" ng-model="service.httpMethod" id="methods" ng-options="method for method in methods" required></select>
+            <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
+        </div>
+    </div>
+
     <h4>The Local Target</h4>
     <div class="form-group" ng-class="{error: myForm.localTarget.$invalid}">
         <label for="localTarget" class="col-lg-2 control-label">Local Target</label>
         <div class="col-lg-4">
             <input class="form-control" type="text" id="localTarget" name="localTarget" ng-model="service.localTarget" required>
             <span ng-show="myForm.localTarget.$error.required" class="help-inline">Required</span>
-            <span ng-show="myForm.localTarget.$error.required" class="help-block">Enter service1 to have http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>service1</b></span>
-            <span ng-show="!myForm.localTarget.$error.required" class="help-block">Local Target : http://{{ hostname }}:{{ port }}/soap/{{ service.environment.name || "environment" }}/<b>{{ service.localTarget }}</b> </span>
+            <span ng-show="myForm.localTarget.$error.required" class="help-block">Enter service1 to have http://{{ hostname }}:{{ port }}/{{ service.typeRequest }}/{{ service.environment.name || "environment" }}/<b>service1</b></span>
+            <span ng-show="!myForm.localTarget.$error.required" class="help-block">Local Target : http://{{ hostname }}:{{ port }}/{{ service.typeRequest }}/{{ service.environment.name || "environment" }}/<b>{{ service.localTarget }}</b> </span>
         </div>
     </div>
 
@@ -88,18 +114,18 @@
 
     <div class="form-group">
         <div class="col-lg-4">
-            <label class="control-label"> Record Xml Data, Check this if you want to record Xml Request and Xml Response for this service:</label>
+            <label class="control-label"> Record content Data, Check this if you want to record XML, JSON or text Request and Response for this service:</label>
         </div>
 
         <div class="col-lg-4">
             <div class="radio">
                 <label>
-                    <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="yes" ng-checked="service.recordXmlData == 'yes'"> Yes
+                    <input type="radio" name="recordContentData" ng-model="service.recordContentData" value="yes" ng-checked="service.recordContentData == 'yes'"> Yes
                </label>
             </div>
             <div class="radio">
                <label>
-                    <input type="radio" name="recordXmlData" ng-model="service.recordXmlData" value="no" ng-checked="service.recordXmlData == 'no'"> No
+                    <input type="radio" name="recordContentData" ng-model="service.recordContentData" value="no" ng-checked="service.recordContentData == 'no'"> No
                </label>
             </div>
         </div>
@@ -109,7 +135,7 @@
         <div class="col-lg-6">
             <label class="control-label"> Record Data, Check Yes this if you want to record Data (time, responseTime, etc...) on Request / Response for this
                 service. If it is unchecked, you can see requests on live page only and no stats are computed for this
-                service. You must check this if you want to record XML Data :</label>
+                service. You must check this if you want to record content Data :</label>
         </div>
         <div class="col-lg-6">
             <div class="radio">

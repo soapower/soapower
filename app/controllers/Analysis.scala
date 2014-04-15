@@ -18,7 +18,7 @@ object Analysis extends Controller {
       List(
         "responseTime" -> JsNumber(data._4),
         "env" -> JsString(Environment.optionsAll.find(t => t._1 == data._1.toString).get._2),
-        "soapaction" -> JsString(data._2),
+        "serviceaction" -> JsString(data._2),
         "x" -> JsNumber(data._3.getTime)
         )
     )
@@ -49,10 +49,10 @@ object Analysis extends Controller {
     }
   }
 
-  class Entity(soapAction: String, var tuples:List[(Long, Long)])
+  class Entity(serviceAction: String, var tuples:List[(Long, Long)])
 
-  def load(groupName: String, environment: String, soapAction: String, minDate: String, maxDate : String, status: String, statsOnly: String) = Action {
-    val responsesTimesByDate = RequestData.findResponseTimes(groupName, environment, soapAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s).getTime, status, true)
+  def load(groupName: String, environment: String, serviceAction: String, minDate: String, maxDate : String, status: String, statsOnly: String) = Action {
+    val responsesTimesByDate = RequestData.findResponseTimes(groupName, environment, serviceAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s).getTime, status, true)
 
     val a:Map[String, Entity] = Map()
 

@@ -2,7 +2,7 @@ import play.Project._
 
 name         := "soapower"
 
-version      := "1.3.1"
+version      := "1.3.2"
 
 libraryDependencies ++= Seq(
     jdbc,

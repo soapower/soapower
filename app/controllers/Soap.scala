@@ -15,10 +15,12 @@ object Soap extends Controller {
 
       Logger.info("Request on environment:" + environment + " localTarget:" + localTarget)
 
+      val requestContentType = request.contentType.get
       val sender = request.remoteAddress
       val content = request.body.toString()
+
       val headers = request.headers.toSimpleMap
-      forwardRequest(environment, localTarget, sender, content, headers)
+      forwardRequest(environment, localTarget, sender, content, headers, requestContentType)
   }
 
   /**
@@ -38,6 +40,7 @@ object Soap extends Controller {
   def autoIndex(group: String, environment: String, remoteTarget: String) = Action(parse.xml) {
     implicit request =>
 
+      val requestContentType = request.contentType.get
       Logger.info("Automatic service detection request on group: " + group + " environment:" + environment + " remoteTarget: " + remoteTarget)
 
       // Extract local target from the remote target
@@ -66,6 +69,8 @@ object Soap extends Controller {
           val recordXmlData = false
           val recordData = false
           val useMockGroup = false
+          val typeRequest = Service.SOAP
+          val httpMethod = Service.POST
 
           val environmentOption = Environment.findByGroupAndByName(group, environment)
           // Check that the environment exists for the given group
@@ -73,6 +78,8 @@ object Soap extends Controller {
             environmentReal =>
             // The environment exists so the service creation can be performed
               service = new Service(id,
+                typeRequest,
+                httpMethod,
                 description,
                 localTarget.get,
                 remoteTarget,
@@ -96,7 +103,7 @@ object Soap extends Controller {
       val sender = request.remoteAddress
       val content = request.body.toString()
       val headers = request.headers.toSimpleMap
-      forwardRequest(environment, localTarget.get, sender, content, headers)
+      forwardRequest(environment, localTarget.get, sender, content, headers, requestContentType)
   }
 
 
@@ -124,7 +131,8 @@ object Soap extends Controller {
         val environmentName = environmentTuple.get._2
         if (requestData.serviceId > 0) {
           val service = Service.findById(requestData.serviceId).get
-          forwardRequest(environmentName, service.localTarget, sender, content, headers)
+          forwardRequest(environmentName, service.localTarget, sender, content, headers, requestData.contentType)
+          
         } else {
           val err = "service with id " + requestData.serviceId + " unknown"
           Logger.error(err)
@@ -133,12 +141,12 @@ object Soap extends Controller {
       }
   }
 
-  private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String]): SimpleResult = {
+  private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String], requestContentType: String): SimpleResult = {
     val service = Service.findByLocalTargetAndEnvironmentName(localTarget, environmentName)
 
     service.map {
       service =>
-        val client = new Client(service, sender, content, headers)
+        val client = new Client(service, sender, content, headers, Service.SOAP, requestContentType)
         if (service.useMockGroup) {
           val mock = Mock.findByMockGroupAndContent(service.mockGroupId, content)
           client.workWithMock(mock)
@@ -150,9 +158,9 @@ object Soap extends Controller {
           val timeoutFuture = play.api.libs.concurrent.Promise.timeout(sr, mock.timeoutms.milliseconds)
           Await.result(timeoutFuture, 10.second) // 10 seconds (10000 ms) is the maximum allowed.
         } else {
-          client.sendRequestAndWaitForResponse
+          client.sendSoapRequestAndWaitForResponse
           // forward the response to the client
-          new Results.Status(client.response.status).stream(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
+          new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
             .withHeaders("ProxyVia" -> "soapower")
             .withHeaders(client.response.headers.toArray: _*).as(XML)
         }
@@ -172,7 +180,7 @@ object Soap extends Controller {
    */
   private def extractPathFromURL(textualURL: String): Option[String] = {
     try {
-      // Search the firt "/" since index 10 (http://) to find the third "/"
+      // Search the first "/" since index 10 (http://) to find the third "/"
       // and take the String from this index
       // Add +1 to remove the / to have path instead of /path
       // Using substring and not java.net.URL,
@@ -189,11 +197,9 @@ object Soap extends Controller {
   private def printRequest(implicit r: play.api.mvc.RequestHeader) {
     Logger.info("method:" + r)
     Logger.info("headers:" + r.headers)
-    //Logger.info("SoapAction:" + r.headers("SOAPACTION"))
     Logger.info("path:" + r.path)
     Logger.info("uri:" + r.uri)
     Logger.info("host:" + r.host)
     Logger.info("rawQueryString:" + r.rawQueryString)
   }
-
 }

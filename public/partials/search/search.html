@@ -1,16 +1,16 @@
 <div id="container" style="width: 100%; margin:auto">
 
-    <sp-criterias soapactions="yes"></sp-criterias>
+    <sp-criterias serviceactions="yes"></sp-criterias>
 
     <i class="fa fa-info pointer" title="click to view help" ng-click="showTips=showTips==false">Tips </i>
 
     <div class="well" ng-show="showTips">
         You can bookmark this page :
         <ul>
-            <li>http://{{ hostname }}:{{ port }}/search/&lt;environment&gt;/&lt;soapAction&gt;/&lt;fromDate&gt;/&lt;toDate&gt;/&lt;errorCode&gt;/</li>
+            <li>http://{{ hostname }}:{{ port }}/search/&lt;environment&gt;/&lt;serviceAction&gt;/&lt;fromDate&gt;/&lt;toDate&gt;/&lt;errorCode&gt;/</li>
             <li>Default page : /search/all/all/all/today/all : all requests</li>
             <li>Change start date : /search/all/all/2012-12-10T10:00/today/all : all requests from 2012-12-10 at 10</li>
-            <li>Advanced : /search/dev/login/yesterday/today/200 : Results for environment dev, soapAction login from
+            <li>Advanced : /search/dev/login/yesterday/today/200 : Results for environment dev, serviceAction login from
                 yesterday, to today with the error code 200
             </li>
         </ul>
@@ -34,7 +34,7 @@
             </td>
             <td data-title="'Environment'" sortable="'env'" style="width: '100px'">{{ line.env }}</td>
             <td data-title="'Sender'" sortable="'sender'" style="width: '100px'">{{ line.sender }}</td>
-            <td data-title="'SoapAction'" sortable="'soapAction'" style="width: '100px'">{{ line.soapAction }}</td>
+            <td data-title="'ServiceAction'" sortable="'serviceAction'" style="width: '100px'">{{ line.serviceAction }}</td>
             <td data-title="'StartTime'" sortable="'startTime'" style="width: '200px'">{{ line.startTime }}</td>
             <td data-title="'TimeInMillis'" sortable="'time'" style="width: '100px'">{{ line.time }}</td>
             <td data-title="'Request'" style="width: '80px'">
