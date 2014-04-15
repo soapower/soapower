@@ -1,7 +1,5 @@
 package models
 
-import play.api.Play.current
-
 import scala.collection.mutable.Map
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
@@ -14,11 +12,11 @@ case class Service(_id: Option[BSONObjectID],
                    description: String,
                    localTarget: String,
                    remoteTarget: String,
-                   timeoutms: Double,
+                   timeoutms: Int,
                    recordXmlData: Boolean,
                    recordData: Boolean,
                    useMockGroup: Boolean,
-                   mockGroupId: Option[String],
+                   mockGroupId: Option[BSONObjectID],
                    environmentName: Option[String]) {
 
   def this(serviceDoc: BSONDocument, environmentName: Option[String]) =
@@ -27,11 +25,11 @@ case class Service(_id: Option[BSONObjectID],
       serviceDoc.getAs[String]("description").get,
       serviceDoc.getAs[String]("localTarget").get,
       serviceDoc.getAs[String]("remoteTarget").get,
-      serviceDoc.getAs[Double]("timeoutms").get,
+      serviceDoc.getAs[Int]("timeoutms").get,
       serviceDoc.getAs[Boolean]("recordXmlData").get,
       serviceDoc.getAs[Boolean]("recordData").get,
       serviceDoc.getAs[Boolean]("useMockGroup").get,
-      serviceDoc.getAs[String]("mockGroupId"),
+      serviceDoc.getAs[BSONObjectID]("mockGroupId"),
       environmentName)
 }
 
@@ -68,13 +66,13 @@ object Service {
     def write(service: Service): BSONDocument =
       BSONDocument(
         "_id" -> service._id,
-        "description" -> service.description,
-        "localTarget" -> service.localTarget,
-        "remoteTarget" -> service.remoteTarget,
-        "timeoutms" -> service.timeoutms,
-        "recordXmlData" -> service.recordXmlData,
-        "recordData" -> service.recordData,
-        "useMockGroup" -> service.useMockGroup,
+        "description" -> BSONString(service.description),
+        "localTarget" -> BSONString(service.localTarget),
+        "remoteTarget" -> BSONString(service.remoteTarget),
+        "timeoutms" -> BSONInteger(service.timeoutms),
+        "recordXmlData" -> BSONBoolean(service.recordXmlData),
+        "recordData" -> BSONBoolean(service.recordData),
+        "useMockGroup" -> BSONBoolean(service.useMockGroup),
         "mockGroupId" -> service.mockGroupId)
   }
 
@@ -99,7 +97,8 @@ object Service {
    * @return List of Services, csv format
    */
   def fetchCsv(): Future[List[String]] = {
-    findAll.map(service => service.map(s => csv(s)))
+    ???
+    findAll.map(services => services.map(s => csv(s)))
   }
 
   /**
