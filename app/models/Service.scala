@@ -9,7 +9,6 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
 import play.api.libs.json.Json
 import play.api.Logger
-import models.Services
 
 case class Service(_id: Option[BSONObjectID],
                    description: String,
@@ -79,7 +78,6 @@ object Service {
         "mockGroupId" -> service.mockGroupId)
   }
 
-
   /**
    * Title of csvFile. The value is the order of title.
    */
@@ -88,16 +86,17 @@ object Service {
   val csvKey = "service"
 
   /**
-   * Csv format.
+   * Csv format of one service.
+   * @param s service
+   * @return csv format of the service (String)
    */
-
   def csv(s: Service) = {
     csvKey + ";" + s._id.get.stringify + ";" + s.description + ";" + s.localTarget + ";" + s.remoteTarget + ";" + s.timeoutms + ";" + s.recordXmlData + ";" + s.recordData + ";" + s.useMockGroup + ";" + s.environmentName + ";" + s.mockGroupId + "\n"
   }
 
   /**
    * Get All service, csv format.
-   * @return List of Service, csv format
+   * @return List of Services, csv format
    */
   def fetchCsv(): Future[List[String]] = {
     findAll.map(service => service.map(s => csv(s)))
