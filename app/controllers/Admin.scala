@@ -30,8 +30,8 @@ object Admin extends Controller {
                   Service.upload(line)
                 } else if (line.startsWith(Environment.csvKey)) {
                   Environment.upload(line)
-                } else if (line.startsWith(SoapAction.csvKey)) {
-                  SoapAction.upload(line)
+                } else if (line.startsWith(ServiceAction.csvKey)) {
+                  ServiceAction.upload(line)
                 } else if (line.startsWith(RequestData.csvKey)) {
                   RequestData.upload(line)
                 }
@@ -57,8 +57,8 @@ object Admin extends Controller {
     var content = "#for key " + Environment.csvKey + "\n"
     Environment.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
     content = content.dropRight(1) + "\n" // delete last ; and add new line
-    content += "#for key " + SoapAction.csvKey + "\n"
-    SoapAction.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
+    content += "#for key " + ServiceAction.csvKey + "\n"
+    ServiceAction.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
     content = content.dropRight(1) + "\n"
     content += "#for key " + MockGroup.csvKey + "\n"
     MockGroup.csvTitle.toList.sortBy(_._2).foreach { case (k, v) => content += k + ";" }
@@ -69,7 +69,7 @@ object Admin extends Controller {
 
     // data
     Environment.fetchCsv().foreach { s => content += Environment.csvKey + ";" + s }
-    SoapAction.fetchCsv().foreach { s => content += SoapAction.csvKey + ";" + s }
+    ServiceAction.fetchCsv().foreach { s => content += ServiceAction.csvKey + ";" + s }
     MockGroup.fetchCsv().foreach { s => content += MockGroup.csvKey + ";" + s }
     Service.fetchCsv().foreach { s => content += Service.csvKey + ";" + s }
 

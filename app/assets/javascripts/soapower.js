@@ -20,14 +20,14 @@ spApp.config(function ($routeProvider) {
         .when('/search', {
             redirectTo: '/search/all/all/all/yesterday/today/all'
         })
-        .when('/search/:group/:environment/:soapaction/:mindate/:maxdate/:code', {
+        .when('/search/:group/:environment/:serviceaction/:mindate/:maxdate/:code', {
             templateUrl: 'partials/search/search.html',
             controller: SearchCtrl
         })
         .when('/analysis', {
             redirectTo: '/analysis/all/all/all/yesterday/today/all'
         })
-        .when('/analysis/:group/:environment/:soapaction/:mindate/:maxdate/:code', {
+        .when('/analysis/:group/:environment/:serviceaction/:mindate/:maxdate/:code', {
             templateUrl: 'partials/analysis/analysis.html', controller: AnalysisCtrl
         })
         .when('/monitor', {
@@ -67,8 +67,8 @@ spApp.config(function ($routeProvider) {
         .when('/groups/new', {controller: GroupNewCtrl, templateUrl: 'partials/groups/detail.html'})
         .when('/groups/:groupId', {controller: GroupEditCtrl, templateUrl: 'partials/groups/detail.html'})
 
-        .when('/soapactions/edit/:soapActionId', {controller: SoapActionEditCtrl, templateUrl: 'partials/soapactions/detail.html'})
-        .when('/soapactions', { controller: SoapActionsCtrl, templateUrl: 'partials/soapactions/list.html'})
+        .when('/serviceactions/edit/:serviceActionId', {controller: ServiceActionEditCtrl, templateUrl: 'partials/serviceactions/detail.html'})
+        .when('/serviceactions', { controller: ServiceActionsCtrl, templateUrl: 'partials/serviceactions/list.html'})
 
         .when('/stats', {
             redirectTo: '/stats/all/all/yesterday/today/all'

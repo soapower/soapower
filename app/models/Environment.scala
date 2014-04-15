@@ -12,11 +12,11 @@ import java.util.{Date, Calendar, GregorianCalendar}
 case class Environment(id: Long,
                        name: String,
                        groupId: Long = 1, // 1 is default group
-                       hourRecordXmlDataMin: Int = 8,
-                       hourRecordXmlDataMax: Int = 22,
-                       nbDayKeepXmlData: Int = 2,
+                       hourRecordContentDataMin: Int = 8,
+                       hourRecordContentDataMax: Int = 22,
+                       nbDayKeepContentData: Int = 2,
                        nbDayKeepAllData: Int = 5,
-                       recordXmlData: Boolean = true,
+                       recordContentData: Boolean = true,
                        recordData: Boolean = true
                         )
 
@@ -38,21 +38,21 @@ object Environment {
     get[Long]("environment.id") ~
       get[String]("environment.name") ~
       get[Long]("environment.groupId") ~
-      get[Int]("environment.hourRecordXmlDataMin") ~
-      get[Int]("environment.hourRecordXmlDataMax") ~
-      get[Int]("environment.nbDayKeepXmlData") ~
+      get[Int]("environment.hourRecordContentDataMin") ~
+      get[Int]("environment.hourRecordContentDataMax") ~
+      get[Int]("environment.nbDayKeepContentData") ~
       get[Int]("environment.nbDayKeepAllData") ~
-      get[String]("environment.recordXmlData") ~
+      get[String]("environment.recordContentData") ~
       get[String]("environment.recordData") map {
-      case id ~ name ~ groupId ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData ~ recordXmlData ~ recordData
-      => Environment(id, name, groupId, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData, nbDayKeepAllData, (recordXmlData == "true"), (recordData == "true"))
+      case id ~ name ~ groupId ~ hourRecordContentDataMin ~ hourRecordContentDataMax ~ nbDayKeepContentData ~ nbDayKeepAllData ~ recordContentData ~ recordData
+      => Environment(id, name, groupId, hourRecordContentDataMin, hourRecordContentDataMax, nbDayKeepContentData, nbDayKeepAllData, (recordContentData == "true"), (recordData == "true"))
     }
   }
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groupName" -> 3, "hourRecordXmlDataMin" -> 4, "hourRecordXmlDataMax" -> 5, "nbDayKeepXmlData" -> 6, "nbDayKeepAllData" -> 7, "recordXmlData" -> 8, "recordData" -> 9)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groupName" -> 3, "hourRecordContentDataMin" -> 4, "hourRecordContentDataMax" -> 5, "nbDayKeepContentData" -> 6, "nbDayKeepAllData" -> 7, "recordContentData" -> 8, "recordData" -> 9)
 
   val csvKey = "environment"
 
@@ -63,14 +63,14 @@ object Environment {
     get[Pk[Long]]("environment.id") ~
       get[String]("environment.name") ~
       get[String]("groups.name") ~
-      get[Int]("environment.hourRecordXmlDataMin") ~
-      get[Int]("environment.hourRecordXmlDataMax") ~
-      get[Int]("environment.nbDayKeepXmlData") ~
+      get[Int]("environment.hourRecordContentDataMin") ~
+      get[Int]("environment.hourRecordContentDataMax") ~
+      get[Int]("environment.nbDayKeepContentData") ~
       get[Int]("environment.nbDayKeepAllData") ~
-      get[String]("environment.recordXmlData") ~
+      get[String]("environment.recordContentData") ~
       get[String]("environment.recordData") map {
-      case id ~ name ~ groupName ~ hourRecordXmlDataMin ~ hourRecordXmlDataMax ~ nbDayKeepXmlData ~ nbDayKeepAllData ~ recordXmlData ~ recordData =>
-        id + ";" + name + ";" + groupName + ";" + hourRecordXmlDataMin + ";" + hourRecordXmlDataMax + ";" + nbDayKeepXmlData + ";" + nbDayKeepAllData + ";" + recordXmlData + ";" + recordData + "\n"
+      case id ~ name ~ groupName ~ hourRecordContentDataMin ~ hourRecordContentDataMax ~ nbDayKeepContentData ~ nbDayKeepAllData ~ recordContentData ~ recordData =>
+        id + ";" + name + ";" + groupName + ";" + hourRecordContentDataMin + ";" + hourRecordContentDataMax + ";" + nbDayKeepContentData + ";" + nbDayKeepAllData + ";" + recordContentData + ";" + recordData + "\n"
     }
   }
 
@@ -224,19 +224,19 @@ object Environment {
         SQL(
           """
             insert into environment (
-              id, name, hourRecordXmlDataMin, hourRecordXmlDataMax, nbDayKeepXmlData,
-              nbDayKeepAllData, recordXmlData, recordData, groupId)
+              id, name, hourRecordContentDataMin, hourRecordContentDataMax, nbDayKeepContentData,
+              nbDayKeepAllData, recordContentData, recordData, groupId)
              values (
-              null, {name}, {hourRecordXmlDataMin}, {hourRecordXmlDataMax}, {nbDayKeepXmlData},
-              {nbDayKeepAllData}, {recordXmlData}, {recordData}, {groupId}
+              null, {name}, {hourRecordContentDataMin}, {hourRecordContentDataMax}, {nbDayKeepContentData},
+              {nbDayKeepAllData}, {recordContentData}, {recordData}, {groupId}
             )
           """).on(
           'name -> environment.name.trim,
-          'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
-          'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
-          'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
+          'hourRecordContentDataMin -> environment.hourRecordContentDataMin,
+          'hourRecordContentDataMax -> environment.hourRecordContentDataMax,
+          'nbDayKeepContentData -> environment.nbDayKeepContentData,
           'nbDayKeepAllData -> environment.nbDayKeepAllData,
-          'recordXmlData -> environment.recordXmlData.toString,
+          'recordContentData -> environment.recordContentData.toString,
           'recordData -> environment.recordData.toString,
           'groupId -> environment.groupId
         ).executeUpdate()
@@ -265,22 +265,22 @@ object Environment {
           """
           update environment
           set name = {name},
-          hourRecordXmlDataMin = {hourRecordXmlDataMin},
-          hourRecordXmlDataMax = {hourRecordXmlDataMax},
-          nbDayKeepXmlData = {nbDayKeepXmlData},
+          hourRecordContentDataMin = {hourRecordContentDataMin},
+          hourRecordContentDataMax = {hourRecordContentDataMax},
+          nbDayKeepContentData = {nbDayKeepContentData},
           nbDayKeepAllData = {nbDayKeepAllData},
-          recordXmlData = {recordXmlData},
+          recordContentData = {recordContentData},
           recordData = {recordData},
           groupId = {groupId}
           where id = {id}
           """).on(
           'id -> environment.id,
           'name -> environment.name.trim,
-          'hourRecordXmlDataMin -> environment.hourRecordXmlDataMin,
-          'hourRecordXmlDataMax -> environment.hourRecordXmlDataMax,
-          'nbDayKeepXmlData -> environment.nbDayKeepXmlData,
+          'hourRecordContentDataMin -> environment.hourRecordContentDataMin,
+          'hourRecordContentDataMax -> environment.hourRecordContentDataMax,
+          'nbDayKeepContentData -> environment.nbDayKeepContentData,
           'nbDayKeepAllData -> environment.nbDayKeepAllData,
-          'recordXmlData -> environment.recordXmlData.toString,
+          'recordContentData -> environment.recordContentData.toString,
           'recordData -> environment.recordData.toString,
           'groupId -> environment.groupId
         ).executeUpdate()
@@ -367,7 +367,7 @@ object Environment {
             val result = RequestData.loadAvgResponseTimesByAction("all", e._1, "200", minDate, maxDate, false)
             result.foreach {
               (r) =>
-                Logger.debug("call insertStats env:" + e._2 + " SoapAction:" + r._1 + " timeAverage:" + r._2 + " date:" + minDate)
+                Logger.debug("call insertStats env:" + e._2 + " ServiceAction:" + r._1 + " timeAverage:" + r._2 + " date:" + minDate)
                 RequestData.insertStats(e._1.toLong, r._1, minDate, r._2)
             }
         }
@@ -400,7 +400,7 @@ object Environment {
 
         val maxDate = new GregorianCalendar
         if (mode == ModePurge.XML)
-          nbDay = env.nbDayKeepXmlData
+          nbDay = env.nbDayKeepContentData
         else
           nbDay = env.nbDayKeepAllData
 
@@ -460,11 +460,11 @@ object Environment {
         -1,
         dataCsv(csvTitle.get("name").get).trim,
         group.id,
-        dataCsv(csvTitle.get("hourRecordXmlDataMin").get).toInt,
-        dataCsv(csvTitle.get("hourRecordXmlDataMax").get).toInt,
-        dataCsv(csvTitle.get("nbDayKeepXmlData").get).toInt,
+        dataCsv(csvTitle.get("hourRecordContentDataMin").get).toInt,
+        dataCsv(csvTitle.get("hourRecordContentDataMax").get).toInt,
+        dataCsv(csvTitle.get("nbDayKeepContentData").get).toInt,
         dataCsv(csvTitle.get("nbDayKeepAllData").get).toInt,
-        (dataCsv(csvTitle.get("recordXmlData").get).trim == "true"),
+        (dataCsv(csvTitle.get("recordContentData").get).trim == "true"),
         (dataCsv(csvTitle.get("recordData").get).trim == "true")
       )
       Environment.insert(environment)

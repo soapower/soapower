@@ -1,4 +1,4 @@
-<h2>SoapActions</h2>
+<h2>ServiceActions</h2>
 
 <button class="btn btn-primary" ng-click="regenerate()" ng-disabled="btnRegenerateDisabled">
     <i class="fa fa-refresh"></i> Generate List
@@ -6,18 +6,18 @@
 
 {{ info }}
 
-<p>There are {{ soapActions.length }} SoapActions.</p>
+<p>There are {{ serviceActions.length }} ServiceActions.</p>
 
 <sp-showresults></sp-showresults>
 
 <table ng-table="tableParams" class="table table-striped table-bordered">
     <tr ng-repeat="line in $data">
-        <td data-title="'SoapAction Name'" sortable="'name'">
+        <td data-title="'ServiceAction Name'" sortable="'name'">
             {{line.name}}
         </td>
-        <td data-title="'SoapAction Threshold in ms'" sortable="'thresholdms'">
+        <td data-title="'ServiceAction Threshold in ms'" sortable="'thresholdms'">
             {{line.thresholdms}}
         </td>
-        <td data-title="'Edit'"><a href="#/soapactions/edit/{{ line.id }}"><i class="fa fa-pencil"></i></a></td>
+        <td data-title="'Edit'"><a href="#/serviceactions/edit/{{ line.id }}"><i class="fa fa-pencil"></i></a></td>
     </tr>
 </table>

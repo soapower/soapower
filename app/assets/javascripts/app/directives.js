@@ -6,9 +6,9 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
     return {
         restrict: 'E',
         scope: {
-            soapactions: '='
+            serviceactions: '='
         },
-        controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, SoapactionsService, CodesService, UIService) {
+        controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceactionsService, CodesService, UIService) {
             EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.group, null, true);
             CodesService.findAllAndSelect($scope, $routeParams);
             $scope.ctrlPath = $scope.$parent.ctrlPath;
@@ -20,10 +20,10 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
             $scope.mindatecalendar = new Date();
             $scope.maxdatecalendar = new Date();
 
-            $scope.showSoapactions = false;
-            if ($attrs.soapactions == "yes") {
-                $scope.showSoapactions = true;
-                SoapactionsService.findAllAndSelect($scope, $routeParams);
+            $scope.showServiceactions = false;
+            if ($attrs.serviceactions == "yes") {
+                $scope.showServiceactions = true;
+                ServiceactionsService.findAllAndSelect($scope, $routeParams);
             }
 
             // Called when the mindate datetimepicker is set
@@ -40,7 +40,7 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
             $scope.changeCriteria = function () {
                     // Check that the date inputs format are correct and that the mindate is before the maxdate
                     if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
-                        UIService.reloadPage($scope, $scope.showSoapactions);
+                        UIService.reloadPage($scope, $scope.showServiceactions);
                     }
                     else {
                         // Else, mindate and maxdate are set to yesterday's and today's dates
@@ -57,7 +57,7 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
         return {
             restrict: 'E',
             scope: {
-                soapactions: '='
+                serviceactions: '='
             },
             controller: function ($scope, $rootScope, $routeParams, GroupsService) {
                 $scope.showSelect = false;
@@ -263,6 +263,9 @@ spApp.directive('spReplayEdit', function () {
         controller: function ($scope, ReplayService) {
             $scope.replayReq = function (row) {
                 $scope.idSelected = row.id;
+                $scope.idService = row.service;
+                $scope.contentType = row.contentType;
+
                 ReplayService.beforeReplay(row.id).then(function(data) {
                     $scope.replayContent = data;
                     $('#myModal').modal('show')
@@ -270,7 +273,7 @@ spApp.directive('spReplayEdit', function () {
             };
 
             $scope.sendReplayReq = function () {
-                ReplayService.replay($scope.idSelected, $scope.replayContent);
+                ReplayService.replay($scope.idSelected, $scope.idService, $scope.contentType, $scope.replayContent);
                 $('#myModal').modal('hide')
             };
         }
