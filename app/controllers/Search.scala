@@ -118,10 +118,11 @@ object Search extends Controller {
       case "XML" => {
         try {
           contentInCorrectFormat = new PrettyPrinter(250, 4).format(scala.xml.XML.loadString(str))
+          filename += ".xml"
         } catch {
           case e: SAXParseException => contentInCorrectFormat = str
+          filename += ".txt"
         }
-        filename += ".xml"
 
         var result = SimpleResult(
           header = ResponseHeader(play.api.http.Status.OK),
@@ -139,9 +140,10 @@ object Search extends Controller {
           filename += ".json"
         }
         catch {
-          case e: JsonMappingException =>
+          case e: Exception =>
           {
             contentInCorrectFormat = str
+            filename += ".txt"
           }
         }
         var result = SimpleResult(

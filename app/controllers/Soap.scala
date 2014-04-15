@@ -160,7 +160,7 @@ object Soap extends Controller {
         } else {
           client.sendSoapRequestAndWaitForResponse
           // forward the response to the client
-          new Results.Status(client.response.status).apply(client.response.bodyBytes)//.chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
+          new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
             .withHeaders("ProxyVia" -> "soapower")
             .withHeaders(client.response.headers.toArray: _*).as(XML)
         }

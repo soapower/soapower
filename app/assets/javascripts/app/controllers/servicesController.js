@@ -74,23 +74,23 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
     });
 
     $scope.types = [
-            'soap',
-            'rest'
-          ];
+        'soap',
+        'rest'
+    ];
 
     $scope.methods = [
-                   'post',
-                   'get',
-                   'put',
-                   'delete'
-                 ];
+        'post',
+        'get',
+        'put',
+        'delete'
+    ];
 
     $scope.$watch('service.typeRequest', function(newValue) {
-            if(newValue == 'soap')
-            {
-                $scope.service.httpMethod = 'post';
-            }
-        });
+        if(newValue == 'soap')
+        {
+            $scope.service.httpMethod = 'post';
+        }
+    });
 
     $scope.isClean = function () {
         return angular.equals(self.original, $scope.service);

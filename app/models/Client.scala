@@ -56,7 +56,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
   val requestData = {
     var serviceAction = ""
 
-    if(typeRequest.equals(Service.SOAP) && (Client.extractSoapAction(headers) != Client.DEFAULT_NO_SOAPACTION))
+    if((typeRequest == Service.SOAP) && (Client.extractSoapAction(headers) != Client.DEFAULT_NO_SOAPACTION))
   	{
       serviceAction = Client.extractSoapAction(headers)
   	} else {
@@ -79,6 +79,17 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     requestData.requestHeaders = headers
     requestData.response = checkNullOrEmpty(mock.response)
     requestData.responseHeaders = UtilConvert.headersFromString(mock.httpHeaders)
+    if(requestData.contentType == "None")
+    {
+      val mockResponseType  = requestData.responseHeaders.get("Content-Type")
+      mockResponseType match {
+        case Some(content) =>
+          requestData.contentType = requestData.responseHeaders.get("Content-Type").get
+        case _ =>
+          requestData.contentType = "text/html"
+      }
+      requestData.contentType = requestData.responseHeaders.get("Content-Type").get
+    }
     saveData(content)
     Logger.debug("End workWithMock")
   }
