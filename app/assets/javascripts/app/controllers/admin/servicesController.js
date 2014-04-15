@@ -92,7 +92,7 @@ function ServiceEditCtrl($scope, $rootScope, $routeParams, $location, Service, E
     $rootScope.$broadcast("showGroupsFilter", false, "ServiceEditCtrl");
 }
 
-function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, MockGroupsService, EnvironmentsService) {
+function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, MockGroupsService) {
 
     $scope.title = "Insert new service";
     $scope.groups = $routeParams.groups;

@@ -1,4 +1,4 @@
-function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService, UIService, ngTableParams, $filter) {
+function EnvironmentsCtrl($scope, $rootScope, $location, $routeParams, EnvironmentsService, ngTableParams, $filter) {
 
     $scope.groups = $routeParams.groups;
 
@@ -35,20 +35,21 @@ function EnvironmentsCtrl($scope, $rootScope, $routeParams, EnvironmentsService,
 
     $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "EnvironmentsCtrl");
 
-    $scope.$on("ReloadPage", function (event, group) {
-        $scope.ctrlPath = "environments";
-        UIService.reloadAdminPage($scope, group);
+    $scope.$on("ReloadPage", function (event, groups) {
+        console.log("Receive ReloadPage");
+        var path = 'environments/list/' + groups;
+        $location.path(path);
     });
 }
 
-function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, GroupsService) {
+function EnvironmentEditCtrl($scope, $location, $routeParams, Environment, GroupsService) {
 
     $scope.title = "Edit an environment";
 
     var self = this;
 
     GroupsService.findAll().success(function (groups) {
-        $scope.groups = groups.values;
+        $scope.allGroups = groups.values;
     });
 
     Environment.get({environmentId: $routeParams.environmentId}, function (environment) {
@@ -77,12 +78,13 @@ function EnvironmentEditCtrl($scope, $routeParams, $location, Environment, Group
     };
 }
 
-function EnvironmentNewCtrl($scope, $location, Environment, GroupsService) {
+function EnvironmentNewCtrl($scope, $location, $routeParams, Environment, GroupsService) {
 
     $scope.title = "Insert new environment";
+    $scope.groups = $routeParams.groups;
 
     GroupsService.findAll().success(function (groups) {
-        $scope.groups = groups.values;
+        $scope.allGroups = groups.values;
     });
 
     $scope.environment = new Environment();

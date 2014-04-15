@@ -5,7 +5,7 @@
         <label for="groups" class="col-lg-2 control-label">Groups </label>
         <div class="col-lg-4">
             <select class="form-control" id="groups" ui-select2 multiple ng-model="environment.groups" data-placeholder="Pick on or many groups" ng-required="true">
-                <option ng-repeat="group in groups" value="{{group}}">{{group}}</option>
+                <option ng-repeat="group in allGroups" value="{{group}}">{{group}}</option>
             </select>
 
             <span ng-show="newGroup && !showNewGroup">You can select the group <b class="label label-info">{{newGroup}}</b> in list above.</span>
@@ -111,7 +111,7 @@
 
     <div class="form-group">
         <div class="col-lg-offset-2 col-lg-10">
-            <a href="#/environments" class="btn btn-default">Cancel</a>
+            <a href="#/environments/list/{{ groups }}" class="btn btn-default">Cancel</a>
             <button ng-click="save()" ng-disabled="isClean() || myForm.$invalid"
                     class="btn btn-primary">Save
             </button>

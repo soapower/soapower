@@ -1,6 +1,6 @@
-<h2>Mocks of {{ mockGroup }}</h2>
+<h2>Mocks of {{ mockGroupName }}</h2>
 
-<a class="btn btn-primary" href="#/mocks/new/{{ mockGroup }}"><i class="fa fa-plus"></i> Add a new mock</a>
+<a class="btn btn-primary" href="#/mocks/new/{{ mockGroupName }}/{{ groups }}"><i class="fa fa-plus"></i> Add a new mock</a>
 
 <p>There are {{ mocks.length }} mocks.</p>
 
@@ -23,6 +23,6 @@
         <td data-title="'HTTP Status'" sortable="'httpStatus'">
             {{line.httpStatus}}
         </td>
-        <td data-title="'Edit'"><a href="#/mocks/edit/{{ line.id }}"><i class="fa fa-pencil"></i></a></td>
+        <td data-title="'Edit'"><a href="#/mocks/edit/{{ mockGroupName }}/{{ line._id.$oid }}/{{ groups }}"><i class="fa fa-pencil"></i></a></td>
     </tr>
 </table>

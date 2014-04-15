@@ -64,7 +64,7 @@ object Mock {
     def write(mock: Mock): BSONDocument =
       BSONDocument(
         "_id" -> mock._id,
-        "name" -> BSONString(mock.description),
+        "name" -> BSONString(mock.name),
         "description" -> BSONString(mock.description),
         "timeoutms" -> BSONInteger(mock.timeoutms),
         "httpStatus" -> BSONInteger(mock.httpStatus),

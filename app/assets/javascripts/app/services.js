@@ -96,12 +96,12 @@ spApp.factory("MockGroupsService", function ($http) {
  *  MOCKS
  ***************************************/
 spApp.factory('Mock', function ($resource) {
-    var Service = $resource('/mocks/:mockGroupName/:mockId',
+    var Mock = $resource('/mocks/:mockGroupName/:mockId',
         { mockGroupName: '@mockGroupName', mockId: '@_id.$oid'},
         { update: {method: 'PUT'},
             create: {method: 'POST'}}
     );
-    return Service;
+    return Mock;
 });
 
 spApp.factory("MocksService", function ($http) {

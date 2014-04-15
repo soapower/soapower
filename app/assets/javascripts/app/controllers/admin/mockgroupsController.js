@@ -1,4 +1,6 @@
-function MockGroupsCtrl($scope, $rootScope, $routeParams, MockGroupsService, UIService, ngTableParams, $filter) {
+function MockGroupsCtrl($scope, $rootScope, $location, $routeParams, MockGroupsService, ngTableParams, $filter) {
+
+    $scope.groups = $routeParams.groups;
 
     // Looking for mockGroups with their groups and adding all informations to $scope.mockGroups var
     MockGroupsService.findAll($routeParams.groups).
@@ -33,9 +35,10 @@ function MockGroupsCtrl($scope, $rootScope, $routeParams, MockGroupsService, UIS
 
     $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "MockGroupsCtrl");
 
-    $scope.$on("ReloadPage", function (event, group) {
-        $scope.ctrlPath = "mockgroups";
-        UIService.reloadAdminPage($scope, group);
+    $scope.$on("ReloadPage", function (event, groups) {
+        console.log("Receive ReloadPage");
+        var path = 'mockgroups/list/' + groups;
+        $location.path(path);
     });
 }
 
@@ -46,7 +49,7 @@ function MockGroupEditCtrl($scope, $routeParams, $location, MockGroup, GroupsSer
     var self = this;
 
     GroupsService.findAll().success(function (groups) {
-        $scope.groups = groups.values;
+        $scope.allGroups = groups.values;
     });
 
     MockGroup.get({mockgroupId: $routeParams.mockGroupId}, function (mockGroup) {
@@ -60,7 +63,7 @@ function MockGroupEditCtrl($scope, $routeParams, $location, MockGroup, GroupsSer
 
     $scope.destroy = function () {
         self.original.$remove(function () {
-            $location.path('/mockgroups');
+            $location.path('/mockgroups/list/' + $routeParams.groups);
         }, function (response) { // error case
             alert(response.data);
         });
@@ -68,19 +71,19 @@ function MockGroupEditCtrl($scope, $routeParams, $location, MockGroup, GroupsSer
 
     $scope.save = function () {
         $scope.mockGroup.$update(function () {
-            $location.path('/mockgroups');
+            $location.path('/mockgroups/list/' + $routeParams.groups);
         }, function (response) { // error case
             alert(response.data);
         });
     };
 }
 
-function MockGroupNewCtrl($scope, $location, MockGroup, GroupsService) {
+function MockGroupNewCtrl($scope, $location, $routeParams, MockGroup, GroupsService) {
 
     $scope.title = "Insert new mockGroup";
 
     GroupsService.findAll().success(function (groups) {
-        $scope.groups = groups.values;
+        $scope.allGroups = groups.values;
     });
 
     $scope.mockGroup = new MockGroup();
@@ -88,7 +91,7 @@ function MockGroupNewCtrl($scope, $location, MockGroup, GroupsService) {
 
     $scope.save = function () {
         $scope.mockGroup.$create(function () {
-            $location.path('/mockgroups/');
+            $location.path('/mockgroups/list/' + $routeParams.groups);
         }, function (response) { // error case
             alert(response.data);
         });
