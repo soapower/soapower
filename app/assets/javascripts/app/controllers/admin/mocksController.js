@@ -2,8 +2,8 @@ function MocksCtrl($scope, $rootScope, $filter, $routeParams, MocksService, UISe
 
     // Looking for mocks with their groups and adding all informations to $scope.mocks var
     MocksService.findAll($routeParams.mockGroup).
-        success(function (mocks) {
-            $scope.mocks = mocks.data;
+        success(function (data) {
+            $scope.mocks = data.mocks;
 
             $scope.tableParams = new ngTableParams({
                 page: 1,            // show first page

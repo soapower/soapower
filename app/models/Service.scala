@@ -43,13 +43,11 @@ case class Services(services: List[Service])
 
 object Service {
 
-
   implicit val serviceFormat = Json.format[Service]
   implicit val servicesFormat = Json.format[Services]
 
   implicit object ServicesReader extends BSONDocumentReader[Services] {
     def read(doc: BSONDocument): Services = {
-      Logger.debug("Environemnt: " + BSONDocument.pretty(doc))
       if (doc.getAs[List[BSONDocument]]("services") isDefined) {
         val list = doc.getAs[List[BSONDocument]]("services").get.map(
           s => new Service(s, doc.getAs[String]("name"))
