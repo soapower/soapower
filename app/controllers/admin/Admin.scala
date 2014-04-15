@@ -85,7 +85,7 @@ object Admin extends Controller {
         servicesActions <- Environment.fetchCsv() // ServiceAction.fetchCsv
         mockGroups <- Environment.fetchCsv() // MockGroup.fetchCsv
         services <- Environment.fetchCsv() // Service.fetchCsv
-      } yield combine(environments ++ serviceActions ++ mockGroups ++ services)
+      } yield combine(environments ++ servicesActions ++ mockGroups ++ services)
     }
 
     // result as a file

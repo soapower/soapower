@@ -18,7 +18,7 @@ object Global extends GlobalSettings {
     // frequency: Duration : 10 hours
     Akka.system.scheduler.schedule(10 minutes, 5 hours) {
       Environment.compileStats()
-      Environment.purgeXmlData()
+      Environment.purgeContentData()
       Environment.purgeAllData()
     }
 

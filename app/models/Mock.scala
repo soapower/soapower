@@ -304,7 +304,7 @@ object Mock {
   /**
    * Retrieve an Mock from name.
    */
-  def findByMockGroupAndContent(mockGroupId: Long, requestBody: String): Mock = {
+  def findByMockGroupAndContent(mockGroupId: BSONObjectID, requestBody: String): Mock = {
 
     ???
     /*

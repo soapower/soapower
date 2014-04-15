@@ -17,7 +17,7 @@ object Rest extends Controller {
                   requestContentType: String): SimpleResult = {
 
     val client = new Client(service, sender, content, headers, Service.REST, requestContentType)
-    val mock = Mock.findByMockGroupAndContent(service.mockGroupId, content)
+    val mock = Mock.findByMockGroupAndContent(service.mockGroupId.get, content)
 
     val sr = new Results.Status(mock.httpStatus).chunked(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
       .withHeaders("ProxyVia" -> "soapower")
@@ -29,6 +29,10 @@ object Rest extends Controller {
   }
 
   def index(environment: String, call: String) = Action {
+
+     ???
+        // TODO
+        /*
     request =>
       val sender = request.remoteAddress
       val headers = request.headers.toSimpleMap
@@ -98,9 +102,14 @@ object Rest extends Controller {
         Logger.error(err)
         BadRequest(err)
       }
+      */
+    BadRequest("TODO")
   }
 
   def replay(requestId: Long) = Action {
+    ???
+    // TODO
+    /*
     implicit request =>
       val requestData = RequestData.loadForREST(requestId)
 
@@ -131,6 +140,8 @@ object Rest extends Controller {
       }
 
       forwardRequest(requestContent, query, service, sender, headers, requestCall, requestContentType)
+      */
+    BadRequest("TODO")
   }
 
   def forwardRequest(content: String, query: Map[String, String], service: Service, sender: String, headers: Map[String, String], requestCall: String,
