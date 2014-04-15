@@ -11,21 +11,20 @@ import scala.concurrent.{Await, Future}
 import play.modules.reactivemongo.json.BSONFormats._
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.modules.reactivemongo.json.collection.JSONCollection
 import reactivemongo.core.commands.RawCommand
 import play.api.Logger
+import reactivemongo.api.collections.default.BSONCollection
 
 case class MockGroup(_id: Option[BSONObjectID],
-                       name: String,
-                       groups: List[String]
-                    )
+                     name: String,
+                     groups: List[String])
 
 object MockGroup {
 
   /*
    * Collection MongoDB
    */
-  def collection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("mockGroups")
+  def collection: BSONCollection = ReactiveMongoPlugin.db.collection[BSONCollection]("mockGroups")
 
   implicit val mockGroupFormat = Json.format[MockGroup]
 
@@ -42,7 +41,7 @@ object MockGroup {
     def write(mockGroup: MockGroup): BSONDocument =
       BSONDocument(
         "_id" -> mockGroup._id,
-        "name" -> mockGroup.name,
+        "name" -> BSONString(mockGroup.name),
         "groups" -> mockGroup.groups)
   }
 
@@ -59,8 +58,8 @@ object MockGroup {
   /**
    * Csv format.
    */
-  def csv(e: MockGroup) = {
-    csvKey + ";" + e._id.get.stringify + ";" + e.name + ";" + e.groups.mkString("|") + "\n"
+  def csv(m: MockGroup) = {
+    csvKey + ";" + m._id.get.stringify + ";" + m.name + ";" + m.groups.mkString("|") + "\n"
   }
 
   /**
@@ -100,8 +99,7 @@ object MockGroup {
   /**
    * Retrieve an MockGroup from id.
    */
-  def findById(id: String): Future[Option[MockGroup]] = {
-    val objectId = new BSONObjectID(id)
+  def findById(objectId: BSONObjectID): Future[Option[MockGroup]] = {
     val query = BSONDocument("_id" -> objectId)
     collection.find(query).one[MockGroup]
   }
@@ -181,8 +179,8 @@ object MockGroup {
    */
   def findAll: Future[List[MockGroup]] = {
     collection.
-      find(Json.obj()).
-      sort(Json.obj("name" -> 1)).
+      find(BSONDocument()).
+      sort(BSONDocument("name" -> 1)).
       cursor[MockGroup].
       collect[List]()
   }

@@ -11,7 +11,6 @@ import scala.concurrent.{Await, Future}
 import play.modules.reactivemongo.json.BSONFormats._
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.modules.reactivemongo.json.collection.JSONCollection
 import reactivemongo.core.commands.RawCommand
 import play.api.Logger
 import reactivemongo.api.collections.default.BSONCollection
@@ -42,7 +41,6 @@ object Environment {
 
   implicit object EnvironmentBSONReader extends BSONDocumentReader[Environment] {
     def read(doc: BSONDocument): Environment = {
-      Logger.debug("Doc : " + BSONDocument.pretty(doc))
       Environment(
         doc.getAs[BSONObjectID]("_id"),
         doc.getAs[String]("name").get,
