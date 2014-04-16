@@ -35,12 +35,17 @@
 
             <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
         </div>
+        <div class="col-lg-6 help-block">You have to chose if the service will be called by SOAP or REST requests.
+            If you chose REST, you will have to set the http method bound to the REST service and the local target will start with /rest.
+        </div>
     </div>
     <div class="form-group" ng-class="{error: myForm.environment.$invalid}" ng-show="service.typeRequest == 'rest'">
         <label for="methods" class="col-lg-2 control-label">HTTP Method</label>
         <div class="col-lg-4">
             <select class="form-control" ng-model="service.httpMethod" id="methods" ng-options="method for method in methods" required></select>
             <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
+        </div>
+        <div class="col-lg-6 help-block">Set the HTTP method used to call the service
         </div>
     </div>
 
@@ -52,6 +57,8 @@
             <span ng-show="myForm.localTarget.$error.required" class="help-inline">Required</span>
             <span ng-show="myForm.localTarget.$error.required" class="help-block">Enter service1 to have http://{{ hostname }}:{{ port }}/{{ service.typeRequest }}/{{ service.environment.name || "environment" }}/<b>service1</b></span>
             <span ng-show="!myForm.localTarget.$error.required" class="help-block">Local Target : http://{{ hostname }}:{{ port }}/{{ service.typeRequest }}/{{ service.environment.name || "environment" }}/<b>{{ service.localTarget }}</b> </span>
+        </div>
+        <div class="col-lg-6 help-block">Every requests on the service will have a ServiceAction. This ServiceAction is the SoapAction (if it exists in case of a SOAP service) or the HTTP method followed by the localTarget of the service.
         </div>
     </div>
 
