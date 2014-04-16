@@ -98,23 +98,8 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
     $scope.groups = $routeParams.groups;
     $scope.showNewGroup = false;
 
-    // TODO
-    $scope.types = [
-        'soap',
-        'rest'
-    ];
-    $scope.methods = [
-        'post',
-        'get',
-        'put',
-        'delete'
-    ];
-
     $scope.$watch('service.typeRequest', function(newValue) {
-        if(newValue == 'soap')
-        {
-            $scope.service.httpMethod = 'post';
-        }
+        if(newValue == 'SOAP') $scope.service.httpMethod = 'POST';
     });
 
     $scope.service = new Service();
@@ -123,8 +108,8 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
     $scope.service.recordContentData = true;
     $scope.service.recordData = true;
     $scope.service.environmentName = $routeParams.environmentName;
-    $scope.service.typeRequest = $scope.types[0];
-    $scope.service.httpMethod = $scope.methods[0];
+    $scope.service.typeRequest = "SOAP";
+    $scope.service.httpMethod = "POST";
 
     MockGroupsService.findAll("all").success(function (mockGroups) {
         $scope.mockGroups = mockGroups.data;

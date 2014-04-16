@@ -23,22 +23,27 @@
         <div class="col-lg-4">
             <div class="radio">
                 <label>
-                    <input type="radio" name="soap" ng-model="service.typeRequest" value="soap" ng-checked="service.typeRequest == 'soap'"> SOAP
+                    <input type="radio" name="SOAP" ng-model="service.typeRequest" value="SOAP" ng-checked="service.typeRequest == 'SOAP'"> SOAP
                 </label>
             </div>
             <div class="radio">
                 <label>
-                    <input type="radio" name="rest" ng-model="service.typeRequest" value="rest" ng-checked="service.typeRequest == 'rest'"> REST
+                    <input type="radio" name="REST" ng-model="service.typeRequest" value="REST" ng-checked="service.typeRequest == 'REST'"> REST
                 </label>
             </div>
-
             <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
         </div>
     </div>
-    <div class="form-group" ng-class="{error: myForm.environment.$invalid}" ng-show="service.typeRequest == 'rest'">
+    <div class="form-group" ng-class="{error: myForm.environment.$invalid}" ng-show="service.typeRequest == 'REST'">
         <label for="methods" class="col-lg-2 control-label">HTTP Method</label>
         <div class="col-lg-4">
-            <select class="form-control" ng-model="service.httpMethod" id="methods" ng-options="method for method in methods" required></select>
+            <select class="form-control" ng-model="service.httpMethod" id="methods" required>
+                <option value="POST">POST</option>
+                <option value="GET">GET</option>
+                <option value="PUT">PUT</option>
+                <option value="DELETE">DELETE</option>
+                <option value="RENAME">RENAME</option>
+            </select>
             <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
         </div>
     </div>
