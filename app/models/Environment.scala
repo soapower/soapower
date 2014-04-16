@@ -201,7 +201,6 @@ object Environment {
     if (!environment.name.trim.matches(ENVIRONMENT_NAME_PATTERN)) {
       throw new Exception("Environment name invalid:" + environment.name.trim)
     }
-
     if (options.exists {
       e => e._2.equals(environment.name.trim)
     }) {

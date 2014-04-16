@@ -13,7 +13,7 @@
 
             <span ng-show="showNewGroup">
                 <input class="form-control" type="text" id="newGroup" name="newGroup" ng-pattern="namePattern" ng-model="newGroup" placeholder="Enter a new group">
-                <a ng-click="groups.push(newGroup);showNewGroup=false" class="btn btn-default" ng-disabled="myForm.newGroup.$error.pattern">Add new Group</a>
+                <a ng-click="allGroups.push(newGroup);showNewGroup=false" class="btn btn-default" ng-disabled="myForm.newGroup.$error.pattern">Add new Group</a>
                 <span class="label label-danger" ng-show="myForm.newGroup.$error.pattern">Single word only! </span>
                 <span class="help-block">The name have to match this pattern : [a-zA-Z0-9]{1,200}</span>
             </span>

@@ -120,7 +120,7 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
     $scope.service = new Service();
     $scope.service.useMockGroup = false;
     $scope.service.timeoutms = 60000;
-    $scope.service.recordXmlData = true;
+    $scope.service.recordContentData = true;
     $scope.service.recordData = true;
     $scope.service.environmentName = $routeParams.environmentName;
     $scope.service.typeRequest = $scope.types[0];

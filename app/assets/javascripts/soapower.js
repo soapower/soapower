@@ -46,8 +46,8 @@ spApp.config(function ($routeProvider) {
         .when('/mocks/edit/:mockGroupName/:mockId/:groups', {controller: MockEditCtrl, templateUrl: 'partials/admin/mocks/detail.html'})
         .when('/mocks/list/:mockGroupName/:groups', { controller: MocksCtrl, templateUrl: 'partials/admin/mocks/list.html'})
 
-        .when('/serviceactions/edit/:serviceActionId', {controller: ServiceActionEditCtrl, templateUrl: 'partials/serviceactions/detail.html'})
-        .when('/serviceactions', { controller: ServiceActionsCtrl, templateUrl: 'partials/serviceactions/list.html'})
+        .when('/serviceactions/edit/:serviceActionId', {controller: ServiceActionEditCtrl, templateUrl: 'partials/admin/serviceactions/detail.html'})
+        .when('/serviceactions', { controller: ServiceActionsCtrl, templateUrl: 'partials/admin/serviceactions/list.html'})
 
         .otherwise({ redirectTo: '/home' });
 });
