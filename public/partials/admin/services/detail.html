@@ -37,7 +37,7 @@
     <div class="form-group" ng-class="{error: myForm.environment.$invalid}" ng-show="service.typeRequest == 'REST'">
         <label for="methods" class="col-lg-2 control-label">HTTP Method</label>
         <div class="col-lg-4">
-            <select class="form-control" ng-model="service.httpMethod" id="methods" required>
+            <select ui-select2 class="form-control" ng-model="service.httpMethod" id="methods" required>
                 <option value="POST">POST</option>
                 <option value="GET">GET</option>
                 <option value="PUT">PUT</option>
