@@ -150,7 +150,7 @@ object Rest extends Controller {
     client.sendRestRequestAndWaitForResponse(service.httpMethod, requestCall, query)
     new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))//apply(client.response.bodyBytes)
       .withHeaders("ProxyVia" -> "soapower")
-      .withHeaders(client.response.headers.toArray: _*).as(XML/*client.response.contentType*/)
+      .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
   }
 
   /**

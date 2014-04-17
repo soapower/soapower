@@ -1,13 +1,13 @@
 // Class Diagram - http://yuml.me/diagram/scruffy/class/draw
-[Service|localTarget; remoteTarget; timeoutInMs; recordXmlData; recordData]<>-*>[RequestData]
+[Service|localTarget; remoteTarget; timeoutInMs; recordContentData; recordData; typeRequest; httpMethod]<>-*>[RequestData]
 [Service]-[note:Each service could have a mock group instead of a remote Target. See Documentation{bg:cornsilk}]
 [Group|name]<>-*>[Environment]
-[Environment|hourRecordXmlDataMin; hourRecordXmlDataMax; nbDayKeepXmlData; nbDayKeepAllData]<>-*>[Service]
-[RequestData|sender; Request; Response;startTime;responseTime]
-[RequestData]-[note:Soapower purge Xml Data then all data but compile 90percentiles stats every day{bg:cornsilk}]
+[Environment|hourRecordContentDataMin; hourRecordContentDataMax; nbDayKeepContentData; nbDayKeepAllData]<>-*>[Service]
+[RequestData|sender; Request; Response;startTime;responseTime;contentType;requestCall]
+[RequestData]-[note:Soapower purge Content Data then all data but compile 90percentiles stats every day{bg:cornsilk}]
 [note:one environment name have to be unique regardless of the group to which it belong{bg:cornsilk}]
 [note:Groups Environments and Service are added by Admin or automaticaly detected from /autosoap request{bg:cornsilk}]
-[Environment]-[note:Soapower store XML Data in RequestData between min and max hour only{bg:cornsilk}]
+[Environment]-[note:Soapower store Content Data in RequestData between min and max hour only{bg:cornsilk}]
 
 
 //Sequence Diagram - http://www.websequencediagrams.com
