@@ -74,7 +74,7 @@ object Rest extends Controller {
                 case "application/xml" | "text/xml" =>
                   requestContent = requestBody.asXml.get.toString
                 case _ =>
-                  val err = "Soapower doesn't support request body in this format"
+                  val err = "Soapower doesn't support request body in this format : " + contentType
                   Logger.error(err)
                   BadRequest(err)
               }
