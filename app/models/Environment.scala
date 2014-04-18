@@ -259,6 +259,11 @@ object Environment {
     sortEnvs(Await result(f, 1.seconds))
   }
 
+  /**
+   * Find all distinct groups in environments collections.
+   *
+   * @return all distinct groups
+   */
   def findAllGroups(): Future[BSONDocument] = {
     val command = RawCommand(BSONDocument("distinct" -> "environments", "key" -> "groups"))
     collection.db.command(command) // result is Future[BSONDocument]

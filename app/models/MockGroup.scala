@@ -3,7 +3,6 @@ package models
 import play.api.Play.current
 import play.api.cache._
 
-import java.util.{Calendar, GregorianCalendar}
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import play.api.libs.json._
 import reactivemongo.bson._
@@ -70,31 +69,6 @@ object MockGroup {
     findAll.map(mockGroup => mockGroup.map(e => csv(e)))
   }
 
-  /**
-   * Construct the Map[String,String] needed to fill a select options set. Only mockGroups which are into the given group name are retrieved
-   */
-  def options(group: String): Seq[(String, String)] = {
-    ???
-    /*implicit connection =>
-      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
-        Logger.debug("MockGroups not found in cache: loading from db")
-        SQL("select * from mockGroup, groups where mockGroup.groupId = groups.id and groups.name = {groupName} order by mockGroup.name").on(
-          'groupName -> group).as(MockGroup.simple *).map(c => c.id.toString -> c.name)
-      }
-      sortEnvs(envs)
-    */
-  }
-
-
-  /**
-   * Construct the Map[String,String] needed to fill a select options set.
-   */
-  def options = {
-    Cache.getOrElse(keyCacheAllOptions) {
-      val f = findAll.map(mockGroups => mockGroups.map(e => (e._id.get.stringify, e.name)))
-      Await result(f, 1.seconds)
-    }
-  }
 
   /**
    * Retrieve an MockGroup from id.
@@ -122,9 +96,7 @@ object MockGroup {
       throw new Exception("MockGroup name invalid:" + mockGroup.name.trim)
     }
 
-    if (options.exists {
-      e => e._2.equals(mockGroup.name.trim)
-    }) {
+    if (Await.result(findByName(mockGroup.name.trim).map(e => e), 1.seconds).isDefined) {
       throw new Exception("MockGroup with name " + mockGroup.name.trim + " already exist")
     }
 
@@ -142,9 +114,7 @@ object MockGroup {
       throw new Exception("MockGroup name invalid:" + mockGroup.name.trim)
     }
 
-    if (options.exists {
-      e => e._2.equals(mockGroup.name.trim) && e._1 != mockGroup._id.get.stringify
-    }) {
+    if (Await.result(findByName(mockGroup.name.trim).map(e => e), 1.seconds).isDefined) {
       throw new Exception("MockGroup with name " + mockGroup.name.trim + " already exist")
     }
 
@@ -185,6 +155,24 @@ object MockGroup {
       collect[List]()
   }
 
+  /**
+   * Return a list of all mockGroups in some groups.
+   */
+  def findInGroups(groups: String): Future[List[MockGroup]] = {
+    if ("all".equals(groups)) return findAll
+    val find = BSONDocument("groups" -> BSONDocument("$in" -> groups.split(',')))
+    collection.
+      find(find).
+      sort(BSONDocument("name" -> 1)).
+      cursor[MockGroup].
+      collect[List]()
+  }
+
+  /**
+   * Find all distinct groups in mockGroups collections.
+   *
+   * @return all distinct groups
+   */
   def findAllGroups(): Future[BSONDocument] = {
     val command = RawCommand(BSONDocument("distinct" -> "mockGroups", "key" -> "groups"))
     collection.db.command(command) // result is Future[BSONDocument]

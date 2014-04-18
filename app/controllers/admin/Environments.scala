@@ -25,7 +25,7 @@ object Environments extends Controller {
   }
 
   /**
-   * All Environment attached to groups.
+   * All Environments attached to groups.
    *
    * @return JSON
    */

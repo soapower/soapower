@@ -25,13 +25,12 @@ object MockGroups extends Controller {
   }
 
   /**
-   * All.
+   * All Mock Grous attached to groups selected.
    *
    * @return JSON
    */
-  def findAll(group: String) = Action.async {
-    // TODO Criteria and group
-    val futureDataList = MockGroup.findAll
+  def findAll(groups: String) = Action.async {
+    val futureDataList = MockGroup.findInGroups(groups)
     futureDataList.map {
       list =>
         Ok(Json.toJson(Map("data" -> Json.toJson(list))))
