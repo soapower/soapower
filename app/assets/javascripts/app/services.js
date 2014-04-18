@@ -154,7 +154,7 @@ spApp.factory("ServiceactionsService", function ($http) {
                     $scope.serviceactions = serviceactions;
                     $scope.serviceactions.unshift({id: "all", name: "all"});
                     angular.forEach($scope.serviceactions, function (value, key) {
-                        if (encodeURIComponent(value.name) == $routeParams.serviceaction) $scope.serviceaction = value;
+                        if (value.name == $routeParams.serviceaction) $scope.serviceaction = value;
                     });
 
                 })
