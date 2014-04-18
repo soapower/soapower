@@ -43,8 +43,8 @@ GET           /services/:environmentName/:serviceId                             
 DELETE        /services/:environmentName/:serviceId                                                         controllers.admin.Services.delete(environmentName: String, serviceId: String)
 
 # Environments
-GET           /environments/:group/options                                                                  controllers.admin.Environments.options(group:String)
-GET           /environments/:group/findall                                                                  controllers.admin.Environments.findAll(group:String)
+GET           /environments/:groups/options                                                                 controllers.admin.Environments.options(groups:String)
+GET           /environments/:groups/findall                                                                 controllers.admin.Environments.findAll(groups:String)
 POST          /environments                                                                                 controllers.admin.Environments.create
 PUT           /environments/:id                                                                             controllers.admin.Environments.update(id:String)
 GET           /environments/:id                                                                             controllers.admin.Environments.edit(id:String)
@@ -86,8 +86,8 @@ GET           /statsAsJunit/:group/:minDate/:maxDate/                           
 GET           /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable                            controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
 
 # Download SOAP and Rest request and response
-GET           /download/request/:id                                                                         controllers.Search.downloadRequest(id:Long, asFile: Boolean ?=                         false)
-GET           /download/response/:id                                                                        controllers.Search.downloadResponse(id:Long, asFile: Boolean ?=                         false)
+GET           /download/request/:id                                                                         controllers.Search.downloadRequest(id:Long, asFile: Boolean ?=                                 false)
+GET           /download/response/:id                                                                        controllers.Search.downloadResponse(id:Long, asFile: Boolean ?=                                 false)
 
 # Monitoring
 GET           /monitor/logfile                                                                              controllers.admin.Monitor.logfile

@@ -95,33 +95,6 @@ object Environment {
   }
 
   /**
-   * Construct the Map[String,String] needed to fill a select options set. Only environments which are into the given group name are retrieved
-   */
-  def options(group: String): Seq[(String, String)] = {
-    ???
-    /*implicit connection =>
-      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
-        Logger.debug("Environments not found in cache: loading from db")
-        SQL("select * from environment, groups where environment.groupId = groups.id and groups.name = {groupName} order by environment.name").on(
-          'groupName -> group).as(Environment.simple *).map(c => c.id.toString -> c.name)
-      }
-      sortEnvs(envs)
-    */
-  }
-
-
-  /**
-   * Construct the Map[String,String] needed to fill a select options set.
-   */
-  def options = {
-    Cache.getOrElse(keyCacheAllOptions) {
-      val f = findAll.map(environments => environments.map(e => (e._id.get.stringify, e.name)))
-      //TODO sortEnvs(Await result(f, 1.seconds))
-      Await result(f, 1.seconds)
-    }
-  }
-
-  /**
    * Sort the given env option seq
    */
   private def sortEnvs(envs: Seq[(String, String)]): Seq[(String, String)] = {
@@ -177,19 +150,6 @@ object Environment {
   def findByName(name: String): Future[Option[Environment]] = {
     val query = BSONDocument("name" -> name)
     collection.find(query).one[Environment]
-  }
-
-  /**
-   * Retrieve an Environment from name.
-   */
-  def findByGroupAndByName(group: String, name: String): Option[Environment] = {
-    ???
-    /*implicit connection =>
-    //Cache.getOrElse[Option[Environment]](keyCacheByName + name) {
-      SQL("select * from environment e, groups g where e.groupId = g.id and e.name = {name} and g.name = {group}").on(
-        'name -> name, 'group -> group).as(Environment.simple.singleOpt)
-    //}
-    */
   }
 
   /**
@@ -269,11 +229,34 @@ object Environment {
   }
 
   /**
-   * Return a list of all Environment which are contained into the given group
-   *
+   * Return a list of all environments in some groups.
    */
-  def list(group: String): List[Environment] = {
-    ???
+  def findInGroups(groups: String): Future[List[Environment]] = {
+    if ("all".equals(groups)) return findAll
+    val find = BSONDocument("groups" -> BSONDocument("$in" -> groups.split(',')))
+    collection.
+      find(find).
+      sort(BSONDocument("name" -> 1)).
+      cursor[Environment].
+      collect[List]()
+  }
+
+  /**
+   * Construct the Map[String,String] needed to fill a select options set.
+   */
+  def options = {
+    Cache.getOrElse(keyCacheAllOptions) {
+      val f = findAll.map(environments => environments.map(e => (e._id.get.stringify, e.name)))
+      sortEnvs(Await result(f, 1.seconds))
+    }
+  }
+
+  /**
+   * Construct the Map[String,String] needed to fill a select options set for selected groups.
+   */
+  def optionsInGroups(groups: String) = {
+    val f = findInGroups(groups).map(environments => environments.map(e => (e._id.get.stringify, e.name)))
+    sortEnvs(Await result(f, 1.seconds))
   }
 
   def findAllGroups(): Future[BSONDocument] = {
@@ -281,7 +264,7 @@ object Environment {
     collection.db.command(command) // result is Future[BSONDocument]
   }
 
-  /*
+  /**
    * Compile stats for each env / day
    */
   def compileStats() {

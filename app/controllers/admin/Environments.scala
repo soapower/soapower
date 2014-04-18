@@ -29,55 +29,21 @@ object Environments extends Controller {
    *
    * @return JSON
    */
-  def findAll(group: String) = Action.async {
-    // TODO Criteria and group
-    val futureDataList = Environment.findAll
+  def findAll(groups: String) = Action.async {
+    val futureDataList = Environment.findInGroups(groups)
     futureDataList.map {
       list =>
         Ok(Json.toJson(Map("data" -> Json.toJson(list))))
     }
   }
 
-  /*  def listDatatable(group: String) = Action {
-      implicit request =>
-
-        var data: List[Environment] = null.asInstanceOf[List[Environment]]
-
-        if (group != "all") {
-          data = Environment.list(group)
-        } else {
-          data = Environment.list
-        }
-
-        Ok(Json.toJson(Map(
-          "iTotalRecords" -> Json.toJson(data.size),
-          "iTotalDisplayRecords" -> Json.toJson(data.size),
-          "data" -> {
-            Json.toJson(data)
-          }
-        ))).as(JSON)
-    }*/
-
   /**
    * Return all Environments in Json Format
    * @return JSON
    */
-  def options(group: String) = Action {
-    Ok(Json.toJson(Environment.options))
+  def options(groups: String) = Action {
+    Ok(Json.toJson(Environment.optionsInGroups(groups)))
   }
-
-  /*
-  def options(group: String) = Action {
-    implicit request =>
-      var data: Seq[(String, String)] = null.asInstanceOf[Seq[(String, String)]]
-      if (group == "all") {
-        data = Environment.optionsAll
-      } else {
-        data = Environment.optionsAll(group)
-      }
-      Ok(Json.toJson(data)).as(JSON)
-  }
-  */
 
   /**
    * Display the 'edit form' of a existing Environment.
