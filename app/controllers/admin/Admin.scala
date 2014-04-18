@@ -25,20 +25,13 @@ object Admin extends Controller {
           Source.fromFile(fileUploaded.ref.file).getLines().foreach {
             line =>
               try {
-                if (line.startsWith(Service.csvKey)) {
-                  Service.upload(line)
-                } else if (line.startsWith(Environment.csvKey)) {
-                  Environment.upload(line)
-                } else if (line.startsWith(ServiceAction.csvKey)) {
-                  ServiceAction.upload(line)
-                } else if (line.startsWith(RequestData.csvKey)) {
-                  RequestData.upload(line)
-                }
-
+                if (line.startsWith(Service.csvKey)) Service.upload(line)
+                else if (line.startsWith(Environment.csvKey)) Environment.upload(line)
+                else if (line.startsWith(ServiceAction.csvKey)) ServiceAction.upload(line)
+                else if (line.startsWith(RequestData.csvKey)) RequestData.upload(line)
+                else if (line.startsWith(MockGroup.csvKey)) MockGroup.upload(line)
               } catch {
-                case e: Exception => {
-                  err += e.getMessage
-                }
+                case e: Exception => err += e.getMessage
               }
           }
           if (err.size > 0) {
@@ -74,9 +67,7 @@ object Admin extends Controller {
     }
     content = content.dropRight(1) + "\n"
 
-    def combine(csv: List[Object]) = {
-      csv.foreach(s => content += s)
-    }
+    def combine(csv: List[Object]) = csv.foreach(s => content += s)
 
     def f: Future[Unit] = {
       for {
@@ -123,22 +114,22 @@ object Admin extends Controller {
   implicit val adminFormat = Json.format[AdminForm]
 
   def delete = Action(parse.json) {
-        ???
-        //TODO
-        /*
-    request =>
-      request.body.validate(adminFormat).map {
-        adminForm =>
-          val maxDate = new Date(adminForm.maxDate.getTime + ((24 * 60 * 60) - 1) * 1000) // 23h59,59s
-          Logger.debug("Delete min:" + adminForm.minDate + " max:" + maxDate)
-          adminForm.typeAction match {
-            case "xml-data" => RequestData.deleteRequestResponse(adminForm.environmentName, adminForm.minDate, maxDate, "Admin Soapower")
-            case "all-data" => RequestData.delete(adminForm.environmentName, adminForm.minDate, maxDate)
-          }
-          Ok(toJson("success", "Success deleting data")).as(JSON)
-      }.recoverTotal {
-        e => Ok(toJson("error", "Detected error:" + JsError.toFlatJson(e))).as(JSON)
+    ???
+    //TODO
+    /*
+request =>
+  request.body.validate(adminFormat).map {
+    adminForm =>
+      val maxDate = new Date(adminForm.maxDate.getTime + ((24 * 60 * 60) - 1) * 1000) // 23h59,59s
+      Logger.debug("Delete min:" + adminForm.minDate + " max:" + maxDate)
+      adminForm.typeAction match {
+        case "xml-data" => RequestData.deleteRequestResponse(adminForm.environmentName, adminForm.minDate, maxDate, "Admin Soapower")
+        case "all-data" => RequestData.delete(adminForm.environmentName, adminForm.minDate, maxDate)
       }
-      */
+      Ok(toJson("success", "Success deleting data")).as(JSON)
+  }.recoverTotal {
+    e => Ok(toJson("error", "Detected error:" + JsError.toFlatJson(e))).as(JSON)
+  }
+  */
   }
 }

@@ -1,4 +1,4 @@
-function AdminCtrl ($scope, EnvironmentsService, $http) {
+function AdminCtrl($scope, EnvironmentsService, $http) {
     $scope.urlDlConfig = "/admin/downloadConfiguration";
     $scope.urlDlRequestDataStatsEntries = "/admin/downloadRequestDataStatsEntries";
     $scope.urlUploadConfiguration = "/admin/uploadConfiguration";
@@ -9,7 +9,9 @@ function AdminCtrl ($scope, EnvironmentsService, $http) {
 
     $scope.startUpload = function () {
         $scope.showUploadRunning = true;
-    }
+        $scope.showResponseUpload = false;
+    };
+
     $scope.uploadComplete = function (content) {
         $scope.response = content;
         $scope.showUploadRunning = false;
@@ -24,6 +26,7 @@ function AdminCtrl ($scope, EnvironmentsService, $http) {
             }
         }
     });
+
     $scope.$watch('maxDate', function () {
         if ($scope.maxDate) {
             $scope.showmaxDate = false;
@@ -51,7 +54,7 @@ function AdminCtrl ($scope, EnvironmentsService, $http) {
                 $scope.showRunningDelete = false;
                 $scope.showResponseDelete = true;
             });
-    }
+    };
 
     EnvironmentsService.findAllAndSelect($scope, null, 'all', null, true);
 }

@@ -5,9 +5,15 @@ import scala.collection.mutable.Map
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import play.api.libs.json.Json
 import play.api.Logger
+import reactivemongo.bson.BSONBoolean
+import reactivemongo.bson.BSONString
+import scala.Some
+import reactivemongo.bson.BSONInteger
+import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 case class Service(_id: Option[BSONObjectID],
                    description: String,
@@ -46,9 +52,8 @@ object Service {
   implicit val serviceFormat = Json.format[Service]
   implicit val servicesFormat = Json.format[Services]
 
-  implicit object ServicesReader extends BSONDocumentReader[Services] {
+  implicit object ServicesBSONReader extends BSONDocumentReader[Services] {
     def read(doc: BSONDocument): Services = {
-      Logger.debug("NAME:" + doc.getAs[String]("name"))
       if (doc.getAs[List[BSONDocument]]("services") isDefined) {
         val list = doc.getAs[List[BSONDocument]]("services").get.map(
           s => new Service(s, doc.getAs[String]("name"))
@@ -74,10 +79,14 @@ object Service {
   val REST = "rest"
   val SOAP = "soap"
 
-  implicit object ServiceReader extends BSONDocumentReader[Service] {
+  implicit object ServiceBSONReader extends BSONDocumentReader[Service] {
     def read(doc: BSONDocument): Service = {
-      val s = doc.getAs[List[BSONDocument]]("services").get.head
-      new Service(s, doc.getAs[String]("name"))
+      if (doc.getAs[List[BSONDocument]]("services").isDefined) {
+        val s = doc.getAs[List[BSONDocument]]("services").get.head
+        new Service(s, doc.getAs[String]("name"))
+      } else {
+        null
+      }
     }
   }
 
@@ -88,7 +97,7 @@ object Service {
         "description" -> BSONString(service.description),
         "typeRequest" -> BSONString(service.typeRequest),
         "httpMethod" -> BSONString(service.httpMethod),
-        "localTarget" -> BSONString(service.localTarget),
+        "localTarget" -> BSONString(checkLocalTarget(service.localTarget)),
         "remoteTarget" -> BSONString(service.remoteTarget),
         "timeoutms" -> BSONInteger(service.timeoutms),
         "recordContentData" -> BSONBoolean(service.recordContentData),
@@ -100,7 +109,7 @@ object Service {
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "typeRequest" -> 2, "httpMethod" -> 3, "description" -> 4, "localTarget" -> 5, "remoteTarget" -> 6, "timeoutms" -> 7, "recordContentData" -> 8, "recordData" -> 9, "environmentName" -> 10, "mockGroupName" -> 11)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "description" -> 2, "typeRequest" -> 3, "httpMethod" -> 4, "localTarget" -> 5, "remoteTarget" -> 6, "timeoutms" -> 7, "recordContentData" -> 8, "recordData" -> 9, "useMockGroup" -> 10, "environmentName" -> 11, "mockGroupName" -> 12)
 
   val csvKey = "service"
 
@@ -110,7 +119,7 @@ object Service {
    * @return csv format of the service (String)
    */
   def csv(s: Service) = {
-    csvKey + ";" + s._id.get.stringify + ";" + s.typeRequest + ";" + s.httpMethod + ";" + s.description + ";" + s.localTarget + ";" + s.remoteTarget + ";" + s.timeoutms + ";" + s.recordContentData + ";" + s.recordData + ";" + s.useMockGroup + ";" + s.environmentName.get + ";" + s.mockGroupId + "\n"
+    csvKey + ";" + s._id.get.stringify + ";" + s.description + ";" + s.typeRequest + ";" + s.httpMethod + ";" + s.localTarget + ";" + s.remoteTarget + ";" + s.timeoutms + ";" + s.recordContentData + ";" + s.recordData + ";" + s.useMockGroup + ";" + s.environmentName.get + ";" + s.mockGroupId + "\n"
   }
 
   /**
@@ -120,10 +129,6 @@ object Service {
   def fetchCsv(): Future[List[String]] = {
     findAll.map(services => services.map(service => csv(service)))
   }
-
-  private val cacheKey = "servicekey-"
-
-  private val cacheKeyServiceById = "servicekeybyid-"
 
   /**
    * Retrieve a Service.
@@ -176,19 +181,19 @@ object Service {
    * @param environmentName Name of environment
    * @return service
    */
-  def findByLocalTargetAndEnvironmentName(localTarget: String, environmentName: String): Option[Service] = {
-    ???
+  def findByLocalTargetAndEnvironmentName(localTarget: String, environmentName: String): Future[Option[Service]] = {
+    val query = BSONDocument("name" -> environmentName)
+    val projection = BSONDocument("services" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("localTarget" -> BSONString(localTarget))))
+    Environment.collection.find(query, projection).cursor[Service].headOption
   }
 
   /**
    * Insert a new service.
    *
-   * @param service The service values.
+   * @param service The service values
    */
   def insert(service: Service) = {
-
-    // TODO Call checkLocalTarget(service.localTarget) ?
-
     val selectorEnv = BSONDocument("name" -> service.environmentName)
     val insert = BSONDocument("$push" -> BSONDocument("services" -> service))
     Environment.collection.update(selectorEnv, insert)
@@ -206,28 +211,6 @@ object Service {
     )
     val update = BSONDocument("$set" -> BSONDocument("services.$" -> service))
     Environment.collection.update(selector, update)
-  }
-
-  /**
-   * Delete a service from cache.
-   *
-   * @param id id of service
-   */
-  private def deleteFromCache(id: Long) {
-    ???
-    /*
-    val serviceKey = Cache.get(cacheKey + id)
-    if (serviceKey isDefined) {
-      Logger.debug("remove key cache 1 " + serviceKey.get.toString + " from cache")
-      Cache.remove(serviceKey.get.toString)
-      Logger.debug("remove key cache 2 " + cacheKey + id + " from cache")
-      Cache.remove(cacheKey + id)
-    }
-    if (Cache.get(cacheKeyServiceById + id) isDefined) {
-      Logger.debug("remove key cache 3 " + cacheKeyServiceById + id + " from cache")
-      Cache.remove(cacheKeyServiceById + id)
-    }
-    */
   }
 
   /**
@@ -301,96 +284,60 @@ object Service {
    * @return nothing
    */
   def upload(csvLine: String) = {
-
-    // TODO
-    ???
-
-    /*val dataCsv = csvLine.split(";")
-
-    if (dataCsv.size != csvTitle.size)
+    val dataCsv = csvLine.split(";")
+    if (dataCsv.size != csvTitle.size) {
       throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
-
+    }
     if (dataCsv(csvTitle.get("key").get) == csvKey) {
-      val environment = uploadEnvironment(dataCsv)
-
-      val mockGroup = MockGroup.upload(dataCsv(csvTitle.get("mockGroupName").get), Group.ID_DEFAULT_GROUP)
-      uploadService(dataCsv, environment, mockGroup)
+      uploadService(dataCsv)
     } else {
       Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
-    }*/
+    }
   }
 
   /**
    * Check if service already exist (with localTarget and Environment). Insert or do nothing if exist.
    *
    * @param dataCsv line in csv file
-   * @param environment service's environment
-   * @param mockGroup service's Mock Group
    * @return service (new or not)
    */
-  private def uploadService(dataCsv: Array[String], environment: Environment, mockGroup: MockGroup) = {
+  private def uploadService(dataCsv: Array[String]) = {
 
-    ???
-
-    /*
+    val environmentName = dataCsv(csvTitle.get("environmentName").get)
     val localTarget = dataCsv(csvTitle.get("localTarget").get)
-    val s = findByLocalTargetAndEnvironmentName(localTarget, environment.name)
-
-    s.map {
-      service =>
-        Logger.warn("Service " + environment.name + "/" + localTarget + " already exist")
-        throw new Exception("Warning : Service " + environment.name + "/" + localTarget + " already exist")
-    }.getOrElse {
-
+    val f = findByLocalTargetAndEnvironmentName(localTarget, environmentName)
+    val service = Await.result(f, 1.seconds)
+    if (service.get != null) {
+      // null comes from ServiceBSONReader
+      Logger.warn("Service " + environmentName + "/" + localTarget + " already exist")
+      throw new Exception("Warning : Service " + environmentName + "/" + localTarget + " already exist")
+    } else {
+      var mockGroupId: Option[BSONObjectID] = None
+      if (dataCsv(csvTitle.get("mockGroupName").get) != "None") {
+        val m = Await.result(MockGroup.findByName(dataCsv(csvTitle.get("mockGroupName").get)), 1.seconds)
+        if (m.isDefined) mockGroupId = m.get._id
+      }
       val service = new Service(
-        -1,
+        Some(BSONObjectID.generate),
+        dataCsv(csvTitle.get("description").get).trim,
         dataCsv(csvTitle.get("typeRequest").get).trim,
         dataCsv(csvTitle.get("httpMethod").get).trim,
-        dataCsv(csvTitle.get("description").get).trim,
         dataCsv(csvTitle.get("localTarget").get).trim,
         dataCsv(csvTitle.get("remoteTarget").get).trim,
-        dataCsv(csvTitle.get("timeoutms").get).toLong,
+        dataCsv(csvTitle.get("timeoutms").get).toInt,
         (dataCsv(csvTitle.get("recordContentData").get).trim == "true"),
         (dataCsv(csvTitle.get("recordData").get).trim == "true"),
         (dataCsv(csvTitle.get("useMockGroup").get).trim == "true"),
-        environment._id.get.stringify,
-        mockGroup.id)
+        mockGroupId,
+        Some(environmentName))
       Service.insert(service)
-      Logger.info("Insert Service " + environment.name + "/" + localTarget)
+      Logger.info("Insert Service " + environmentName + "/" + localTarget)
     }
-    */
   }
 
-  /**
-   * Check if environment exist and insert it if not
-   *
-   * @param dataCsv List of string
-   * @return environment
-   */
-  private def uploadEnvironment(dataCsv: Array[String]): Environment = {
-    ???
-    /*
-    val environmentName = dataCsv(csvTitle.get("environmentName").get)
-    Logger.debug("environmentName:" + environmentName)
-
-    var environment = Environment.findByName(environmentName)
-    if (environment == None) {
-      Logger.debug("Insert Environment " + environmentName)
-
-      // Insert a new group which is linked to the default group
-      Environment.insert(new Environment(-1, environmentName))
-
-      environment = Environment.findByName(environmentName)
-      if (environment.get == null) Logger.error("Environment insert failed : " + environmentName)
-    } else {
-      Logger.debug("Environment already exist : " + environment.get.name)
-    }
-    environment.get
-    */
-  }
 
   /**
-   * Remove first / in localTarget
+   * Remove first / in localTarget.
    */
   private def checkLocalTarget(localTarget: String) = {
     if (localTarget.startsWith("/")) localTarget.substring(1) else localTarget

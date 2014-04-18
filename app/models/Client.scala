@@ -102,10 +102,6 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
    */
   def sendRestRequestAndWaitForResponse(method: String, correctUrl: String, query:Map[String, String])
   {
-    if (Logger.isDebugEnabled) {
-      Logger.debug("RemoteTarget " + service.remoteTarget)
-    }
-
     requestTimeInMillis = System.currentTimeMillis
     // Keep the call in the request data for replay functionality
     requestData.requestCall = correctUrl
