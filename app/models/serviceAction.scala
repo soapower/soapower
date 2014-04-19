@@ -2,7 +2,6 @@ package models
 
 import play.api.db._
 import play.api.Play.current
-import play.api.cache._
 import play.api._
 
 import anorm._
@@ -19,8 +18,8 @@ object ServiceAction {
    */
   val simple = {
     get[Long]("serviceaction.id") ~
-    get[String]("serviceaction.name") ~
-    get[Long]("serviceaction.thresholdms") map {
+      get[String]("serviceaction.name") ~
+      get[Long]("serviceaction.thresholdms") map {
       case id ~ name ~ thresholdms =>
         ServiceAction(id, name, thresholdms)
     }
@@ -38,8 +37,8 @@ object ServiceAction {
    */
   val csv = {
     get[Pk[Long]]("serviceaction.id") ~
-    get[String]("serviceaction.name") ~
-    get[Long]("serviceaction.thresholdms") map {
+      get[String]("serviceaction.name") ~
+      get[Long]("serviceaction.thresholdms") map {
       case id ~ name ~ thresholdms =>
         id + ";" + name + ";" + thresholdms + "\n"
     }
@@ -73,11 +72,11 @@ object ServiceAction {
     }
   }
 
-	/**
-	* Insert a new ServiceAction.
-	*
-	* @param serviceAction The ServiceAction values.
-	*/
+  /**
+   * Insert a new ServiceAction.
+   *
+   * @param serviceAction The ServiceAction values.
+   */
   def insert(serviceAction: ServiceAction) = {
     DB.withConnection {
       implicit connection =>
@@ -89,8 +88,8 @@ object ServiceAction {
               {thresholdms}
             )
           """).on(
-          'name -> serviceAction.name,
-          'thresholdms -> serviceAction.thresholdms).executeUpdate()
+            'name -> serviceAction.name,
+            'thresholdms -> serviceAction.thresholdms).executeUpdate()
     }
   }
 
@@ -108,12 +107,12 @@ object ServiceAction {
           set thresholdms = {thresholdms}
           where id = {id}
           """).on(
-          'id -> serviceAction.id,
-          'thresholdms -> serviceAction.thresholdms).executeUpdate()
+            'id -> serviceAction.id,
+            'thresholdms -> serviceAction.thresholdms).executeUpdate()
     }
   }
 
-   /**
+  /**
    * Return a list of (ServiceAction).
    */
   def list: List[ServiceAction] = {
@@ -130,9 +129,10 @@ object ServiceAction {
         serviceactions
     }
   }
-  
+
   def loadAll(): List[ServiceAction] = {
-    DB.withConnection { implicit connection =>
+    DB.withConnection {
+      implicit connection =>
         SQL("select * from serviceaction").as(ServiceAction.simple *)
     }
   }

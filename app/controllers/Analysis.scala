@@ -52,7 +52,7 @@ object Analysis extends Controller {
 
   class Entity(soapAction: String, var tuples: List[(Long, Long)])
 
-  def load(groupName: String, environment: String, serviceAction: String, minDate: String, maxDate : String, status: String, statsOnly: String) = Action {
+  def load(groupName: String, environment: String, serviceAction: String, minDate: String, maxDate: String, status: String, statsOnly: String) = Action {
     val responsesTimesByDate = RequestData.findResponseTimes(groupName, environment, serviceAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s).getTime, status, true)
 
     val a: Map[String, Entity] = Map()

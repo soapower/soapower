@@ -13,7 +13,6 @@ import reactivemongo.bson.BSONString
 import scala.Some
 import reactivemongo.bson.BSONInteger
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
 
 case class Service(_id: Option[BSONObjectID],
                    description: String,
@@ -149,29 +148,11 @@ object Service {
    * @param environmentName
    * @return
    */
-  def findRestByMethodAndEnvironmentName(httpMethod: String, environmentName: String): Seq[(Long, String)] = {
-    ???
-    // TODO
-    /*
-    val services =
-      DB.withConnection {
-        implicit connection =>
-          SQL(
-            """
-              select * from service
-            left join environment on service.environment_id = environment.id
-            where service.typeRequest like {typeRequest}
-            and service.httpMethod like {httpMethod}
-            and environment.name like {environmentName}
-            """).on(
-              'typeRequest -> "rest",
-              'httpMethod -> httpMethod,
-              'environmentName -> environmentName
-            ).as(Service.simple *)
-            .map(s => s.id -> s.localTarget)
-      }
-    services
-    */
+  def findRestByMethodAndEnvironmentName(httpMethod: String, environmentName: String): Future[Option[Service]] = {
+    val query = BSONDocument("name" -> environmentName)
+    val projection = BSONDocument("services" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("httpMethod" -> BSONString(httpMethod), "typeRequest" -> "REST")))
+    Environment.collection.find(query, projection).cursor[Service].headOption
   }
 
   /**
@@ -237,24 +218,6 @@ object Service {
     val query = BSONDocument()
     Environment.collection.find(query).cursor[Services].collect[List]().map(l => l.flatMap(s => s.services))
   }
-
-  /**
-   * Return a list of Service.
-   */
-  def list: List[(Service, Environment)] = {
-    ???
-    /*DB.withConnection {
-      implicit connection =>
-        val services = SQL(
-          """
-          select * from service
-          left join environment on service.environment_id = environment.id
-          order by name asc, description asc
-          """).as(Service.withEnvironment *)
-        services
-    }*/
-  }
-
 
   /**
    * Return a list of Service which are linked to an environment which group is the given group
