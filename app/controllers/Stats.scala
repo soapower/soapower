@@ -2,9 +2,6 @@ package controllers
 
 import play.api.mvc._
 import play.api.libs.json._
-import models._
-import models.UtilDate._
-import play.api.Logger
 
 object Stats extends Controller {
 
@@ -22,7 +19,10 @@ object Stats extends Controller {
 
   def listDataTable(groupName: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String, status: String) = Action {
     implicit request =>
-    // load thresholds
+      ???
+    //TODO
+      BadRequest("TODO")
+    /*
       val thresholdsByServiceActions = ServiceAction.loadAll().map(action => (action.name, action.thresholdms)).toMap
 
       // compute average response times
@@ -36,9 +36,14 @@ object Stats extends Controller {
         "iTotalRecords" -> Json.toJson(data.size),
         "iTotalDisplayRecords" -> Json.toJson(data.size),
         "data" -> Json.toJson(data)))).as(JSON)
+        */
   }
 
   def statsAsJunit(groupName: String, minDateAsStr: String, maxDateAsStr: String) = Action {
+    ???
+    //TODO
+    BadRequest("TODO")
+    /*
     val minDate = getDate(minDateAsStr).getTime()
     val maxDate = getDate(maxDateAsStr, v23h59min59s).getTime()
     val thresholdsByServiceActions = ServiceAction.loadAll().map(action => (action.name, action.thresholdms)).toMap
@@ -61,6 +66,7 @@ object Stats extends Controller {
     ret = "<testsuites>" + ret + "</testsuites>"
 
     Ok(ret).as(XML)
+    */
   }
 
 }

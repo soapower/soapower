@@ -68,15 +68,11 @@ GET           /mocks/:mockGroupName/:mockId                                     
 DELETE        /mocks/:mockGroupName/:mockId                                                                 controllers.admin.Mocks.delete(mockGroupName: String, mockId: String)
 
 # ServiceActions list
-GET           /serviceactions/findall                                                                       controllers.admin.ServiceActions.findAll
-GET           /serviceactions/listDatatable                                                                 controllers.admin.ServiceActions.listDatatable
-
-# Regeneration serviceAction listDatatable
+GET           /serviceactions/:group/findall                                                                controllers.admin.ServiceActions.findAll(group:String)
+PUT           /serviceactions/:id                                                                           controllers.admin.ServiceActions.update(id:String)
+GET           /serviceactions/:id                                                                           controllers.admin.ServiceActions.edit(id:String)
+DELETE        /serviceactions/:id                                                                           controllers.admin.ServiceActions.delete(id:String)
 GET           /serviceactions/regenerate                                                                    controllers.admin.ServiceActions.regenerate
-
-# Edit existing serviceAction
-GET           /serviceactions/:id                                                                           controllers.admin.ServiceActions.edit(id:Long)
-POST          /serviceactions/:id                                                                           controllers.admin.ServiceActions.save(id:Long)
 
 # Status list
 GET           /status/findall                                                                               controllers.Status.findAll
@@ -86,8 +82,8 @@ GET           /statsAsJunit/:group/:minDate/:maxDate/                           
 GET           /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable                            controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
 
 # Download SOAP and Rest request and response
-GET           /download/request/:id                                                                         controllers.Search.downloadRequest(id:Long, asFile: Boolean ?=                                 false)
-GET           /download/response/:id                                                                        controllers.Search.downloadResponse(id:Long, asFile: Boolean ?=                                 false)
+GET           /download/request/:id                                                                         controllers.Search.downloadRequest(id:Long, asFile: Boolean ?= false)
+GET           /download/response/:id                                                                        controllers.Search.downloadResponse(id:Long, asFile: Boolean ?= false)
 
 # Monitoring
 GET           /monitor/logfile                                                                              controllers.admin.Monitor.logfile

@@ -1,28 +1,47 @@
 package models
 
-import play.api.db._
 import play.api.Play.current
-import play.api._
+import play.api.cache._
 
-import anorm._
-import anorm.SqlParser._
+import play.modules.reactivemongo.ReactiveMongoPlugin
+import play.api.libs.json._
+import reactivemongo.bson._
+import scala.concurrent.{Await, Future}
+import play.modules.reactivemongo.json.BSONFormats._
+import scala.concurrent.duration._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import reactivemongo.core.commands.RawCommand
+import play.api.Logger
+import reactivemongo.api.collections.default.BSONCollection
 
-
-case class ServiceAction(id: Long, name: String, thresholdms: Long)
+case class ServiceAction(_id: Option[BSONObjectID],
+                         name: String,
+                         thresholdms: Int)
 
 object ServiceAction {
-  // -- Parsers
 
-  /**
-   * Parse a ServiceAction from a ResultSet
+  /*
+   * Collection MongoDB
    */
-  val simple = {
-    get[Long]("serviceaction.id") ~
-      get[String]("serviceaction.name") ~
-      get[Long]("serviceaction.thresholdms") map {
-      case id ~ name ~ thresholdms =>
-        ServiceAction(id, name, thresholdms)
-    }
+  def collection: BSONCollection = ReactiveMongoPlugin.db.collection[BSONCollection]("serviceActions")
+
+  implicit val serviceActionFormat = Json.format[ServiceAction]
+
+  implicit object ServiceActionBSONReader extends BSONDocumentReader[ServiceAction] {
+    def read(doc: BSONDocument): ServiceAction =
+      ServiceAction(
+        doc.getAs[BSONObjectID]("_id"),
+        doc.getAs[String]("name").get,
+        doc.getAs[Int]("thresholdms").get
+      )
+  }
+
+  implicit object ServiceActionBSONWriter extends BSONDocumentWriter[ServiceAction] {
+    def write(serviceAction: ServiceAction): BSONDocument =
+      BSONDocument(
+        "_id" -> serviceAction._id,
+        "name" -> BSONString(serviceAction.name),
+        "thresholdms" -> BSONInteger(serviceAction.thresholdms))
   }
 
   /**
@@ -30,111 +49,117 @@ object ServiceAction {
    */
   val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "thresholdms" -> 3)
 
-  val csvKey = "serviceaction"
+  val csvKey = "serviceAction"
 
   /**
    * Csv format.
    */
-  val csv = {
-    get[Pk[Long]]("serviceaction.id") ~
-      get[String]("serviceaction.name") ~
-      get[Long]("serviceaction.thresholdms") map {
-      case id ~ name ~ thresholdms =>
-        id + ";" + name + ";" + thresholdms + "\n"
-    }
+  def csv(m: ServiceAction) = {
+    csvKey + ";" + m._id.get.stringify + ";" + m.name + ";" + m.thresholdms + "\n"
   }
 
   /**
-   * Get All serviceAction, csv format.
-   * @return List of serviceAction, csv format
+   * Get All serviceActions, csv format.
+   * @return List of ServiceActions, csv format
    */
-  def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("select * from serviceaction").as(ServiceAction.csv *)
+  def fetchCsv(): Future[List[String]] = {
+    findAll.map(serviceAction => serviceAction.map(e => csv(e)))
   }
 
+
   /**
-   * Retrieve a ServiceAction from id.
+   * Retrieve an ServiceAction from id.
    */
-  def findById(id: Long): Option[ServiceAction] = {
-    DB.withConnection {
-      implicit connection =>
-        SQL("select * from serviceaction where id = {id}").on('id -> id).as(ServiceAction.simple.singleOpt)
-    }
+  def findById(objectId: BSONObjectID): Future[Option[ServiceAction]] = {
+    val query = BSONDocument("_id" -> objectId)
+    collection.find(query).one[ServiceAction]
   }
 
   /**
-   * Retrieve a ServiceAction from name.
+   * Retrieve an ServiceAction from name.
    */
-  def findByName(name: String): Option[ServiceAction] = {
-    DB.withConnection {
-      implicit connection =>
-        SQL("select * from serviceaction where name = {name}").on('name -> name).as(ServiceAction.simple.singleOpt)
-    }
+  def findByName(name: String): Future[Option[ServiceAction]] = {
+    val query = BSONDocument("name" -> name)
+    collection.find(query).one[ServiceAction]
   }
 
   /**
-   * Insert a new ServiceAction.
+   * Insert a new serviceAction.
    *
-   * @param serviceAction The ServiceAction values.
+   * @param serviceAction The serviceAction values.
    */
   def insert(serviceAction: ServiceAction) = {
-    DB.withConnection {
-      implicit connection =>
-        SQL(
-          """
-            insert into serviceaction values (
-              null,
-              {name},
-              {thresholdms}
-            )
-          """).on(
-            'name -> serviceAction.name,
-            'thresholdms -> serviceAction.thresholdms).executeUpdate()
+
+    if (Await.result(findByName(serviceAction.name.trim).map(e => e), 1.seconds).isDefined) {
+      throw new Exception("ServiceAction with name " + serviceAction.name.trim + " already exist")
     }
+    collection.insert(serviceAction)
   }
 
   /**
-   * Update a ServiceAction : update only threshold
+   * Update a serviceAction.
    *
-   * @param serviceAction The ServiceAction values.
+   * @param serviceAction The serviceAction values.
    */
   def update(serviceAction: ServiceAction) = {
-    DB.withConnection {
-      implicit connection =>
-        SQL(
-          """
-          update serviceaction
-          set thresholdms = {thresholdms}
-          where id = {id}
-          """).on(
-            'id -> serviceAction.id,
-            'thresholdms -> serviceAction.thresholdms).executeUpdate()
+
+    if (Await.result(findByName(serviceAction.name.trim).map(e => e), 1.seconds).isDefined) {
+      throw new Exception("ServiceAction with name " + serviceAction.name.trim + " already exist")
     }
+
+    val selector = BSONDocument("_id" -> serviceAction._id)
+
+    val modifier = BSONDocument(
+      "$set" -> BSONDocument(
+        "name" -> serviceAction.name,
+        "thresholdms" -> serviceAction.thresholdms)
+    )
+
+    collection.update(selector, modifier)
   }
 
   /**
-   * Return a list of (ServiceAction).
+   * Delete a serviceAction.
+   *
+   * @param id Id of the serviceAction to delete.
    */
-  def list: List[ServiceAction] = {
-
-    DB.withConnection {
-      implicit connection =>
-
-        val serviceactions = SQL(
-          """
-          select * from serviceaction
-          order by name
-          """).as(ServiceAction.simple *)
-
-        serviceactions
-    }
+  def delete(id: String) = {
+    val objectId = new BSONObjectID(id)
+    collection.remove(BSONDocument("_id" -> objectId))
   }
 
-  def loadAll(): List[ServiceAction] = {
-    DB.withConnection {
-      implicit connection =>
-        SQL("select * from serviceaction").as(ServiceAction.simple *)
-    }
+  /**
+   * Return a list of all serviceActions.
+   */
+  def findAll: Future[List[ServiceAction]] = {
+    collection.
+      find(BSONDocument()).
+      sort(BSONDocument("name" -> 1)).
+      cursor[ServiceAction].
+      collect[List]()
+  }
+
+  /**
+   * Return a list of all serviceActions in some groups.
+   */
+  def findInGroups(groups: String): Future[List[ServiceAction]] = {
+    if ("all".equals(groups)) return findAll
+    val find = BSONDocument("groups" -> BSONDocument("$in" -> groups.split(',')))
+    collection.
+      find(find).
+      sort(BSONDocument("name" -> 1)).
+      cursor[ServiceAction].
+      collect[List]()
+  }
+
+  /**
+   * Find all distinct groups in serviceActions collections.
+   *
+   * @return all distinct groups
+   */
+  def findAllGroups(): Future[BSONDocument] = {
+    val command = RawCommand(BSONDocument("distinct" -> "serviceActions", "key" -> "groups"))
+    collection.db.command(command) // result is Future[BSONDocument]
   }
 
   /**
@@ -147,8 +172,9 @@ object ServiceAction {
 
     val dataCsv = csvLine.split(";")
 
-    if (dataCsv.size != csvTitle.size)
+    if (dataCsv.size != csvTitle.size) {
       throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
+    }
 
     if (dataCsv(csvTitle.get("key").get) == csvKey) {
       uploadServiceAction(dataCsv)
@@ -166,21 +192,30 @@ object ServiceAction {
   private def uploadServiceAction(dataCsv: Array[String]) = {
 
     val name = dataCsv(csvTitle.get("name").get)
-    val s = findByName(name)
+    Logger.debug("upload serviceAction:" + name)
 
-    s.map {
-      serviceAction =>
-        Logger.warn("ServiceAction " + serviceAction.name + " already exist")
-        throw new Exception("Warning : ServiceAction " + serviceAction.name + " already exist")
-    }.getOrElse {
-
-      val serviceAction = new ServiceAction(
-        -1,
-        dataCsv(csvTitle.get("name").get).trim,
-        dataCsv(csvTitle.get("thresholdms").get).toInt)
-      ServiceAction.insert(serviceAction)
-      Logger.info("Insert ServiceAction " + serviceAction.name)
+    findByName(name).map {
+      serviceAction => {
+        if (serviceAction == None) {
+          Logger.debug("Insert new serviceAction with name " + name)
+          val newServiceAction = new ServiceAction(Some(BSONObjectID.generate),
+            dataCsv(csvTitle.get("name").get).trim,
+            dataCsv(csvTitle.get("thresholdms").get).trim.toInt
+          )
+          insert(newServiceAction).map {
+            lastError =>
+              if (lastError.ok) {
+                Logger.debug("OK Insert new serviceAction with name " + name)
+              } else {
+                Logger.error("Detected error:%s".format(lastError))
+                throw new Exception("Error while inserting new group with name : " + name)
+              }
+          }
+        } else {
+          Logger.warn("Warning : ServiceAction " + name + " already exist")
+          throw new Exception("Warning : ServiceAction " + name + " already exist")
+        }
+      }
     }
   }
-
 }
