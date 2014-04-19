@@ -3,9 +3,6 @@ package models
 import java.util.{GregorianCalendar, Calendar, Date}
 import play.api.Play.current
 import play.api.libs.json._
-import play.api.http._
-import anorm._
-import anorm.SqlParser._
 import java.util.zip.{GZIPOutputStream, GZIPInputStream}
 import java.nio.charset.Charset
 
@@ -71,14 +68,14 @@ object RequestData {
   val keyCacheStatusOptions = "status-options"
   val keyCacheMinStartTime = "minStartTime"
 
-  implicit def rowToByteArray: Column[Array[Byte]] = Column.nonNull {
+  /*implicit def rowToByteArray: Column[Array[Byte]] = Column.nonNull {
     (value, meta) =>
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case data: Array[Byte] => Right(data)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Byte Array for column " + qualified))
       }
-  }
+  }*/
 
   implicit val requestDataFormat = Json.format[RequestData]
 
@@ -87,7 +84,7 @@ object RequestData {
   /**
    * Anorm Byte conversion
    */
-  def bytes(columnName: String): RowParser[Array[Byte]] = get[Array[Byte]](columnName)(implicitly[Column[Array[Byte]]])
+  //def bytes(columnName: String): RowParser[Array[Byte]] = get[Array[Byte]](columnName)(implicitly[Column[Array[Byte]]])
 
   /**
    * Title of csvFile. The value is the order of title.

@@ -1,16 +1,10 @@
 package controllers
 
 import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
-import play.api.data.validation.Constraints._
-
-import anorm._
 
 import models._
 import play.api.libs.json._
 import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
 import scala.concurrent.ExecutionContext
 import ExecutionContext.Implicits.global
 import play.modules.reactivemongo.json.BSONFormats._
