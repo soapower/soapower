@@ -1,9 +1,9 @@
-function ServiceActionsCtrl($scope, ServiceactionsService, ngTableParams, $filter) {
+function ServiceActionsCtrl($scope, ServiceActionsService, ngTableParams, $filter) {
 
     $scope.btnRegenerateDisabled = false;
     $scope.info = "";
 
-    ServiceactionsService.findAll().
+    ServiceActionsService.findAll().
         success(function (serviceActions) {
             $scope.serviceActions = serviceActions.data;
             $scope.tableParams = new ngTableParams({
@@ -37,7 +37,7 @@ function ServiceActionsCtrl($scope, ServiceactionsService, ngTableParams, $filte
         $scope.info = "Running Generation...";
         $scope.btnRegenerateDisabled = true;
 
-        ServiceactionsService.regenerate()
+        ServiceActionsService.regenerate()
             .success(function (resp) {
                 $scope.info = "Success generate ServiceAction list";
                 $scope.btnRegenerateDisabled = false;
@@ -63,7 +63,7 @@ function ServiceActionEditCtrl($scope, $routeParams, $location, ServiceAction) {
 
     $scope.isClean = function () {
         return angular.equals(self.original, $scope.serviceAction);
-    }
+    };
 
     $scope.save = function () {
         $scope.serviceAction.update(function () {

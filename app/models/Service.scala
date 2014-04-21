@@ -24,7 +24,7 @@ case class Service(_id: Option[BSONObjectID],
                    recordContentData: Boolean,
                    recordData: Boolean,
                    useMockGroup: Boolean,
-                   mockGroupId: Option[BSONObjectID],
+                   mockGroupId: Option[String],
                    environmentName: Option[String]) {
 
   def this(serviceDoc: BSONDocument, environmentName: Option[String]) =
@@ -39,7 +39,7 @@ case class Service(_id: Option[BSONObjectID],
       serviceDoc.getAs[Boolean]("recordContentData").get,
       serviceDoc.getAs[Boolean]("recordData").get,
       serviceDoc.getAs[Boolean]("useMockGroup").get,
-      serviceDoc.getAs[BSONObjectID]("mockGroupId"),
+      serviceDoc.getAs[String]("mockGroupId"),
       environmentName)
 }
 
@@ -137,7 +137,7 @@ object Service {
    */
   def findById(environmentName: String, serviceId: String): Future[Option[Service]] = {
     val query = BSONDocument("name" -> environmentName)
-    val projection = BSONDocument("services" -> BSONDocument(
+    val projection = BSONDocument("name" -> 1, "services" -> BSONDocument(
       "$elemMatch" -> BSONDocument("_id" -> BSONObjectID(serviceId))))
     Environment.collection.find(query, projection).cursor[Service].headOption
   }
@@ -150,7 +150,7 @@ object Service {
    */
   def findRestByMethodAndEnvironmentName(httpMethod: String, environmentName: String): Future[Option[Service]] = {
     val query = BSONDocument("name" -> environmentName)
-    val projection = BSONDocument("services" -> BSONDocument(
+    val projection = BSONDocument("name" -> 1, "services" -> BSONDocument(
       "$elemMatch" -> BSONDocument("httpMethod" -> BSONString(httpMethod), "typeRequest" -> "REST")))
     Environment.collection.find(query, projection).cursor[Service].headOption
   }
@@ -164,7 +164,7 @@ object Service {
    */
   def findByLocalTargetAndEnvironmentName(localTarget: String, environmentName: String): Future[Option[Service]] = {
     val query = BSONDocument("name" -> environmentName)
-    val projection = BSONDocument("services" -> BSONDocument(
+    val projection = BSONDocument("name" -> 1, "services" -> BSONDocument(
       "$elemMatch" -> BSONDocument("localTarget" -> BSONString(localTarget))))
     Environment.collection.find(query, projection).cursor[Service].headOption
   }
@@ -275,10 +275,10 @@ object Service {
       Logger.warn("Service " + environmentName + "/" + localTarget + " already exist")
       throw new Exception("Warning : Service " + environmentName + "/" + localTarget + " already exist")
     } else {
-      var mockGroupId: Option[BSONObjectID] = None
+      var mockGroupId: Option[String] = None
       if (dataCsv(csvTitle.get("mockGroupName").get) != "None") {
         val m = Await.result(MockGroup.findByName(dataCsv(csvTitle.get("mockGroupName").get)), 1.seconds)
-        if (m.isDefined) mockGroupId = m.get._id
+        if (m.isDefined) mockGroupId = Some(m.get._id.get.stringify)
       }
       val service = new Service(
         Some(BSONObjectID.generate),

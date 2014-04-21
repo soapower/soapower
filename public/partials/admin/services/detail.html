@@ -59,8 +59,8 @@
         <div class="col-lg-4">
             <input class="form-control" type="text" id="localTarget" name="localTarget" ng-model="service.localTarget" required>
             <span ng-show="myForm.localTarget.$error.required" class="label label-danger">Required</span>
-            <span ng-show="myForm.localTarget.$error.required" class="label label-danger">Enter service1 to have http://{{ hostname }}:{{ port }}/{{ service.typeRequest }}/{{ service.environment.name || "environment" }}/<b>service1</b></span>
-            <span ng-show="!myForm.localTarget.$error.required" class="label label-info">Local Target : http://{{ hostname }}:{{ port }}/{{ service.typeRequest }}/{{ service.environment.name || "environment" }}/<b>{{ service.localTarget }}</b> </span>
+            <span ng-show="myForm.localTarget.$error.required" class="label label-danger">Enter service1 to have http://{{ hostname }}:{{ port }}/{{ service.typeRequest | lowercase}}/{{ service.environmentName || "environment" | lowercase}}/<b>service1</b></span>
+            <span ng-show="!myForm.localTarget.$error.required" class="label label-info">Local Target : http://{{ hostname }}:{{ port }}/{{ service.typeRequest | lowercase}}/{{ service.environmentName || "environment" }}/<b>{{ service.localTarget }}</b> </span>
         </div>
         <div class="col-lg-6 help-block">Every requests on the service will have a ServiceAction. This ServiceAction is the SoapAction (if it exists in case of a SOAP service) or the HTTP method followed by the localTarget of the service.
         </div>
@@ -98,11 +98,11 @@
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group" ng-show="service.useMockGroup == true">
         <label for="mockGroup" class="col-lg-2 control-label">Mock Group</label>
         <div class="col-lg-4">
             <select class="form-control" id="mockGroup" ui-select2 ng-model="service.mockGroupId" data-placeholder="Pick one Mock Group">
-                <option ng-repeat="mockGroup in mockGroups" value="{{mockGroup.id}}">{{mockGroup.name}}</option>
+                <option ng-repeat="mockGroup in mockGroups" value="{{mockGroup._id.$oid}}">{{mockGroup.name}}</option>
             </select>
             <span ng-show="myForm.mockGroup.$error.required" class="label label-danger">Required</span>
         </div>

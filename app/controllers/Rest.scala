@@ -10,6 +10,7 @@ import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.http.HeaderNames
 import play.api.mvc.SimpleResult
+import reactivemongo.bson.BSONObjectID
 
 object Rest extends Controller {
 
@@ -17,7 +18,7 @@ object Rest extends Controller {
                   requestContentType: String): SimpleResult = {
 
     val client = new Client(service, sender, content, headers, Service.REST, requestContentType)
-    val mock = Mock.findByMockGroupAndContent(service.mockGroupId.get, content)
+    val mock = Mock.findByMockGroupAndContent(BSONObjectID(service.mockGroupId.get), content)
 
     val sr = new Results.Status(mock.httpStatus).chunked(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
       .withHeaders("ProxyVia" -> "soapower")

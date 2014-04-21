@@ -113,6 +113,32 @@ spApp.factory("MocksService", function ($http) {
 });
 
 
+
+/***************************************
+ *  SERVICE ACTION
+ ***************************************/
+
+spApp.factory('ServiceAction', function ($resource) {
+    var ServiceAction = $resource('/serviceactions/:serviceActionId',
+        { serviceActionId: '@_id.$oid'},
+        { update: {method: 'PUT'}}
+    );
+    return ServiceAction;
+});
+
+spApp.factory("ServiceActionsService", function ($http) {
+    return {
+        findAll: function (group) {
+            return $http.get('/serviceactions/' + group + '/findall');
+        },
+        regenerate: function () {
+            return $http.get('/serviceactions/regenerate');
+
+        }
+    }
+});
+
+
 /*************************************** */
 /*************************************** */
 /*************************************** */
@@ -127,46 +153,6 @@ spApp.factory('Group', function ($resource) {
             create: {method: 'POST'}}
     );
     return Group;
-});
-
-spApp.factory('ServiceAction', function ($resource) {
-    var ServiceAction = $resource('/serviceactions/:serviceActionId',
-        { serviceActionId: '@id'},
-        { update: {method: 'POST'} }
-    );
-
-    ServiceAction.prototype.update = function (cb, cbError) {
-        this.id = parseInt(this.id);
-        return ServiceAction.update({serviceActionId: this.id},
-            angular.extend({}, this, {serviceActionId: undefined}), cb, cbError);
-    };
-    return ServiceAction;
-});
-
-spApp.factory("ServiceactionsService", function ($http) {
-    return {
-        findAll: function () {
-            return $http.get('/serviceactions/listDatatable');
-        },
-        findAllAndSelect: function ($scope, $routeParams) {
-            $http.get('/serviceactions/findall')
-                .success(function (serviceactions) {
-                    $scope.serviceactions = serviceactions;
-                    $scope.serviceactions.unshift({id: "all", name: "all"});
-                    angular.forEach($scope.serviceactions, function (value, key) {
-                        if (value.name == $routeParams.serviceaction) $scope.serviceaction = value;
-                    });
-
-                })
-                .error(function (resp) {
-                    console.log("Error with ServiceActionsService.findAllAndSelect" + resp);
-                });
-        },
-        regenerate: function () {
-            return $http.get('/serviceactions/regenerate');
-
-        }
-    }
 });
 
 spApp.factory("AnalysisService", function ($http) {

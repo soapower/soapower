@@ -11,7 +11,7 @@ import reactivemongo.bson.BSONObjectID
 
 object Soap extends Controller {
 
-  def index(environment: String, localTarget: String) = Action(parse.xml) {
+  def index(environment: String, localTarget: String) = Action.async(parse.xml) {
     implicit request =>
 
       Logger.info("Request on environment:" + environment + " localTarget:" + localTarget)
@@ -153,67 +153,73 @@ object Soap extends Controller {
       */
   }
 
-  private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String], requestContentType: String): SimpleResult = {
-    ???
-    /*
+  private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String], requestContentType: String): Future[SimpleResult] = {
     val service = Service.findByLocalTargetAndEnvironmentName(localTarget, environmentName)
     service.map {
-      service =>
-        val client = new Client(service, sender, content, headers, Service.SOAP, requestContentType)
-        if (service.useMockGroup) {
-          val mock = Mock.findByMockGroupAndContent(service.mockGroupId, content)
-          client.workWithMock(mock)
-          val sr = new Results.Status(mock.httpStatus).stream(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
-            .withHeaders("ProxyVia" -> "soapower")
-            .withHeaders(UtilConvert.headersFromString(mock.httpHeaders).toArray: _*)
-            .as(XML)
+      svc => {
 
-          val timeoutFuture = play.api.libs.concurrent.Promise.timeout(sr, mock.timeoutms.milliseconds)
-          Await.result(timeoutFuture, 10.second) // 10 seconds (10000 ms) is the maximum allowed.
+        if (svc isDefined) {
+          val client = new Client(svc.get, sender, content, headers, Service.SOAP, requestContentType)
+          if (svc.get.useMockGroup && svc.get.mockGroupId.isDefined) {
+            val mock = Mock.findByMockGroupAndContent(BSONObjectID(svc.get.mockGroupId.get), content)
+            client.workWithMock(mock)
+            val sr = new Results.Status(mock.httpStatus).stream(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
+              .withHeaders("ProxyVia" -> "soapower")
+              .withHeaders(UtilConvert.headersFromString(mock.httpHeaders).toArray: _*)
+              .as(XML)
+
+            val timeoutFuture = play.api.libs.concurrent.Promise.timeout(sr, mock.timeoutms.milliseconds)
+            Await.result(timeoutFuture, 10.second) // 10 seconds (10000 ms) is the maximum allowed.
+          } else {
+            client.sendSoapRequestAndWaitForResponse
+            // forward the response to the client
+            new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
+              .withHeaders("ProxyVia" -> "soapower")
+              .withHeaders(client.response.headers.toArray: _*).as(XML)
+          }
         } else {
-          client.sendSoapRequestAndWaitForResponse
-          // forward the response to the client
-          new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
-            .withHeaders("ProxyVia" -> "soapower")
-            .withHeaders(client.response.headers.toArray: _*).as(XML)
+          val err = "environment " + environmentName + " with localTarget " + localTarget + " unknown"
+          Logger.error(err)
+          BadRequest(err)
         }
-    }.getOrElse {
-      val err = "environment " + environmentName + " with localTarget " + localTarget + " unknown"
-      Logger.error(err)
-      BadRequest(err)
-    }
-    */
-  }
 
-  /**
-   * An url is composed of the following members :
-   * protocol://host:port/path
-   * This operation return the URL's path
-   * @param textualURL The url from which extract and return the path
-   * @return The url's path or none if it's not a URL with a valid path
-   */
-  private def extractPathFromURL(textualURL: String): Option[String] = {
-    try {
-      // Search the first "/" since index 10 (http://) to find the third "/"
-      // and take the String from this index
-      // Add +1 to remove the / to have path instead of /path
-      // Using substring and not java.net.URL,
-      // explanations : https://github.com/soapower/soapower/pull/33#issuecomment-21371242
-      Some(textualURL.substring(textualURL.indexOf("/", 10) + 1))
-    } catch {
-      case e: IndexOutOfBoundsException => {
-        Logger.error("Invalid remoteTarget:" + textualURL)
-        None
       }
     }
   }
 
-  private def printRequest(implicit r: play.api.mvc.RequestHeader) {
-    Logger.info("method:" + r)
-    Logger.info("headers:" + r.headers)
-    Logger.info("path:" + r.path)
-    Logger.info("uri:" + r.uri)
-    Logger.info("host:" + r.host)
-    Logger.info("rawQueryString:" + r.rawQueryString)
-  }
+  /*
+      /**
+       * An url is composed of the following members :
+       * protocol://host:port/path
+       * This operation return the URL's path
+       * @param textualURL The url from which extract and return the path
+       * @return The url's path or none if it's not a URL with a valid path
+       */
+      private def extractPathFromURL(textualURL: String): Option[String] =
+      {
+        try {
+          // Search the first "/" since index 10 (http://) to find the third "/"
+          // and take the String from this index
+          // Add +1 to remove the / to have path instead of /path
+          // Using substring and not java.net.URL,
+          // explanations : https://github.com/soapower/soapower/pull/33#issuecomment-21371242
+          Some(textualURL.substring(textualURL.indexOf("/", 10) + 1))
+        } catch {
+          case e: IndexOutOfBoundsException => {
+            Logger.error("Invalid remoteTarget:" + textualURL)
+            None
+          }
+        }
+      }
+
+      private def printRequest(implicit r: play.api.mvc.RequestHeader)
+      {
+        Logger.info("method:" + r)
+        Logger.info("headers:" + r.headers)
+        Logger.info("path:" + r.path)
+        Logger.info("uri:" + r.uri)
+        Logger.info("host:" + r.host)
+        Logger.info("rawQueryString:" + r.rawQueryString)
+      }
+      */
 }

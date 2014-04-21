@@ -62,7 +62,9 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       serviceAction = service.httpMethod.toUpperCase + " " + service.localTarget
     }
 
-    new RequestData(sender, serviceAction, service.environmentName.get, service._id.get.stringify, requestContentType)
+    Logger.debug("service:" + service)
+
+    new RequestData(sender, serviceAction, service.environmentName.get, service._id.get, requestContentType)
   }
 
   val environment = Environment.findByName(service.environmentName.get)

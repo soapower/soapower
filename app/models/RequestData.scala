@@ -7,40 +7,44 @@ import java.util.zip.{GZIPOutputStream, GZIPInputStream}
 import java.nio.charset.Charset
 
 import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
-import play.modules.reactivemongo.json.collection.JSONCollection
 
 import scala.concurrent.duration._
 import play.api.Logger
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.{Await, Future}
-import reactivemongo.bson.{BSONObjectID, BSONDocument}
+import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
+import reactivemongo.bson.BSONBoolean
+import reactivemongo.bson.BSONString
+import scala.Some
 import reactivemongo.core.commands.RawCommand
+import reactivemongo.bson.BSONInteger
+import reactivemongo.api.collections.default.BSONCollection
+import org.joda.time.DateTime
 
-case class RequestData(
-                        id: Option[BSONObjectID],
-                        sender: String,
-                        var serviceAction: String,
-                        environmentName: String,
-                        serviceId: String,
-                        var request: String,
-                        var requestHeaders: Map[String, String],
-                        var contentType: String,
-                        var requestCall: String,
-                        startTime: Date,
-                        var response: String,
-                        var responseHeaders: Map[String, String],
-                        var timeInMillis: Long,
-                        var status: Int,
-                        var purged: Boolean,
-                        var isMock: Boolean) {
+case class RequestData(_id: Option[BSONObjectID],
+                       sender: String,
+                       var serviceAction: String,
+                       environmentName: String,
+                       serviceId: BSONObjectID,
+                       var request: String,
+                       var requestHeaders: Map[String, String],
+                       var contentType: String,
+                       var requestCall: String,
+                       startTime: DateTime,
+                       var response: String,
+                       var responseHeaders: Map[String, String],
+                       var timeInMillis: Long,
+                       var status: Int,
+                       var purged: Boolean,
+                       var isMock: Boolean) {
 
   var responseBytes: Array[Byte] = null
 
 
-  def this(sender: String, serviceAction: String, environnmentName: String, serviceId: String, contentType: String) =
-    this(Some(BSONObjectID.generate), sender, serviceAction, environnmentName, serviceId, null, null, contentType, null, new Date, null, null, -1, -1, false, false)
+  def this(sender: String, serviceAction: String, environnmentName: String, serviceId: BSONObjectID, contentType: String) =
+    this(Some(BSONObjectID.generate), sender, serviceAction, environnmentName, serviceId, null, null, contentType, null, new DateTime(), null, null, -1, -1, false, false)
 
   /**
    * Add serviceAction in cache if neccessary.
@@ -64,6 +68,65 @@ case class RequestData(
 
 object RequestData {
 
+  def collection: BSONCollection = ReactiveMongoPlugin.db.collection[BSONCollection]("requestData")
+
+  implicit val requestDataFormat = Json.format[RequestData]
+
+  implicit object RequestDataBSONReader extends BSONDocumentReader[RequestData] {
+    def read(doc: BSONDocument): RequestData = {
+      RequestData(
+        doc.getAs[BSONObjectID]("_id"),
+        doc.getAs[String]("sender").get,
+        doc.getAs[String]("serviceAction").get,
+        doc.getAs[String]("environmentName").get,
+        doc.getAs[BSONObjectID]("serviceId").get,
+        doc.getAs[String]("request").get,
+        //doc.getAs[Map[String, String]]("requestHeaders").get,
+        List("US" -> "Washington").toMap,
+        doc.getAs[String]("contentType").get,
+        doc.getAs[String]("requestCall").get,
+        new DateTime(doc.getAs[BSONDateTime]("startTime").get.value),
+        doc.getAs[String]("response").get,
+        //doc.getAs[Map[String, String]]("responseHeaders").get,
+        List("US" -> "Washington").toMap,
+        doc.getAs[Long]("timeInMillis").get,
+        doc.getAs[Int]("status").get,
+        doc.getAs[Boolean]("purged").get,
+        doc.getAs[Boolean]("isMock").get
+      )
+    }
+  }
+
+  implicit object MapBSONWriter extends BSONDocumentWriter[Map[String,String]] {
+    def write(m: Map[String, String]): BSONDocument = {
+      //TODO
+      BSONArray()
+      BSONDocument("key" -> "value")
+    }
+  }
+
+  implicit object RequestDataBSONWriter extends BSONDocumentWriter[RequestData] {
+    def write(requestData: RequestData): BSONDocument =
+      BSONDocument(
+        "_id" -> requestData._id,
+        "sender" -> BSONString(requestData.sender),
+        "serviceAction" -> BSONString(requestData.serviceAction),
+        "environmentName" -> BSONString(requestData.environmentName),
+        "serviceId" -> requestData.serviceId,
+        "request" -> BSONString(requestData.request),
+        "requestHeaders" -> requestData.requestHeaders,
+        "contentType" -> BSONString(requestData.contentType),
+        "requestCall" -> BSONString(requestData.requestCall),
+        "startTime" -> BSONDateTime(requestData.startTime.getMillis),
+        "response" -> BSONString(requestData.response),
+        "responseHeaders" -> requestData.responseHeaders,
+        "timeInMillis" -> BSONLong(requestData.timeInMillis),
+        "status" -> BSONInteger(requestData.status),
+        "purged" -> BSONBoolean(requestData.purged),
+        "isMock" -> BSONBoolean(requestData.isMock)
+      )
+  }
+
   val keyCacheServiceAction = "serviceaction-options"
   val keyCacheStatusOptions = "status-options"
   val keyCacheMinStartTime = "minStartTime"
@@ -76,10 +139,6 @@ object RequestData {
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Byte Array for column " + qualified))
       }
   }*/
-
-  implicit val requestDataFormat = Json.format[RequestData]
-
-  def collection: JSONCollection = ReactiveMongoPlugin.db.collection[JSONCollection]("requestData")
 
   /**
    * Anorm Byte conversion
@@ -184,7 +243,6 @@ object RequestData {
   def insert(requestData: RequestData): Option[BSONObjectID] = {
 
     //TODO
-    ???
     /*
     var contentRequest: String = null
     var contentResponse: String = null
@@ -245,7 +303,7 @@ object RequestData {
       lastError =>
         Logger.debug(s"Successfully inserted RequestData with LastError: $lastError")
     }
-    requestData.id
+    requestData._id
   }
 
   /**
@@ -403,7 +461,7 @@ object RequestData {
 
     collection.
       find(query).
-      sort(Json.obj("startTime" -> -1)).
+      sort(BSONDocument("startTime" -> -1)).
       cursor[RequestData].
       collect[List]()
   }
