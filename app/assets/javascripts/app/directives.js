@@ -267,8 +267,10 @@ spApp.directive('spReplayEdit', function () {
                 $scope.contentType = row.contentType;
 
                 ReplayService.beforeReplay(row.id).then(function(data) {
+                    if($scope.contentType == "application/json")
+                        data.data = JSON.stringify(data.data);
                     $scope.replayContent = data;
-                    $('#myModal').modal('show')
+                    $('#myModal').modal('show');
                 });
             };
 
