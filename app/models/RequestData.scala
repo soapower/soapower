@@ -299,10 +299,21 @@ object RequestData {
     requestData.response = contentResponse
 */
 
-    collection.insert(requestData).map {
+    Logger.debug("################ AAA")
+    val f = collection.insert(requestData)
+    f.onFailure {
+      case t => {
+        Logger.error("ERROR")
+        t.printStackTrace()
+        new Exception("An unexpected server error has occured: " + t.getMessage)
+      }
+    }
+    f.map {
       lastError =>
         Logger.debug(s"Successfully inserted RequestData with LastError: $lastError")
     }
+
+    Logger.debug("################ BBB")
     requestData._id
   }
 
