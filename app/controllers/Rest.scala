@@ -35,74 +35,74 @@ object Rest extends Controller {
     // TODO
     /*
 request =>
-  val sender = request.remoteAddress
-  val headers = request.headers.toSimpleMap
+      val sender = request.remoteAddress
+      val headers = request.headers.toSimpleMap
 
-  val requestBody = request.body
-  // We retrieve the query and decode each of it's component
-  val query = request.queryString.map {
-    case (k, v) => URLDecoder.decode(k, "UTF-8") -> URLDecoder.decode(v.mkString, "UTF-8")
-  }
-  val httpMethod = request.method
-  // We retrieve all the REST services that match the method and the environment
-  val localTargets = Service.findRestByMethodAndEnvironmentName(httpMethod, environment)
+      val requestBody = request.body
+      // We retrieve the query and decode each of it's component
+      val query = request.queryString.map {
+        case (k, v) => URLDecoder.decode(k, "UTF-8") -> URLDecoder.decode(v.mkString, "UTF-8")
+      }
+      val httpMethod = request.method
+      // We retrieve all the REST services that match the method and the environment
+      val localTargets = Service.findRestByMethodAndEnvironmentName(httpMethod, environment)
 
-  Logger.debug(localTargets.length + " services found in db")
+      Logger.debug(localTargets.length + " services found in db")
 
-  // We retrieve the id of the service bound to the call
-  val serviceId = findService(localTargets, call)
-  val service = Service.findById(serviceId)
+      // We retrieve the id of the service bound to the call
+      val serviceId = findService(localTargets, call)
+      val service = Service.findById(serviceId)
 
-  service.map {
-    service =>
-    // Get the correct URL for the redirection by parsing the call.
-      val remoteTargetWithCall = getRemoteTargetWithCall(call, service.remoteTarget, service.localTarget)
-      // The contentType is set to none by default
-      var contentType = "None"
-      var requestContent = ""
+      service.map {
+        service =>
+        // Get the correct URL for the redirection by parsing the call.
+          val remoteTargetWithCall = getRemoteTargetWithCall(call, service.remoteTarget, service.localTarget)
+          // The contentType is set to none by default
+          var contentType = "None"
+          var requestContent = ""
 
-      httpMethod match {
-        case "GET" | "DELETE" => {
-          // We decode the query
-          val queryString = URLDecoder.decode(request.rawQueryString, "UTF-8")
-          // The content of a GET or DELETE http request is the http method and the remote target call
-          requestContent = getRequestContent(remoteTargetWithCall, queryString)
-        }
+          httpMethod match {
+            case "GET" | "DELETE" => {
+              // We decode the query
+              val queryString = URLDecoder.decode(request.rawQueryString, "UTF-8")
+              // The content of a GET or DELETE http request is the http method and the remote target call
+              requestContent = getRequestContent(remoteTargetWithCall, queryString)
+            }
 
-        case "POST" | "PUT" => {
-          // The contentType is set to the content type of the request
-          contentType = request.contentType.get
-          // The request has a POST or a PUT http method so the request has a body in JSON or XML format
-          contentType match {
-            case "application/json" =>
-              requestContent = requestBody.asJson.get.toString
-            case "application/xml" | "text/xml" =>
-              requestContent = requestBody.asXml.get.toString
-            case _ =>
-              val err = "Soapower doesn't support request body in this format"
+            case "POST" | "PUT" => {
+              // The contentType is set to the content type of the request
+              contentType = request.contentType.get
+              // The request has a POST or a PUT http method so the request has a body in JSON or XML format
+              contentType match {
+                case "application/json" =>
+                  requestContent = requestBody.asJson.get.toString
+                case "application/xml" | "text/xml" =>
+                  requestContent = requestBody.asXml.get.toString
+                case _ =>
+                  val err = "Soapower doesn't support request body in this format"
+                  Logger.error(err)
+                  BadRequest(err)
+              }
+            }
+
+            case _ => {
+              val err = "Soapower doesn't support this HTTP method"
               Logger.error(err)
               BadRequest(err)
+            }
           }
-        }
 
-        case _ => {
-          val err = "Soapower doesn't support this HTTP method"
-          Logger.error(err)
-          BadRequest(err)
-        }
+          if (service.useMockGroup) {
+            forwardMock(requestContent, service, sender, headers, remoteTargetWithCall, contentType)
+          } else {
+            // Forward the request
+            forwardRequest(requestContent, query, service, sender, headers, remoteTargetWithCall, contentType)
+          }
+      }.getOrElse {
+        val err = "No REST services with the environment " + environment + " and the HTTP method " + httpMethod + " matches the call " + call
+        Logger.error(err)
+        BadRequest(err)
       }
-
-      if (service.useMockGroup) {
-        forwardMock(requestContent, service, sender, headers, remoteTargetWithCall, contentType)
-      } else {
-        // Forward the request
-        forwardRequest(requestContent, query, service, sender, headers, remoteTargetWithCall, contentType)
-      }
-  }.getOrElse {
-    val err = "No REST services with the environment " + environment + " and the HTTP method " + httpMethod + " matches the call " + call
-    Logger.error(err)
-    BadRequest(err)
-  }
   */
     BadRequest("TODO")
   }
@@ -112,7 +112,8 @@ request =>
     // TODO
     /*
     implicit request =>
-      val requestData = RequestData.loadForREST(requestId)
+
+val requestData = RequestData.loadForREST(requestId)
 
       // The http method is retrieved from the service
       val headers = requestData.requestHeaders
@@ -128,7 +129,7 @@ request =>
           requestContentType = request.contentType.get
           requestContentType match {
             case "application/json" =>
-              request.body.asJson.get.toString
+              requestContent = request.body.asJson.get.toString
             case "application/xml" | "text/xml" =>
               requestContent = request.body.asXml.get.toString
           }
@@ -140,18 +141,25 @@ request =>
         case (k, v) => k -> v.mkString
       }
 
-      forwardRequest(requestContent, query, service, sender, headers, requestCall, requestContentType)
+      forwardRequest(requestContent, query, service, sender, headers, requestCall, requestContentType, true)
       */
     BadRequest("TODO")
   }
 
   def forwardRequest(content: String, query: Map[String, String], service: Service, sender: String, headers: Map[String, String], requestCall: String,
-                     requestContentType: String): SimpleResult = {
+                     requestContentType: String, isReplay: Boolean = false): SimpleResult = {
     val client = new Client(service, sender, content, headers, Service.REST, requestContentType)
     client.sendRestRequestAndWaitForResponse(service.httpMethod, requestCall, query)
-    new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]])) //apply(client.response.bodyBytes)
-      .withHeaders("ProxyVia" -> "soapower")
-      .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
+
+    if (!isReplay) {
+      new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]])) //apply(client.response.bodyBytes)
+        .withHeaders("ProxyVia" -> "soapower")
+        .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
+    } else {
+      new Results.Status(client.response.status).apply(client.response.bodyBytes)
+        .withHeaders("ProxyVia" -> "soapower")
+        .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
+    }
   }
 
   /**
@@ -181,8 +189,7 @@ request =>
     val effectiveCall = call.split(localTarget)
     if (effectiveCall.length > 1) {
       return remoteTarget + call.split(localTarget)(1)
-    }
-    else {
+    } else {
       return remoteTarget
     }
   }
