@@ -103,7 +103,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
   def sendRestRequestAndWaitForResponse(method: String, correctUrl: String, query: Map[String, String]) {
     requestTimeInMillis = System.currentTimeMillis
     // Keep the call in the request data for replay functionality
-    requestData.requestCall = correctUrl
+    requestData.requestCall = Some(correctUrl)
     // prepare request
     var wsRequestHolder = WS.url(correctUrl).withRequestTimeout(service.timeoutms.toInt)
     wsRequestHolder = wsRequestHolder.withQueryString(query.toList: _*)

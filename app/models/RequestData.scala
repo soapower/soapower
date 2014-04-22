@@ -31,7 +31,7 @@ case class RequestData(_id: Option[BSONObjectID],
                        var request: String,
                        var requestHeaders: Map[String, String],
                        var contentType: String,
-                       var requestCall: String,
+                       var requestCall: Option[String],
                        startTime: DateTime,
                        var response: String,
                        var responseHeaders: Map[String, String],
@@ -84,7 +84,7 @@ object RequestData {
         //doc.getAs[Map[String, String]]("requestHeaders").get,
         List("US" -> "Washington").toMap,
         doc.getAs[String]("contentType").get,
-        doc.getAs[String]("requestCall").get,
+        doc.getAs[String]("requestCall"),
         new DateTime(doc.getAs[BSONDateTime]("startTime").get.value),
         doc.getAs[String]("response").get,
         //doc.getAs[Map[String, String]]("responseHeaders").get,
@@ -97,7 +97,7 @@ object RequestData {
     }
   }
 
-  implicit object MapBSONWriter extends BSONDocumentWriter[Map[String,String]] {
+  implicit object MapBSONWriter extends BSONDocumentWriter[Map[String, String]] {
     def write(m: Map[String, String]): BSONDocument = {
       //TODO
       BSONArray()
@@ -106,7 +106,8 @@ object RequestData {
   }
 
   implicit object RequestDataBSONWriter extends BSONDocumentWriter[RequestData] {
-    def write(requestData: RequestData): BSONDocument =
+    def write(requestData: RequestData): BSONDocument = {
+      Logger.debug("requestData:" + requestData)
       BSONDocument(
         "_id" -> requestData._id,
         "sender" -> BSONString(requestData.sender),
@@ -116,7 +117,7 @@ object RequestData {
         "request" -> BSONString(requestData.request),
         "requestHeaders" -> requestData.requestHeaders,
         "contentType" -> BSONString(requestData.contentType),
-        "requestCall" -> BSONString(requestData.requestCall),
+        "requestCall" -> "FOO", //TODO BSONString(requestData.requestCall.getOrElse("")),
         "startTime" -> BSONDateTime(requestData.startTime.getMillis),
         "response" -> BSONString(requestData.response),
         "responseHeaders" -> requestData.responseHeaders,
@@ -125,6 +126,7 @@ object RequestData {
         "purged" -> BSONBoolean(requestData.purged),
         "isMock" -> BSONBoolean(requestData.isMock)
       )
+    }
   }
 
   val keyCacheServiceAction = "serviceaction-options"
