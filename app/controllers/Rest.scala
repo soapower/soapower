@@ -102,6 +102,7 @@ object Rest extends Controller {
 
   def replay(requestId: Long) = Action {
     implicit request =>
+
       val requestData = RequestData.loadForREST(requestId)
 
       // The http method is retrieved from the service
@@ -118,7 +119,7 @@ object Rest extends Controller {
           requestContentType = request.contentType.get
           requestContentType match {
             case "application/json" =>
-              request.body.asJson.get.toString
+              requestContent = request.body.asJson.get.toString
             case "application/xml" | "text/xml" =>
               requestContent = request.body.asXml.get.toString
           }
@@ -130,16 +131,25 @@ object Rest extends Controller {
         case (k, v) => k -> v.mkString
       }
 
-      forwardRequest(requestContent, query, service, sender, headers, requestCall, requestContentType)
+      forwardRequest(requestContent, query, service, sender, headers, requestCall, requestContentType, true)
   }
 
   def forwardRequest(content: String, query: Map[String, String], service: Service, sender: String, headers: Map[String, String], requestCall: String,
-                     requestContentType: String): SimpleResult = {
+                     requestContentType: String, isReplay: Boolean = false): SimpleResult = {
     val client = new Client(service, sender, content, headers, Service.REST, requestContentType)
     client.sendRestRequestAndWaitForResponse(service.httpMethod, requestCall, query)
-    new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))//apply(client.response.bodyBytes)
-      .withHeaders("ProxyVia" -> "soapower")
-      .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
+
+    if(!isReplay) {
+      new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))//apply(client.response.bodyBytes)
+        .withHeaders("ProxyVia" -> "soapower")
+        .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
+    }
+    else
+    {
+      new Results.Status(client.response.status).apply(client.response.bodyBytes)
+        .withHeaders("ProxyVia" -> "soapower")
+        .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
+    }
   }
 
   /**
