@@ -1,4 +1,4 @@
-<div id="onError" class="alert alert-error" ng-show="isError">
+<div id="onError" class="alert alert-danger" ng-show="isError">
     <p>
         <span><strong> {{ errorInfo }} </strong> </span>
     </p>
@@ -8,7 +8,7 @@
 
 Live status :
 <span class="label label-success liveOnAir" ng-show="isLiveOn">On Air <i class="fa fa-bullhorn"></i></span>
-<span class="label label-important liveOff" ng-show="!isLiveOn">Off <i class="fa fa-ban"></i></span>
+<span class="label label-warning liveOff" ng-show="!isLiveOn">Off <i class="fa fa-ban"></i></span>
 
 <button type="button" class="btn btn-warning liveOnAir" ng-show="isLiveOn" ng-click="stopWS()">
     <i class="fa fa-stop"></i></button>

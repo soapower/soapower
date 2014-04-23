@@ -10,9 +10,10 @@ object Live extends Controller {
   /**
    * Handles the websocket.
    */
-  def socket() = WebSocket.async[JsValue] { implicit request  =>
-    Logger.info("headers:" + request.remoteAddress)
-    LiveRoom.join(request.remoteAddress)
+  def socket() = WebSocket.async[JsValue] {
+    implicit request =>
+      Logger.info("headers:" + request.remoteAddress)
+      LiveRoom.join(request.remoteAddress)
   }
 
 }

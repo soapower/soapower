@@ -56,22 +56,24 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
   val requestData = {
     var serviceAction = ""
 
-    if((typeRequest == Service.SOAP) && (Client.extractSoapAction(headers) != Client.DEFAULT_NO_SOAPACTION))
-  	{
+    if ((typeRequest == Service.SOAP) && (Client.extractSoapAction(headers) != Client.DEFAULT_NO_SOAPACTION)) {
       serviceAction = Client.extractSoapAction(headers)
-  	} else {
-      serviceAction = service.httpMethod.toUpperCase+ " " + service.localTarget
-  	}
+    } else {
+      serviceAction = service.httpMethod.toUpperCase + " " + service.localTarget
+    }
 
-    new RequestData(sender, serviceAction, service.environmentId, service.id, requestContentType)
+    Logger.debug("service:" + service)
+
+    new RequestData(sender, serviceAction, service.environmentName.get, service._id.get, requestContentType)
   }
 
+  val environment = Environment.findByName(service.environmentName.get)
   var response: ClientResponse = null
 
   private var futureResponse: Future[Response] = null
   private var requestTimeInMillis: Long = -1
 
-  def workWithMock(mock : Mock) {
+  def workWithMock(mock: Mock) {
     requestData.isMock = true
     requestData.timeInMillis = mock.timeoutms
     requestData.status = mock.httpStatus
@@ -79,9 +81,8 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     requestData.requestHeaders = headers
     requestData.response = checkNullOrEmpty(mock.response)
     requestData.responseHeaders = UtilConvert.headersFromString(mock.httpHeaders)
-    if(requestData.contentType == "None")
-    {
-      val mockResponseType  = requestData.responseHeaders.get("Content-Type")
+    if (requestData.contentType == "None") {
+      val mockResponseType = requestData.responseHeaders.get("Content-Type")
       mockResponseType match {
         case Some(content) =>
           requestData.contentType = requestData.responseHeaders.get("Content-Type").get
@@ -99,15 +100,10 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
    * @param correctUrl
    * @param query
    */
-  def sendRestRequestAndWaitForResponse(method: String, correctUrl: String, query:Map[String, String])
-  {
-    if (Logger.isDebugEnabled) {
-      Logger.debug("RemoteTarget " + service.remoteTarget)
-    }
-
+  def sendRestRequestAndWaitForResponse(method: String, correctUrl: String, query: Map[String, String]) {
     requestTimeInMillis = System.currentTimeMillis
     // Keep the call in the request data for replay functionality
-    requestData.requestCall = correctUrl
+    requestData.requestCall = Some(correctUrl)
     // prepare request
     var wsRequestHolder = WS.url(correctUrl).withRequestTimeout(service.timeoutms.toInt)
     wsRequestHolder = wsRequestHolder.withQueryString(query.toList: _*)
@@ -140,7 +136,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       case e: Throwable =>
         requestData.contentType match {
           case "application/xml" | "text/xml" =>
-            processError(method,"xml", e)
+            processError(method, "xml", e)
           case "application/json" =>
             processError(method, "json", e)
           case _ =>
@@ -196,8 +192,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       Client.processQueue(requestData)
       requestData.requestHeaders = headers
 
-      if (requestData.contentType == "None")
-      {
+      if (requestData.contentType == "None") {
         // If the request content type is "None", the http method of the request was GET or DELETE,
         // the contentType is set to the response contentType (json, xml or text)
         requestData.contentType = response.contentType
@@ -215,7 +210,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       case e: Throwable =>
         requestData.contentType match {
           case "application/xml" | "text/xml" =>
-            processError("waitForResponse","xml", e)
+            processError("waitForResponse", "xml", e)
           case "application/json" =>
             processError("waitForResponse", "json", e)
           case _ =>
@@ -234,7 +229,6 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
   }
 
   private def saveData(content: String) = {
-    Logger.debug("SaveData enter")
     try {
       // asynchronously writes data to the DB
       val writeStartTime = System.currentTimeMillis()
@@ -242,8 +236,6 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
         requestData.request = checkNullOrEmpty(content)
         requestData.storeServiceActionAndStatusInCache()
         val id = RequestData.insert(requestData)
-        requestData.id = anorm.Id(id.toString.toLong)
-        Logger.debug("talk")
         Robot.talk(requestData)
       }.map {
         result =>
@@ -263,7 +255,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
 
     val stackTraceWriter = new StringWriter
     exception.printStackTrace(new PrintWriter(stackTraceWriter))
-    if(formatResponse == "xml") {
+    if (formatResponse == "xml") {
       response.body = faultXmlResponse("Server", exception.getMessage, stackTraceWriter.toString)
     } else if (formatResponse == "json") {
       response.body = faultJsonResponse("Server", exception.getMessage, stackTraceWriter.toString)
@@ -277,8 +269,9 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
   }
 
   private def faultJsonResponse(faultCode: String, faultString: String, faultMessage: String): String = {
-    "{\"faultcode\":\""+faultCode+"\", \"faultstring\":\""+faultString+"\", \"detail\":\""+faultMessage+"\"}"
+    "{\"faultcode\":\"" + faultCode + "\", \"faultstring\":\"" + faultString + "\", \"detail\":\"" + faultMessage + "\"}"
   }
+
   private def faultXmlResponse(faultCode: String, faultString: String, faultMessage: String): String = {
     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
       "<SOAP-ENV:Envelope xmlns:SOAP-ENC=\"http://schemas.xmlsoap.org/soap/encoding\"  xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"> " +
@@ -294,7 +287,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
   }
 
   private def faultTextResponse(faultCode: String, faultString: String, faultMessage: String): String = {
-    "FaultCode: "+faultCode+", faultString: "+faultString+", faultMessage: "+faultMessage
+    "FaultCode: " + faultCode + ", faultString: " + faultString + ", faultMessage: " + faultMessage
   }
 }
 
@@ -302,7 +295,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
 class ClientResponse(wsResponse: Response = null, val responseTimeInMillis: Long) {
 
   var body: String = if (wsResponse != null) wsResponse.body else ""
-  var contentType: String =  if (wsResponse != null && wsResponse.getAHCResponse != null) wsResponse.getAHCResponse.getContentType else ""
+  var contentType: String = if (wsResponse != null && wsResponse.getAHCResponse != null) wsResponse.getAHCResponse.getContentType else ""
   var bodyBytes = if (wsResponse != null && wsResponse.getAHCResponse != null) wsResponse.getAHCResponse.getResponseBodyAsBytes else null
   val status: Int = if (wsResponse != null) wsResponse.status else Status.INTERNAL_SERVER_ERROR
 

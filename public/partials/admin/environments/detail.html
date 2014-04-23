@@ -1,0 +1,132 @@
+<form name="myForm" role="form" class="form-horizontal">
+    <input class="form-control" type="hidden" name="name" ng-model="environment.id">
+
+    <div class="form-group" ng-class="{error: myForm.group.$invalid}">
+        <label for="groups" class="col-lg-2 control-label">Groups </label>
+        <div class="col-lg-4">
+            <select class="form-control" id="groups" ui-select2 multiple ng-model="environment.groups" data-placeholder="Pick on or many groups" ng-required="true">
+                <option ng-repeat="group in allGroups" value="{{group}}">{{group}}</option>
+            </select>
+
+            <span ng-show="newGroup && !showNewGroup">You can select the group <b class="label label-info">{{newGroup}}</b> in list above.</span>
+            <a ng-hide="showNewGroup" ng-click="showNewGroup=true">New Group</a>
+
+            <span ng-show="showNewGroup">
+                <input class="form-control" type="text" id="newGroup" name="newGroup" ng-pattern="namePattern" ng-model="newGroup" placeholder="Enter a new group">
+                <a ng-click="allGroups.push(newGroup);showNewGroup=false" class="btn btn-default" ng-disabled="myForm.newGroup.$error.pattern">Add new Group</a>
+                <span class="label label-danger" ng-show="myForm.newGroup.$error.pattern">Single word only! </span>
+                <span class="help-block">The name have to match this pattern : [a-zA-Z0-9]{1,200}</span>
+            </span>
+        </div>
+    </div>
+
+    <div class="form-group" ng-class="{error: myForm.nameEnv.$invalid}">
+        <label for="name" class="col-lg-2 control-label">Name</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="text" id="name" name="nameEnv" ng-pattern="namePattern" ng-model="environment.name" required>
+            <span ng-show="myForm.nameEnv.$error.required" class="label label-danger">Required</span>
+            <span class="label label-danger" ng-show="myForm.nameEnv.$error.pattern">Single word only! </span>
+            <span class="help-block">The name have to match this pattern : [a-zA-Z0-9]{1,200}</span>
+        </div>
+    </div>
+
+    <div class="form-group" ng-class="{error: myForm.hourRecordContentDataMin.$invalid}">
+        <label for="hourRecordContentDataMin" class="col-lg-2 control-label">Start Record Hour</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="number" id="hourRecordContentDataMin" name="hourRecordContentDataMin" ng-model="environment.hourRecordContentDataMin"
+                    required>
+            <span ng-show="myForm.hourRecordContentDataMin.$error.required" class="label label-danger">Required</span>
+        </div>
+    </div>
+
+    <div class="form-group" ng-class="{error: myForm.hourRecordContentDataMax.$invalid}">
+        <label for="hourRecordContentDataMax" class="col-lg-2 control-label">End Record Hour</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="number" id="hourRecordContentDataMax" name="hourRecordContentDataMax" ng-model="environment.hourRecordContentDataMax"
+                    required>
+            <span ng-show="myForm.hourRecordContentDataMax.$error.required" class="label label-danger">Required</span>
+        </div>
+    </div>
+
+    <div class="form-group" ng-class="{error: myForm.nbDayKeepContentData.$invalid}">
+        <label for="nbDayKeepContentData" class="col-lg-2 control-label">Xml Data : Nb days keep</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="number" id="nbDayKeepContentData" name="nbDayKeepContentData" ng-model="environment.nbDayKeepContentData" required>
+            <span ng-show="myForm.nbDayKeepContentData.$error.required" class="label label-danger">Required</span>
+        </div>
+    </div>
+
+    <div class="form-group" ng-class="{error: myForm.nbDayKeepAllData.$invalid}">
+        <label for="nbDayKeepAllData" class="col-lg-2 control-label">All Data : Nb days keep</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="number" id="nbDayKeepAllData" name="nbDayKeepAllData" ng-model="environment.nbDayKeepAllData" required>
+            <span ng-show="myForm.nbDayKeepAllData.$error.required" class="label label-danger">Required</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-lg-4">
+            <label class="control-label"> Record Content Data, Check this if you want to record Request (in XML, JSON or text format) and Response for
+                ALL services attached to this environment: </label>
+            </label>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="radio">
+                <label>
+                    <input type="radio" name="recordContentData" ng-model="environment.recordContentData" ng-value="true" ng-checked="environment.recordContentData == true"> Yes
+                </label>
+            </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="recordContentData" ng-model="environment.recordContentData" ng-value="false" ng-checked="environment.recordContentData == false"> No
+                </label>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="form-group">
+        <div class="col-lg-4">
+            <label class="control-label"> Record Data, Check this if you want to record Data (startTime, responseTime,
+                etc...) on Request for ALL services attached to this environment. If it is unchecked, you can see requests
+                on live page only and no stats are computed for this environment. You must check this if you want to record
+                Content Data : </label>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="radio">
+                <label>
+                    <input type="radio" name="recordData" ng-model="environment.recordData" ng-value="true" ng-checked="environment.recordData == true"> Yes
+                </label>
+            </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="recordData" ng-model="environment.recordData" ng-value="false" ng-checked="environment.recordData == false"> No
+                </label>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <a href="#/environments/list/{{ groups }}" class="btn btn-default">Cancel</a>
+            <button ng-click="save()" ng-disabled="isClean() || myForm.$invalid"
+                    class="btn btn-primary">Save
+            </button>
+
+            <span ng-show="environment._id.$oid">
+                <button ng-click="askDelete=true" ng-hide="askDelete" class="btn btn-danger">
+                    Delete
+                </button>
+                <button ng-click="askDelete=false" ng-show="askDelete" class="btn btn-danger">
+                    No, I don't want to delete this. <i class="fa fa-reply"></i>
+                </button>
+                <button ng-click="destroy()" ng-show="askDelete" class="btn btn-danger">
+                    Yes, I confirm <i class="fa fa-exclamation-triangle"></i>
+                </button>
+            </span>
+        </div>
+    </div>
+</form>

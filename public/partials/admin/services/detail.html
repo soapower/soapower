@@ -1,0 +1,186 @@
+<form name="myForm" role="form" class="form-horizontal">
+    <h2>{{ title }}</h2>
+    <input class="form-control" type="hidden" name="description" ng-model="service.id">
+
+    <div class="form-group" ng-class="{error: myForm.description.$invalid}">
+        <label for="description" class="col-lg-2 control-label">Service Description</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="text" id="description" name="description" ng-model="service.description" required>
+            <span ng-show="myForm.description.$error.required" class="label label-danger">Required</span>
+        </div>
+    </div>
+
+    <div class="form-group" ng-class="{error: myForm.environment.$invalid}">
+        <label class="col-lg-2 control-label">Environment</label>
+        <div class="col-lg-4">
+            <label class="control-label">{{ service.environmentName }}</label>
+        </div>
+    </div>
+
+    <h4>SOAP or REST service</h4>
+    <div class="form-group" ng-class="{error: myForm.environment.$invalid}">
+        <label class="col-lg-2 control-label">Type</label>
+        <div class="col-lg-4">
+            <div class="radio">
+                <label>
+                    <input type="radio" name="SOAP" ng-model="service.typeRequest" value="SOAP" ng-checked="service.typeRequest == 'SOAP'"> SOAP
+                </label>
+            </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="REST" ng-model="service.typeRequest" value="REST" ng-checked="service.typeRequest == 'REST'"> REST
+                </label>
+            </div>
+            <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
+        </div>
+        <div class="col-lg-6 help-block">You have to chose if the service will be called by SOAP or REST requests.
+            If you chose REST, you will have to set the http method bound to the REST service and the local target will start with /rest.
+        </div>
+    </div>
+    <div class="form-group" ng-class="{error: myForm.environment.$invalid}" ng-show="service.typeRequest == 'REST'">
+        <label for="methods" class="col-lg-2 control-label">HTTP Method</label>
+        <div class="col-lg-4">
+            <select ui-select2 class="form-control" ng-model="service.httpMethod" id="methods" required>
+                <option value="POST">POST</option>
+                <option value="GET">GET</option>
+                <option value="PUT">PUT</option>
+                <option value="DELETE">DELETE</option>
+                <option value="RENAME">RENAME</option>
+            </select>
+            <span ng-show="myForm.environment.$error.required" class="help-inline">Required</span>
+        </div>
+        <div class="col-lg-6 help-block">Set the HTTP method used to call the service
+        </div>
+    </div>
+
+    <h4>The Local Target</h4>
+    <div class="form-group" ng-class="{error: myForm.localTarget.$invalid}">
+        <label for="localTarget" class="col-lg-2 control-label">Local Target</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="text" id="localTarget" name="localTarget" ng-model="service.localTarget" required>
+            <span ng-show="myForm.localTarget.$error.required" class="label label-danger">Required</span>
+            <span ng-show="myForm.localTarget.$error.required" class="label label-danger">Enter service1 to have http://{{ hostname }}:{{ port }}/{{ service.typeRequest | lowercase}}/{{ service.environmentName || "environment" | lowercase}}/<b>service1</b></span>
+            <span ng-show="!myForm.localTarget.$error.required" class="label label-info">Local Target : http://{{ hostname }}:{{ port }}/{{ service.typeRequest | lowercase}}/{{ service.environmentName || "environment" }}/<b>{{ service.localTarget }}</b> </span>
+        </div>
+        <div class="col-lg-6 help-block">Every requests on the service will have a ServiceAction. This ServiceAction is the SoapAction (if it exists in case of a SOAP service) or the HTTP method followed by the localTarget of the service.
+        </div>
+    </div>
+
+    <h4>The Remote Target</h4>
+    <div class="form-group" ng-class="{error: myForm.remoteTarget.$invalid}">
+        <label for="remoteTarget" class="col-lg-2 control-label">Remote Target</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="url" id="remoteTarget" name="remoteTarget" ng-model="service.remoteTarget">
+            <span ng-show="myForm.remoteTarget.$error.url" class="label label-danger">{{remoteTarget}} is not a valid URL</span>
+            <span class="help-block">Remote service, example : http://host:8080/myService/1.0</span>
+        </div>
+        <div class="col-lg-6 help-block">When someone calls Soapower, Soapower redirect the request to a Remote Target OR, if
+            you don't have a remote target, you can let Soapower make the Response with a Mock.
+        </div>
+    </div>
+
+    <div class="form-group" ng-class="{error: myForm.useMockGroup.$invalid}">
+            <label for="mockGroup" class="col-lg-2 control-label">Use Mocks Group ?</label>
+        <div class="col-lg-4">
+            <div class="radio">
+                <label>
+                    <input type="radio" name="useMockGroup" ng-model="service.useMockGroup" ng-value=true ng-checked="service.useMockGroup == true"> Yes
+                </label>
+            </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="useMockGroup" ng-model="service.useMockGroup" ng-value=false ng-checked="service.useMockGroup == false"> No
+                </label>
+            </div>
+        </div>
+        <div class="col-lg-6 help-block">So if you want to let Soapower return a mock response and don't request a
+            remote server, you have to check "Yes" here.
+        </div>
+    </div>
+
+    <div class="form-group" ng-show="service.useMockGroup == true">
+        <label for="mockGroup" class="col-lg-2 control-label">Mock Group</label>
+        <div class="col-lg-4">
+            <select class="form-control" id="mockGroup" ui-select2 ng-model="service.mockGroupId" data-placeholder="Pick one Mock Group">
+                <option ng-repeat="mockGroup in mockGroups" value="{{mockGroup._id.$oid}}">{{mockGroup.name}}</option>
+            </select>
+            <span ng-show="myForm.mockGroup.$error.required" class="label label-danger">Required</span>
+        </div>
+        <div class="col-lg-6 help-block">If you chose to use mock group, Soapower check all mocks in MockGroup.
+            If a criteria of one mock is found in the body of request, Soapower render the response a the mock.
+            If there is more than one matching mock, the first found is used.
+        </div>
+    </div>
+
+    <h4>Options</h4>
+    <div class="form-group" ng-class="{error: myForm.timeoutms.$invalid}">
+        <label for="timeoutms" class="col-lg-2 control-label">Timeout ms</label>
+        <div class="col-lg-4">
+            <input class="form-control" type="number" id="timeoutms" name="timeoutms" ng-model="service.timeoutms" required>
+            <span ng-show="myForm.timeoutms.$error.required" class="label label-danger">Required</span>
+            <span class="help-block">Timeout in milliseconds</span>
+        </div>
+        <div class="col-lg-6 help-block">If the remote target does not respond before this timeout in milliseconds,
+            Soapower return a fault Reponse with a HTTP Status 500 (Internal Server Error).
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-lg-4">
+            <label class="control-label"> Record content Data, Check this if you want to record XML, JSON or text Request and Response for this service:</label>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="radio">
+                <label>
+                    <input type="radio" name="recordContentData" ng-model="service.recordContentData" ng-value=true ng-checked="service.recordContentData == true"> Yes
+               </label>
+            </div>
+            <div class="radio">
+               <label>
+                    <input type="radio" name="recordContentData" ng-model="service.recordContentData" ng-value=false ng-checked="service.recordContentData == false"> No
+               </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-lg-6">
+            <label class="control-label"> Record Data, Check Yes this if you want to record Data (time, responseTime, etc...) on Request / Response for this
+                service. If it is unchecked, you can see requests on live page only and no stats are computed for this
+                service. You must check this if you want to record content Data :</label>
+        </div>
+        <div class="col-lg-6">
+            <div class="radio">
+               <label>
+                    <input type="radio" name="recordData" ng-model="service.recordData" ng-value=true ng-checked="service.recordData == true"> Yes
+               </label>
+            </div>
+            <div class="radio">
+               <label>
+                    <input type="radio" name="recordData" ng-model="service.recordData" ng-value=false ng-checked="service.recordData == false"> No
+               </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <a href="#/services/list/{{ service.environmentName }}/{{ groups }}" class="btn btn-default">Cancel</a>
+            <button ng-click="save()" ng-disabled="isClean() || myForm.$invalid"
+                    class="btn btn-primary">Save
+            </button>
+            <span ng-show="service._id.$oid">
+                <button ng-click="askDelete=true" ng-hide="askDelete" class="btn btn-danger">
+                    Delete
+                </button>
+                <button ng-click="askDelete=false" ng-show="askDelete" class="btn btn-danger">
+                    No, I don't want to delete this. <i class="fa fa-reply"></i>
+                </button>
+                <button ng-click="destroy()" ng-show="askDelete" class="btn btn-danger">
+                    Yes, I confirm <i class="fa fa-exclamation-triangle"></i>
+                </button>
+            </span>
+        </div>
+    </div>
+</form>

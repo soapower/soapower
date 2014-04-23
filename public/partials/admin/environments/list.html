@@ -1,0 +1,36 @@
+<h2>Environments</h2>
+
+<a class="btn btn-primary" href="#/environments/new/{{ groups }}"><i class="fa fa-plus"></i> Add a new environment</a>
+
+<p>There are {{ environments.length }} environments.</p>
+
+<sp-showresults></sp-showresults>
+
+<table ng-table="tableParams" class="table table-striped table-bordered">
+    <tr ng-repeat="line in $data">
+        <td data-title="'Name'" sortable="'name'">
+            {{line.name}}
+        </td>
+        <td data-title="'Content Data : Start Record Hour'" sortable="'hourRecordContentDataMin'">
+            {{line.hourRecordContentDataMin}}
+        </td>
+        <td data-title="'Content Data : End Record Hour'" sortable="'hourRecordContentDataMax'">
+            {{line.hourRecordContentDataMax}}
+        </td>
+        <td data-title="'Content Data : nb days keep'" sortable="'nbDayKeepAllData'">
+            {{line.nbDayKeepAllData}}
+        </td>
+        <td data-title="'All Data : nb days keep'" sortable="'nbDayKeepContentData'">
+            {{line.nbDayKeepContentData}}
+        </td>
+        <td data-title="'Record Content Data'" sortable="'recordContentData'">
+            {{line.recordContentData}}
+        </td>
+        <td data-title="'Record Data'" sortable="'recordData'">
+            {{line.recordData}}
+        </td>
+        <td data-title="'Services'"><a href="#/services/list/{{ line.name }}/{{ groups }}">View Services</a></td>
+        <td data-title="'Edit'"><a href="#/environments/edit/{{ line._id.$oid }}/{{ groups }}"><i class="fa fa-pencil"></i></a></td>
+    </tr>
+</table>
+

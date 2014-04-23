@@ -1,173 +1,45 @@
 'use strict';
 
-spApp.factory('Service', function ($resource, UIService) {
-    var Service = $resource('/services/:serviceId',
-        { serviceId: '@id'},
-        { update: {method: 'POST'} }
+/***************************************
+ *  SERVICES
+ ***************************************/
+spApp.factory('Service', function ($resource) {
+    var Service = $resource('/services/:environmentName/:serviceId',
+        { environmentName: '@environmentName', serviceId: '@_id.$oid'},
+        { update: {method: 'PUT'},
+            create: {method: 'POST'}}
     );
-
-    Service.prototype.update = function (cb, cbError) {
-        this.recordContentData = UIService.fixBoolean(this.recordContentData);
-        this.recordData = UIService.fixBoolean(this.recordData);
-        this.useMockGroup = UIService.fixBoolean(this.useMockGroup);
-        this.environmentId = parseInt(this.environment.id);
-        this.mockGroupId = parseInt(this.mockGroup.id);
-        this.id = parseInt(this.id);
-        return Service.update({serviceId: this.id},
-            angular.extend({}, this, {serviceId: undefined}), cb, cbError);
-    };
-
-    Service.prototype.destroy = function (cb) {
-        return Service.remove({serviceId: this.id}, cb);
-    };
-
     return Service;
 });
 
-spApp.factory('Environment', function ($resource, UIService) {
+spApp.factory("ServicesService", function ($http) {
+    return {
+        findAll: function (environmentId) {
+            return $http.get('/services/' + environmentId + '/findall');
+        }
+    }
+});
+
+/***************************************
+ *  ENVIRONMENTS
+ ***************************************/
+spApp.factory('Environment', function ($resource) {
     var Environment = $resource('/environments/:environmentId',
-        { environmentId: '@id'},
-        { update: {method: 'POST'} }
+        { environmentId: '@_id.$oid'},
+        { update: {method: 'PUT'},
+            create: {method: 'POST'}}
     );
-
-    Environment.prototype.update = function (cb, cbError) {
-        this.recordContentData = UIService.fixBoolean(this.recordContentData);
-        this.recordData = UIService.fixBoolean(this.recordData);
-        this.id = parseInt(this.id);
-        this.groupId = parseInt(this.group.id);
-
-        return Environment.update({environmentId: this.id},
-            angular.extend({}, this, {environmentId: undefined}), cb, cbError);
-    };
-
-    Environment.prototype.destroy = function (cb, cbError) {
-        return Environment.remove({environmentId: this.id}, cb, cbError);
-    };
-
     return Environment;
 });
 
-spApp.factory('Mock', function ($resource) {
-    var Mock = $resource('/mocks/:mockId',
-        { mockId: '@id'},
-        { update: {method: 'POST'} }
-    );
 
-    Mock.prototype.update = function (cb, cbError) {
-        this.id = parseInt(this.id);
-        this.mockGroupId = parseInt(this.mockGroup.id);
-
-        return Mock.update({mockId: this.id},
-            angular.extend({}, this, {mockId: undefined}), cb, cbError);
-    };
-
-    Mock.prototype.destroy = function (cb, cbError) {
-        return Mock.remove({mockId: this.id}, cb, cbError);
-    };
-
-    return Mock;
-});
-
-spApp.factory('MockGroup', function ($resource) {
-    var MockGroup = $resource('/mockgroups/:mockGroupId',
-        { mockGroupId: '@id'},
-        { update: {method: 'POST'} }
-    );
-
-    MockGroup.prototype.update = function (cb, cbError) {
-        this.id = parseInt(this.id);
-        this.groupId = parseInt(this.group.id);
-
-        return MockGroup.update({mockGroupId: this.id},
-            angular.extend({}, this, {mockGroupId: undefined}), cb, cbError);
-    };
-
-    MockGroup.prototype.destroy = function (cb, cbError) {
-        return MockGroup.remove({mockGroupId: this.id}, cb, cbError);
-    };
-
-    return MockGroup;
-});
-
-spApp.factory('Group', function ($resource, UIService) {
-    var Group = $resource('/groups/:groupId',
-        { groupId: '@id'},
-        { update: {method: 'POST'} }
-    );
-
-    Group.prototype.update = function (cb, cbError) {
-        this.id = parseInt(this.id);
-
-        return Group.update({groupId: this.id},
-            angular.extend({}, this, {groupId: undefined}), cb, cbError);
-    };
-
-    Group.prototype.destroy = function (cb, cbError) {
-        return Group.remove({groupId: this.id}, cb, cbError);
-    };
-
-    return Group;
-});
-
-spApp.factory('ServiceAction', function ($resource) {
-    var ServiceAction = $resource('/serviceactions/:serviceActionId',
-        { serviceActionId: '@id'},
-        { update: {method: 'POST'} }
-    );
-
-    ServiceAction.prototype.update = function (cb, cbError) {
-        this.id = parseInt(this.id);
-        return ServiceAction.update({serviceActionId: this.id},
-            angular.extend({}, this, {serviceActionId: undefined}), cb, cbError);
-    };
-
-    return ServiceAction;
-});
-
-spApp.factory("ServiceactionsService", function ($http) {
-    return {
-        findAll: function () {
-            return $http.get('/serviceactions/listDatatable');
-        },
-        findAllAndSelect: function ($scope, $routeParams) {
-            $http.get('/serviceactions/findall')
-                .success(function (serviceactions) {
-                    $scope.serviceactions = serviceactions;
-                    $scope.serviceactions.unshift({id: "all", name: "all"});
-                    angular.forEach($scope.serviceactions, function (value, key) {
-                        if (value.name == $routeParams.serviceaction) $scope.serviceaction = value;
-                    });
-
-                })
-                .error(function (resp) {
-                    console.log("Error with ServiceActionsService.findAllAndSelect" + resp);
-                });
-        },
-        regenerate: function () {
-            return $http.get('/serviceactions/regenerate');
-
-        }
-    }
-});
-
-spApp.factory("AnalysisService", function ($http) {
-    return {
-        findAll: function () {
-            return $http.get('/serviceactions/listDatatable');
-        }
-    }
-});
-spApp.factory("ServicesService", function ($http) {
-    return {
-        findAll: function (group) {
-            return $http.get('/services/' + group + '/listDatatable');
-        }
-    }
-});
 spApp.factory("EnvironmentsService", function ($http) {
     return {
         findAll: function (group) {
-            return $http.get('/environments/' + group + '/listDatatable');
+            return $http.get('/environments/' + group + '/findall');
+        },
+        findOptions: function (group) {
+            return $http.get('/environments/' + group + '/options');
         },
         findAllAndSelect: function ($scope, environmentName, environmentGroup, myService, addAll) {
             $http.get('/environments/' + environmentGroup + '/options')
@@ -179,7 +51,6 @@ spApp.factory("EnvironmentsService", function ($http) {
                     } else if (addAll) {
                         $scope.environments.unshift({id: "all", name: "all"});
                     }
-
                     if (environmentName != null || myService != null) {
                         angular.forEach($scope.environments, function (value, key) {
                             if (environmentName != null && value.name == environmentName) {
@@ -198,18 +69,96 @@ spApp.factory("EnvironmentsService", function ($http) {
     }
 });
 
-spApp.factory("MocksService", function ($http) {
-    return {
-        findAll: function (mockGroup) {
-            return $http.get('/mocks/' + mockGroup + '/listDatatable');
-        }
-    }
+
+/***************************************
+ *  MOCK GROUPS
+ ***************************************/
+
+spApp.factory('MockGroup', function ($resource) {
+    var MockGroup = $resource('/mockgroups/:mockgroupId',
+        { mockgroupId: '@_id.$oid'},
+        { update: {method: 'PUT'},
+            create: {method: 'POST'}}
+    );
+    return MockGroup;
 });
 
 spApp.factory("MockGroupsService", function ($http) {
     return {
         findAll: function (group) {
-            return $http.get('/mockgroups/' + group + '/listDatatable');
+            return $http.get('/mockgroups/' + group + '/findall');
+        }
+    }
+});
+
+
+/***************************************
+ *  MOCKS
+ ***************************************/
+spApp.factory('Mock', function ($resource) {
+    var Mock = $resource('/mocks/:mockGroupName/:mockId',
+        { mockGroupName: '@mockGroupName', mockId: '@_id.$oid'},
+        { update: {method: 'PUT'},
+            create: {method: 'POST'}}
+    );
+    return Mock;
+});
+
+spApp.factory("MocksService", function ($http) {
+    return {
+        findAll: function (mockGroupId) {
+            return $http.get('/mocks/' + mockGroupId + '/findall');
+        }
+    }
+});
+
+
+
+/***************************************
+ *  SERVICE ACTION
+ ***************************************/
+
+spApp.factory('ServiceAction', function ($resource) {
+    var ServiceAction = $resource('/serviceactions/:serviceActionId',
+        { serviceActionId: '@_id.$oid'},
+        { update: {method: 'PUT'}}
+    );
+    return ServiceAction;
+});
+
+spApp.factory("ServiceActionsService", function ($http) {
+    return {
+        findAll: function (group) {
+            return $http.get('/serviceactions/' + group + '/findall');
+        },
+        regenerate: function () {
+            return $http.get('/serviceactions/regenerate');
+
+        }
+    }
+});
+
+
+/*************************************** */
+/*************************************** */
+/*************************************** */
+/*************************************** */
+/*************************************** */
+
+spApp.factory('Group', function ($resource) {
+
+    var Group = $resource('/groups/:groupId',
+        { groupId: '@_id.$oid'},
+        { update: {method: 'PUT'},
+            create: {method: 'POST'}}
+    );
+    return Group;
+});
+
+spApp.factory("AnalysisService", function ($http) {
+    return {
+        findAll: function () {
+            return $http.get('/serviceactions/listDatatable');
         }
     }
 });
@@ -217,33 +166,7 @@ spApp.factory("MockGroupsService", function ($http) {
 spApp.factory("GroupsService", function ($http) {
     return {
         findAll: function () {
-            return $http.get('/groups/listDatatable');
-        },
-        findAllAndSelect: function ($scope, $rootScope, groupName, myEnvironment, withAll) {
-            $http.get('/groups/options')
-                .success(function (groups) {
-                    $scope.groups = groups;
-                    var groupAll = {id: "all", name: "all"}
-                    if (withAll) $scope.groups.unshift(groupAll);
-                    if (groupName != null || myEnvironment != null) {
-                        angular.forEach($scope.groups, function (value, key) {
-                            if (groupName != null && value.name == groupName) {
-                                $scope.group = value;
-                            }
-                            if (myEnvironment != null && value.id == myEnvironment.groupId) {
-                                myEnvironment.group = value;
-                            }
-                        });
-                    }
-                    if ($rootScope != null && !$scope.group) {
-                        $scope.group = groupAll;
-                        $rootScope.group = groupAll;
-                    }
-
-                })
-                .error(function (resp) {
-                    console.log("Error with GroupsService.findAllAndSelect" + resp);
-                });
+            return $http.get('/groups/findAll');
         }
     }
 });
@@ -253,17 +176,15 @@ spApp.factory("CodesService", function ($http) {
         findAllAndSelect: function ($scope, $routeParams) {
             $http.get('/status/findall')
                 .success(function (codes) {
-                    $scope.codes = codes;
-                    $scope.codes.unshift({id: "all", name: "all"});
-
-                    angular.forEach($scope.codes, function (value, key) {
+                    $scope.codes = codes.values;
+                    $scope.codes.unshift("all");
+                    angular.forEach($scope.codes, function (value) {
                         if (value.name != "all") {
                             var valNot = "NOT_" + value.name;
-                            var objNot = {id: valNot, name: valNot}
-                            $scope.codes.push(objNot);
-                            if (valNot == $routeParams.code) $scope.code = objNot;
+                            $scope.codes.push(valNot);
+                            if (valNot == $routeParams.code) $scope.code = valNot;
                         }
-                        if (value.name == $routeParams.code) $scope.code = value;
+                        if (value == $routeParams.code) $scope.code = value;
                     });
 
                 })
@@ -287,7 +208,7 @@ spApp.factory("LoggersService", function ($http) {
 });
 
 
-spApp.factory("UIService",function ($location, $filter, $routeParams) {
+spApp.factory("UIService", function ($location, $filter, $routeParams) {
     return {
         reloadPage: function ($scope, showServiceactions) {
             var environment = "all", serviceaction = "all", mindate = "all", maxdate = "all", code = "all";
@@ -304,9 +225,9 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
             if ($scope.maxdate && $scope.maxdate != "" && $scope.maxdate != "all") {
                 maxdate = this.initDayToUrl(this.getURLCorrectDateFormat($scope.maxdate), "today");
             }
-            if ($scope.code) code = $scope.code.name;
+            if ($scope.code) code = $scope.code;
 
-            var path = $scope.ctrlPath + '/' + $routeParams.group + "/" + environment + "/";
+            var path = $scope.ctrlPath + '/' + $routeParams.groups + "/" + environment + "/";
 
             if (showServiceactions) path = path + serviceaction + "/";
 
@@ -315,14 +236,14 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
             $location.path(path);
         },
         reloadAdminPage: function ($scope, group) {
-            var path = $scope.ctrlPath + '/' + group;
+            var path = $scope.ctrlPath + '/list/' + group;
             console.log("UIService.reloadAdminPage : Go to " + path);
             $location.path(path);
         },
         /*
-        /* Transform a string in the format "yyyy-mm-ddThh:mm" to the
-        /* format "yyyy-mm-dd hh:mm" used to display the date
-        */
+         /* Transform a string in the format "yyyy-mm-ddThh:mm" to the
+         /* format "yyyy-mm-dd hh:mm" used to display the date
+         */
         getInputCorrectDateFormat: function (indate) {
             if (indate && indate != "all") {
                 if (indate == "yesterday" || indate == "today") {
@@ -331,13 +252,13 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
                 // split to get the date and the time
                 var dateAndTime = indate.split('T');
                 // The date is set to a string in the following format : yyyy-mm-dd hh:mm
-                return dateAndTime[0]+" "+dateAndTime[1];
+                return dateAndTime[0] + " " + dateAndTime[1];
             }
         },
         /*
-        /* Transform a string in the format "yyyy-mm-dd hh:mm" to the
-        /* format "yyyy-mm-ddThh:mm" used to pass a date in the URL
-        */
+         /* Transform a string in the format "yyyy-mm-dd hh:mm" to the
+         /* format "yyyy-mm-ddThh:mm" used to pass a date in the URL
+         */
         getURLCorrectDateFormat: function (indate) {
             if (indate && indate != "all") {
                 // Allow the user to enter "today" or "yesterday" in the date input field
@@ -347,7 +268,7 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
                 }
                 else {
                     var dateAndTime = indate.split(' ');
-                    return dateAndTime[0]+"T"+dateAndTime[1];
+                    return dateAndTime[0] + "T" + dateAndTime[1];
                 }
             }
         },
@@ -387,15 +308,15 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
             if (day < 10) {
                 day = "0" + day;
             }
-            return mDate.getFullYear() + "-" + month + "-" + day+"T"+time;
+            return mDate.getFullYear() + "-" + month + "-" + day + "T" + time;
         },
-        checkDatesFormatAndCompare: function(mindate, maxdate) {
-             if (mindate && maxdate) {
+        checkDatesFormatAndCompare: function (mindate, maxdate) {
+            if (mindate && maxdate) {
                 mindate = new Date(mindate);
                 maxdate = new Date(maxdate);
 
                 return !!mindate.getTime() && !!maxdate.getTime() && mindate <= maxdate;
-             }
+            }
         },
         fixBoolean: function (val) {
             return (val == "yes" || val == true) ? true : false;
@@ -408,7 +329,7 @@ spApp.factory("UIService",function ($location, $filter, $routeParams) {
 
 spApp.factory('ReplayService', function ($http, $rootScope, $location, $resource) {
     return {
-        beforeReplay: function(id) {
+        beforeReplay: function (id) {
             var url = "/download/request/" + id;
             return $http.get(url);
         },

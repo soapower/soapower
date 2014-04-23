@@ -1,13 +1,13 @@
 function AnalysisCtrl($scope, $rootScope, $routeParams, $http, UIService) {
     $scope.ctrlPath = "analysis";
 
-    var group = $routeParams.group ? $routeParams.group : 'all';
+    var groups = $routeParams.groups ? $routeParams.groups : 'all';
     var environment = $routeParams.environment ? $routeParams.environment : 'all';
     var serviceaction = $routeParams.serviceaction ? $routeParams.serviceaction : 'all';
     var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
     var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
     var code = $routeParams.code ? $routeParams.code : 'all';
-    var url = '/analysis/' + group +
+    var url = '/analysis/' + groups +
         '/' + environment +
         '/' + encodeURIComponent(serviceaction) +
         '/' + mindate +
@@ -68,7 +68,7 @@ function AnalysisCtrl($scope, $rootScope, $routeParams, $http, UIService) {
 
         });
 
-    $rootScope.$broadcast("showGroupsFilter", $routeParams.group);
+    $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "AnalysisCtrl");
 
     $scope.$on("ReloadPage", function (event) {
         UIService.reloadPage($scope, true);

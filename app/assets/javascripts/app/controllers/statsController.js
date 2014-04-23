@@ -5,13 +5,13 @@ function StatsCtrl($scope, $rootScope, $http, $location, $routeParams, $filter, 
     $scope.hostname = $location.host();
     $scope.port = $location.port();
 
-    var group = $routeParams.group ? $routeParams.group : 'all';
+    var groups = $routeParams.groups ? $routeParams.groups : 'all';
     var environment = $routeParams.environment ? $routeParams.environment : 'all';
     var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
     var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
     var code = $routeParams.code ? $routeParams.code : 'all';
     var url = $scope.ctrlPath +
-        '/' + group +
+        '/' + groups +
         '/' + environment +
         '/' + mindate +
         '/' + maxdate +

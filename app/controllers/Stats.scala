@@ -2,9 +2,11 @@ package controllers
 
 import play.api.mvc._
 import play.api.libs.json._
+
 import models._
 import models.UtilDate._
 import java.util.Date
+
 
 object Stats extends Controller {
 
@@ -22,7 +24,10 @@ object Stats extends Controller {
 
   def listDataTable(groupName: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String, status: String) = Action {
     implicit request =>
-    // load thresholds
+      ???
+    //TODO
+      BadRequest("TODO")
+    /*
       val thresholdsByServiceActions = ServiceAction.loadAll().map(action => (action.name, action.thresholdms)).toMap
 
       // compute average response times
@@ -36,8 +41,8 @@ object Stats extends Controller {
         "iTotalRecords" -> Json.toJson(data.size),
         "iTotalDisplayRecords" -> Json.toJson(data.size),
         "data" -> Json.toJson(data)))).as(JSON)
+        */
   }
-
   /**
    * Create a Junit XML test based on the parameters
    * @param groupName the group name of the environments to test
@@ -79,7 +84,8 @@ object Stats extends Controller {
 
   def statsForGroup(groupName: String, minDate: Date, maxDate: Date, treshold: Option[Long],
                     percentile: Int) = {
-
+  ???
+    /*
     var ret = ""
     treshold match {
       case None => {
@@ -118,6 +124,9 @@ object Stats extends Controller {
     }
     ret = "<testsuites>" + ret + "</testsuites>"
     Ok(ret).as(XML)
+    */
+
+    BadRequest("TODO")
   }
 
 
@@ -135,7 +144,8 @@ object Stats extends Controller {
    */
   def statsForEnvir(group: String, environmentName: String, minDate: Date, maxDate: Date,
                     treshold: Option[Long], percentile: Int) = {
-
+  ???
+    /*
     // retrieve the correct values for minDate and maxDate from the URL
 
     var ret = "<testsuite name=\"" + environmentName + "\">"
@@ -168,5 +178,7 @@ object Stats extends Controller {
     ret += "</testsuite>"
     ret = "<testsuites>" + ret + "</testsuites>"
     Ok(ret).as(XML)
+    */
+    BadRequest("TODO")
   }
 }

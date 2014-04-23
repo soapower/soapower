@@ -1,47 +1,57 @@
 package models
 
 import java.util.{GregorianCalendar, Calendar, Date}
-import play.api.db._
 import play.api.Play.current
-import play.api._
-import play.api.cache._
 import play.api.libs.json._
-import play.api.http._
-import anorm._
-import anorm.SqlParser._
-import java.sql.Connection
-import collection.mutable.Set
 import java.util.zip.{GZIPOutputStream, GZIPInputStream}
 import java.nio.charset.Charset
+
 import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 
-case class RequestData(
-                        var id: Pk[Long],
-                        sender: String,
-                        var serviceAction: String,
-                        environmentId: Long,
-                        serviceId: Long,
-                        var request: String,
-                        var requestHeaders: Map[String, String],
-                        var contentType: String,
-                        var requestCall: String,
-                        startTime: Date,
-                        var response: String,
-                        var responseHeaders: Map[String, String],
-                        var timeInMillis: Long,
-                        var status: Int,
-                        var purged: Boolean,
-                        var isMock: Boolean) {
+import scala.concurrent.duration._
+import play.api.Logger
+import play.modules.reactivemongo.ReactiveMongoPlugin
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import scala.concurrent.{Await, Future}
+import reactivemongo.bson._
+import play.modules.reactivemongo.json.BSONFormats._
+import reactivemongo.bson.BSONBoolean
+import reactivemongo.bson.BSONString
+import scala.Some
+import reactivemongo.core.commands.RawCommand
+import reactivemongo.bson.BSONInteger
+import reactivemongo.api.collections.default.BSONCollection
+import org.joda.time.DateTime
+
+case class RequestData(_id: Option[BSONObjectID],
+                       sender: String,
+                       var serviceAction: String,
+                       environmentName: String,
+                       serviceId: BSONObjectID,
+                       var request: String,
+                       var requestHeaders: Map[String, String],
+                       var contentType: String,
+                       var requestCall: Option[String],
+                       startTime: DateTime,
+                       var response: String,
+                       var responseHeaders: Map[String, String],
+                       var timeInMillis: Long,
+                       var status: Int,
+                       var purged: Boolean,
+                       var isMock: Boolean) {
 
   var responseBytes: Array[Byte] = null
 
-  def this(sender: String, serviceAction: String, environnmentId: Long, serviceId: Long, contentType: String) =
-    this(null, sender, serviceAction, environnmentId, serviceId, null, null, contentType, null, new Date, null, null, -1, -1, false, false)
+
+  def this(sender: String, serviceAction: String, environnmentName: String, serviceId: BSONObjectID, contentType: String) =
+    this(Some(BSONObjectID.generate), sender, serviceAction, environnmentName, serviceId, null, null, contentType, null, new DateTime(), null, null, -1, -1, false, false)
 
   /**
    * Add serviceAction in cache if neccessary.
    */
   def storeServiceActionAndStatusInCache() {
+    //TODO
+    /*
     if (!RequestData.serviceActionOptions.exists(p => p._1 == serviceAction)) {
       Logger.info("ServiceAction " + serviceAction + " not found in cache : add to cache")
       val inCache = RequestData.serviceActionOptions ++ (List((serviceAction, serviceAction)))
@@ -52,81 +62,108 @@ case class RequestData(
       val inCache = RequestData.statusOptions ++ (List((status, status)))
       Cache.set(RequestData.keyCacheStatusOptions, inCache)
     }
+    */
   }
 }
 
 object RequestData {
 
+  def collection: BSONCollection = ReactiveMongoPlugin.db.collection[BSONCollection]("requestData")
+
+  implicit val requestDataFormat = Json.format[RequestData]
+
+  implicit object RequestDataBSONReader extends BSONDocumentReader[RequestData] {
+    def read(doc: BSONDocument): RequestData = {
+      RequestData(
+        doc.getAs[BSONObjectID]("_id"),
+        doc.getAs[String]("sender").get,
+        doc.getAs[String]("serviceAction").get,
+        doc.getAs[String]("environmentName").get,
+        doc.getAs[BSONObjectID]("serviceId").get,
+        doc.getAs[String]("request").get,
+        //doc.getAs[Map[String, String]]("requestHeaders").get,
+        List("US" -> "Washington").toMap,
+        doc.getAs[String]("contentType").get,
+        doc.getAs[String]("requestCall"),
+        new DateTime(doc.getAs[BSONDateTime]("startTime").get.value),
+        doc.getAs[String]("response").get,
+        //doc.getAs[Map[String, String]]("responseHeaders").get,
+        List("US" -> "Washington").toMap,
+        doc.getAs[Long]("timeInMillis").get,
+        doc.getAs[Int]("status").get,
+        doc.getAs[Boolean]("purged").get,
+        doc.getAs[Boolean]("isMock").get
+      )
+    }
+  }
+
+  implicit object MapBSONWriter extends BSONDocumentWriter[Map[String, String]] {
+    def write(m: Map[String, String]): BSONDocument = {
+      //TODO
+      BSONArray()
+      BSONDocument("key" -> "value")
+    }
+  }
+
+  implicit object RequestDataBSONWriter extends BSONDocumentWriter[RequestData] {
+    def write(requestData: RequestData): BSONDocument = {
+      Logger.debug("requestData:" + requestData)
+      BSONDocument(
+        "_id" -> requestData._id,
+        "sender" -> BSONString(requestData.sender),
+        "serviceAction" -> BSONString(requestData.serviceAction),
+        "environmentName" -> BSONString(requestData.environmentName),
+        "serviceId" -> requestData.serviceId,
+        "request" -> BSONString(requestData.request),
+        "requestHeaders" -> requestData.requestHeaders,
+        "contentType" -> BSONString(requestData.contentType),
+        "requestCall" -> "FOO", //TODO BSONString(requestData.requestCall.getOrElse("")),
+        "startTime" -> BSONDateTime(requestData.startTime.getMillis),
+        "response" -> BSONString(requestData.response),
+        "responseHeaders" -> requestData.responseHeaders,
+        "timeInMillis" -> BSONLong(requestData.timeInMillis),
+        "status" -> BSONInteger(requestData.status),
+        "purged" -> BSONBoolean(requestData.purged),
+        "isMock" -> BSONBoolean(requestData.isMock)
+      )
+    }
+  }
+
   val keyCacheServiceAction = "serviceaction-options"
   val keyCacheStatusOptions = "status-options"
   val keyCacheMinStartTime = "minStartTime"
 
-  implicit def rowToByteArray: Column[Array[Byte]] = Column.nonNull {
+  /*implicit def rowToByteArray: Column[Array[Byte]] = Column.nonNull {
     (value, meta) =>
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case data: Array[Byte] => Right(data)
         case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Byte Array for column " + qualified))
       }
-  }
+  }*/
 
   /**
    * Anorm Byte conversion
    */
-  def bytes(columnName: String): RowParser[Array[Byte]] = get[Array[Byte]](columnName)(implicitly[Column[Array[Byte]]])
-
-  /**
-   * Parse a RequestData from a ResultSet
-   */
-  val simple = {
-    get[Pk[Long]]("request_data.id") ~
-      str("request_data.sender") ~
-      str("request_data.serviceAction") ~
-      long("request_data.environmentId") ~
-      long("request_data.serviceId") ~
-      str("request_data.contentType") ~
-      get[Date]("request_data.startTime") ~
-      long("request_data.timeInMillis") ~
-      int("request_data.status") ~
-      str("request_data.purged") ~
-      str("request_data.isMock") map {
-      case id ~ sender ~ serviceAction ~ environnmentId ~ serviceId ~ contentType ~ startTime ~ timeInMillis ~ status ~ purged ~ isMock =>
-        RequestData(id, sender, serviceAction, environnmentId, serviceId, null, null, contentType, null, startTime, null, null, timeInMillis, status, (purged == "true"), (isMock == "true"))
-    }
-  }
+  //def bytes(columnName: String): RowParser[Array[Byte]] = get[Array[Byte]](columnName)(implicitly[Column[Array[Byte]]])
 
   /**
    * Title of csvFile. The value is the order of title.
    */
   val csvTitle = Map("key" -> 0, "id" -> 1, "serviceAction" -> 2, "startTime" -> 3, "timeInMillis" -> 4, "environmentName" -> 5)
 
-  val csvKey = "requestDataStat";
+  val csvKey = "requestDataStat"
 
-  /**
-   * Csv format.
-   */
-  val csv = {
-    get[Pk[Long]]("request_data.id") ~
-      get[String]("request_data.serviceAction") ~
-      get[Date]("request_data.startTime") ~
-      get[Long]("request_data.timeInMillis") ~
-      get[String]("environment.name") map {
-      case id ~ serviceAction ~ startTime ~ timeInMillis ~ environmentName =>
-        id + ";" + serviceAction + ";" + startTime + ";" + timeInMillis + ";" + environmentName + "\n"
-    }
-  }
-
-  /**
-   * Get All RequestData, csv format.
-   * @return List of RequestData, csv format, except mock
-   */
-  def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("SELECT *  FROM  request_data, environment WHERE environmentId = environment.id and isStats = 'true';").as(RequestData.csv.*)
+  //def fetchCsv(): List[String] = DB.withConnection {
+  def fetchCsv(): List[String] = {
+    //TODO
+    ???
   }
 
   /**
    * Parse required parts of a RequestData from a ResultSet in order to replay the request
    */
+  /* TODO
   val forReplay = {
     get[Pk[Long]]("request_data.id") ~
       str("request_data.sender") ~
@@ -156,38 +193,48 @@ object RequestData {
         new RequestData(id, sender, serviceAction, environnmentId, serviceId, uncompressString(request), headers, null, requestCall, null, null, null, -1, -1, false, false)
     }
   }
+  */
 
   /**
    * Construct the Map[String, String] needed to fill a select options set.
    */
-  def serviceActionOptions: Seq[(String, String)] = DB.withConnection {
-    implicit connection =>
-      Cache.getOrElse[Seq[(String, String)]](keyCacheServiceAction) {
-        Logger.debug("RequestData.ServiceAction not found in cache: loading from db")
-        SQL("select distinct(serviceAction) from request_data order by serviceAction asc").as((get[String]("serviceAction") ~ get[String]("serviceAction")) *).map(flatten)
-      }
+  //def serviceActionOptions: Seq[(String, String)] = DB.withConnection {
+  def serviceActionOptions: Seq[(String, String)] = {
+    //TODO
+    ???
+    /*
+      implicit connection =>
+        Cache.getOrElse[Seq[(String, String)]](keyCacheServiceAction) {
+          Logger.debug("RequestData.ServiceAction not found in cache: loading from db")
+          SQL("select distinct(serviceAction) from request_data order by serviceAction asc").as((get[String]("serviceAction") ~ get[String]("serviceAction")) *).map(flatten)
+        }
+    */
   }
 
   /**
    * Construct the Map[String, String] needed to fill a select options set.
    */
-  def statusOptions: Seq[(Int, Int)] = DB.withConnection {
-    implicit connection =>
-      Cache.getOrElse[Seq[(Int, Int)]](keyCacheStatusOptions) {
-        Logger.debug("RequestData.status not found in cache: loading from db")
-        SQL("select distinct(status) from request_data").as(get[Int]("status") *).map(c => c -> c)
-      }
+  //def statusOptions: Seq[(Int, Int)] = DB.withConnection {
+  def statusOptions: Future[BSONDocument] = {
+    collection
+    val command = RawCommand(BSONDocument("distinct" -> "requestData", "key" -> "status", "query" -> BSONDocument()))
+    ReactiveMongoPlugin.db.command(command) // result is Future[BSONDocument]
   }
 
   /**
    * find Min Date.
    */
-  def getMinStartTime: Option[Date] = DB.withConnection {
+  //def getMinStartTime: Option[Date] = DB.withConnection {
+  def getMinStartTime: Option[Date] = {
+    //TODO
+    ???
+    /*
     implicit connection =>
       Cache.getOrElse[Option[Date]](keyCacheMinStartTime) {
         Logger.debug("MinStartTime not found in cache: loading from db")
         SQL("select min(startTime) as startTimeMin from request_data").as(scalar[Option[Date]].single)
       }
+    */
   }
 
   /**
@@ -195,20 +242,25 @@ object RequestData {
    *
    * @param requestData the requestData
    */
-  def insert(requestData: RequestData): Long = {
-    var requestContent: Array[Byte] = null
-    var responseContent: Array[Byte] = null
+  def insert(requestData: RequestData): Option[BSONObjectID] = {
 
-    val environment = Environment.findById(requestData.environmentId).get
+    //TODO
+    /*
+    var contentRequest: String = null
+    var contentResponse: String = null
+
+    val f = Environment.findById(requestData.environmentId).map(e => e)
+    val environment = Await result(f, 1.seconds)
+
     val service = Service.findById(requestData.serviceId).get
     val date = new Date()
     val gcal = new GregorianCalendar()
     gcal.setTime(date)
     gcal.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
 
-    if (!service.recordData || !environment.recordData) {
+    if (!service.recordData || !environment.get.recordData) {
       Logger.debug("Data not recording for this service or this environment")
-      return -1
+      return None
     } else if (!service.recordContentData) {
       val msg = "Content Data not recording for this service. See Admin."
       requestContent = compressString(msg)
@@ -225,6 +277,7 @@ object RequestData {
       // Record Data if it is a soap fault (status != 200) or
       // if we can record data with environment's configuration (hours of recording)
       requestContent = compressString(requestData.request)
+
       def transferEncodingResponse = requestData.responseHeaders.filter {
         _._1 == HeaderNames.CONTENT_ENCODING
       }
@@ -232,59 +285,45 @@ object RequestData {
       transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
         case Some("gzip") =>
           Logger.debug("Response in gzip Format")
-          responseContent = requestData.responseBytes
+          contentResponse = "TODO response in gzip format" // TODO requestData.responseBytes
         case _ =>
           Logger.debug("Response in plain Format")
-          responseContent = compressString(requestData.response)
+          contentResponse = requestData.response
       }
     } else {
-      val msg = "Content Data not recording. Record between " + environment.hourRecordContentDataMin + "h to " + environment.hourRecordContentDataMax + "h for this environment."
-      requestContent = compressString(msg)
-      responseContent = compressString(msg)
+      val msg = "Content Data not recording. Record between " + environment.get.hourRecordContentDataMin + "h to " + environment.get.hourRecordContentDataMax + "h for this environment."
+      contentRequest = msg
+      contentResponse = msg
       Logger.debug(msg)
     }
 
-    try {
-      DB.withConnection {
-        implicit connection =>
-          SQL(
-            """
-            insert into request_data 
-              (sender, serviceAction, environmentId, serviceId, request, requestHeaders, contentType, requestCall, startTime, response, responseHeaders, timeInMillis, status, isMock) values (
-              {sender}, {serviceAction}, {environmentId}, {serviceId}, {request}, {requestHeaders}, {contentType}, {requestCall}, {startTime}, {response}, {responseHeaders}, {timeInMillis}, {status}, {isMock}
-            )
-            """).on(
-            'sender -> requestData.sender,
-            'serviceAction -> requestData.serviceAction,
-            'environmentId -> requestData.environmentId,
-            'serviceId -> requestData.serviceId,
-            'request -> requestContent,
-            'requestHeaders -> UtilConvert.headersToString(requestData.requestHeaders),
-            'contentType -> requestData.contentType,
-            'requestCall -> requestData.requestCall,
-            'startTime -> requestData.startTime,
-            'response -> responseContent,
-            'responseHeaders -> UtilConvert.headersToString(requestData.responseHeaders),
-            'timeInMillis -> requestData.timeInMillis,
-            'status -> requestData.status,
-            'isMock -> requestData.isMock.toString
-            ).executeInsert()
-      } match {
-        case Some(long) => long // The Primary Key
-        case None => -1
-      }
+    requestData.request = contentRequest
+    requestData.response = contentResponse
+*/
 
-    } catch {
-      case e: Exception => Logger.error("Error during insertion of RequestData ", e)
-        -1
+    Logger.debug("################ AAA")
+    val f = collection.insert(requestData)
+    f.onFailure {
+      case t => {
+        Logger.error("ERROR")
+        t.printStackTrace()
+        new Exception("An unexpected server error has occured: " + t.getMessage)
+      }
     }
+    f.map {
+      lastError =>
+        Logger.debug(s"Successfully inserted RequestData with LastError: $lastError")
+    }
+
+    Logger.debug("################ BBB")
+    requestData._id
   }
 
   /**
    * Insert a new RequestData.
    */
   def insertStats(environmentId: Long, serviceAction: String, startTime: Date, timeInMillis: Long) = {
-
+    /*
     try {
 
       DB.withConnection {
@@ -320,6 +359,7 @@ object RequestData {
     } catch {
       case e: Exception => Logger.error("Error during insertion of RequestData Stats", e)
     }
+    */
   }
 
   /**
@@ -330,6 +370,8 @@ object RequestData {
    * @param user use who delete the data : admin or akka
    */
   def deleteRequestResponse(environmentIn: String, minDate: Date, maxDate: Date, user: String): Int = {
+    ???
+    /*
     Logger.debug("Environment:" + environmentIn + " mindate:" + minDate.getTime + " maxDate:" + maxDate.getTime)
     Logger.debug("EnvironmentSQL:" + sqlAndEnvironnement(environmentIn))
 
@@ -356,6 +398,7 @@ object RequestData {
         Cache.remove(keyCacheStatusOptions)
         purgedRequests
     }
+    */
   }
 
   /**
@@ -365,6 +408,9 @@ object RequestData {
    * @param maxDate max date
    */
   def delete(environmentIn: String, minDate: Date, maxDate: Date): Int = {
+    //TODO
+    ???
+    /*
     DB.withConnection {
       implicit connection =>
         val deletedRequests = SQL(
@@ -380,14 +426,7 @@ object RequestData {
         Cache.remove(keyCacheStatusOptions)
         deletedRequests
     }
-  }
-
-  /*
-  * Get All RequestData, used for testing only
-  */
-  def findAll(): List[RequestData] = DB.withConnection {
-    implicit c =>
-      SQL("select * from request_data").as(RequestData.simple *)
+    */
   }
 
   /**
@@ -400,11 +439,24 @@ object RequestData {
    * @param status Status
    * @param offset offset in search
    * @param pageSize size of line in one page
-   * @param filterIn filter on serviceAction. Usefull only is serviceActionIn = "all"
    * @return
    */
-  def list(groupName: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10, filterIn: String = "%"): Page[(RequestData)] = {
-    val filter = "%" + filterIn + "%"
+  def list(groupName: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10): Future[List[RequestData]] = {
+
+    val query = BSONDocument()
+
+    // TODO Group
+    /*val group = Group.options.find(t => t._2 == groupName)
+
+    if (group isDefined) query ++ ("groupdId" -> group.get._1)
+    */
+
+    // TODO Environment
+    /*if (environmentIn != "all" && Environment.optionsAll.exists(t => t._2 == environmentIn))
+      query ++ ("environmentId" -> Environment.optionsAll.find(t => t._2 == environmentIn).get._1)
+      */
+
+    if (serviceAction != "all") query ++ ("serviceAction" -> serviceAction)
 
     // Convert dates... bad perf anorm ?
     val g = new GregorianCalendar()
@@ -413,87 +465,66 @@ object RequestData {
     g.setTime(maxDate)
     val max = UtilDate.formatDate(g)
 
-    var whereClause = " where startTime >= '" + min + "' and startTime <= '" + max + "'"
-    whereClause += sqlAndStatus(status)
+    query ++ ("startTime" -> BSONDocument("&gte" -> min, "&lte" -> max))
 
-    if (serviceAction != "all") whereClause += " and serviceAction = {serviceAction}"
-    if (filterIn != "%" && filterIn.trim != "") whereClause += " and serviceAction like {filter}"
+    if (status != "all") query ++ ("status" -> status)
 
-    whereClause += " and isStats = 'false' "
-    whereClause += sqlAndEnvironnement(environmentIn)
-    val pair = sqlFromAndGroup(groupName, environmentIn)
-    val fromClause = "from request_data " + pair._1
-    whereClause += pair._2
+    // TODO offset
+    // TODO pageSize
 
-    Logger.debug("Offset:" + offset + " pageSize x pageSize:" + (offset * pageSize) + " offset:" + offset);
-
-    val params: Array[(Any, anorm.ParameterValue[_])] = Array(
-      'pageSize -> pageSize,
-      'offset -> offset * pageSize,
-      'serviceAction -> serviceAction,
-      'filter -> filter)
-
-    val sql = "select request_data.id, sender, serviceAction, environmentId, serviceId, contentType," +
-      " startTime, timeInMillis, status, purged, isMock " + fromClause + whereClause +
-      " order by startTime " +
-      " desc limit {offset}, {pageSize}"
-
-    Logger.debug("SQL (list) ====> " + sql)
-    DB.withConnection {
-      implicit connection =>
-        val requestTimeInMillis = System.currentTimeMillis
-        val requests = SQL(sql).on(params: _*).as(RequestData.simple *)
-        val middle = System.currentTimeMillis
-        Logger.debug("Middle : " + (System.currentTimeMillis - requestTimeInMillis))
-
-        val totalRows = SQL(
-          "select count(request_data.id) " + fromClause + whereClause).on(params: _*).as(scalar[Long].single)
-        Logger.debug("End : " + (System.currentTimeMillis - middle) + " totalrows:" + totalRows + " where:" + whereClause);
-
-        Page(requests, -1, offset, totalRows)
-    }
+    collection.
+      find(query).
+      sort(BSONDocument("startTime" -> -1)).
+      cursor[RequestData].
+      collect[List]()
   }
 
   /**
    * Load reponse times for given parameters
    */
   def findResponseTimes(groupName: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, statsOnly: Boolean): List[(Long, String, Date, Long)] = {
+    ???
+    /*
+      var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
+      whereClause += sqlAndStatus(status)
+      Logger.debug("DDDDD==>" + whereClause)
+      if (serviceAction != "all") whereClause += " and serviceAction = {serviceAction}"
+      whereClause += sqlAndEnvironnement(environmentIn)
 
-    var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
-    whereClause += sqlAndStatus(status)
-    Logger.debug("DDDDD==>" + whereClause)
-    if (serviceAction != "all") whereClause += " and serviceAction = {serviceAction}"
-    whereClause += sqlAndEnvironnement(environmentIn)
+      val pair = sqlFromAndGroup(groupName, environmentIn)
+      val fromClause = " from request_data " + pair._1
+      whereClause += pair._2
 
-    val pair = sqlFromAndGroup(groupName, environmentIn)
-    val fromClause = " from request_data " + pair._1
-    whereClause += pair._2
+      val params: Array[(Any, anorm.ParameterValue[_])] = Array(
+        'minDate -> minDate,
+        'maxDate -> maxDate,
+        'serviceAction -> serviceAction)
 
-    val params: Array[(Any, anorm.ParameterValue[_])] = Array(
-      'minDate -> minDate,
-      'maxDate -> maxDate,
-      'serviceAction -> serviceAction)
+      var sql = "select environmentId, serviceAction, startTime, timeInMillis " + fromClause + whereClause
 
-    var sql = "select environmentId, serviceAction, startTime, timeInMillis " + fromClause + whereClause
+      if (statsOnly) {
+        sql += " and isStats = 'true' "
+      }
+      sql += " order by request_data.id asc"
 
-    if (statsOnly) {
-      sql += " and isStats = 'true' "
-    }
-    sql += " order by request_data.id asc"
+      Logger.debug("SQL (findResponseTimes, g:" + groupName + ") ====> " + sql)
 
-    Logger.debug("SQL (findResponseTimes, g:" + groupName + ") ====> " + sql)
+      DB.withConnection {
+        implicit connection =>
+        // explainPlan(sql, params: _*)
+          SQL(sql)
+            .on(params: _*)
+            .as(get[Long]("environmentId") ~ get[String]("serviceAction") ~ get[Date]("startTime") ~ get[Long]("timeInMillis") *)
+            .map(flatten)
+      }*/
 
-    DB.withConnection {
-      implicit connection =>
-      // explainPlan(sql, params: _*)
-        SQL(sql)
-          .on(params: _*)
-          .as(get[Long]("environmentId") ~ get[String]("serviceAction") ~ get[Date]("startTime") ~ get[Long]("timeInMillis") *)
-          .map(flatten)
-    }
   }
 
-  def loadAvgResponseTimesByAction(groupName: String, environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean, percentile: Int = 90): List[(String, Long)] = {
+  def loadAvgResponseTimesByAction(groupName: String, environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean, percentile: Int = 90): List[(String, Long)] =  {
+    ???
+    /*DB.withConnection {
+  def loadAvgResponseTimesByAction(groupName: String, environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {
+
     DB.withConnection {
       implicit connection =>
 
@@ -534,7 +565,7 @@ object RequestData {
             }
         }
         avgTimesByAction.toList.filterNot(_._2 == -1).sortBy(_._1)
-    }
+    }*/
   }
 
   /**
@@ -542,7 +573,9 @@ object RequestData {
    * @param environmentId environment id
    * @return list of unique date
    */
-  def findDayNotCompileStats(environmentId: Long): List[Date] = {
+  def findDayNotCompileStats(environmentId: String): List[Date] = {
+    ???
+    /*
     DB.withConnection {
       implicit connection =>
 
@@ -566,26 +599,21 @@ object RequestData {
         }
         uniqueStartTimePerDay.toList
     }
+    */
   }
 
   def load(id: Long): RequestData = {
-    DB.withConnection {
+    ???
+    /*DB.withConnection {
       implicit connection =>
         SQL("select id, sender, serviceAction, environmentId, serviceId, request, requestHeaders, contentType, requestCall from request_data where id= {id}")
           .on('id -> id).as(RequestData.forReplay.single)
-    }
+    }*/
   }
 
-  def loadForREST(id: Long): RequestData = {
-    DB.withConnection {
-      implicit connection =>
-        SQL("select id, sender, serviceAction, environmentId, serviceId, request, requestHeaders, requestCall from request_data where id= {id}")
-          .on('id -> id).as(RequestData.forRESTReplay.single)
-    }
-  }
-
-  def loadRequest(id: Long): (Option[String], String) = {
-    DB.withConnection {
+  def loadRequest(id: Long): Option[String] = {
+    ???
+    /*DB.withConnection {
       implicit connection =>
         val request = SQL("select request, contentType from request_data where id= {id}").on('id -> id).as((bytes("request") ~ get[String]("contentType")).singleOpt)
         if (!request.get._1.equals(None)) {
@@ -593,11 +621,26 @@ object RequestData {
         } else {
           (None, request.get._2)
         }
-    }
+    }*/
   }
 
+  def loadForREST(id: Long): RequestData = {
+    ???
+    // TO KEEP ?
+
+    /*DB.withConnection {
+      implicit connection =>
+        SQL("select id, sender, serviceAction, environmentId, serviceId, request, requestHeaders, requestCall from request_data where id= {id}")
+          .on('id -> id).as(RequestData.forRESTReplay.single)
+    }*/
+  }
+
+
   def loadResponse(id: Long): (Option[String], String) = {
+    ???
+    /*
     DB.withConnection {
+
       implicit connection =>
         val response = SQL("select response, contentType from request_data where id = {id}").on('id -> id).as((bytes("response") ~ get[String]("contentType")).singleOpt)
         if (!(response.get._1.equals(None))) {
@@ -605,9 +648,10 @@ object RequestData {
         } else {
           (None, response.get._2)
         }
-    }
+    }*/
   }
 
+  /* TO_DELETE
   private def sqlAndStatus(statusIn : String) : String = {
 
     var status = ""
@@ -633,9 +677,9 @@ object RequestData {
       environment = " and request_data.environmentId = " + Environment.optionsAll.find(t => t._1 == environmentIn).get._1
 
     environment
-  }
+  }*/
 
-  private def sqlFromAndGroup(groupName: String, environmentIn: String): (String, String) = {
+  /*private def sqlFromAndGroup(groupName: String, environmentIn: String): (String, String) = {
     var group = ""
     var from = ""
 
@@ -647,10 +691,10 @@ object RequestData {
     }
 
     (from, group)
-  }
+  }*/
 
   // use by Json : from scala to json
-  implicit object RequestDataWrites extends Writes[RequestData] {
+  /*implicit object RequestDataWrites extends Writes[RequestData] {
 
     def writes(o: RequestData): JsValue = {
       val id = if (o.id != null) o.id.toString else "-1"
@@ -669,13 +713,14 @@ object RequestData {
           "isMock" -> JsString(o.isMock.toString)))
     }
   }
+  */
 
-  private def explainPlan(sql: String, params: (Any, anorm.ParameterValue[_])*)(implicit connection: Connection) {
+  /*private def explainPlan(sql: String, params: (Any, anorm.ParameterValue[_])*)(implicit connection: Connection) {
     val plan = SQL("explain plan for " + sql).on(params: _*).resultSet()
     while (plan.next) {
       Logger.debug(plan.getString(1))
     }
-  }
+  }*/
 
   /**
    * Upload a csvLine => insert requestDataStat.
@@ -684,7 +729,8 @@ object RequestData {
    * @return nothing
    */
   def upload(csvLine: String) = {
-
+    ???
+    /*
     val dataCsv = csvLine.split(";")
 
     if (dataCsv.size != csvTitle.size)
@@ -704,6 +750,7 @@ object RequestData {
         throw new Exception("Warning : Environment " + environmentName + " already exist")
       }
     }
+    */
   }
 
   /**

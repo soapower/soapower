@@ -1,237 +1,237 @@
 package models
 
-import anorm._
-import anorm.SqlParser._
-import play.api._
 import play.api.Play.current
 import play.api.cache._
-import play.api.db._
 
-case class MockGroup(id: Long, name: String, groupId: Long)
+import play.modules.reactivemongo.ReactiveMongoPlugin
+import play.api.libs.json._
+import reactivemongo.bson._
+import scala.concurrent.{Await, Future}
+import play.modules.reactivemongo.json.BSONFormats._
+import scala.concurrent.duration._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import reactivemongo.core.commands.RawCommand
+import play.api.Logger
+import reactivemongo.api.collections.default.BSONCollection
+
+case class MockGroup(_id: Option[BSONObjectID],
+                     name: String,
+                     groups: List[String])
 
 object MockGroup {
 
-  val ID_DEFAULT_NO_MOCK_GROUP = Long.box(1)
-
-  /**
-   * Mockgroup caches keys which are used in order to declare and manage a DB cache
+  /*
+   * Collection MongoDB
    */
-  private val keyCacheAllOptions = "mockgroup-options"
-  private val keyCacheById = "mockgroup-by-id"
-  private val keyCacheByName = "mockgroup-by-name"
-  private val MOCKGROUP_NAME_PATTERN = "[a-zA-Z0-9]{1,200}"
+  def collection: BSONCollection = ReactiveMongoPlugin.db.collection[BSONCollection]("mockGroups")
 
-  /**
-   * SQL anorm row parser. This operation indicate how to parse a sql row.
-   */
-  val simple = {
-    get[Long]("mock_group.id") ~
-      get[String]("mock_group.name") ~
-      get[Long]("mock_group.groupId") map {
-      case id ~ name ~ groupId
-      => MockGroup(id, name, groupId)
-    }
+  implicit val mockGroupFormat = Json.format[MockGroup]
+
+  implicit object MockGroupBSONReader extends BSONDocumentReader[MockGroup] {
+    def read(doc: BSONDocument): MockGroup =
+      MockGroup(
+        doc.getAs[BSONObjectID]("_id"),
+        doc.getAs[String]("name").get,
+        doc.getAs[List[String]]("groups").toList.flatten
+      )
   }
+
+  implicit object MockGroupBSONWriter extends BSONDocumentWriter[MockGroup] {
+    def write(mockGroup: MockGroup): BSONDocument =
+      BSONDocument(
+        "_id" -> mockGroup._id,
+        "name" -> BSONString(mockGroup.name),
+        "groups" -> mockGroup.groups)
+  }
+
+  private val keyCacheAllOptions = "mockGroup-options"
+  private val MOCKGROUP_NAME_PATTERN = "[a-zA-Z0-9]{1,200}"
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groupName" -> 3)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groups" -> 3)
 
-  val csvKey = "mockgroup"
+  val csvKey = "mockGroup"
 
   /**
    * Csv format.
    */
-  val csv = {
-    get[Long]("mock_group.id") ~
-      get[String]("mock_group.name") ~
-      get[String]("groups.name") map {
-      case id ~ name ~ groupName =>
-        id + ";" + name + ";" + groupName + "\n"
-    }
+  def csv(m: MockGroup) = {
+    csvKey + ";" + m._id.get.stringify + ";" + m.name + ";" + m.groups.mkString("|") + "\n"
   }
-
 
   /**
-   * Get all mockgroups from the database in csv format
-   * @return List of mockgroups, csv format
+   * Get All mockGroups, csv format.
+   * @return List of MockGroups, csv format
    */
-  def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("select * from mock_group left join groups on mock_group.groupId = groups.id").as(MockGroup.csv *)
+  def fetchCsv(): Future[List[String]] = {
+    findAll.map(mockGroup => mockGroup.map(e => csv(e)))
   }
 
-
-  /**
-   * Construct the Map[String,String] needed to fill a select options set.
-   */
-  def options: Seq[(String, String)] = DB.withConnection {
-    implicit connection =>
-      val mockgroups = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
-        Logger.debug("Mockgroup not found in cache: loading from db")
-        SQL("select * from mock_group order by name").as(MockGroup.simple *).map(c => c.id.toString -> c.name)
-      }
-      mockgroups
-  }
 
   /**
    * Retrieve an MockGroup from id.
    */
-  def findById(id: Long): Option[MockGroup] = {
-    DB.withConnection {
-      implicit connection =>
-        Cache.getOrElse[Option[MockGroup]](keyCacheById + id) {
-          SQL("select * from mock_group where id = {id}").on('id -> id).as(MockGroup.simple.singleOpt)
-        }
-    }
+  def findById(objectId: BSONObjectID): Future[Option[MockGroup]] = {
+    val query = BSONDocument("_id" -> objectId)
+    collection.find(query).one[MockGroup]
   }
 
   /**
-   * Retrieve an MockGroup from it's name .
+   * Retrieve an MockGroup from name.
    */
-  def findByName(name: String): Option[MockGroup] = DB.withConnection {
-    implicit connection =>
-      Cache.getOrElse[Option[MockGroup]](keyCacheByName + name) {
-        SQL("select * from mock_group where name = {name}").on('name -> name).as(MockGroup.simple.singleOpt)
-      }
+  def findByName(name: String): Future[Option[MockGroup]] = {
+    val query = BSONDocument("name" -> name)
+    collection.find(query).one[MockGroup]
   }
 
   /**
-   * Persist a new MockGroup to database.
+   * Insert a new mockGroup.
    *
-   * @param mockGroup The MockGroup to persist.
+   * @param mockGroup The mockGroup values.
    */
   def insert(mockGroup: MockGroup) = {
-    // Clear the cache in order to ???
-    clearCache
-
     if (!mockGroup.name.trim.matches(MOCKGROUP_NAME_PATTERN)) {
       throw new Exception("MockGroup name invalid:" + mockGroup.name.trim)
     }
 
-    // Insert the new MockGroup
-    if (options.exists{g => g._2.equals(mockGroup.name.trim)}) {
+    if (Await.result(findByName(mockGroup.name.trim).map(e => e), 1.seconds).isDefined) {
       throw new Exception("MockGroup with name " + mockGroup.name.trim + " already exist")
     }
 
-    DB.withConnection {
-      implicit connection =>
-        SQL(
-          """	insert into mock_group (id, name, groupId)
-            values (null, {name}, {groupId}
-            )
-          """
-        ).on(
-          'name -> mockGroup.name.trim,
-          'groupId -> mockGroup.groupId
-        ).executeUpdate()
-    }
+    clearCache
+    collection.insert(mockGroup)
   }
 
   /**
-   * Update a mockgroup.
+   * Update a mockGroup.
    *
-   * @param mockGroup The mockgroup mockgroup.
+   * @param mockGroup The mockGroup values.
    */
   def update(mockGroup: MockGroup) = {
-    clearCache
-
     if (!mockGroup.name.trim.matches(MOCKGROUP_NAME_PATTERN)) {
-      throw new Exception("Mockgroup name invalid:" + mockGroup.name.trim)
+      throw new Exception("MockGroup name invalid:" + mockGroup.name.trim)
     }
 
-    if (options.exists{g => g._2.equals(mockGroup.name.trim) && g._1.toLong != mockGroup.id}) {
-      throw new Exception("Mockgroup with name " + mockGroup.name.trim + " already exist")
+    if (Await.result(findByName(mockGroup.name.trim).map(e => e), 1.seconds).isDefined) {
+      throw new Exception("MockGroup with name " + mockGroup.name.trim + " already exist")
     }
 
-    Cache.remove(keyCacheById + mockGroup.id)
-    DB.withConnection {
-      implicit connection =>
-        SQL("update mock_group set name = {name}, groupId = {groupId} " +
-          " where id = {id}").on(
-          'id -> mockGroup.id,
-          'name -> mockGroup.name.trim,
-          'groupId -> mockGroup.groupId
-        ).executeUpdate()
-    }
-  }
+    val selector = BSONDocument("_id" -> mockGroup._id)
 
-  /**
-   * Delete a mockgroup.
-   *
-   * @param mockGroup mockgroup to delete
-   */
-  def delete(mockGroup: MockGroup) = {
+    val modifier = BSONDocument(
+      "$set" -> BSONDocument(
+        "name" -> mockGroup.name,
+        "groups" -> mockGroup.groups)
+    )
+
     clearCache
-    Cache.remove(keyCacheById + mockGroup.id)
-    DB.withConnection {
-      implicit connection =>
-        SQL("delete from mock_group where id = {id}").on('id -> mockGroup.id).executeUpdate()
-    }
+    collection.update(selector, modifier)
   }
 
   /**
-   * Remove the all-options cache.
+   * Delete a mockGroup.
+   *
+   * @param id Id of the mockGroup to delete.
    */
+  def delete(id: String) = {
+    val objectId = new BSONObjectID(id)
+    collection.remove(BSONDocument("_id" -> objectId))
+  }
+
   def clearCache() {
     Cache.remove(keyCacheAllOptions)
   }
 
   /**
-   * Return a list of all mockgroups.
+   * Return a list of all mockGroups.
    */
-  def findAll : List[MockGroup] = {
-    DB.withConnection {
-      implicit connection =>
-        val mockGroups = SQL(
-          " select * from mock_group " +
-          " order by mock_group.name"
-          ).as(MockGroup.simple *)
-        mockGroups
-    }
+  def findAll: Future[List[MockGroup]] = {
+    collection.
+      find(BSONDocument()).
+      sort(BSONDocument("name" -> 1)).
+      cursor[MockGroup].
+      collect[List]()
   }
 
-  def list(groupName: String): List[MockGroup] = {
+  /**
+   * Return a list of all mockGroups in some groups.
+   */
+  def findInGroups(groups: String): Future[List[MockGroup]] = {
+    if ("all".equals(groups)) return findAll
+    val find = BSONDocument("groups" -> BSONDocument("$in" -> groups.split(',')))
+    collection.
+      find(find).
+      sort(BSONDocument("name" -> 1)).
+      cursor[MockGroup].
+      collect[List]()
+  }
 
-    DB.withConnection {
-      implicit connection =>
+  /**
+   * Find all distinct groups in mockGroups collections.
+   *
+   * @return all distinct groups
+   */
+  def findAllGroups(): Future[BSONDocument] = {
+    val command = RawCommand(BSONDocument("distinct" -> "mockGroups", "key" -> "groups"))
+    collection.db.command(command) // result is Future[BSONDocument]
+  }
 
-        val mockGroups = SQL(
-          """
-          select mock_group.id, mock_group.name, mock_group.groupId
-          from mock_group, groups
-          where mock_group.groupId = groups.id
-          and (groups.name = {groupName}
-          or mock_group.id = {defaultMockGroudId})
-          order by mock_group.name
-          """
-          ).on(
-            'groupName -> groupName,
-            'defaultMockGroudId -> ID_DEFAULT_NO_MOCK_GROUP
-          ).as(MockGroup.simple *)
+  /**
+   * Upload a csvLine => insert mockGroup.
+   *
+   * @param csvLine line in csv file
+   * @return nothing
+   */
+  def upload(csvLine: String) = {
 
-        mockGroups
+    val dataCsv = csvLine.split(";")
+
+    if (dataCsv.size != csvTitle.size) {
+      throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
+    }
+
+    if (dataCsv(csvTitle.get("key").get) == csvKey) {
+      uploadMockGroup(dataCsv)
+    } else {
+      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
     }
   }
 
   /**
-   * Check if group exist and insert it if not
+   * Check if mockGroup already exist (with same name). Insert or do nothing if exist.
    *
-   * @param mockGroupName Name of the Mock Group
-   * @return mockGroup
+   * @param dataCsv line in csv file
+   * @return mockGroup (new or not)
    */
-  def upload(mockGroupName: String, groupId: Long): MockGroup = {
-    Logger.debug("mockGroupName:" + mockGroupName)
+  private def uploadMockGroup(dataCsv: Array[String]) = {
 
-    var mockGroup = findByName(mockGroupName)
-    if (mockGroup == None) {
-      Logger.debug("Insert group " + mockGroupName)
-      insert(new MockGroup(0, mockGroupName, groupId))
-      mockGroup = findByName(mockGroupName)
-      if (mockGroup.get == null) Logger.error("MockGroup insert failed : " + mockGroupName)
-    } else {
-      Logger.debug("MockGroup already exist : " + mockGroup.get.name)
+    val name = dataCsv(csvTitle.get("name").get)
+    Logger.debug("upload mockGroup:" + name)
+
+    findByName(name).map {
+      mockGroup => {
+        if (mockGroup == None) {
+          Logger.debug("Insert new mockGroup with name " + name)
+          val newMockGroup = new MockGroup(Some(BSONObjectID.generate),
+            dataCsv(csvTitle.get("name").get).trim,
+            dataCsv(csvTitle.get("groups").get).split('|').toList // single quote of split is important
+          )
+          insert(newMockGroup).map {
+            lastError =>
+              if (lastError.ok) {
+                Logger.debug("OK Insert new mockGroup with name " + name)
+              } else {
+                Logger.error("Detected error:%s".format(lastError))
+                throw new Exception("Error while inserting new group with name : " + name)
+              }
+          }
+        } else {
+          Logger.warn("Warning : MockGroup " + name + " already exist")
+          throw new Exception("Warning : MockGroup " + name + " already exist")
+        }
+      }
     }
-    mockGroup.get
   }
 }

@@ -1,135 +1,153 @@
 package models
 
-import play.api.db._
 import play.api.Play.current
 import play.api.cache._
-import play.api._
+import reactivemongo.bson._
+import scala.concurrent.{ExecutionContext, Future}
+import ExecutionContext.Implicits.global
+import play.modules.reactivemongo.json.BSONFormats._
+import play.api.libs.json.Json
 
-import anorm._
-import anorm.SqlParser._
-import org.apache.http.HttpStatus
-import play.api.libs.json.{JsString, JsObject, JsValue, Writes}
-
-case class Mock(id: Long,
+case class Mock(_id: Option[BSONObjectID],
                 name: String,
-                mockGroupId: Long = 1, // 1 is default group
                 description: String,
                 timeoutms: Int = 0,
                 httpStatus: Int = 0,
                 httpHeaders: String,
                 criteria: String,
-                response: String
-                 )
+                response: String,
+                mockGroupName: Option[String]) {
+  def this(mockDoc: BSONDocument, mockGroupName: Option[String]) =
+    this(
+      mockDoc.getAs[BSONObjectID]("_id"),
+      mockDoc.getAs[String]("name").get,
+      mockDoc.getAs[String]("description").get,
+      mockDoc.getAs[Int]("timeoutms").get,
+      mockDoc.getAs[Int]("httpStatus").get,
+      mockDoc.getAs[String]("httpHeaders").get,
+      mockDoc.getAs[String]("criteria").get,
+      mockDoc.getAs[String]("response").get,
+      mockGroupName)
+}
+
+case class Mocks(mocks: List[Mock])
 
 object Mock {
+
+  implicit val mockFormat = Json.format[Mock]
+  implicit val mocksFormat = Json.format[Mocks]
 
   private val keyCacheAllOptions = "mock-options"
   private val keyCacheById = "mock-all"
 
-  /**
-   * Parse a Mock from a ResultSet
-   */
-  val simple = {
-    get[Long]("mock.id") ~
-      get[String]("mock.name") ~
-      get[Long]("mock.mockGroupId") ~
-      get[String]("mock.description") ~
-      get[Int]("mock.timeoutms") ~
-      get[Int]("mock.httpStatus") ~
-      get[String]("mock.httpHeaders") ~
-      get[String]("mock.criteria") ~
-      get[String]("mock.response") map {
-      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ httpStatus ~ httpHeaders ~ criteria ~ response =>
-      new Mock(id, name, mockGroupId, description, timeoutms, httpStatus, httpHeaders, criteria, response)
+  implicit object MocksBSONReader extends BSONDocumentReader[Mocks] {
+    def read(doc: BSONDocument): Mocks = {
+      if (doc.getAs[List[BSONDocument]]("mocks") isDefined) {
+        val list = doc.getAs[List[BSONDocument]]("mocks").get.map(
+          s => new Mock(s, doc.getAs[String]("name"))
+        )
+        Mocks(list)
+      } else {
+        Mocks(List())
+      }
     }
   }
 
-  /**
-   * Parse a Mock Light from a ResultSet
-   */
-  val simpleWithoutResponse = {
-    get[Long]("mock.id") ~
-      get[String]("mock.name") ~
-      get[Long]("mock.mockGroupId") ~
-      get[String]("mock.description") ~
-      get[Int]("mock.timeoutms") ~
-      get[Int]("mock.httpStatus") ~
-      get[String]("mock.httpHeaders") ~
-      get[String]("mock.criteria") map {
-      case id ~ name ~ mockGroupId ~ description ~ timeoutms ~ httpStatus ~ httpHeaders ~ criteria =>
-      new Mock(id, name, mockGroupId, description, timeoutms, httpStatus, httpHeaders, criteria, null)
+  implicit object MockBSONReader extends BSONDocumentReader[Mock] {
+    def read(doc: BSONDocument): Mock = {
+      val s = doc.getAs[List[BSONDocument]]("mocks").get.head
+      new Mock(s, doc.getAs[String]("name"))
     }
+  }
+
+  implicit object MockBSONWriter extends BSONDocumentWriter[Mock] {
+    def write(mock: Mock): BSONDocument =
+      BSONDocument(
+        "_id" -> mock._id,
+        "name" -> BSONString(mock.name),
+        "description" -> BSONString(mock.description),
+        "timeoutms" -> BSONInteger(mock.timeoutms),
+        "httpStatus" -> BSONInteger(mock.httpStatus),
+        "httpHeaders" -> BSONString(mock.httpHeaders),
+        "criteria" -> BSONString(mock.criteria),
+        "response" -> BSONString(mock.response))
   }
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groupName" -> 3, "description" -> 4, "timeoutms" -> 5, "httpStatus" -> 6, "httpHeaders" -> 7, "criteria" -> 8, "response" -> 9)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "description" -> 3, "timeoutms" -> 4, "httpStatus" -> 5, "httpHeaders" -> 6, "criteria" -> 7, "response" -> 8, "groupName" -> 9)
 
   val csvKey = "mock"
 
   /**
-   * Csv format.
+   * Csv format of one mock.
+   * @param m mock
+   * @return csv format of the mock (String)
    */
-  val csv = {
-    get[Pk[Long]]("mock.id") ~
-      get[String]("mock.name") ~
-      get[String]("groups.name") ~
-      get[Int]("mock.description") ~
-      get[Int]("mock.timeoutms") ~
-      get[Int]("mock.httpStatus") ~
-      get[String]("mock.httpHeaders") ~
-      get[String]("mock.criteria") ~
-      get[String]("mock.response") map {
-      case id ~ name ~ groupName ~ description ~ timeoutms ~ httpStatus ~ httpHeaders ~ criteria ~ response =>
-        val headers = UtilConvert.headersFromString(httpHeaders)
-        id + ";" + name + ";" + groupName + ";" + description + ";" + timeoutms + ";" + httpStatus + ";" + headers + ";" + criteria + ";" + response + "\n"
-    }
+  def csv(m: Mock) = {
+    csvKey + ";" + m._id.get.stringify + ";" + m.name + ";" + m.description + ";" + m.timeoutms + ";" + m.httpStatus + ";" + m.httpHeaders + ";" + m.criteria + ";" + m.response + ";" + ";" + m.mockGroupName + "\n"
   }
 
   /**
-   * Get All mocks, csv format.
-   * @return List of Environements, csv format
+   * Get All mock, csv format.
+   * @return List of Mocks, csv format
    */
-  def fetchCsv(): List[String] = DB.withConnection {
-    implicit c => SQL("select * from mock left join groups on mock.mockGroupId = mock_group.id").as(Mock.csv *)
+  def fetchCsv(): Future[List[String]] = {
+    ???
+    //TODO
+    //findAll.map(mocks => mocks.map(m => csv(m)))
   }
 
   /**
    * Construct the Map[String,String] needed to fill a select options set.
    */
-  private def optionsAll: Seq[(String, String)] = DB.withConnection {
-    implicit connection =>
+  private def optionsAll: Seq[(String, String)] = {
+    ???
+    /*implicit connection =>
       val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
         Logger.debug("Mocks not found in cache: loading from db")
         SQL("select * from mock order by name").as(Mock.simple *).map(c => c.id.toString -> c.name)
       }
       envs
+      */
   }
 
   /**
-   * Retrieve an Mock from id.
+   * Retrieve a Mock.
+   * @param mockGroupName Name of mock Group
+   * @param mockId ObjectID of mock
+   * @return Option of mock
    */
-  def findById(id: Long): Option[Mock] = {
-    DB.withConnection {
-      implicit connection =>
-        Cache.getOrElse[Option[Mock]](keyCacheById + id) {
-          SQL("select * from mock where id = {id}").on(
-            'id -> id).as(Mock.simple.singleOpt)
-        }
-    }
+  def findById(mockGroupName: String, mockId: String): Future[Option[Mock]] = {
+    val query = BSONDocument("name" -> mockGroupName)
+    val projection = BSONDocument("mocks" -> BSONDocument(
+      "$elemMatch" -> BSONDocument("_id" -> BSONObjectID(mockId))))
+    MockGroup.collection.find(query, projection).cursor[Mock].headOption
   }
 
   /**
    * Retrieve an Mock from name.
    */
-  def findByName(name: String): Option[Mock] = DB.withConnection {
-    implicit connection =>
+  def findByName(name: String): Option[Mock] = {
+    ???
+    /*
     // FIXME : add key to clearCache
     //Cache.getOrElse[Option[Mock]](keyCacheByName + name) {
       SQL("select * from mock where name = {name}").on(
         'name -> name).as(Mock.simple.singleOpt)
     //}
+    */
+  }
+
+  /**
+   * Get all mocks for one mock Group
+   * @param mockGroupName mockGroup Name wich contains mocks
+   * @return Mocks Object with empty list of mock if there is no mock
+   */
+  def findAll(mockGroupName: String): Future[Option[Mocks]] = {
+    val query = BSONDocument("name" -> mockGroupName)
+    MockGroup.collection.find(query).cursor[Mocks].headOption
   }
 
   /**
@@ -138,31 +156,9 @@ object Mock {
    * @param mock The mock values.
    */
   def insert(mock: Mock) = {
-
-    if (optionsAll.exists {
-      e => e._2.equals(mock.name.trim)
-    }) {
-      throw new Exception("Mock with name " + mock.name.trim + " already exist")
-    }
-
-    DB.withConnection {
-      implicit connection =>
-        SQL(
-          """
-            insert into mock (id, name, description, timeoutms, httpStatus, httpHeaders, criteria, response, mockGroupId)
-              values (null, {name}, {description}, {timeoutms}, {httpStatus}, {httpHeaders}, {criteria}, {response}, {mockGroupId})
-          """).on(
-            'name -> mock.name.trim,
-            'description -> mock.description,
-            'timeoutms -> mock.timeoutms,
-            'httpStatus -> mock.httpStatus,
-            'httpHeaders -> mock.httpHeaders,
-            'criteria -> mock.criteria,
-            'response -> mock.response,
-            'mockGroupId -> mock.mockGroupId
-          ).executeUpdate()
-    }
-    clearCache
+    val selector = BSONDocument("name" -> mock.mockGroupName)
+    val insert = BSONDocument("$push" -> BSONDocument("mocks" -> mock))
+    MockGroup.collection.update(selector, insert)
   }
 
   /**
@@ -171,55 +167,24 @@ object Mock {
    * @param mock The mock values.
    */
   def update(mock: Mock) = {
-
-    if (optionsAll.exists {
-      e => e._2.equals(mock.name.trim) && e._1.toLong != mock.id
-    }) {
-      throw new Exception("Mock with name " + mock.name.trim + " already exist")
-    }
-
-    Cache.remove(keyCacheById + mock.id)
-    DB.withConnection {
-      implicit connection =>
-        SQL(
-          """
-          update mock
-          set name = {name},
-          description = {description},
-          timeoutms = {timeoutms},
-          httpStatus = {httpStatus},
-          httpHeaders = {httpHeaders},
-          criteria = {criteria},
-          response = {response},
-          mockGroupId = {mockGroupId}
-          where id = {id}
-          """).on(
-            'id -> mock.id,
-            'name -> mock.name.trim,
-            'description -> mock.description,
-            'timeoutms -> mock.timeoutms,
-            'httpStatus -> mock.httpStatus,
-            'httpHeaders -> mock.httpHeaders,
-            'criteria -> mock.criteria,
-            'response -> mock.response,
-            'mockGroupId -> mock.mockGroupId
-          ).executeUpdate()
-    }
-    clearCache
+    val selector = BSONDocument(
+      "name" -> mock.mockGroupName,
+      "mocks._id" -> mock._id
+    )
+    val update = BSONDocument("$set" -> BSONDocument("mocks.$" -> mock))
+    MockGroup.collection.update(selector, update)
   }
 
   /**
    * Delete a mock.
-   *
-   * @param id Id of the mock to delete.
+   * @param mockGroupName Mock Group name wich contains the mock
+   * @param mockId id of the mock to delete
+   * @return
    */
-  def delete(id: Long) = {
-    Cache.remove(keyCacheById + id)
-    DB.withConnection {
-      implicit connection =>
-        SQL("delete from mock where id = {id}").on('id -> id).executeUpdate()
-    }
-    clearCache
+  def delete(mockGroupName: String, mockId: String) = {
+    val selector = BSONDocument("name" -> mockGroupName)
+    val update = BSONDocument("$pull" -> BSONDocument("mocks" -> BSONDocument("_id" -> BSONObjectID(mockId))))
+    MockGroup.collection.update(selector, update)
   }
 
   def clearCache() {
@@ -231,7 +196,8 @@ object Mock {
    *
    */
   def list(mockGroup: String): List[Mock] = {
-
+    ???
+    /*
     DB.withConnection {
       implicit connection =>
 
@@ -247,6 +213,7 @@ object Mock {
 
         mocks
     }
+    */
   }
 
   /**
@@ -255,6 +222,8 @@ object Mock {
    */
   def list(): List[Mock] = {
 
+    ???
+    /*
     DB.withConnection {
       implicit connection =>
 
@@ -266,6 +235,7 @@ object Mock {
 
         mocks
     }
+    */
   }
 
   /**
@@ -276,6 +246,9 @@ object Mock {
    */
   def upload(csvLine: String) = {
 
+    //TODO
+    ???
+    /*
     val dataCsv = csvLine.split(";")
 
     if (dataCsv.size != csvTitle.size) {
@@ -288,6 +261,7 @@ object Mock {
     } else {
       Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
     }
+    */
   }
 
   /**
@@ -299,6 +273,9 @@ object Mock {
    */
   private def uploadMock(dataCsv: Array[String], mockGroup: MockGroup) = {
 
+    ???
+    // TODO
+    /*
     val name = dataCsv(csvTitle.get("name").get)
     val s = findByName(name)
 
@@ -310,7 +287,7 @@ object Mock {
       val mock = new Mock(
         -1,
         dataCsv(csvTitle.get("name").get).trim,
-        mockGroup.id,
+        mockGroup._id.get.stringify,
         dataCsv(csvTitle.get("description").get).trim,
         dataCsv(csvTitle.get("timeoutms").get).toInt,
         dataCsv(csvTitle.get("httpStatus").get).toInt,
@@ -321,13 +298,16 @@ object Mock {
       Mock.insert(mock)
       Logger.info("Insert Mock " + mock.name)
     }
+    */
   }
 
   /**
    * Retrieve an Mock from name.
    */
-  def findByMockGroupAndContent(mockGroupId: Long, requestBody: String): Mock = DB.withConnection {
-    implicit connection =>
+  def findByMockGroupAndContent(mockGroupId: BSONObjectID, requestBody: String): Mock = {
+
+    ???
+    /*
 
       val mocks: List[Mock] = SQL("select * from mock where mockGroupId = {mockGroupId}").on(
         'mockGroupId -> mockGroupId).as(Mock.simple *)
@@ -347,5 +327,6 @@ object Mock {
         )
       }
       ret
+      */
   }
 }

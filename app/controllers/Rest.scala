@@ -10,6 +10,7 @@ import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.http.HeaderNames
 import play.api.mvc.SimpleResult
+import reactivemongo.bson.BSONObjectID
 
 object Rest extends Controller {
 
@@ -17,7 +18,7 @@ object Rest extends Controller {
                   requestContentType: String): SimpleResult = {
 
     val client = new Client(service, sender, content, headers, Service.REST, requestContentType)
-    val mock = Mock.findByMockGroupAndContent(service.mockGroupId, content)
+    val mock = Mock.findByMockGroupAndContent(BSONObjectID(service.mockGroupId.get), content)
 
     val sr = new Results.Status(mock.httpStatus).chunked(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
       .withHeaders("ProxyVia" -> "soapower")
@@ -29,7 +30,11 @@ object Rest extends Controller {
   }
 
   def index(environment: String, call: String) = Action {
-    request =>
+
+    ???
+    // TODO
+    /*
+request =>
       val sender = request.remoteAddress
       val headers = request.headers.toSimpleMap
 
@@ -98,12 +103,17 @@ object Rest extends Controller {
         Logger.error(err)
         BadRequest(err)
       }
+  */
+    BadRequest("TODO")
   }
 
   def replay(requestId: Long) = Action {
+    ???
+    // TODO
+    /*
     implicit request =>
 
-      val requestData = RequestData.loadForREST(requestId)
+val requestData = RequestData.loadForREST(requestId)
 
       // The http method is retrieved from the service
       val headers = requestData.requestHeaders
@@ -132,6 +142,8 @@ object Rest extends Controller {
       }
 
       forwardRequest(requestContent, query, service, sender, headers, requestCall, requestContentType, true)
+      */
+    BadRequest("TODO")
   }
 
   def forwardRequest(content: String, query: Map[String, String], service: Service, sender: String, headers: Map[String, String], requestCall: String,
@@ -139,13 +151,11 @@ object Rest extends Controller {
     val client = new Client(service, sender, content, headers, Service.REST, requestContentType)
     client.sendRestRequestAndWaitForResponse(service.httpMethod, requestCall, query)
 
-    if(!isReplay) {
-      new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))//apply(client.response.bodyBytes)
+    if (!isReplay) {
+      new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]])) //apply(client.response.bodyBytes)
         .withHeaders("ProxyVia" -> "soapower")
         .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
-    }
-    else
-    {
+    } else {
       new Results.Status(client.response.status).apply(client.response.bodyBytes)
         .withHeaders("ProxyVia" -> "soapower")
         .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
@@ -161,10 +171,10 @@ object Rest extends Controller {
     for ((serviceId, localTarget) <- localTargets) {
       // For each services, check that the call starts with the localTarget
       if (call.startsWith(localTarget)) {
-          // Manage the case where two services begins with the same string
-          return serviceId
-        }
+        // Manage the case where two services begins with the same string
+        return serviceId
       }
+    }
     return -1
   }
 
@@ -179,8 +189,7 @@ object Rest extends Controller {
     val effectiveCall = call.split(localTarget)
     if (effectiveCall.length > 1) {
       return remoteTarget + call.split(localTarget)(1)
-    }
-    else {
+    } else {
       return remoteTarget
     }
   }

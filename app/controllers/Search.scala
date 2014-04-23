@@ -8,9 +8,9 @@ import play.api.libs.iteratee.Enumerator
 import play.api.http.{ContentTypes, HeaderNames}
 import scala.xml.PrettyPrinter
 import org.xml.sax.SAXParseException
-import play.api.Logger
 import java.net.URLDecoder
-import com.fasterxml.jackson.databind.JsonMappingException
+import scala.concurrent.ExecutionContext
+import ExecutionContext.Implicits.global
 
 case class Search(environmentId: Long)
 
@@ -18,16 +18,12 @@ object Search extends Controller {
 
   private val UTF8 = "UTF-8"
 
-  def listDatatable(group: String, environment: String, serviceAction: String, minDate: String, maxDate: String, status: String, sSearch: String, iDisplayStart: Int, iDisplayLength: Int) = Action {
-    val page: Page[(RequestData)] = RequestData.list(group, environment, URLDecoder.decode(serviceAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (iDisplayStart - 1), iDisplayLength, sSearch)
-    Logger.debug("iTotalRecords {}" + Json.toJson(iDisplayLength))
-    Logger.debug("iTotalDisplayRecords {}" + Json.toJson(page.total))
-    Logger.debug("data {}" + Json.toJson(page.items))
-
-    Ok(Json.toJson(Map(
-      "iTotalRecords" -> Json.toJson(iDisplayLength),
-      "iTotalDisplayRecords" -> Json.toJson(page.total),
-      "data" -> Json.toJson(page.items)))).as(JSON)
+  def listDatatable(group: String, environment: String, serviceAction: String, minDate: String, maxDate: String, status: String, sSearch: String, iDisplayStart: Int, iDisplayLength: Int) = Action.async {
+    val futureDataList = RequestData.list(group, environment, URLDecoder.decode(serviceAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (iDisplayStart - 1), iDisplayLength)
+    futureDataList.map {
+      list =>
+        Ok(Json.toJson(Map("data" -> Json.toJson(list))))
+    }
   }
 
 
@@ -39,6 +35,9 @@ object Search extends Controller {
    */
   def downloadRequest(id: Long, asFile: Boolean) = Action {
     // Retrieve the request content and the requestContentType in a Tuple
+    ???
+    //TODO
+    /*
     val request = RequestData.loadRequest(id)
 
     val format = request._2 match {
@@ -57,6 +56,8 @@ object Search extends Controller {
       case _ =>
         NotFound("The request does not exist")
     }
+    */
+    BadRequest("TODO")
   }
 
   /**
@@ -66,6 +67,9 @@ object Search extends Controller {
    * @return
    */
   def downloadResponse(id: Long, asFile: Boolean) = Action {
+    ???
+    //TODO
+    /*
     val response = RequestData.loadResponse(id)
 
     val format = response._2 match {
@@ -74,8 +78,7 @@ object Search extends Controller {
       case "application/json" =>
         "JSON"
       case _ =>
-        if (response._2.startsWith("application/xml") || (response._2.startsWith("text/xml")))
-        {
+        if (response._2.startsWith("application/xml") || (response._2.startsWith("text/xml"))) {
           "XML"
         } else if (response._2.startsWith("application/json")) {
           "JSON"
@@ -89,8 +92,10 @@ object Search extends Controller {
         downloadInCorrectFormat(response._1.get, id, format, asFile, false)
       }
       case _ =>
-        NotFound("The response does not exist")
+        NotFound("The response does nots exist")
     }
+    */
+    BadRequest("TODO")
   }
 
 
@@ -121,7 +126,7 @@ object Search extends Controller {
           filename += ".xml"
         } catch {
           case e: SAXParseException => contentInCorrectFormat = str
-          filename += ".txt"
+            filename += ".txt"
         }
 
         var result = SimpleResult(
@@ -140,8 +145,7 @@ object Search extends Controller {
           filename += ".json"
         }
         catch {
-          case e: Exception =>
-          {
+          case e: Exception => {
             contentInCorrectFormat = str
             filename += ".txt"
           }

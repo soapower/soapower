@@ -1,0 +1,17 @@
+<h2>Groups</h2>
+
+<a class="btn btn-primary" href="#/mockgroups/new/{{ groups }}"><i class="fa fa-plus"></i> Add a new Mock Group</a>
+
+<p>There are {{ mockGroups.length }} Mock Groups.</p>
+
+<sp-showresults></sp-showresults>
+
+<table ng-table="tableParams" class="table table-striped table-bordered">
+    <tr ng-repeat="line in $data">
+        <td data-title="'Name'" sortable="'name'">
+            {{line.name}}
+        </td>
+        <td data-title="'Edit'"><a href="#/mockgroups/edit/{{ line._id.$oid }}/{{ groups }}"><i class="fa fa-pencil"></i></a></td>
+        <td data-title="'Mocks'"><a href="#/mocks/list/{{ line.name }}/{{ groups }}">View Mocks</a></td>
+    </tr>
+</table>
