@@ -493,10 +493,11 @@ object RequestData {
     }
   }
 
-  def loadAvgResponseTimesByAction(groupName: String, environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {
+  def loadAvgResponseTimesByAction(groupName: String, environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean, percentile: Int = 90): List[(String, Long)] = {
     DB.withConnection {
       implicit connection =>
 
+        Logger.debug("TEST : "+percentile.toString)
         var whereClause = " where startTime >= {minDate} and startTime <= {maxDate} "
         whereClause += sqlAndStatus(status)
         if (!withStats) whereClause += " and isStats = 'false' "
@@ -522,9 +523,10 @@ object RequestData {
         val avgTimesByAction = responseTimes.groupBy(_._1).mapValues {
           e =>
             val times = e.map(_._2).toList
-            val ninePercentiles = times.slice(0, times.size * 9 / 10)
-            if (ninePercentiles.size > 0) {
-              ninePercentiles.sum / ninePercentiles.size
+
+            val percentiles = times.slice(0, times.size * percentile / 100)
+            if (percentiles.size > 0) {
+              percentiles.sum / percentiles.size
             } else if (times.size == 1) {
               times.head
             } else {

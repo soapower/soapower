@@ -82,7 +82,8 @@ POST          /serviceactions/:id                                               
 GET           /status/findall                                                                            controllers.Status.findAll
 
 # Statistics on ServiceActions by environments
-GET           /statsAsJunit/:group/:minDate/:maxDate/                                                    controllers.Stats.statsAsJunit(group, minDate, maxDate)
+GET           /statsAsJunit/:group/:minDate/:maxDate/                                                    controllers.Stats.statsAsJunit(group, minDate, maxDate, environment: Option[String], treshold: Option[Long], percentile: Option[Int])
+
 GET           /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable                         controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
 
 # Download SOAP and Rest request and response
