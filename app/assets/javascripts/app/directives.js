@@ -41,8 +41,7 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
                 // Check that the date inputs format are correct and that the mindate is before the maxdate
                 if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
                     UIService.reloadPage($scope, $scope.showServiceactions);
-                }
-                else {
+                } else {
                     // Else, mindate and maxdate are set to yesterday's and today's dates
                     $scope.mindate = UIService.getInputCorrectDateFormat(UIService.getDay("yesterday"));
                     $scope.maxdate = UIService.getInputCorrectDateFormat(UIService.getDay("today"));

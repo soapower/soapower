@@ -1,21 +1,23 @@
 'use strict';
 
 /***************************************
- *  SERVICES
- ***************************************/
-spApp.factory('Service', function ($resource) {
-    var Service = $resource('/services/:environmentName/:serviceId',
-        { environmentName: '@environmentName', serviceId: '@_id.$oid'},
+ *        GROUPS
+ ****************************************/
+
+spApp.factory('Group', function ($resource) {
+
+    var Group = $resource('/groups/:groupId',
+        { groupId: '@_id.$oid'},
         { update: {method: 'PUT'},
             create: {method: 'POST'}}
     );
-    return Service;
+    return Group;
 });
 
-spApp.factory("ServicesService", function ($http) {
+spApp.factory("GroupsService", function ($http) {
     return {
-        findAll: function (environmentId) {
-            return $http.get('/services/' + environmentId + '/findall');
+        findAll: function () {
+            return $http.get('/groups/findAll');
         }
     }
 });
@@ -42,6 +44,8 @@ spApp.factory("EnvironmentsService", function ($http) {
             return $http.get('/environments/' + group + '/options');
         },
         findAllAndSelect: function ($scope, environmentName, environmentGroup, myService, addAll) {
+            // TODO delete method if not used
+            alert("EnvironmentsService findAllAndSelect utilise !!!!");
             $http.get('/environments/' + environmentGroup + '/options')
                 .success(function (environments) {
                     $scope.environments = environments;
@@ -65,6 +69,26 @@ spApp.factory("EnvironmentsService", function ($http) {
                 .error(function (resp) {
                     console.log("Error with EnvironmentsService.findAllAndSelect" + resp);
                 });
+        }
+    }
+});
+
+/***************************************
+ *  SERVICES
+ ***************************************/
+spApp.factory('Service', function ($resource) {
+    var Service = $resource('/services/:environmentName/:serviceId',
+        { environmentName: '@environmentName', serviceId: '@_id.$oid'},
+        { update: {method: 'PUT'},
+            create: {method: 'POST'}}
+    );
+    return Service;
+});
+
+spApp.factory("ServicesService", function ($http) {
+    return {
+        findAll: function (environmentId) {
+            return $http.get('/services/' + environmentId + '/findall');
         }
     }
 });
@@ -137,35 +161,17 @@ spApp.factory("ServiceActionsService", function ($http) {
     }
 });
 
-
 /*************************************** */
 /*************************************** */
 /*************************************** */
 /*************************************** */
 /*************************************** */
 
-spApp.factory('Group', function ($resource) {
-
-    var Group = $resource('/groups/:groupId',
-        { groupId: '@_id.$oid'},
-        { update: {method: 'PUT'},
-            create: {method: 'POST'}}
-    );
-    return Group;
-});
 
 spApp.factory("AnalysisService", function ($http) {
     return {
         findAll: function () {
             return $http.get('/serviceactions/listDatatable');
-        }
-    }
-});
-
-spApp.factory("GroupsService", function ($http) {
-    return {
-        findAll: function () {
-            return $http.get('/groups/findAll');
         }
     }
 });
@@ -316,12 +322,6 @@ spApp.factory("UIService", function ($location, $filter, $routeParams) {
 
                 return !!mindate.getTime() && !!maxdate.getTime() && mindate <= maxdate;
             }
-        },
-        fixBoolean: function (val) {
-            return (val == "yes" || val == true) ? true : false;
-        },
-        fixBooleanReverse: function (val) {
-            return (val == "true" || val == true) ? "yes" : "no";
         }
     }
 });
@@ -336,7 +336,7 @@ spApp.factory('ReplayService', function ($http, $rootScope, $location, Service) 
             Service.get({environmentName: environmentName, serviceId: serviceId}, function (service) {
                     if (service.typeRequest == "soap") {
                         // SOAP service
-                        var url = '/replay/' + id;
+                        var url = '/replay/soap/' + id;
                         var contentTypeForRequest = "application/xml"
                     } else {
                         // REST service

@@ -56,7 +56,7 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
             });
 
         });
-    }
+    };
 
     $scope.reloadTable();
 

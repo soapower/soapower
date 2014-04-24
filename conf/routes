@@ -30,7 +30,7 @@ POST          /replay/rest/:id                                                  
 # Soap
 POST          /soap/:environment/*localTarget                                                               controllers.Soap.index(environment, localTarget)
 POST          /autosoap/:group/:environment/*remoteTarget                                                   controllers.Soap.autoIndex(group, environment, remoteTarget)
-POST          /replay/:id                                                                                   controllers.Soap.replay(id:Long)
+POST          /replay/soap/:id                                                                              controllers.Soap.replay(id:Long)
 
 #POST         /autorest/:group/:environment/*remoteTarget                                                controllers.Rest.autoIndex(group, environment, remoteTarget)
 #POST         /replay/:id                                                                                controllers.Rest.replay(id:Long)
