@@ -5,13 +5,11 @@
  ****************************************/
 
 spApp.factory('Group', function ($resource) {
-
-    var Group = $resource('/groups/:groupId',
+    return $resource('/groups/:groupId',
         { groupId: '@_id.$oid'},
         { update: {method: 'PUT'},
             create: {method: 'POST'}}
     );
-    return Group;
 });
 
 spApp.factory("GroupsService", function ($http) {
@@ -26,12 +24,11 @@ spApp.factory("GroupsService", function ($http) {
  *  ENVIRONMENTS
  ***************************************/
 spApp.factory('Environment', function ($resource) {
-    var Environment = $resource('/environments/:environmentId',
+    return $resource('/environments/:environmentId',
         { environmentId: '@_id.$oid'},
         { update: {method: 'PUT'},
             create: {method: 'POST'}}
     );
-    return Environment;
 });
 
 
@@ -44,13 +41,11 @@ spApp.factory("EnvironmentsService", function ($http) {
             return $http.get('/environments/' + group + '/options');
         },
         findAllAndSelect: function ($scope, environmentName, environmentGroup, myService, addAll) {
-            // TODO delete method if not used
-            alert("EnvironmentsService findAllAndSelect utilise !!!!");
             $http.get('/environments/' + environmentGroup + '/options')
                 .success(function (environments) {
                     $scope.environments = environments;
                     if (environments.length == 0) {
-                        console.log("No environments have been founded")
+                        console.log("No environments have been founded");
                         $scope.environments.unshift({id: "error", name: "error. No Env with this group"});
                     } else if (addAll) {
                         $scope.environments.unshift({id: "all", name: "all"});
@@ -77,12 +72,11 @@ spApp.factory("EnvironmentsService", function ($http) {
  *  SERVICES
  ***************************************/
 spApp.factory('Service', function ($resource) {
-    var Service = $resource('/services/:environmentName/:serviceId',
+    return $resource('/services/:environmentName/:serviceId',
         { environmentName: '@environmentName', serviceId: '@_id.$oid'},
         { update: {method: 'PUT'},
             create: {method: 'POST'}}
     );
-    return Service;
 });
 
 spApp.factory("ServicesService", function ($http) {
@@ -99,12 +93,11 @@ spApp.factory("ServicesService", function ($http) {
  ***************************************/
 
 spApp.factory('MockGroup', function ($resource) {
-    var MockGroup = $resource('/mockgroups/:mockgroupId',
+    return $resource('/mockgroups/:mockgroupId',
         { mockgroupId: '@_id.$oid'},
         { update: {method: 'PUT'},
             create: {method: 'POST'}}
     );
-    return MockGroup;
 });
 
 spApp.factory("MockGroupsService", function ($http) {
@@ -120,12 +113,11 @@ spApp.factory("MockGroupsService", function ($http) {
  *  MOCKS
  ***************************************/
 spApp.factory('Mock', function ($resource) {
-    var Mock = $resource('/mocks/:mockGroupName/:mockId',
+    return $resource('/mocks/:mockGroupName/:mockId',
         { mockGroupName: '@mockGroupName', mockId: '@_id.$oid'},
         { update: {method: 'PUT'},
             create: {method: 'POST'}}
     );
-    return Mock;
 });
 
 spApp.factory("MocksService", function ($http) {
@@ -142,11 +134,10 @@ spApp.factory("MocksService", function ($http) {
  ***************************************/
 
 spApp.factory('ServiceAction', function ($resource) {
-    var ServiceAction = $resource('/serviceactions/:serviceActionId',
+    return $resource('/serviceactions/:serviceActionId',
         { serviceActionId: '@_id.$oid'},
         { update: {method: 'PUT'}}
     );
-    return ServiceAction;
 });
 
 spApp.factory("ServiceActionsService", function ($http) {
@@ -240,11 +231,6 @@ spApp.factory("UIService", function ($location, $filter, $routeParams) {
             console.log("UIService.reloadPage : Go to " + path);
             $location.path(path);
         },
-        reloadAdminPage: function ($scope, group) {
-            var path = $scope.ctrlPath + '/list/' + group;
-            console.log("UIService.reloadAdminPage : Go to " + path);
-            $location.path(path);
-        },
         /*
          /* Transform a string in the format "yyyy-mm-ddThh:mm" to the
          /* format "yyyy-mm-dd hh:mm" used to display the date
@@ -334,18 +320,20 @@ spApp.factory('ReplayService', function ($http, $rootScope, $location, Service) 
         },
         replay: function (id, environmentName, serviceId, contentType, data) {
             Service.get({environmentName: environmentName, serviceId: serviceId}, function (service) {
+                    var url = '';
+                    var contentTypeForRequest = '';
                     if (service.typeRequest == "soap") {
                         // SOAP service
-                        var url = '/replay/soap/' + id;
-                        var contentTypeForRequest = "application/xml"
+                        url = '/replay/soap/' + id;
+                        contentTypeForRequest = "application/xml"
                     } else {
                         // REST service
-                        var url = '/replay/rest/' + id;
+                        url = '/replay/rest/' + id;
                         if (service.httpMethod == "get" || service.httpMethod == "delete") {
                             // The content is just the HTTP method and the URL in text format
-                            var contentTypeForRequest = "text/html";
+                            contentTypeForRequest = "text/html";
                         } else {
-                            var contentTypeForRequest = contentType;
+                            contentTypeForRequest = contentType;
                         }
                     }
                     // perform the request
@@ -353,11 +341,12 @@ spApp.factory('ReplayService', function ($http, $rootScope, $location, Service) 
                         url: url,
                         data: data.data,
                         headers: { "Content-Type": contentTypeForRequest }
-                    }).success(function (data) {
+                    }).success(function () {
                         console.log("Success replay id" + id);
                         $rootScope.$broadcast('refreshSearchTable');
                     }).error(function (resp) {
                         console.log("Error replay id" + id);
+                        console.log(resp);
                         console.log("location:" + $location.path());
                         $rootScope.$broadcast('refreshSearchTable');
                     });
@@ -368,4 +357,4 @@ spApp.factory('ReplayService', function ($http, $rootScope, $location, Service) 
             )
         }
     }
-})
+});

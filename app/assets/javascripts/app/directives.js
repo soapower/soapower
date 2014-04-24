@@ -8,7 +8,7 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
         scope: {
             serviceactions: '='
         },
-        controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceactionsService, CodesService, UIService) {
+        controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceActionsService, CodesService, UIService) {
             EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.group, null, true);
             CodesService.findAllAndSelect($scope, $routeParams);
             $scope.ctrlPath = $scope.$parent.ctrlPath;
@@ -23,7 +23,9 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
             $scope.showServiceactions = false;
             if ($attrs.serviceactions == "yes") {
                 $scope.showServiceactions = true;
-                ServiceactionsService.findAllAndSelect($scope, $routeParams);
+                // TODO
+                //ServiceActionsService.findAllAndSelect($scope, $routeParams);
+                //ServiceActionsService.findAllAndSelect($scope, $routeParams);
             }
 
             // Called when the mindate datetimepicker is set

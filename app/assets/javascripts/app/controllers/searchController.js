@@ -14,7 +14,7 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
         var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
         var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
         var code = $routeParams.code ? $routeParams.code : 'all';
-        var url = '/search/' + group +
+        var url = '/search/' + groups +
             '/' + environment +
             '/' + encodeURIComponent(serviceaction) +
             '/' + mindate +
