@@ -117,7 +117,7 @@ object Soap extends Controller {
   /**
    * Replay a given request.
    */
-  def replay(requestId: Long) = Action {
+  def replay(requestId: String) = Action {
     //TODO
     ???
     BadRequest("TODO")
