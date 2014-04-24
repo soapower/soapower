@@ -72,6 +72,24 @@ object RequestData {
 
   implicit val requestDataFormat = Json.format[RequestData]
 
+  implicit object MapBSONWriter extends BSONDocumentWriter[Map[String, String]] {
+    def write(m: Map[String, String]): BSONDocument = {
+      val elements = m.toStream.map { tuple =>
+        tuple._1 -> BSONString(tuple._2)
+      }
+      BSONDocument(elements)
+    }
+  }
+
+  implicit object MapBSONReader extends  BSONDocumentReader[Map[String, String]] {
+    def read(bson: BSONDocument): Map[String, String] = {
+      val elements = bson.elements.map { tuple =>
+        tuple._1 -> tuple._2.toString
+      }
+      elements.toMap
+    }
+  }
+
   implicit object RequestDataBSONReader extends BSONDocumentReader[RequestData] {
     def read(doc: BSONDocument): RequestData = {
       RequestData(
@@ -81,14 +99,12 @@ object RequestData {
         doc.getAs[String]("environmentName").get,
         doc.getAs[BSONObjectID]("serviceId").get,
         doc.getAs[String]("request").get,
-        //doc.getAs[Map[String, String]]("requestHeaders").get,
-        List("US" -> "Washington").toMap,
+        doc.getAs[Map[String, String]]("requestHeaders").get,
         doc.getAs[String]("contentType").get,
         doc.getAs[String]("requestCall"),
         new DateTime(doc.getAs[BSONDateTime]("startTime").get.value),
         doc.getAs[String]("response").get,
-        //doc.getAs[Map[String, String]]("responseHeaders").get,
-        List("US" -> "Washington").toMap,
+        doc.getAs[Map[String, String]]("responseHeaders").get,
         doc.getAs[Long]("timeInMillis").get,
         doc.getAs[Int]("status").get,
         doc.getAs[Boolean]("purged").get,
@@ -97,13 +113,7 @@ object RequestData {
     }
   }
 
-  implicit object MapBSONWriter extends BSONDocumentWriter[Map[String, String]] {
-    def write(m: Map[String, String]): BSONDocument = {
-      //TODO
-      BSONArray()
-      BSONDocument("key" -> "value")
-    }
-  }
+
 
   implicit object RequestDataBSONWriter extends BSONDocumentWriter[RequestData] {
     def write(requestData: RequestData): BSONDocument = {
@@ -117,7 +127,7 @@ object RequestData {
         "request" -> BSONString(requestData.request),
         "requestHeaders" -> requestData.requestHeaders,
         "contentType" -> BSONString(requestData.contentType),
-        "requestCall" -> "FOO", //TODO BSONString(requestData.requestCall.getOrElse("")),
+        "requestCall" -> Option(requestData.requestCall),
         "startTime" -> BSONDateTime(requestData.startTime.getMillis),
         "response" -> BSONString(requestData.response),
         "responseHeaders" -> requestData.responseHeaders,
