@@ -64,8 +64,7 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
         if (row.purged == "true") {
             $window.alert("Sorry, Request already purged...");
         } else {
-            var url = "/download/request/" + row.id;
-            if (asFile) url += "?asFile=true";
+            var url = "/download/request/" + row._id.$oid + "/" + asFile;
             $window.open(url);
         }
     };
@@ -74,8 +73,7 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
         if (row.purged == "true") {
             $window.alert("Sorry, Response already purged...");
         } else {
-            var url = "/download/response/" + row.id;
-            if (asFile) url += "?asFile=true";
+            var url = "/download/response/" + row._id.$oid + "/" + asFile;
             $window.open(url);
         }
     };

@@ -30,10 +30,10 @@ object Search extends Controller {
   /**
    * Used to download or render the request
    * @param id of the requestData to download
-   * @param asFile
+   * @param asFile "true" or "false"
    * @return
    */
-  def downloadRequest(id: Long, asFile: Boolean) = Action {
+  def downloadRequest(id: String, asFile: String) = Action {
     // Retrieve the request content and the requestContentType in a Tuple
     ???
     //TODO
@@ -63,10 +63,10 @@ object Search extends Controller {
   /**
    * Used to download or render the response
    * @param id of the requestData to download
-   * @param asFile
+   * @param asFile "true" or "false"
    * @return
    */
-  def downloadResponse(id: Long, asFile: Boolean) = Action {
+  def downloadResponse(id: String, asFile: String) = Action {
     ???
     //TODO
     /*

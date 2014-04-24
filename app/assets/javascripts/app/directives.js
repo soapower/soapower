@@ -38,15 +38,15 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
             };
 
             $scope.changeCriteria = function () {
-                    // Check that the date inputs format are correct and that the mindate is before the maxdate
-                    if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
-                        UIService.reloadPage($scope, $scope.showServiceactions);
-                    }
-                    else {
-                        // Else, mindate and maxdate are set to yesterday's and today's dates
-                        $scope.mindate = UIService.getInputCorrectDateFormat(UIService.getDay("yesterday"));
-                        $scope.maxdate = UIService.getInputCorrectDateFormat(UIService.getDay("today"));
-                    }
+                // Check that the date inputs format are correct and that the mindate is before the maxdate
+                if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
+                    UIService.reloadPage($scope, $scope.showServiceactions);
+                }
+                else {
+                    // Else, mindate and maxdate are set to yesterday's and today's dates
+                    $scope.mindate = UIService.getInputCorrectDateFormat(UIService.getDay("yesterday"));
+                    $scope.maxdate = UIService.getInputCorrectDateFormat(UIService.getDay("today"));
+                }
             };
         },
         templateUrl: 'partials/common/criterias.html',
@@ -305,12 +305,13 @@ spApp.directive('spReplayEdit', function () {
         templateUrl: "partials/common/replay.html",
         controller: function ($scope, ReplayService) {
             $scope.replayReq = function (row) {
-                $scope.idSelected = row.id;
-                $scope.idService = row.service;
+                $scope.idSelected = row._id.$oid;
+                $scope.serviceId = row.serviceId.$oid;
                 $scope.contentType = row.contentType;
+                $scope.environmentName = row.environmentName;
 
-                ReplayService.beforeReplay(row.id).then(function(data) {
-                    if($scope.contentType == "application/json")
+                ReplayService.beforeReplay($scope.idSelected).then(function (data) {
+                    if ($scope.contentType == "application/json")
                         data.data = JSON.stringify(data.data);
                     $scope.replayContent = data;
                     $('#myModal').modal('show');
@@ -318,7 +319,7 @@ spApp.directive('spReplayEdit', function () {
             };
 
             $scope.sendReplayReq = function () {
-                ReplayService.replay($scope.idSelected, $scope.idService, $scope.contentType, $scope.replayContent);
+                ReplayService.replay($scope.idSelected, $scope.environmentName, $scope.serviceId, $scope.contentType, $scope.replayContent);
                 $('#myModal').modal('hide')
             };
         }

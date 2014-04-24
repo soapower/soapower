@@ -113,7 +113,6 @@ spApp.factory("MocksService", function ($http) {
 });
 
 
-
 /***************************************
  *  SERVICE ACTION
  ***************************************/
@@ -327,49 +326,46 @@ spApp.factory("UIService", function ($location, $filter, $routeParams) {
     }
 });
 
-spApp.factory('ReplayService', function ($http, $rootScope, $location, $resource) {
+spApp.factory('ReplayService', function ($http, $rootScope, $location, Service) {
     return {
         beforeReplay: function (id) {
-            var url = "/download/request/" + id;
+            var url = "/download/request/" + id + "/false";
             return $http.get(url);
         },
-        replay: function (id, idService, contentType, data) {
-            var Service = $resource('/services/:serviceId',
-                                   { serviceId: '@id'}
-                                   );
-            var service = Service.get({serviceId:idService},function() {
-                if(service.typeRequest == "soap") {
-                    // SOAP service
-                    var url = '/replay/' + id;
-                    var contentTypeForRequest = "application/xml"
-                } else {
-                    // REST service
-                    var url = '/replay/rest/'+ id;
-                    if (service.httpMethod == "get" || service.httpMethod == "delete") {
-                        // The content is just the HTTP method and the URL in text format
-                        var contentTypeForRequest = "text/html";
-                     } else {
-                        var contentTypeForRequest = contentType;
-                     }
-                }
-                // perform the request
-                $http({ method: "POST",
-                    url: url,
-                    data: data.data,
-                    headers: { "Content-Type" : contentTypeForRequest }
-                }).success(function (data) {
-                    console.log("Success replay id" + id);
-                    $rootScope.$broadcast('refreshSearchTable');
-                }).error(function (resp) {
+        replay: function (id, environmentName, serviceId, contentType, data) {
+            Service.get({environmentName: environmentName, serviceId: serviceId}, function (service) {
+                    if (service.typeRequest == "soap") {
+                        // SOAP service
+                        var url = '/replay/' + id;
+                        var contentTypeForRequest = "application/xml"
+                    } else {
+                        // REST service
+                        var url = '/replay/rest/' + id;
+                        if (service.httpMethod == "get" || service.httpMethod == "delete") {
+                            // The content is just the HTTP method and the URL in text format
+                            var contentTypeForRequest = "text/html";
+                        } else {
+                            var contentTypeForRequest = contentType;
+                        }
+                    }
+                    // perform the request
+                    $http({ method: "POST",
+                        url: url,
+                        data: data.data,
+                        headers: { "Content-Type": contentTypeForRequest }
+                    }).success(function (data) {
+                        console.log("Success replay id" + id);
+                        $rootScope.$broadcast('refreshSearchTable');
+                    }).error(function (resp) {
+                        console.log("Error replay id" + id);
+                        console.log("location:" + $location.path());
+                        $rootScope.$broadcast('refreshSearchTable');
+                    });
+                }, function () {
+                    // Called when the resource cannot get retrieve
                     console.log("Error replay id" + id);
-                    console.log("location:" + $location.path());
-                    $rootScope.$broadcast('refreshSearchTable');
-                });
-            }, function() {
-                     // Called when the resource cannot get retrieve
-                     console.log("Error replay id" + id);
-                 }
-            );
+                }
+            )
         }
     }
-});
+})

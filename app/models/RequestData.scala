@@ -68,15 +68,15 @@ case class RequestData(_id: Option[BSONObjectID],
     Json.obj(
       "_id" -> _id,
       "status" -> status,
+      "contentType" -> contentType,
+      "serviceId" -> serviceId,
       "environmentName" -> environmentName,
       "sender" -> sender,
       "serviceAction" -> serviceAction,
       "startTime" -> startTime.toString(),
       "timeInMillis" -> timeInMillis,
-      "request" -> "TODO",
-      "response" -> "TODO"
+      "purged" -> purged
     )
-
   }
 }
 
