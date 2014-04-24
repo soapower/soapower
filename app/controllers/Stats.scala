@@ -6,6 +6,7 @@ import models._
 import models.UtilDate._
 import java.util.Date
 import java.net.URLDecoder
+import play.Logger
 
 object Stats extends Controller {
 
@@ -49,6 +50,7 @@ object Stats extends Controller {
    * @return
    */
   def statsAsJunit(groupName: String, minDateAsStr: String, maxDateAsStr: String, environment: Option[String], service: Option[String], treshold: Option[Long]) = Action {
+
     val minDate = getDate(minDateAsStr).getTime
     val maxDate = getDate(maxDateAsStr, v23h59min59s, true).getTime
 
@@ -94,23 +96,32 @@ object Stats extends Controller {
    */
   def statsForEnvirAndService(groupName: String, environmentName: String, serviceName: String, minDate: Date, maxDate: Date, treshold: Option[Long]) = {
     val serviceAction = ServiceAction.findByName(URLDecoder.decode(serviceName, "utf-8"))
-    val realTreshold = treshold match {
-      case None =>
-        serviceAction.get.thresholdms
-      case _ =>
-        treshold.get
+    serviceAction match {
+      case None => {
+        // The service action doesn't exist
+        val err = "The Service Action with the name " + serviceName + " doesn't exist"
+        BadRequest(err)
+      }
+      case _ => {
+        val realTreshold = treshold match {
+          case None =>
+            serviceAction.get.thresholdms
+          case _ =>
+            treshold.get
+        }
+        val avgResponseTimeForActionAndEnvir = RequestData.loadAvgResponseTimesByEnvirAndAction(groupName, environmentName, serviceName, "200", minDate, maxDate, true)
+        var ret = ""
+        ret += "<testsuite name=\"" + serviceAction.get.name + "_on_environment_" + environmentName + "\">"
+        if (avgResponseTimeForActionAndEnvir != -1) {
+          ret += "<testcase classname='" + serviceAction.get.name + "' name='" + serviceAction.get.name + "' time='" + (avgResponseTimeForActionAndEnvir.toFloat / 1000).toFloat + "'>"
+          if (avgResponseTimeForActionAndEnvir > realTreshold) ret += "<failure type='NotEnoughFoo'> Response Time > Threshold: " + avgResponseTimeForActionAndEnvir + " > " + realTreshold + " </failure>"
+          ret += "</testcase>"
+        }
+        ret += "</testsuite>"
+        ret = "<testsuites>" + ret + "</testsuites>"
+        Ok(ret).as(XML)
+      }
     }
-    val avgResponseTimeForActionAndEnvir = RequestData.loadAvgResponseTimesByEnvirAndAction(groupName, environmentName, serviceName, "200", minDate, maxDate, true)
-    var ret = ""
-    ret += "<testsuite name=\"" + serviceAction.get.name +"_on_environment_"+environmentName+ "\">"
-    if (avgResponseTimeForActionAndEnvir != -1) {
-      ret += "<testcase classname='" + serviceAction.get.name + "' name='" + serviceAction.get.name + "' time='" + (avgResponseTimeForActionAndEnvir.toFloat / 1000).toFloat + "'>"
-      if (avgResponseTimeForActionAndEnvir > realTreshold) ret += "<failure type='NotEnoughFoo'> Response Time > Threshold: " + avgResponseTimeForActionAndEnvir + " > " + realTreshold + " </failure>"
-      ret += "</testcase>"
-    }
-    ret += "</testsuite>"
-    ret = "<testsuites>" + ret + "</testsuites>"
-    Ok(ret).as(XML)
   }
 
   /**
@@ -142,7 +153,6 @@ object Stats extends Controller {
           case _ =>
             treshold.get
         }
-
 
         val avgResponseTimeForAction = RequestData.loadAvgResponseTimesBySpecificAction(groupName, serviceName, "200", minDate, maxDate, true)
 

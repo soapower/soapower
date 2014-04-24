@@ -506,10 +506,12 @@ object RequestData {
         var whereClause = " where startTime >= {minDate} and startTime <= {maxDate} "
         if (!withStats) whereClause += " and isStats = 'false' "
         whereClause += " and serviceAction = \"" + serviceAction + "\""
+
         if (groupName != "all")
           whereClause += "and request_data.id = environment.id and environment.groupId = " + Group.options.find(t => t._2 == groupName).get._1
         else
           whereClause += "and request_data.environmentId = environment.id "
+
         whereClause += "and environment.name = \"" + environmentName + "\" "
         val fromClause = " from request_data, environment, groups "
 
@@ -521,14 +523,12 @@ object RequestData {
             'maxDate -> maxDate)
           .as(get[Long]("timeInMillis") *)
           .toList
-        Logger.debug("EAEZAEAE   "+responseTimes.toString)
         val times = responseTimes.slice(0, responseTimes.size * 9 / 10)
-          if (responseTimes.size != 0 && times.size != 0) {
+        if (responseTimes.size != 0 && times.size != 0) {
           avg = times.sum / times.size
         }
-        Logger.debug(responseTimes.toString)
     }
-    return avg
+    avg
   }
 
   def loadAvgResponseTimesBySpecificAction(groupName: String, serviceAction: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): Long = {
