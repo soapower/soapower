@@ -64,6 +64,20 @@ case class RequestData(_id: Option[BSONObjectID],
     }
     */
   }
+  def toSimpleJson: JsObject = {
+    Json.obj(
+      "_id" -> _id,
+      "status" -> status,
+      "environmentName" -> environmentName,
+      "sender" -> sender,
+      "serviceAction" -> serviceAction,
+      "startTime" -> startTime.toString(),
+      "timeInMillis" -> timeInMillis,
+      "request" -> "TODO",
+      "response" -> "TODO"
+    )
+
+  }
 }
 
 object RequestData {
@@ -311,12 +325,9 @@ object RequestData {
     requestData.response = contentResponse
 */
 
-    Logger.debug("################ AAA")
     val f = collection.insert(requestData)
     f.onFailure {
       case t => {
-        Logger.error("ERROR")
-        t.printStackTrace()
         new Exception("An unexpected server error has occured: " + t.getMessage)
       }
     }
@@ -324,8 +335,6 @@ object RequestData {
       lastError =>
         Logger.debug(s"Successfully inserted RequestData with LastError: $lastError")
     }
-
-    Logger.debug("################ BBB")
     requestData._id
   }
 

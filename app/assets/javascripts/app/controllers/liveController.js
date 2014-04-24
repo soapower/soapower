@@ -10,15 +10,15 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
     $scope.port = $location.port();
 
     // leave the page -> close websocket
-    $scope.$on('$locationChangeStart', function (event, next, current) {
+    $scope.$on('$locationChangeStart', function () {
         if ($scope.isLiveOn == true && angular.isDefined($scope.socketLive)) {
-            console.log("Websocket force closed")
+            console.log("Websocket force closed");
             $scope.socketLive.close();
         }
     });
 
     var receiveEvent = function (event) {
-        var data = JSON.parse(event.data)
+        var data = JSON.parse(event.data);
 
         // Handle errors
         if (data.error || data.kind == "error") {
@@ -37,12 +37,12 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
         }
 
         if (data.kind == "talkRequestData") {
-            $scope.liveData.push(data.message["0"])
+            $scope.liveData.push(data.message)
         }
 
         $scope.nbConnected = data.members.length - 1;// substract Robot
         $scope.$apply();
-    }
+    };
 
     $scope.stopWS = function () {
         if ($scope.isLiveOn == true && angular.isDefined($scope.socketLive)) {
@@ -52,19 +52,19 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
             console.log("Websocket already closed")
         }
         $scope.isLiveOn = false;
-    }
+    };
 
     $scope.startWS = function () {
         if ($scope.isLiveOn == false) {
             $scope.isLiveOn = true;
-            var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
-            $scope.socketLive = new WS("ws://" + $location.host() + ":" + $location.port() + "/live/socket")
+            var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket;
+            $scope.socketLive = new WS("ws://" + $location.host() + ":" + $location.port() + "/live/socket");
             console.log("Websocket started");
             $scope.socketLive.onmessage = receiveEvent
         } else {
             console.log("Websocket already started");
         }
-    }
+    };
 
     if ($routeParams.search) {
         $scope.filterSearch = $routeParams.search;

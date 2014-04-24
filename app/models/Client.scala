@@ -235,7 +235,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       scala.concurrent.Future {
         requestData.request = checkNullOrEmpty(content)
         requestData.storeServiceActionAndStatusInCache()
-        val id = RequestData.insert(requestData)
+        RequestData.insert(requestData)
         Robot.talk(requestData)
       }.map {
         result =>
