@@ -156,7 +156,7 @@ object Service {
    * @param environmentName Name of environment
    * @return service
    */
-  def findByLocalTargetAndEnvironmentName(localTarget: String, environmentName: String): Option[Service] = {
+  def findByLocalTargetAndEnvironmentName(typeRequest: String, localTarget: String, environmentName: String, httpMethod: String = Service.POST): Option[Service] = {
     val serviceKey = environmentName + "/" + localTarget
     val service = Cache.getAs[Service](serviceKey);
 
@@ -174,8 +174,10 @@ object Service {
             where service.typeRequest like {typeRequest}
             and service.localTarget like {localTarget}
             and environment.name like {environmentName}
+            and service.httpMethod like {httpMethod}
             """).on(
-              'typeRequest -> "soap",
+              'httpMethod -> httpMethod,
+              'typeRequest -> typeRequest,
               'localTarget -> localTarget,
               'environmentName -> environmentName
             ).as(Service.simple.singleOpt)
@@ -396,7 +398,8 @@ object Service {
   private def uploadService(dataCsv: Array[String], environment: Environment, mockGroup : MockGroup) = {
 
     val localTarget = dataCsv(csvTitle.get("localTarget").get)
-    val s = findByLocalTargetAndEnvironmentName(localTarget, environment.name)
+    val typeRequest = dataCsv(csvTitle.get("typeRequest").get)
+    val s = findByLocalTargetAndEnvironmentName(typeRequest, localTarget, environment.name)
 
     s.map {
       service =>
