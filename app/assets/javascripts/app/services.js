@@ -322,11 +322,11 @@ spApp.factory('ReplayService', function ($http, $rootScope, $location, Service) 
             Service.get({environmentName: environmentName, serviceId: serviceId}, function (service) {
                     var url = '';
                     var contentTypeForRequest = '';
-                    if (service.typeRequest == "soap") {
+                    if (service.typeRequest == "SOAP") {
                         // SOAP service
                         url = '/replay/soap/' + id;
                         contentTypeForRequest = "application/xml"
-                    } else {
+                    } else if (service.typeRequest == "REST") {
                         // REST service
                         url = '/replay/rest/' + id;
                         if (service.httpMethod == "get" || service.httpMethod == "delete") {
@@ -335,6 +335,8 @@ spApp.factory('ReplayService', function ($http, $rootScope, $location, Service) 
                         } else {
                             contentTypeForRequest = contentType;
                         }
+                    } else {
+                        alert("Error with type Request : " + service.typeRequest)
                     }
                     // perform the request
                     $http({ method: "POST",

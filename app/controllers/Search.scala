@@ -9,8 +9,10 @@ import play.api.http.{ContentTypes, HeaderNames}
 import scala.xml.PrettyPrinter
 import org.xml.sax.SAXParseException
 import java.net.URLDecoder
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 import ExecutionContext.Implicits.global
+import play.api.Logger
+import reactivemongo.bson.{BSONObjectID, BSONDocument}
 
 case class Search(environmentId: Long)
 
@@ -33,31 +35,9 @@ object Search extends Controller {
    * @param asFile "true" or "false"
    * @return
    */
-  def downloadRequest(id: String, asFile: String) = Action {
-    // Retrieve the request content and the requestContentType in a Tuple
-    ???
-    //TODO
-    /*
-    val request = RequestData.loadRequest(id)
-
-    val format = request._2 match {
-      case "application/xml" | "text/xml" =>
-        "XML"
-      case "application/json" =>
-        "JSON"
-      case _ =>
-        "TEXT"
-    }
-
-    request._1 match {
-      case Some(str: String) => {
-        downloadInCorrectFormat(request._1.get, id, format, asFile, true)
-      }
-      case _ =>
-        NotFound("The request does not exist")
-    }
-    */
-    BadRequest("TODO")
+  def downloadRequest(id: String, asFile: String) = Action.async {
+    val future = RequestData.loadRequest(id)
+    downloadInCorrectFormat(future, id, ("true".equals(asFile)), true)
   }
 
   /**
@@ -66,49 +46,25 @@ object Search extends Controller {
    * @param asFile "true" or "false"
    * @return
    */
-  def downloadResponse(id: String, asFile: String) = Action {
-    ???
-    //TODO
-    /*
-    val response = RequestData.loadResponse(id)
-
-    val format = response._2 match {
-      case "application/xml" | "text/xml" =>
-        "XML"
-      case "application/json" =>
-        "JSON"
-      case _ =>
-        if (response._2.startsWith("application/xml") || (response._2.startsWith("text/xml"))) {
-          "XML"
-        } else if (response._2.startsWith("application/json")) {
-          "JSON"
-        } else {
-          "TEXT"
-        }
-    }
-
-    response._1 match {
-      case Some(str: String) => {
-        downloadInCorrectFormat(response._1.get, id, format, asFile, false)
-      }
-      case _ =>
-        NotFound("The response does nots exist")
-    }
-    */
-    BadRequest("TODO")
+  def downloadResponse(id: String, asFile: String) = Action.async {
+    val future = RequestData.loadResponse(id)
+    downloadInCorrectFormat(future, id, ("true".equals(asFile)), false)
   }
 
 
   /**
    * Download the response / request in the correct format
-   * @param str the requestContent
-   * @param id of the requestData
-   * @param format format in which the requestContent will be displayed
+   * @param future the request or response Content
    * @param asFile
    * @param isRequest
    * @return
    */
-  def downloadInCorrectFormat(str: String, id: Long, format: String, asFile: Boolean, isRequest: Boolean) = {
+  //def downloadInCorrectFormat(str: String, id: String, format: String, asFile: Boolean, isRequest: Boolean) = {
+  def downloadInCorrectFormat(future: Future[Option[BSONDocument]], id: String, asFile: Boolean, isRequest: Boolean) = {
+
+    val keyContent = {
+      if (isRequest) "request" else "response"
+    }
     var filename = ""
     if (isRequest) {
       filename = "request-" + id
@@ -119,58 +75,71 @@ object Search extends Controller {
 
     var contentInCorrectFormat = ""
 
-    format match {
-      case "XML" => {
-        try {
-          contentInCorrectFormat = new PrettyPrinter(250, 4).format(scala.xml.XML.loadString(str))
-          filename += ".xml"
-        } catch {
-          case e: SAXParseException => contentInCorrectFormat = str
-            filename += ".txt"
-        }
+    future.map {
+      tuple => tuple match {
+        case Some(doc: BSONDocument) => {
+          val contentType = tuple.get.getAs[String]("contentType").get
+          val content = tuple.get.getAs[String](keyContent).get
 
-        var result = SimpleResult(
-          header = ResponseHeader(play.api.http.Status.OK),
-          body = Enumerator(contentInCorrectFormat.getBytes))
-        if (asFile) {
-          result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
-          result.as(XML)
-        } else {
-          result.as(TEXT)
-        }
-      }
-      case "JSON" => {
-        try {
-          contentInCorrectFormat = Json.parse(str).toString
-          filename += ".json"
-        }
-        catch {
-          case e: Exception => {
-            contentInCorrectFormat = str
-            filename += ".txt"
+          contentType match {
+            case "application/xml" | "text/xml" => {
+              try {
+                contentInCorrectFormat = new PrettyPrinter(250, 4).format(scala.xml.XML.loadString(content))
+                filename += ".xml"
+              } catch {
+                case e: SAXParseException => contentInCorrectFormat = content
+                  filename += ".txt"
+              }
+
+              var result = SimpleResult(
+                header = ResponseHeader(play.api.http.Status.OK),
+                body = Enumerator(contentInCorrectFormat.getBytes))
+              if (asFile) {
+                result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
+                result.as(XML)
+              } else {
+                result.as(TEXT)
+              }
+            }
+
+            case "application/json" => {
+              try {
+                contentInCorrectFormat = Json.parse(content).toString
+                filename += ".json"
+              }
+              catch {
+                case e: Exception =>
+                  contentInCorrectFormat = content
+                  filename += ".txt"
+              }
+              var result = SimpleResult(
+                header = ResponseHeader(play.api.http.Status.OK),
+                body = Enumerator(contentInCorrectFormat.getBytes))
+              if (asFile) {
+                result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
+                result.as(JSON)
+              } else {
+                result.as(TEXT)
+              }
+            }
+            case _ => {
+              filename += ".txt"
+              var result = SimpleResult(
+                header = ResponseHeader(play.api.http.Status.OK),
+                body = Enumerator(content.getBytes))
+              if (asFile) {
+                result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
+              }
+              result.as(TEXT)
+            }
+
           }
         }
-        var result = SimpleResult(
-          header = ResponseHeader(play.api.http.Status.OK),
-          body = Enumerator(contentInCorrectFormat.getBytes))
-        if (asFile) {
-          result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
-          result.as(JSON)
-        } else {
-          result.as(TEXT)
-        }
-      }
-      case _ => {
-        filename += ".txt"
-        var result = SimpleResult(
-          header = ResponseHeader(play.api.http.Status.OK),
-          body = Enumerator(str.getBytes))
-        if (asFile) {
-          result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
-        }
-        result.as(TEXT)
+        case _ =>
+          NotFound("The request does not exist")
       }
     }
+
   }
 }
 

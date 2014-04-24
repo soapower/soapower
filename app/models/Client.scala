@@ -173,9 +173,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       futureResponse = wsRequestHolder.post(content)
       // wait for the response
       waitForResponse(headers)
-
     } catch {
-
       case e: Throwable =>
         processError("post", "xml", e)
     }
