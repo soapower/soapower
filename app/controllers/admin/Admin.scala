@@ -71,11 +71,12 @@ object Admin extends Controller {
 
     def f: Future[Unit] = {
       for {
-        environments <- Environment.fetchCsv() // Environment.fetchCsv
+        environments <- Environment.fetchCsv()
+        mockGroups <- MockGroup.fetchCsv()
+        services <- Service.fetchCsv()
         // TODO
         servicesActions <- Environment.fetchCsv() // ServiceAction.fetchCsv
-        mockGroups <- MockGroup.fetchCsv() // MockGroup.fetchCsv
-        services <- Service.fetchCsv() // Service.fetchCsv
+
       } yield combine(environments ++ servicesActions ++ mockGroups ++ services)
     }
 

@@ -431,7 +431,7 @@ object RequestData {
     )
 
     Logger.debug(maxDateTime.getMillis.toString)
-    
+
     val modifier = BSONDocument(
       "$set" -> BSONDocument(
         "response" -> "",
