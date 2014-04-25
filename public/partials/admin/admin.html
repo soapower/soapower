@@ -35,42 +35,29 @@
 <form name="deleteForm" class="form-horizontal" novalidate>
 
     <div class="form-group">
-
-        <span ng-click="showminDate = !showminDate">
-            <label class="control-label"> From : </label>
-
-            <div class="controls">{{minDate | date:'yyyy-MM-dd'}}
-                <span class="alert alert-error" ng-show="deleteForm.minDate.$error.required">Click to select</span>
-            </div>
-
-        </span>
-
-        <div ng-show="showminDate">
-            <datepicker ng-model="minDate" starting-day="1"></datepicker>
+        <label for="from"> From : </label>
+        <input ng-model="mindate" name="mindate" class="input-small" type="text" ng-click="showmindate = !showmindate"/>
+        <div ng-show="showmindate" >
+            <datetimepicker ng-model="mindatecalendar" data-on-set-time="onMinTimeSet" starting-day="1" data-datetimepicker-config="{ minuteStep: 5 }"></datetimepicker>
         </div>
-        <input name="minDate" type="hidden" ng-model="minDate" required>
+        <input class="input-small" type="hidden" id="from" ng-model="mindatecalendar" ng-click="showmindate = !showmindate"/>
     </div>
 
     <div class="form-group">
-        <span ng-click="showmaxDate = !showmaxDate">
-        <label class="control-label">To : </label>
-            <div class="controls">{{maxDate | date:'yyyy-MM-dd'}}
-                <span class="alert alert-error" ng-show="deleteForm.maxDate.$error.required">Click to select</span>
-            </div>
-        </span>
-
-        <div ng-show="showmaxDate">
-            <datepicker ng-model="maxDate" starting-day="1"></datepicker>
+        <label for="To" > To : </label>
+        <input name="maxdate" ng-model="maxdate" class="input-small" type="text" ng-click="showmaxdate = !showmaxdate" />
+        <div ng-show="showmaxdate" >
+            <datetimepicker ng-model="maxdatecalendar" data-on-set-time="onMaxTimeSet" starting-day="1" data-datetimepicker-config="{ minuteStep: 5 }"></datetimepicker>
         </div>
-        <input name="maxDate" type="hidden" ng-model="maxDate" required>
+        <input class="input-small" type="hidden" id="to" ng-model="maxdate" ng-click="showmaxdate = !showmaxdate"/>
     </div>
 
     <div class="form-group">
         <label class="control-label" for="environment"> Environment : </label>
 
         <div class="controls">
-            <select ng-model="deleteForm.environment" id="environment" ng-required
-                    ng-options="environment.name for environment in environments"></select>
+            <select ui-select2 ng-model="deleteForm.environment" id="environment" ng-required
+                    ng-options="environment.name for environment in environments" style="width:30%;"></select>
         </div>
     </div>
 

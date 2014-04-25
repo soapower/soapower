@@ -26,7 +26,11 @@ GET           /rest/:environment/*call                                          
 POST          /rest/:environment/*call                                                                      controllers.Rest.index(environment, call)
 PUT           /rest/:environment/*call                                                                      controllers.Rest.index(environment, call)
 POST          /replay/rest/:id                                                                              controllers.Rest.replay(id:String)
-#POST         /autorest/:group/:environment/*remoteTarget                                                   controllers.Rest.autoIndex(group, environment, remoteTarget)
+
+DELETE        /autorest/:group/:environment/*remoteTarget                                                   controllers.Rest.autoIndex(group, environment, remoteTarget)
+GET           /autorest/:group/:environment/*remoteTarget                                                   controllers.Rest.autoIndex(group, environment, remoteTarget)
+PUT           /autorest/:group/:environment/*remoteTarget                                                   controllers.Rest.autoIndex(group, environment, remoteTarget)
+POST          /autorest/:group/:environment/*remoteTarget                                                   controllers.Rest.autoIndex(group, environment, remoteTarget)
 
 # Soap
 POST          /soap/:environment/*localTarget                                                               controllers.Soap.index(environment, localTarget)
@@ -76,7 +80,7 @@ GET           /serviceactions/regenerate                                        
 GET           /status/findall                                                                               controllers.Status.findAll
 
 # Statistics on ServiceActions by environments
-GET           /statsAsJunit/:group/:minDate/:maxDate/                                                       controllers.Stats.statsAsJunit(group, minDate, maxDate, environment: Option[String], treshold: Option[Long], percentile: Option[Int])
+GET           /statsAsJunit/:group/:minDate/:maxDate                                                        controllers.Stats.statsAsJunit(group, minDate, maxDate, environment: Option[String], service: Option[String], treshold: Option[Long])
 GET           /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable                            controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
 
 # Download SOAP and Rest request and <response
