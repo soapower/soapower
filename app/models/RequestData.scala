@@ -14,6 +14,12 @@ import collection.mutable.Set
 import java.util.zip.{GZIPOutputStream, GZIPInputStream}
 import java.nio.charset.Charset
 import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
+import play.api.libs.json.JsString
+import scala.Some
+import anorm.~
+import anorm.MetaDataItem
+import anorm.TypeDoesNotMatch
+import play.api.libs.json.JsObject
 
 case class RequestData(
                         var id: Pk[Long],
@@ -221,7 +227,7 @@ object RequestData {
       Logger.debug(msg)
     } else if (requestData.status != 200 || (
       environment.hourRecordContentDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
-      environment.hourRecordContentDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
+        environment.hourRecordContentDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
       // Record Data if it is a soap fault (status != 200) or
       // if we can record data with environment's configuration (hours of recording)
       requestContent = compressString(requestData.request)
@@ -254,20 +260,20 @@ object RequestData {
               {sender}, {serviceAction}, {environmentId}, {serviceId}, {request}, {requestHeaders}, {contentType}, {requestCall}, {startTime}, {response}, {responseHeaders}, {timeInMillis}, {status}, {isMock}
             )
             """).on(
-            'sender -> requestData.sender,
-            'serviceAction -> requestData.serviceAction,
-            'environmentId -> requestData.environmentId,
-            'serviceId -> requestData.serviceId,
-            'request -> requestContent,
-            'requestHeaders -> UtilConvert.headersToString(requestData.requestHeaders),
-            'contentType -> requestData.contentType,
-            'requestCall -> requestData.requestCall,
-            'startTime -> requestData.startTime,
-            'response -> responseContent,
-            'responseHeaders -> UtilConvert.headersToString(requestData.responseHeaders),
-            'timeInMillis -> requestData.timeInMillis,
-            'status -> requestData.status,
-            'isMock -> requestData.isMock.toString
+              'sender -> requestData.sender,
+              'serviceAction -> requestData.serviceAction,
+              'environmentId -> requestData.environmentId,
+              'serviceId -> requestData.serviceId,
+              'request -> requestContent,
+              'requestHeaders -> UtilConvert.headersToString(requestData.requestHeaders),
+              'contentType -> requestData.contentType,
+              'requestCall -> requestData.requestCall,
+              'startTime -> requestData.startTime,
+              'response -> responseContent,
+              'responseHeaders -> UtilConvert.headersToString(requestData.responseHeaders),
+              'timeInMillis -> requestData.timeInMillis,
+              'status -> requestData.status,
+              'isMock -> requestData.isMock.toString
             ).executeInsert()
       } match {
         case Some(long) => long // The Primary Key
@@ -299,9 +305,9 @@ object RequestData {
             and serviceAction = {serviceAction}
             """
           ).on(
-            'serviceAction -> serviceAction,
-            'environmentId -> environmentId,
-            'startTime -> startTime).executeUpdate()
+              'serviceAction -> serviceAction,
+              'environmentId -> environmentId,
+              'startTime -> startTime).executeUpdate()
 
           Logger.debug("Purged " + purgedStats + " existing stats for:" + environmentId + " serviceAction: " + serviceAction + " and startTime:" + startTime)
 
@@ -312,10 +318,10 @@ object RequestData {
               '', {serviceAction}, {environmentId}, '', '', {startTime}, '', '', {timeInMillis}, 200, 'true', 'false'
             )
             """).on(
-            'serviceAction -> serviceAction,
-            'environmentId -> environmentId,
-            'startTime -> startTime,
-            'timeInMillis -> timeInMillis).executeUpdate()
+              'serviceAction -> serviceAction,
+              'environmentId -> environmentId,
+              'startTime -> startTime,
+              'timeInMillis -> timeInMillis).executeUpdate()
       }
     } catch {
       case e: Exception => Logger.error("Error during insertion of RequestData Stats", e)
@@ -349,8 +355,8 @@ object RequestData {
             where startTime >= {minDate} and startTime <= {maxDate} and purged = 'false' and isStats = 'false'
           """
             + sqlAndEnvironnement(environmentIn)).on(
-          'minDate -> minDate,
-          'maxDate -> maxDate).executeUpdate()
+            'minDate -> minDate,
+            'maxDate -> maxDate).executeUpdate()
 
         Cache.remove(keyCacheServiceAction)
         Cache.remove(keyCacheStatusOptions)
@@ -374,8 +380,8 @@ object RequestData {
             and isStats = 'false'
           """
             + sqlAndEnvironnement(environmentIn)).on(
-          'minDate -> minDate,
-          'maxDate -> maxDate).executeUpdate()
+            'minDate -> minDate,
+            'maxDate -> maxDate).executeUpdate()
         Cache.remove(keyCacheServiceAction)
         Cache.remove(keyCacheStatusOptions)
         deletedRequests
@@ -493,6 +499,74 @@ object RequestData {
     }
   }
 
+  def loadAvgResponseTimesByEnvirAndAction(groupName: String, environmentName: String, serviceAction: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): Long = {
+    var avg = -1.toLong
+    DB.withConnection {
+      implicit connection =>
+        var whereClause = " where startTime >= {minDate} and startTime <= {maxDate} "
+        if (!withStats) whereClause += " and isStats = 'false' "
+        whereClause += " and serviceAction = \"" + serviceAction + "\""
+
+        if (groupName != "all")
+          whereClause += "and request_data.id = environment.id and environment.groupId = " + Group.options.find(t => t._2 == groupName).get._1
+        else
+          whereClause += "and request_data.environmentId = environment.id "
+
+        whereClause += "and environment.name = \"" + environmentName + "\" "
+        val fromClause = " from request_data, environment, groups "
+
+        val sql = "select timeInMillis " + fromClause + whereClause + " order by timeInMillis asc"
+        Logger.debug("SQL (loadAvgResponseTimesByEnvirAndAction) ====> " + sql)
+        val responseTimes = SQL(sql)
+          .on(
+            'minDate -> minDate,
+            'maxDate -> maxDate)
+          .as(get[Long]("timeInMillis") *)
+          .toList
+        val times = responseTimes.slice(0, responseTimes.size * 9 / 10)
+        if (responseTimes.size != 0 && times.size != 0) {
+          avg = times.sum / times.size
+        }
+    }
+    avg
+  }
+
+  def loadAvgResponseTimesBySpecificAction(groupName: String, serviceAction: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): Long = {
+    var avg = -1.toLong
+    DB.withConnection {
+      implicit connection =>
+        var whereClause = " where startTime >= {minDate} and startTime <= {maxDate} "
+        whereClause += sqlAndStatus(status)
+        if (!withStats) whereClause += " and isStats = 'false' "
+        Logger.debug("Load Stats with ServiceAction: " + serviceAction)
+        whereClause += " and serviceAction = \"" + serviceAction + "\""
+
+        if (groupName != "all")
+          whereClause += "and request_data.id = environment.id and environment.groupId = " + Group.options.find(t => t._2 == groupName).get._1
+        else
+          whereClause += "and request_data.environmentId = environment.id"
+
+        val fromClause = " from request_data, environment, groups "
+        val sql = "select timeInMillis " + fromClause + whereClause + " order by timeInMillis asc"
+        Logger.debug("SQL (loadAvgResponseTimesBySpecificAction) ====> " + sql)
+
+        val responseTimes = SQL(sql)
+          .on(
+            'minDate -> minDate,
+            'maxDate -> maxDate)
+          .as(get[Long]("timeInMillis") *)
+          .toList
+
+
+
+        val times = responseTimes.slice(0, responseTimes.size * 9 / 10)
+        if (responseTimes.size != 0 && times.size != 0) {
+          avg = times.sum / times.size;
+        }
+    }
+    avg
+  }
+
   def loadAvgResponseTimesByAction(groupName: String, environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {
     DB.withConnection {
       implicit connection =>
@@ -514,8 +588,8 @@ object RequestData {
 
         val responseTimes = SQL(sql)
           .on(
-          'minDate -> minDate,
-          'maxDate -> maxDate)
+            'minDate -> minDate,
+            'maxDate -> maxDate)
           .as(get[String]("serviceAction") ~ get[Long]("timeInMillis") *)
           .map(flatten)
 
@@ -606,7 +680,7 @@ object RequestData {
     }
   }
 
-  private def sqlAndStatus(statusIn : String) : String = {
+  private def sqlAndStatus(statusIn: String): String = {
 
     var status = ""
     if (statusIn != "all") {

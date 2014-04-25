@@ -44,7 +44,7 @@ object Soap extends Controller {
       Logger.info("Automatic service detection request on group: " + group + " environment:" + environment + " remoteTarget: " + remoteTarget)
 
       // Extract local target from the remote target
-      val localTarget = extractPathFromURL(remoteTarget)
+      val localTarget = UtilExtract.extractPathFromURL(remoteTarget)
 
       if (!localTarget.isDefined) {
         val err = "Invalid remoteTarget:" + remoteTarget
@@ -53,7 +53,7 @@ object Soap extends Controller {
       }
 
       // Search the corresponding service
-      val optionService = Service.findByLocalTargetAndEnvironmentName(localTarget.get, environment)
+      val optionService = Service.findByLocalTargetAndEnvironmentName(Service.SOAP, localTarget.get, environment)
 
       var service: Service = null.asInstanceOf[Service]
 
@@ -142,7 +142,7 @@ object Soap extends Controller {
   }
 
   private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String], requestContentType: String): SimpleResult = {
-    val service = Service.findByLocalTargetAndEnvironmentName(localTarget, environmentName)
+    val service = Service.findByLocalTargetAndEnvironmentName(Service.SOAP, localTarget, environmentName)
 
     service.map {
       service =>
@@ -168,29 +168,6 @@ object Soap extends Controller {
       val err = "environment " + environmentName + " with localTarget " + localTarget + " unknown"
       Logger.error(err)
       BadRequest(err)
-    }
-  }
-
-  /**
-   * An url is composed of the following members :
-   * protocol://host:port/path
-   * This operation return the URL's path
-   * @param textualURL The url from which extract and return the path
-   * @return The url's path or none if it's not a URL with a valid path
-   */
-  private def extractPathFromURL(textualURL: String): Option[String] = {
-    try {
-      // Search the first "/" since index 10 (http://) to find the third "/"
-      // and take the String from this index
-      // Add +1 to remove the / to have path instead of /path
-      // Using substring and not java.net.URL,
-      // explanations : https://github.com/soapower/soapower/pull/33#issuecomment-21371242
-      Some(textualURL.substring(textualURL.indexOf("/", 10) + 1))
-    } catch {
-      case e: IndexOutOfBoundsException => {
-        Logger.error("Invalid remoteTarget:" + textualURL)
-        None
-      }
     }
   }
 

@@ -15,10 +15,10 @@ GET           /admin/downloadRequestDataStatsEntries                            
 POST          /admin/uploadConfiguration                                                                 controllers.Admin.uploadConfiguration
 
 # Search page
-GET           /search/:group/:environment/:serviceAction/:minDate/:maxDate/:status/listDatatable            controllers.Search.listDatatable(group, environment, serviceAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
+GET           /search/:group/:environment/:serviceAction/:minDate/:maxDate/:status/listDatatable         controllers.Search.listDatatable(group, environment, serviceAction, minDate, maxDate, status, sSearch:String, iDisplayStart: Int, iDisplayLength: Int)
 
 # Analysis page
-GET           /analysis/:group/:environment/:serviceAction/:minDate/:maxDate/:status/:statsOnly/load        controllers.Analysis.load(group, environment, serviceAction, minDate, maxDate, status, statsOnly)
+GET           /analysis/:group/:environment/:serviceAction/:minDate/:maxDate/:status/:statsOnly/load     controllers.Analysis.load(group, environment, serviceAction, minDate, maxDate, status, statsOnly)
 
 # Soap
 POST          /soap/:environment/*localTarget                                                            controllers.Soap.index(environment, localTarget)
@@ -30,6 +30,12 @@ DELETE        /rest/:environment/*call                                          
 GET           /rest/:environment/*call                                                                   controllers.Rest.index(environment, call)
 POST          /rest/:environment/*call                                                                   controllers.Rest.index(environment, call)
 PUT           /rest/:environment/*call                                                                   controllers.Rest.index(environment, call)
+
+DELETE        /autorest/:group/:environment/*remoteTarget                                                controllers.Rest.autoIndex(group, environment, remoteTarget)
+GET           /autorest/:group/:environment/*remoteTarget                                                controllers.Rest.autoIndex(group, environment, remoteTarget)
+PUT           /autorest/:group/:environment/*remoteTarget                                                controllers.Rest.autoIndex(group, environment, remoteTarget)
+POST          /autorest/:group/:environment/*remoteTarget                                                controllers.Rest.autoIndex(group, environment, remoteTarget)
+
 POST          /replay/rest/:id                                                                           controllers.Rest.replay(id:Long)
 
 #POST         /autorest/:group/:environment/*remoteTarget                                                controllers.Rest.autoIndex(group, environment, remoteTarget)
@@ -82,7 +88,8 @@ POST          /serviceactions/:id                                               
 GET           /status/findall                                                                            controllers.Status.findAll
 
 # Statistics on ServiceActions by environments
-GET           /statsAsJunit/:group/:minDate/:maxDate/                                                    controllers.Stats.statsAsJunit(group, minDate, maxDate)
+GET           /statsAsJunit/:group/:minDate/:maxDate                                                     controllers.Stats.statsAsJunit(group, minDate, maxDate, environment: Option[String], service: Option[String], treshold: Option[Long])
+
 GET           /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable                         controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
 
 # Download SOAP and Rest request and response
