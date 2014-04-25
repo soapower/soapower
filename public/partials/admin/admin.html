@@ -56,8 +56,9 @@
         <label class="control-label" for="environment"> Environment : </label>
 
         <div class="controls">
-            <select ui-select2 ng-model="deleteForm.environment" id="environment" ng-required
-                    ng-options="environment.name for environment in environments" style="width:30%;"></select>
+            <select ui-select2 ng-model="envir" id="environment" style="width:30%;" ng-required="true">
+                <option ng-repeat="environment in environments" value="{{ environment.name }}">{{ environment.name }}</option>
+            </select>
         </div>
     </div>
 
