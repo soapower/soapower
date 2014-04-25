@@ -2,7 +2,6 @@ package controllers
 
 import play.api.mvc._
 import play.api.libs.json._
-
 import models._
 import models.UtilDate._
 import java.util.Date
@@ -24,7 +23,7 @@ object Stats extends Controller {
   }
 
   def listDataTable(groupName: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String, status: String) = Action {
-        ???
+    ???
     /*
     implicit request =>
     // load thresholds
@@ -184,7 +183,6 @@ object Stats extends Controller {
     */
   }
 
-
   /**
    * Create a Junit XML test that test if the response times of a group are lower than
    * the treshold in parameter. If the treshold parameter is not defined, it will test if
@@ -198,6 +196,7 @@ object Stats extends Controller {
   def statsForGroup(groupName: String, minDate: Date, maxDate: Date, treshold: Option[Long]) = {
     ???
     /*
+
     var ret = ""
     treshold match {
       case None => {
@@ -289,6 +288,5 @@ object Stats extends Controller {
     ret = "<testsuites>" + ret + "</testsuites>"
     Ok(ret).as(XML)
     */
-    BadRequest("TODO")
   }
 }
