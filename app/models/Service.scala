@@ -249,9 +249,12 @@ object Service {
    */
   def upload(csvLine: String) = {
     val dataCsv = csvLine.split(";")
+
     if (dataCsv.size != csvTitle.size) {
+      Logger.error("Please check csvFile, " + csvTitle.size + " fields required")
       throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
     }
+
     if (dataCsv(csvTitle.get("key").get) == csvKey) {
       uploadService(dataCsv)
     } else {
@@ -270,8 +273,9 @@ object Service {
     val environmentName = dataCsv(csvTitle.get("environmentName").get)
     val localTarget = dataCsv(csvTitle.get("localTarget").get)
 
-    //TODO upload REST (typeRequest)
-    val f = findByLocalTargetAndEnvironmentName(Service.SOAP, localTarget, environmentName)
+    val typeRequest = dataCsv(csvTitle.get("typeRequest").get)
+    val f = findByLocalTargetAndEnvironmentName(typeRequest, localTarget, environmentName)
+
     val service = Await.result(f, 1.seconds)
     if (service.get != null) {
       // null comes from ServiceBSONReader
@@ -283,6 +287,7 @@ object Service {
         val m = Await.result(MockGroup.findByName(dataCsv(csvTitle.get("mockGroupName").get)), 1.seconds)
         if (m.isDefined) mockGroupId = Some(m.get._id.get.stringify)
       }
+
       val service = new Service(
         Some(BSONObjectID.generate),
         dataCsv(csvTitle.get("description").get).trim,
