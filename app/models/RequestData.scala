@@ -19,19 +19,24 @@ import scala.concurrent.{Await, Future}
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
 import scala.Some
-import reactivemongo.core.commands.RawCommand
+import reactivemongo.core.commands.{LastError, RawCommand}
 import reactivemongo.api.collections.default.BSONCollection
 import org.joda.time.DateTime
+import scala.Some
+import play.api.libs.json.JsObject
+import reactivemongo.api.collections.default.BSONCollection
+import play.api.http.HeaderNames
 import reactivemongo.bson.BSONDateTime
 import reactivemongo.bson.BSONBoolean
 import reactivemongo.bson.BSONString
 import scala.Some
-import reactivemongo.core.commands.RawCommand
 import reactivemongo.bson.BSONLong
 import reactivemongo.bson.BSONInteger
 import play.api.libs.json.JsObject
 import reactivemongo.api.collections.default.BSONCollection
-import play.api.http.HeaderNames
+import play.cache.Cache
+import java.text.{SimpleDateFormat, DateFormat}
+import scala.util.{Try, Success, Failure}
 
 case class RequestData(_id: Option[BSONObjectID],
                        sender: String,
@@ -412,7 +417,37 @@ object RequestData {
    * @param user use who delete the data : admin or akka
    */
   def deleteRequestResponse(environmentIn: String, minDate: Date, maxDate: Date, user: String): Int = {
-    ???
+    Logger.debug(environmentIn)
+
+    val minDateTime = new DateTime(minDate)
+    val maxDateTime = new DateTime(maxDate)
+
+    val selector = BSONDocument("environmentName" -> BSONString(environmentIn),
+      "startTime" -> BSONDocument(
+        "$gte" -> BSONDateTime(minDateTime.getMillis),
+        "$lt" -> BSONDateTime(maxDateTime.getMillis))
+    )
+
+
+
+    Logger.debug(maxDateTime.getMillis.toString)
+    Logger.debug(maxDateTime.getMillis.toString)
+
+    val modifier = BSONDocument(
+      "$set" -> BSONDocument(
+        "response" -> "",
+        "request" -> "",
+        "requestHeaders" -> "",
+        "responseHeaders" -> ""
+      ))
+
+    Cache.remove(keyCacheServiceAction)
+    Cache.remove(keyCacheStatusOptions)
+
+    collection.update(selector, modifier, multi=true)
+
+    return 0;
+
     /*
     Logger.debug("Environment:" + environmentIn + " mindate:" + minDate.getTime + " maxDate:" + maxDate.getTime)
     Logger.debug("EnvironmentSQL:" + sqlAndEnvironnement(environmentIn))

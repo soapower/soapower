@@ -114,22 +114,21 @@ object Admin extends Controller {
   implicit val adminFormat = Json.format[AdminForm]
 
   def delete = Action(parse.json) {
-    ???
-    //TODO
-    /*
-request =>
-  request.body.validate(adminFormat).map {
-    adminForm =>
-      val maxDate = new Date(adminForm.maxDate.getTime + ((24 * 60 * 60) - 1) * 1000) // 23h59,59s
-      Logger.debug("Delete min:" + adminForm.minDate + " max:" + maxDate)
-      adminForm.typeAction match {
-        case "xml-data" => RequestData.deleteRequestResponse(adminForm.environmentName, adminForm.minDate, maxDate, "Admin Soapower")
-        case "all-data" => RequestData.delete(adminForm.environmentName, adminForm.minDate, maxDate)
+
+    request =>
+      request.body.validate(adminFormat).map {
+        adminForm =>
+          val maxDate = new Date(adminForm.maxDate.getTime + ((24 * 60 * 60) - 1) * 1000) // 23h59,59s
+          Logger.debug("Delete min:" + adminForm.minDate + " max:" + maxDate)
+          adminForm.typeAction match {
+            case "xml-data" => RequestData.deleteRequestResponse(adminForm.environmentName, adminForm.minDate, maxDate, "Admin Soapower")
+              /*
+            case "all-data" => RequestData.delete(adminForm.environmentName, adminForm.minDate, maxDate)
+            */
+          }
+          Ok(toJson("success", "Success deleting data")).as(JSON)
+      }.recoverTotal {
+        e => Ok(toJson("error", "Detected error:" + JsError.toFlatJson(e))).as(JSON)
       }
-      Ok(toJson("success", "Success deleting data")).as(JSON)
-  }.recoverTotal {
-    e => Ok(toJson("error", "Detected error:" + JsError.toFlatJson(e))).as(JSON)
-  }
-  */
   }
 }
