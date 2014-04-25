@@ -26,16 +26,15 @@ object Admin extends Controller {
           Source.fromFile(fileUploaded.ref.file).getLines().foreach {
             line =>
               try {
-                if (line.startsWith(Service.csvKey)) {
+                if (line.startsWith(ServiceAction.csvKey)) {
+                  ServiceAction.upload(line)
+                } else if (line.startsWith(Service.csvKey)) {
                   Service.upload(line)
                 } else if (line.startsWith(Environment.csvKey)) {
                   Environment.upload(line)
-                } else if (line.startsWith(ServiceAction.csvKey)) {
-                  ServiceAction.upload(line)
                 } else if (line.startsWith(RequestData.csvKey)) {
                   RequestData.upload(line)
                 }
-
               } catch {
                 case e: Exception => {
                   err += e.getMessage

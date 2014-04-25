@@ -66,7 +66,7 @@ object Service {
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "typeRequest" -> 2, "httpMethod"-> 3, "description" -> 4, "localTarget" -> 5, "remoteTarget" -> 6, "timeoutms" -> 7, "recordContentData" -> 8, "recordData" -> 9, "environmentName" -> 10, "mockGroupName" -> 11)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "typeRequest" -> 2, "httpMethod"-> 3, "description" -> 4, "localTarget" -> 5, "remoteTarget" -> 6, "timeoutms" -> 7, "recordContentData" -> 8, "recordData" -> 9, "useMockGroup" -> 10, "environmentName" -> 11, "mockGroupName" -> 12)
 
   val csvKey = "service";
 
@@ -375,8 +375,10 @@ object Service {
 
     val dataCsv = csvLine.split(";")
 
-    if (dataCsv.size != csvTitle.size)
+    if (dataCsv.size != csvTitle.size) {
+      Logger.error("Please check csvFile, " + csvTitle.size + " fields required")
       throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
+    }
 
     if (dataCsv(csvTitle.get("key").get) == csvKey) {
       val environment = uploadEnvironment(dataCsv)
@@ -406,7 +408,6 @@ object Service {
         Logger.warn("Service " + environment.name + "/" + localTarget + " already exist")
         throw new Exception("Warning : Service " + environment.name + "/" + localTarget + " already exist")
     }.getOrElse {
-
       val service = new Service(
         -1,
         dataCsv(csvTitle.get("typeRequest").get).trim,
