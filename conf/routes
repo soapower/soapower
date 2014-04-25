@@ -79,16 +79,9 @@ GET           /status/findall                                                   
 GET           /statsAsJunit/:group/:minDate/:maxDate/                                                       controllers.Stats.statsAsJunit(group, minDate, maxDate, environment: Option[String], treshold: Option[Long], percentile: Option[Int])
 GET           /stats/:group/:environment/:minDate/:maxDate/:status/listDatatable                            controllers.Stats.listDataTable(group, environment, minDate, maxDate, status)
 
-<<<<<<< HEAD
-
-# Download SOAP and Rest request and response
-GET           /download/request/:id                                                                         controllers.Search.downloadRequest(id:Long, asFile: Boolean ?= false)
-GET           /download/response/:id                                                                        controllers.Search.downloadResponse(id:Long, asFile: Boolean ?= false)
-=======
 # Download SOAP and Rest request and <response
 GET           /download/request/:id/:asFile                                                                 controllers.Search.downloadRequest(id:String, asFile: String)
 GET           /download/response/:id/:asFile                                                                controllers.Search.downloadResponse(id:String, asFile: String)
->>>>>>> 9b17184f63f3a0a565ea96eee251ea6fc7890a0b
 
 # Monitoring
 GET           /monitor/logfile                                                                              controllers.admin.Monitor.logfile
