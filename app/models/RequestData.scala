@@ -80,6 +80,7 @@ case class RequestData(_id: Option[BSONObjectID],
     }
     */
   }
+
   def toSimpleJson: JsObject = {
     Json.obj(
       "_id" -> _id,
@@ -104,17 +105,19 @@ object RequestData {
 
   implicit object MapBSONWriter extends BSONDocumentWriter[Map[String, String]] {
     def write(m: Map[String, String]): BSONDocument = {
-      val elements = m.toStream.map { tuple =>
-        tuple._1 -> BSONString(tuple._2)
+      val elements = m.toStream.map {
+        tuple =>
+          tuple._1 -> BSONString(tuple._2)
       }
       BSONDocument(elements)
     }
   }
 
-  implicit object MapBSONReader extends  BSONDocumentReader[Map[String, String]] {
+  implicit object MapBSONReader extends BSONDocumentReader[Map[String, String]] {
     def read(bson: BSONDocument): Map[String, String] = {
-      val elements = bson.elements.map { tuple =>
-        tuple._1 -> tuple._2.toString
+      val elements = bson.elements.map {
+        tuple =>
+          tuple._1 -> tuple._2.toString
       }
       elements.toMap
     }
@@ -143,7 +146,6 @@ object RequestData {
       )
     }
   }
-
 
 
   implicit object RequestDataBSONWriter extends BSONDocumentWriter[RequestData] {
@@ -428,11 +430,8 @@ object RequestData {
         "$lt" -> BSONDateTime(maxDateTime.getMillis))
     )
 
-
-
     Logger.debug(maxDateTime.getMillis.toString)
-    Logger.debug(maxDateTime.getMillis.toString)
-
+    
     val modifier = BSONDocument(
       "$set" -> BSONDocument(
         "response" -> "",
@@ -444,7 +443,7 @@ object RequestData {
     Cache.remove(keyCacheServiceAction)
     Cache.remove(keyCacheStatusOptions)
 
-    collection.update(selector, modifier, multi=true)
+    collection.update(selector, modifier, multi = true)
 
     return 0;
 

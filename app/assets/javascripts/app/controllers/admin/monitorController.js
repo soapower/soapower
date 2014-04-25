@@ -129,13 +129,13 @@ function LoggersCtrl($scope, LoggersService) {
             });
     }
 
-    $scope.changeLevel = function(loggerName, newLevel) {
+    $scope.changeLevel = function (loggerName, newLevel) {
         LoggersService.changeLevel(loggerName, newLevel).
-            success(function(loggers) {
+            success(function (loggers) {
                 console.log("Success changing Level for " + loggerName + " to " + newLevel);
                 $scope.findAll();
             })
-            .error(function(resp) {
+            .error(function (resp) {
                 console.log("Error with LogsService.changeLevel : " + resp)
             });
     }

@@ -22,51 +22,51 @@ function AnalysisCtrl($scope, $rootScope, $routeParams, $http, UIService) {
         url: url,
         cache: false
     }).success(function (largeLoad) {
-            testdata = largeLoad.map(function (series) {
-                series.values = series.values.map(function (d) {
-                    return {x: d[0], y: d[1] }
-                });
-                return series;
+        testdata = largeLoad.map(function (series) {
+            series.values = series.values.map(function (d) {
+                return {x: d[0], y: d[1] }
             });
-
-            var chart;
-
-            nv.addGraph(function () {
-                chart = nv.models.lineChart();
-
-                chart.x(function (d, i) {
-                    return i
-                })
-
-                chart.xAxis.tickFormat(function (d) {
-                    var dx = testdata[0].values[d] && testdata[0].values[d].x || 0;
-                    return dx ? d3.time.format('%x')(new Date(dx)) : '';
-                })
-                    .showMaxMin(false);
-
-                chart.yAxis
-                    .tickFormat(d3.format(',f'));
-
-                chart.showXAxis(true);
-
-                d3.select('#chart1 svg')
-                    .datum(testdata)
-                    .transition().duration(500)
-                    .call(chart);
-
-                //TODO: Figure out a good way to do this automatically
-                nv.utils.windowResize(chart.update);
-                //nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
-
-                chart.dispatch.on('stateChange', function (e) {
-                    nv.log('New State:', JSON.stringify(e));
-                });
-
-                $scope.$apply();
-                return chart;
-            });
-
+            return series;
         });
+
+        var chart;
+
+        nv.addGraph(function () {
+            chart = nv.models.lineChart();
+
+            chart.x(function (d, i) {
+                return i
+            })
+
+            chart.xAxis.tickFormat(function (d) {
+                var dx = testdata[0].values[d] && testdata[0].values[d].x || 0;
+                return dx ? d3.time.format('%x')(new Date(dx)) : '';
+            })
+                .showMaxMin(false);
+
+            chart.yAxis
+                .tickFormat(d3.format(',f'));
+
+            chart.showXAxis(true);
+
+            d3.select('#chart1 svg')
+                .datum(testdata)
+                .transition().duration(500)
+                .call(chart);
+
+            //TODO: Figure out a good way to do this automatically
+            nv.utils.windowResize(chart.update);
+            //nv.utils.windowResize(function() { d3.select('#chart1 svg').call(chart) });
+
+            chart.dispatch.on('stateChange', function (e) {
+                nv.log('New State:', JSON.stringify(e));
+            });
+
+            $scope.$apply();
+            return chart;
+        });
+
+    });
 
     $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "AnalysisCtrl");
 

@@ -98,8 +98,8 @@ function ServiceNewCtrl($scope, $rootScope, $location, $routeParams, Service, Mo
     $scope.groups = $routeParams.groups;
     $scope.showNewGroup = false;
 
-    $scope.$watch('service.typeRequest', function(newValue) {
-        if(newValue == 'SOAP') $scope.service.httpMethod = 'POST';
+    $scope.$watch('service.typeRequest', function (newValue) {
+        if (newValue == 'SOAP') $scope.service.httpMethod = 'POST';
     });
 
     $scope.service = new Service();
