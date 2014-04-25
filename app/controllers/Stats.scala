@@ -23,7 +23,7 @@ object Stats extends Controller {
   }
 
   def listDataTable(groupName: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String, status: String) = Action {
-        ???
+    ???
     /*
     implicit request =>
     // load thresholds
