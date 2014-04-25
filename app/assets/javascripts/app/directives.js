@@ -1,5 +1,3 @@
-/*global define */
-
 'use strict';
 
 spApp.directive('spCriterias', ['$filter', function ($filter) {
@@ -252,6 +250,30 @@ spApp.directive('spShowresults', function () {
         controller: function ($scope) {
             $scope.choiceNbResults = [ 10, 50, 100, 1000, 10000 ];
             $scope.nbResults = 50
+        }
+    }
+});
+spApp.directive('spBuildInfo', function () {
+    return {
+        restrict: 'E',
+        replace: true,
+        template: "<span>{{info}}</span>",
+        controller: function ($scope, $attrs, IndexService) {
+            IndexService.getBuildInfo().success(function (infos) {
+                $scope.info = infos.projectName + " " + infos.version;
+            });
+        }
+    }
+});
+spApp.directive('spDocumentation', function () {
+    return {
+        restrict: 'E',
+        replace: true,
+        template: "<a href='http://soapower.readthedocs.org/en/{{version}}'><i class='fa fa-book'></i> </i> Documentation </a>",
+        controller: function ($scope, IndexService) {
+            IndexService.getBuildInfo().success(function (infos) {
+                $scope.version = infos["versionDoc"];
+            });
         }
     }
 });

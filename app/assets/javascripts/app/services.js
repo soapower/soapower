@@ -239,7 +239,6 @@ spApp.factory("GroupsService", function ($http) {
                         $scope.group = groupAll;
                         $rootScope.group = groupAll;
                     }
-
                 })
                 .error(function (resp) {
                     console.log("Error with GroupsService.findAllAndSelect" + resp);
@@ -247,6 +246,19 @@ spApp.factory("GroupsService", function ($http) {
         }
     }
 });
+
+/***************************************
+ *         SERVICE INDEX
+****************************************/
+
+spApp.factory("IndexService", function ($http) {
+    return {
+        getBuildInfo: function () {
+            return $http.get('/index/buildinfo');
+        }
+    }
+});
+
 
 spApp.factory("CodesService", function ($http) {
     return {
@@ -452,3 +464,4 @@ spApp.factory('ReplayService', function ($http, $rootScope, $location, $resource
         }
     }
 });
+
