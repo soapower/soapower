@@ -6,3 +6,6 @@ resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/release
 
 // Use the Play sbt plugin for Play projects
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.2.2")
+
+addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.3.1")
+

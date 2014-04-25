@@ -152,6 +152,18 @@ spApp.factory("ServiceActionsService", function ($http) {
     }
 });
 
+/***************************************
+ *         SERVICE INDEX
+****************************************/
+
+spApp.factory("IndexService", function ($http) {
+    return {
+        getBuildInfo: function () {
+            return $http.get('/index/buildinfo');
+        }
+    }
+});
+
 /*************************************** */
 /*************************************** */
 /*************************************** */

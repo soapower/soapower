@@ -95,5 +95,8 @@ POST          /gc!                                                              
 GET           /loggers                                                                                      controllers.admin.Monitor.loggers
 GET           /loggers/change/:loggerName/:newLevel                                                         controllers.admin.Monitor.changeLevel(loggerName: String, newLevel : String)
 
+# Index utils
+GET           /index/buildinfo                                                                              controllers.Index.getBuildInfo
+
 # Map static resources from the /public folder to the /assets URL path
 GET           /*file                                                                                        controllers.Assets.at(path="/public", file)
