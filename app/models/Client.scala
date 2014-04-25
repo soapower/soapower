@@ -173,9 +173,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       futureResponse = wsRequestHolder.post(content)
       // wait for the response
       waitForResponse(headers)
-
     } catch {
-
       case e: Throwable =>
         processError("post", "xml", e)
     }
@@ -235,7 +233,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       scala.concurrent.Future {
         requestData.request = checkNullOrEmpty(content)
         requestData.storeServiceActionAndStatusInCache()
-        val id = RequestData.insert(requestData)
+        RequestData.insert(requestData)
         Robot.talk(requestData)
       }.map {
         result =>

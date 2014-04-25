@@ -15,13 +15,20 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.{Await, Future}
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
+import scala.Some
+import reactivemongo.core.commands.RawCommand
+import reactivemongo.api.collections.default.BSONCollection
+import org.joda.time.DateTime
+import reactivemongo.bson.BSONDateTime
 import reactivemongo.bson.BSONBoolean
 import reactivemongo.bson.BSONString
 import scala.Some
 import reactivemongo.core.commands.RawCommand
+import reactivemongo.bson.BSONLong
 import reactivemongo.bson.BSONInteger
+import play.api.libs.json.JsObject
 import reactivemongo.api.collections.default.BSONCollection
-import org.joda.time.DateTime
+import play.api.http.HeaderNames
 
 case class RequestData(_id: Option[BSONObjectID],
                        sender: String,
@@ -34,6 +41,7 @@ case class RequestData(_id: Option[BSONObjectID],
                        var requestCall: Option[String],
                        startTime: DateTime,
                        var response: String,
+                       var responseOriginal: Option[String],
                        var responseHeaders: Map[String, String],
                        var timeInMillis: Long,
                        var status: Int,
@@ -44,7 +52,7 @@ case class RequestData(_id: Option[BSONObjectID],
 
 
   def this(sender: String, serviceAction: String, environnmentName: String, serviceId: BSONObjectID, contentType: String) =
-    this(Some(BSONObjectID.generate), sender, serviceAction, environnmentName, serviceId, null, null, contentType, null, new DateTime(), null, null, -1, -1, false, false)
+    this(Some(BSONObjectID.generate), sender, serviceAction, environnmentName, serviceId, null, null, contentType, null, new DateTime(), null, None, null, -1, -1, false, false)
 
   /**
    * Add serviceAction in cache if neccessary.
@@ -64,6 +72,20 @@ case class RequestData(_id: Option[BSONObjectID],
     }
     */
   }
+  def toSimpleJson: JsObject = {
+    Json.obj(
+      "_id" -> _id,
+      "status" -> status,
+      "contentType" -> contentType,
+      "serviceId" -> serviceId,
+      "environmentName" -> environmentName,
+      "sender" -> sender,
+      "serviceAction" -> serviceAction,
+      "startTime" -> startTime.toString(),
+      "timeInMillis" -> timeInMillis,
+      "purged" -> purged
+    )
+  }
 }
 
 object RequestData {
@@ -71,6 +93,24 @@ object RequestData {
   def collection: BSONCollection = ReactiveMongoPlugin.db.collection[BSONCollection]("requestData")
 
   implicit val requestDataFormat = Json.format[RequestData]
+
+  implicit object MapBSONWriter extends BSONDocumentWriter[Map[String, String]] {
+    def write(m: Map[String, String]): BSONDocument = {
+      val elements = m.toStream.map { tuple =>
+        tuple._1 -> BSONString(tuple._2)
+      }
+      BSONDocument(elements)
+    }
+  }
+
+  implicit object MapBSONReader extends  BSONDocumentReader[Map[String, String]] {
+    def read(bson: BSONDocument): Map[String, String] = {
+      val elements = bson.elements.map { tuple =>
+        tuple._1 -> tuple._2.toString
+      }
+      elements.toMap
+    }
+  }
 
   implicit object RequestDataBSONReader extends BSONDocumentReader[RequestData] {
     def read(doc: BSONDocument): RequestData = {
@@ -81,14 +121,13 @@ object RequestData {
         doc.getAs[String]("environmentName").get,
         doc.getAs[BSONObjectID]("serviceId").get,
         doc.getAs[String]("request").get,
-        //doc.getAs[Map[String, String]]("requestHeaders").get,
-        List("US" -> "Washington").toMap,
+        doc.getAs[Map[String, String]]("requestHeaders").get,
         doc.getAs[String]("contentType").get,
         doc.getAs[String]("requestCall"),
         new DateTime(doc.getAs[BSONDateTime]("startTime").get.value),
         doc.getAs[String]("response").get,
-        //doc.getAs[Map[String, String]]("responseHeaders").get,
-        List("US" -> "Washington").toMap,
+        doc.getAs[String]("responseOriginal"),
+        doc.getAs[Map[String, String]]("responseHeaders").get,
         doc.getAs[Long]("timeInMillis").get,
         doc.getAs[Int]("status").get,
         doc.getAs[Boolean]("purged").get,
@@ -97,13 +136,7 @@ object RequestData {
     }
   }
 
-  implicit object MapBSONWriter extends BSONDocumentWriter[Map[String, String]] {
-    def write(m: Map[String, String]): BSONDocument = {
-      //TODO
-      BSONArray()
-      BSONDocument("key" -> "value")
-    }
-  }
+
 
   implicit object RequestDataBSONWriter extends BSONDocumentWriter[RequestData] {
     def write(requestData: RequestData): BSONDocument = {
@@ -117,9 +150,10 @@ object RequestData {
         "request" -> BSONString(requestData.request),
         "requestHeaders" -> requestData.requestHeaders,
         "contentType" -> BSONString(requestData.contentType),
-        "requestCall" -> "FOO", //TODO BSONString(requestData.requestCall.getOrElse("")),
+        "requestCall" -> Option(requestData.requestCall),
         "startTime" -> BSONDateTime(requestData.startTime.getMillis),
         "response" -> BSONString(requestData.response),
+        "responseOriginal" -> Option(requestData.responseOriginal),
         "responseHeaders" -> requestData.responseHeaders,
         "timeInMillis" -> BSONLong(requestData.timeInMillis),
         "status" -> BSONInteger(requestData.status),
@@ -301,21 +335,27 @@ object RequestData {
     requestData.response = contentResponse
 */
 
-    Logger.debug("################ AAA")
+    def transferEncodingResponse = requestData.responseHeaders.filter {
+      _._1 == HeaderNames.CONTENT_ENCODING
+    }
+
+    transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
+      case Some("gzip") =>
+        Logger.debug("Response in gzip Format")
+        requestData.responseOriginal = Some(requestData.response)
+        requestData.response = uncompressString(requestData.responseBytes)
+      case _ =>
+        Logger.debug("Response in plain Format")
+    }
+
     val f = collection.insert(requestData)
     f.onFailure {
-      case t => {
-        Logger.error("ERROR")
-        t.printStackTrace()
-        new Exception("An unexpected server error has occured: " + t.getMessage)
-      }
+      case t => new Exception("An unexpected server error has occured: " + t.getMessage)
     }
     f.map {
       lastError =>
         Logger.debug(s"Successfully inserted RequestData with LastError: $lastError")
     }
-
-    Logger.debug("################ BBB")
     requestData._id
   }
 
@@ -611,17 +651,16 @@ object RequestData {
     }*/
   }
 
-  def loadRequest(id: Long): Option[String] = {
-    ???
-    /*DB.withConnection {
-      implicit connection =>
-        val request = SQL("select request, contentType from request_data where id= {id}").on('id -> id).as((bytes("request") ~ get[String]("contentType")).singleOpt)
-        if (!request.get._1.equals(None)) {
-          (Some(uncompressString(request.get._1)), request.get._2)
-        } else {
-          (None, request.get._2)
-        }
-    }*/
+  def loadRequest(id: String): Future[Option[BSONDocument]] = {
+    val query = BSONDocument("_id" -> BSONObjectID(id))
+    val projection = BSONDocument("request" -> 1, "contentType" -> 1)
+    collection.find(query, projection).cursor[BSONDocument].headOption
+  }
+
+  def loadResponse(id: String): Future[Option[BSONDocument]] = {
+    val query = BSONDocument("_id" -> BSONObjectID(id))
+    val projection = BSONDocument("response" -> 1, "contentType" -> 1)
+    collection.find(query, projection).cursor[BSONDocument].headOption
   }
 
   def loadForREST(id: Long): RequestData = {
@@ -635,21 +674,6 @@ object RequestData {
     }*/
   }
 
-
-  def loadResponse(id: Long): (Option[String], String) = {
-    ???
-    /*
-    DB.withConnection {
-
-      implicit connection =>
-        val response = SQL("select response, contentType from request_data where id = {id}").on('id -> id).as((bytes("response") ~ get[String]("contentType")).singleOpt)
-        if (!(response.get._1.equals(None))) {
-          (Some(uncompressString(response.get._1)), response.get._2)
-        } else {
-          (None, response.get._2)
-        }
-    }*/
-  }
 
   /* TO_DELETE
   private def sqlAndStatus(statusIn : String) : String = {

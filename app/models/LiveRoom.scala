@@ -141,7 +141,7 @@ class LiveRoom extends Actor {
       Seq(
         "kind" -> JsString(kind),
         "user" -> JsString(user),
-        "message" -> JsArray(Seq(Json.toJson(requestData))),
+        "message" -> requestData.toSimpleJson,
         "members" -> JsArray(
           members.toList.map(JsString)
         )

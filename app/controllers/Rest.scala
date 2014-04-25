@@ -107,7 +107,7 @@ request =>
     BadRequest("TODO")
   }
 
-  def replay(requestId: Long) = Action {
+  def replay(requestId: String) = Action {
     ???
     // TODO
     /*

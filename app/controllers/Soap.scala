@@ -14,7 +14,7 @@ object Soap extends Controller {
   def index(environment: String, localTarget: String) = Action.async(parse.xml) {
     implicit request =>
 
-      Logger.info("Request on environment:" + environment + " localTarget:" + localTarget)
+      Logger.debug("Request on environment:" + environment + " localTarget:" + localTarget)
 
       val requestContentType = request.contentType.get
       val sender = request.remoteAddress
@@ -117,7 +117,7 @@ object Soap extends Controller {
   /**
    * Replay a given request.
    */
-  def replay(requestId: Long) = Action {
+  def replay(requestId: String) = Action {
     //TODO
     ???
     BadRequest("TODO")

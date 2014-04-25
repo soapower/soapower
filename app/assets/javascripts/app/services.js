@@ -1,21 +1,21 @@
 'use strict';
 
 /***************************************
- *  SERVICES
- ***************************************/
-spApp.factory('Service', function ($resource) {
-    var Service = $resource('/services/:environmentName/:serviceId',
-        { environmentName: '@environmentName', serviceId: '@_id.$oid'},
+ *        GROUPS
+ ****************************************/
+
+spApp.factory('Group', function ($resource) {
+    return $resource('/groups/:groupId',
+        { groupId: '@_id.$oid'},
         { update: {method: 'PUT'},
             create: {method: 'POST'}}
     );
-    return Service;
 });
 
-spApp.factory("ServicesService", function ($http) {
+spApp.factory("GroupsService", function ($http) {
     return {
-        findAll: function (environmentId) {
-            return $http.get('/services/' + environmentId + '/findall');
+        findAll: function () {
+            return $http.get('/groups/findAll');
         }
     }
 });
@@ -24,12 +24,11 @@ spApp.factory("ServicesService", function ($http) {
  *  ENVIRONMENTS
  ***************************************/
 spApp.factory('Environment', function ($resource) {
-    var Environment = $resource('/environments/:environmentId',
+    return $resource('/environments/:environmentId',
         { environmentId: '@_id.$oid'},
         { update: {method: 'PUT'},
             create: {method: 'POST'}}
     );
-    return Environment;
 });
 
 
@@ -46,7 +45,7 @@ spApp.factory("EnvironmentsService", function ($http) {
                 .success(function (environments) {
                     $scope.environments = environments;
                     if (environments.length == 0) {
-                        console.log("No environments have been founded")
+                        console.log("No environments have been founded");
                         $scope.environments.unshift({id: "error", name: "error. No Env with this group"});
                     } else if (addAll) {
                         $scope.environments.unshift({id: "all", name: "all"});
@@ -69,18 +68,36 @@ spApp.factory("EnvironmentsService", function ($http) {
     }
 });
 
+/***************************************
+ *  SERVICES
+ ***************************************/
+spApp.factory('Service', function ($resource) {
+    return $resource('/services/:environmentName/:serviceId',
+        { environmentName: '@environmentName', serviceId: '@_id.$oid'},
+        { update: {method: 'PUT'},
+            create: {method: 'POST'}}
+    );
+});
+
+spApp.factory("ServicesService", function ($http) {
+    return {
+        findAll: function (environmentId) {
+            return $http.get('/services/' + environmentId + '/findall');
+        }
+    }
+});
+
 
 /***************************************
  *  MOCK GROUPS
  ***************************************/
 
 spApp.factory('MockGroup', function ($resource) {
-    var MockGroup = $resource('/mockgroups/:mockgroupId',
+    return $resource('/mockgroups/:mockgroupId',
         { mockgroupId: '@_id.$oid'},
         { update: {method: 'PUT'},
             create: {method: 'POST'}}
     );
-    return MockGroup;
 });
 
 spApp.factory("MockGroupsService", function ($http) {
@@ -96,12 +113,11 @@ spApp.factory("MockGroupsService", function ($http) {
  *  MOCKS
  ***************************************/
 spApp.factory('Mock', function ($resource) {
-    var Mock = $resource('/mocks/:mockGroupName/:mockId',
+    return $resource('/mocks/:mockGroupName/:mockId',
         { mockGroupName: '@mockGroupName', mockId: '@_id.$oid'},
         { update: {method: 'PUT'},
             create: {method: 'POST'}}
     );
-    return Mock;
 });
 
 spApp.factory("MocksService", function ($http) {
@@ -113,17 +129,15 @@ spApp.factory("MocksService", function ($http) {
 });
 
 
-
 /***************************************
  *  SERVICE ACTION
  ***************************************/
 
 spApp.factory('ServiceAction', function ($resource) {
-    var ServiceAction = $resource('/serviceactions/:serviceActionId',
+    return $resource('/serviceactions/:serviceActionId',
         { serviceActionId: '@_id.$oid'},
         { update: {method: 'PUT'}}
     );
-    return ServiceAction;
 });
 
 spApp.factory("ServiceActionsService", function ($http) {
@@ -138,35 +152,17 @@ spApp.factory("ServiceActionsService", function ($http) {
     }
 });
 
-
 /*************************************** */
 /*************************************** */
 /*************************************** */
 /*************************************** */
 /*************************************** */
 
-spApp.factory('Group', function ($resource) {
-
-    var Group = $resource('/groups/:groupId',
-        { groupId: '@_id.$oid'},
-        { update: {method: 'PUT'},
-            create: {method: 'POST'}}
-    );
-    return Group;
-});
 
 spApp.factory("AnalysisService", function ($http) {
     return {
         findAll: function () {
             return $http.get('/serviceactions/listDatatable');
-        }
-    }
-});
-
-spApp.factory("GroupsService", function ($http) {
-    return {
-        findAll: function () {
-            return $http.get('/groups/findAll');
         }
     }
 });
@@ -233,11 +229,6 @@ spApp.factory("UIService", function ($location, $filter, $routeParams) {
 
             path = path + mindate + "/" + maxdate + "/" + code;
             console.log("UIService.reloadPage : Go to " + path);
-            $location.path(path);
-        },
-        reloadAdminPage: function ($scope, group) {
-            var path = $scope.ctrlPath + '/list/' + group;
-            console.log("UIService.reloadAdminPage : Go to " + path);
             $location.path(path);
         },
         /*
@@ -317,59 +308,55 @@ spApp.factory("UIService", function ($location, $filter, $routeParams) {
 
                 return !!mindate.getTime() && !!maxdate.getTime() && mindate <= maxdate;
             }
-        },
-        fixBoolean: function (val) {
-            return (val == "yes" || val == true) ? true : false;
-        },
-        fixBooleanReverse: function (val) {
-            return (val == "true" || val == true) ? "yes" : "no";
         }
     }
 });
 
-spApp.factory('ReplayService', function ($http, $rootScope, $location, $resource) {
+spApp.factory('ReplayService', function ($http, $rootScope, $location, Service) {
     return {
         beforeReplay: function (id) {
-            var url = "/download/request/" + id;
+            var url = "/download/request/" + id + "/false";
             return $http.get(url);
         },
-        replay: function (id, idService, contentType, data) {
-            var Service = $resource('/services/:serviceId',
-                                   { serviceId: '@id'}
-                                   );
-            var service = Service.get({serviceId:idService},function() {
-                if(service.typeRequest == "soap") {
-                    // SOAP service
-                    var url = '/replay/' + id;
-                    var contentTypeForRequest = "application/xml"
-                } else {
-                    // REST service
-                    var url = '/replay/rest/'+ id;
-                    if (service.httpMethod == "get" || service.httpMethod == "delete") {
-                        // The content is just the HTTP method and the URL in text format
-                        var contentTypeForRequest = "text/html";
-                     } else {
-                        var contentTypeForRequest = contentType;
-                     }
-                }
-                // perform the request
-                $http({ method: "POST",
-                    url: url,
-                    data: data.data,
-                    headers: { "Content-Type" : contentTypeForRequest }
-                }).success(function (data) {
-                    console.log("Success replay id" + id);
-                    $rootScope.$broadcast('refreshSearchTable');
-                }).error(function (resp) {
+        replay: function (id, environmentName, serviceId, contentType, data) {
+            Service.get({environmentName: environmentName, serviceId: serviceId}, function (service) {
+                    var url = '';
+                    var contentTypeForRequest = '';
+                    if (service.typeRequest == "SOAP") {
+                        // SOAP service
+                        url = '/replay/soap/' + id;
+                        contentTypeForRequest = "application/xml"
+                    } else if (service.typeRequest == "REST") {
+                        // REST service
+                        url = '/replay/rest/' + id;
+                        if (service.httpMethod == "get" || service.httpMethod == "delete") {
+                            // The content is just the HTTP method and the URL in text format
+                            contentTypeForRequest = "text/html";
+                        } else {
+                            contentTypeForRequest = contentType;
+                        }
+                    } else {
+                        alert("Error with type Request : " + service.typeRequest)
+                    }
+                    // perform the request
+                    $http({ method: "POST",
+                        url: url,
+                        data: data.data,
+                        headers: { "Content-Type": contentTypeForRequest }
+                    }).success(function () {
+                        console.log("Success replay id" + id);
+                        $rootScope.$broadcast('refreshSearchTable');
+                    }).error(function (resp) {
+                        console.log("Error replay id" + id);
+                        console.log(resp);
+                        console.log("location:" + $location.path());
+                        $rootScope.$broadcast('refreshSearchTable');
+                    });
+                }, function () {
+                    // Called when the resource cannot get retrieve
                     console.log("Error replay id" + id);
-                    console.log("location:" + $location.path());
-                    $rootScope.$broadcast('refreshSearchTable');
-                });
-            }, function() {
-                     // Called when the resource cannot get retrieve
-                     console.log("Error replay id" + id);
-                 }
-            );
+                }
+            )
         }
     }
 });

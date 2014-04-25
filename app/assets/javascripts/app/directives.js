@@ -8,7 +8,7 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
         scope: {
             serviceactions: '='
         },
-        controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceactionsService, CodesService, UIService) {
+        controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceActionsService, CodesService, UIService) {
             EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.group, null, true);
             CodesService.findAllAndSelect($scope, $routeParams);
             $scope.ctrlPath = $scope.$parent.ctrlPath;
@@ -23,7 +23,9 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
             $scope.showServiceactions = false;
             if ($attrs.serviceactions == "yes") {
                 $scope.showServiceactions = true;
-                ServiceactionsService.findAllAndSelect($scope, $routeParams);
+                // TODO
+                //ServiceActionsService.findAllAndSelect($scope, $routeParams);
+                //ServiceActionsService.findAllAndSelect($scope, $routeParams);
             }
 
             // Called when the mindate datetimepicker is set
@@ -38,15 +40,14 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
             };
 
             $scope.changeCriteria = function () {
-                    // Check that the date inputs format are correct and that the mindate is before the maxdate
-                    if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
-                        UIService.reloadPage($scope, $scope.showServiceactions);
-                    }
-                    else {
-                        // Else, mindate and maxdate are set to yesterday's and today's dates
-                        $scope.mindate = UIService.getInputCorrectDateFormat(UIService.getDay("yesterday"));
-                        $scope.maxdate = UIService.getInputCorrectDateFormat(UIService.getDay("today"));
-                    }
+                // Check that the date inputs format are correct and that the mindate is before the maxdate
+                if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
+                    UIService.reloadPage($scope, $scope.showServiceactions);
+                } else {
+                    // Else, mindate and maxdate are set to yesterday's and today's dates
+                    $scope.mindate = UIService.getInputCorrectDateFormat(UIService.getDay("yesterday"));
+                    $scope.maxdate = UIService.getInputCorrectDateFormat(UIService.getDay("today"));
+                }
             };
         },
         templateUrl: 'partials/common/criterias.html',
@@ -305,12 +306,13 @@ spApp.directive('spReplayEdit', function () {
         templateUrl: "partials/common/replay.html",
         controller: function ($scope, ReplayService) {
             $scope.replayReq = function (row) {
-                $scope.idSelected = row.id;
-                $scope.idService = row.service;
+                $scope.idSelected = row._id.$oid;
+                $scope.serviceId = row.serviceId.$oid;
                 $scope.contentType = row.contentType;
+                $scope.environmentName = row.environmentName;
 
-                ReplayService.beforeReplay(row.id).then(function(data) {
-                    if($scope.contentType == "application/json")
+                ReplayService.beforeReplay($scope.idSelected).then(function (data) {
+                    if ($scope.contentType == "application/json")
                         data.data = JSON.stringify(data.data);
                     $scope.replayContent = data;
                     $('#myModal').modal('show');
@@ -318,7 +320,7 @@ spApp.directive('spReplayEdit', function () {
             };
 
             $scope.sendReplayReq = function () {
-                ReplayService.replay($scope.idSelected, $scope.idService, $scope.contentType, $scope.replayContent);
+                ReplayService.replay($scope.idSelected, $scope.environmentName, $scope.serviceId, $scope.contentType, $scope.replayContent);
                 $('#myModal').modal('hide')
             };
         }
