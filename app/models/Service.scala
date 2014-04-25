@@ -162,7 +162,8 @@ object Service {
    * @param environmentName Name of environment
    * @return service
    */
-  def findByLocalTargetAndEnvironmentName(localTarget: String, environmentName: String): Future[Option[Service]] = {
+  def findByLocalTargetAndEnvironmentName(typeRequest: String, localTarget: String, environmentName: String, httpMethod: String = Service.POST): Future[Option[Service]] = {
+    // TODO Use httpMethod and typeRequest
     val query = BSONDocument("name" -> environmentName)
     val projection = BSONDocument("name" -> 1, "services" -> BSONDocument(
       "$elemMatch" -> BSONDocument("localTarget" -> BSONString(localTarget))))
@@ -268,7 +269,9 @@ object Service {
 
     val environmentName = dataCsv(csvTitle.get("environmentName").get)
     val localTarget = dataCsv(csvTitle.get("localTarget").get)
-    val f = findByLocalTargetAndEnvironmentName(localTarget, environmentName)
+
+    //TODO upload REST (typeRequest)
+    val f = findByLocalTargetAndEnvironmentName(Service.SOAP, localTarget, environmentName)
     val service = Await.result(f, 1.seconds)
     if (service.get != null) {
       // null comes from ServiceBSONReader
