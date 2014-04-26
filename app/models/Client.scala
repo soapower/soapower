@@ -62,7 +62,6 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
   	} else {
       serviceAction = service.httpMethod.toUpperCase+ " " + service.localTarget
   	}
-Logger.debug("requestContentType in Client:" + requestContentType)
     new RequestData(sender, serviceAction, service.environmentId, service.id, requestContentType)
   }
 
@@ -102,7 +101,7 @@ Logger.debug("requestContentType in Client:" + requestContentType)
   def sendRestRequestAndWaitForResponse(method: String, correctUrl: String, query:Map[String, String])
   {
     if (Logger.isDebugEnabled) {
-      Logger.debug("RemoteTarget " + service.remoteTarget)
+      Logger.debug("RemoteTarget (rest) " + service.remoteTarget)
     }
 
     requestTimeInMillis = System.currentTimeMillis
@@ -157,7 +156,7 @@ Logger.debug("requestContentType in Client:" + requestContentType)
    */
   def sendSoapRequestAndWaitForResponse() {
     if (Logger.isDebugEnabled) {
-      Logger.debug("RemoteTarget " + service.remoteTarget)
+      Logger.debug("RemoteTarget (soap)" + service.remoteTarget)
     }
 
     requestTimeInMillis = System.currentTimeMillis
