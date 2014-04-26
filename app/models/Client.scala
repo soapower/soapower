@@ -62,7 +62,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
   	} else {
       serviceAction = service.httpMethod.toUpperCase+ " " + service.localTarget
   	}
-
+Logger.debug("requestContentType in Client:" + requestContentType)
     new RequestData(sender, serviceAction, service.environmentId, service.id, requestContentType)
   }
 
@@ -200,7 +200,11 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       {
         // If the request content type is "None", the http method of the request was GET or DELETE,
         // the contentType is set to the response contentType (json, xml or text)
-        requestData.contentType = response.contentType
+        if (response.contentType != null) {
+          requestData.contentType = response.contentType
+        } else {
+          requestData.contentType = "text/plain"
+        }
       }
 
       requestData.response = checkNullOrEmpty(response.body)
