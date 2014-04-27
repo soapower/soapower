@@ -10,7 +10,7 @@ import scala.concurrent.{Await, Future}
 import play.modules.reactivemongo.json.BSONFormats._
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import reactivemongo.core.commands.RawCommand
+import reactivemongo.core.commands.{Count, RawCommand}
 import play.api.Logger
 import reactivemongo.api.collections.default.BSONCollection
 
@@ -79,8 +79,21 @@ object ServiceAction {
    * Retrieve an ServiceAction from name.
    */
   def findByName(name: String): Future[Option[ServiceAction]] = {
-    val query = BSONDocument("name" -> name)
+    val query = BSONDocument("name" -> BSONString(name))
     collection.find(query).one[ServiceAction]
+  }
+
+  /**
+   * Count ServiceAction by name. Just to check if serviceAction already exist in collection.
+   * @return 0 ou 1
+   */
+  def countByName(name: String): Int = {
+    val futureCount = ReactiveMongoPlugin.db.command(Count(collection.name, Some(BSONDocument("name" -> BSONString(name)))))
+    futureCount.map {
+      count => // count is an Int
+        Logger.debug("COUNT:" + count)
+    }
+    Await.result(futureCount.map(c => c), 1.seconds)
   }
 
   /**
@@ -89,7 +102,6 @@ object ServiceAction {
    * @param serviceAction The serviceAction values.
    */
   def insert(serviceAction: ServiceAction) = {
-
     if (Await.result(findByName(serviceAction.name.trim).map(e => e), 1.seconds).isDefined) {
       throw new Exception("ServiceAction with name " + serviceAction.name.trim + " already exist")
     }
@@ -158,7 +170,7 @@ object ServiceAction {
    * @return all distinct groups
    */
   def findAllGroups(): Future[BSONDocument] = {
-    val command = RawCommand(BSONDocument("distinct" -> "serviceActions", "key" -> "groups"))
+    val command = RawCommand(BSONDocument("distinct" -> collection.name, "key" -> "groups"))
     collection.db.command(command) // result is Future[BSONDocument]
   }
 

@@ -70,11 +70,11 @@ GET           /mocks/:mockGroupName/:mockId                                     
 DELETE        /mocks/:mockGroupName/:mockId                                                                 controllers.admin.Mocks.delete(mockGroupName: String, mockId: String)
 
 # ServiceActions list
+GET           /serviceactions/regenerate                                                                    controllers.admin.ServiceActions.regenerate
 GET           /serviceactions/:group/findall                                                                controllers.admin.ServiceActions.findAll(group:String)
 PUT           /serviceactions/:id                                                                           controllers.admin.ServiceActions.update(id:String)
 GET           /serviceactions/:id                                                                           controllers.admin.ServiceActions.edit(id:String)
 DELETE        /serviceactions/:id                                                                           controllers.admin.ServiceActions.delete(id:String)
-GET           /serviceactions/regenerate                                                                    controllers.admin.ServiceActions.regenerate
 
 # Status list
 GET           /status/findall                                                                               controllers.Status.findAll

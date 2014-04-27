@@ -242,26 +242,17 @@ object RequestData {
   /**
    * Construct the Map[String, String] needed to fill a select options set.
    */
-  //def serviceActionOptions: Seq[(String, String)] = DB.withConnection {
-  def serviceActionOptions: Seq[(String, String)] = {
-    //TODO
-    ???
-    /*
-      implicit connection =>
-        Cache.getOrElse[Seq[(String, String)]](keyCacheServiceAction) {
-          Logger.debug("RequestData.ServiceAction not found in cache: loading from db")
-          SQL("select distinct(serviceAction) from request_data order by serviceAction asc").as((get[String]("serviceAction") ~ get[String]("serviceAction")) *).map(flatten)
-        }
-    */
+  def serviceActionOptions: Future[List[String]] = {
+    val command = RawCommand(BSONDocument("distinct" -> collection.name, "key" -> "serviceAction", "query" -> BSONDocument()))
+    ReactiveMongoPlugin.db.command(command).map(b => b.getAs[List[String]]("values").get)
   }
 
   /**
    * Construct the Map[String, String] needed to fill a select options set.
    */
-  //def statusOptions: Seq[(Int, Int)] = DB.withConnection {
   def statusOptions: Future[BSONDocument] = {
-    collection
-    val command = RawCommand(BSONDocument("distinct" -> "requestData", "key" -> "status", "query" -> BSONDocument()))
+    val command = RawCommand(BSONDocument("distinct" -> collection.name, "key" -> "status", "query" -> BSONDocument()))
+    // example of return {"values":[200],"stats":{"n":16,"nscanned":16,"nscannedObjects":16,"timems":0,"cursor":"BasicCursor"},"ok":1.0}
     ReactiveMongoPlugin.db.command(command) // result is Future[BSONDocument]
   }
 

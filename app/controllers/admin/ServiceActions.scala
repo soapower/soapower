@@ -85,22 +85,23 @@ object ServiceActions extends Controller {
       }
   }
 
-  def regenerate() = Action {
-    //TODO
-    BadRequest("TODO")
-    /*
-implicit request =>
-  RequestData.serviceActionOptions.foreach {
-    serviceAction =>
-      if (ServiceAction.findByName(serviceAction._1) == None) {
-        Logger.debug("ServiceAction not found. Insert in db")
-        ServiceAction.insert(new ServiceAction(-1, serviceAction._1, 30000))
-      } else {
-        Logger.debug("ServiceAction found. Do nothing.")
-      }
-  }
-  Ok(Json.toJson("Success regeneration"))
-  */
+  def regenerate() = Action.async {
+    RequestData.serviceActionOptions.map(list => {
+      list.foreach(serviceAction =>
+        if (ServiceAction.countByName(serviceAction) == 0) {
+          Logger.info("ServiceAction " + serviceAction + " not found. Insert in db")
+          ServiceAction.insert(new ServiceAction(Some(BSONObjectID.generate), serviceAction, 30000))
+        } else {
+          Logger.info("ServiceAction " + serviceAction + " found. Do nothing.")
+        }
+      )
+      Ok(Json.toJson("Success regeneration"))
+    }).recoverWith {
+      case e: Exception =>
+        Logger.error("Error with regenerate : " + e.getMessage)
+        Future.successful(InternalServerError(Json.toJson("Failed regeneration " + e.getMessage)))
+    }
+
   }
 
 }
