@@ -64,6 +64,7 @@ object Service {
     }
   }
 
+  // TODO use HttpMethod
   /**
    * HTTP methods
    */
@@ -75,8 +76,8 @@ object Service {
   /**
    * Services
    */
-  val REST = "rest"
-  val SOAP = "soap"
+  val REST = "REST"
+  val SOAP = "SOAP"
 
   implicit object ServiceBSONReader extends BSONDocumentReader[Service] {
     def read(doc: BSONDocument): Service = {
