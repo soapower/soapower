@@ -154,7 +154,7 @@ spApp.factory("ServiceActionsService", function ($http) {
 
 /***************************************
  *         SERVICE INDEX
-****************************************/
+ ****************************************/
 
 spApp.factory("IndexService", function ($http) {
     return {
@@ -187,14 +187,13 @@ spApp.factory("CodesService", function ($http) {
                     $scope.codes = codes.values;
                     $scope.codes.unshift("all");
                     angular.forEach($scope.codes, function (value) {
-                        if (value.name != "all") {
-                            var valNot = "NOT_" + value.name;
+                        if (value != "all") {
+                            var valNot = "NOT_" + value;
                             $scope.codes.push(valNot);
                             if (valNot == $routeParams.code) $scope.code = valNot;
                         }
                         if (value == $routeParams.code) $scope.code = value;
                     });
-
                 })
                 .error(function (resp) {
                     console.log("Error with ServiceActionsService.findAllAndSelect" + resp);
