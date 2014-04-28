@@ -46,8 +46,6 @@ function ServiceActionsCtrl($scope, ServiceActionsService, ngTableParams, $filte
                 console.log("Error with ServiceActionsService.regenerate" + resp);
                 $scope.info = "Error with generate ServiceAction list. See server logs.";
             });
-
-        //$scope.btnRegenerate = "Running Generation...";
     }
 
 }

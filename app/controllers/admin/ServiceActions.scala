@@ -4,7 +4,6 @@ import play.api.mvc._
 import models._
 import play.api.libs.json._
 import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
 import reactivemongo.bson.BSONObjectID
 import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
@@ -85,6 +84,11 @@ object ServiceActions extends Controller {
       }
   }
 
+  /**
+   * Check if all knowned soapAction from requestData are store in collection soapAction. If
+   * not, insert it, with default threshold to 30000 ms.
+   * @return 200 or 500, with json message
+   */
   def regenerate() = Action.async {
     RequestData.serviceActionOptions.map(list => {
       list.foreach(serviceAction =>
@@ -101,7 +105,6 @@ object ServiceActions extends Controller {
         Logger.error("Error with regenerate : " + e.getMessage)
         Future.successful(InternalServerError(Json.toJson("Failed regeneration " + e.getMessage)))
     }
-
   }
 
 }
