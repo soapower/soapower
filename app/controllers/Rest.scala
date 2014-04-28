@@ -9,6 +9,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.mvc.SimpleResult
+import play.api.http.HeaderNames
 
 object Rest extends Controller {
 
@@ -237,6 +238,9 @@ object Rest extends Controller {
                      requestContentType: String, isReplay: Boolean = false): SimpleResult = {
     val client = new Client(service, sender, content, headers, Service.REST, requestContentType)
     client.sendRestRequestAndWaitForResponse(service.httpMethod, requestCall, query)
+    // Handle status with empty response
+    if(client.response.body == "")
+      client.response.contentType = "text/xml"
 
     if(!isReplay) {
       new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))//apply(client.response.bodyBytes)
@@ -245,9 +249,10 @@ object Rest extends Controller {
     }
     else
     {
-      new Results.Status(client.response.status).apply(client.response.bodyBytes)
+      new Results.Status(client.response.status).apply(client.response.bodyBytes)//chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))//apply(client.response.bodyBytes)
         .withHeaders("ProxyVia" -> "soapower")
-        .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
+        .withHeaders(client.response.headers.toArray: _*)
+        .as(client.response.contentType)
     }
   }
 
