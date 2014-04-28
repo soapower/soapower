@@ -143,14 +143,9 @@ object Rest extends Controller {
         case (k, v) => URLDecoder.decode(k, "UTF-8") -> URLDecoder.decode(v.mkString, "UTF-8")
       }
       val httpMethod = request.method
-      // We retrieve all the REST services that match the method and the environment
-      val localTargets = Service.findRestByMethodAndEnvironmentName(httpMethod, environment)
-
-      Logger.debug(localTargets.length + " services found in db")
 
       // We retrieve the id of the service bound to the call
-      val serviceId = findService(localTargets, call)
-      val service = Service.findById(serviceId)
+      val service = Service.findByLocalTargetAndEnvironmentName(Service.REST, call, environment, request.method.toLowerCase)
 
       service.map {
         service =>
@@ -254,22 +249,6 @@ object Rest extends Controller {
         .withHeaders("ProxyVia" -> "soapower")
         .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
     }
-  }
-
-  /**
-   * Find the correct service's id bound to the REST call
-   * @param localTargets list of localTargets
-   * @param call
-   */
-  private def findService(localTargets: Seq[(Long, String)], call: String): Long = {
-    for ((serviceId, localTarget) <- localTargets) {
-      // For each services, check that the call starts with the localTarget
-      if (call.startsWith(localTarget)) {
-          // Manage the case where two services begins with the same string
-          return serviceId
-        }
-      }
-    return -1
   }
 
   /**

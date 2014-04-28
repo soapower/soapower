@@ -123,38 +123,12 @@ object Service {
   }
 
   /**
-   * Retrieve the Rest Services matching the environment name and the http method
-   * @param httpMethod
+   * Retrieve a Soap or REST Service from localTarget, environmentName and httpMethod
+   * @param typeRequest Soap or Rest request
+   * @param localTarget
    * @param environmentName
+   * @param httpMethod HTTP method, POST by default
    * @return
-   */
-  def findRestByMethodAndEnvironmentName(httpMethod:String, environmentName: String): Seq[(Long, String)] = {
-      val services =
-        DB.withConnection {
-          implicit connection =>
-            SQL(
-              """
-              select * from service
-            left join environment on service.environment_id = environment.id
-            where service.typeRequest like {typeRequest}
-            and service.httpMethod like {httpMethod}
-            and environment.name like {environmentName}
-              """).on(
-            'typeRequest -> "rest",
-            'httpMethod -> httpMethod,
-            'environmentName -> environmentName
-            ).as(Service.simple *)
-           .map(s => s.id -> s.localTarget)
-        }
-      services
-  }
-
-  /**
-   * Retrieve a Soap Service from localTarget / environmentName
-   *
-   * @param localTarget localTarget
-   * @param environmentName Name of environment
-   * @return service
    */
   def findByLocalTargetAndEnvironmentName(typeRequest: String, localTarget: String, environmentName: String, httpMethod: String = Service.POST): Option[Service] = {
     val serviceKey = environmentName + "/" + localTarget
