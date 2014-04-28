@@ -10,7 +10,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 object Global extends GlobalSettings {
 
   override def onStart(app: Application) {
-    Logger.info("Starting Soapower...")
+    Logger.info("Starting Soapower " + soapower.build.info.BuildInfo.version + "...")
 
     LiveRoom.init
 

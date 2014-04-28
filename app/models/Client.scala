@@ -62,7 +62,6 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
   	} else {
       serviceAction = service.httpMethod.toUpperCase+ " " + service.localTarget
   	}
-
     new RequestData(sender, serviceAction, service.environmentId, service.id, requestContentType)
   }
 
@@ -102,7 +101,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
   def sendRestRequestAndWaitForResponse(method: String, correctUrl: String, query:Map[String, String])
   {
     if (Logger.isDebugEnabled) {
-      Logger.debug("RemoteTarget " + service.remoteTarget)
+      Logger.debug("RemoteTarget (rest) " + service.remoteTarget)
     }
 
     requestTimeInMillis = System.currentTimeMillis
@@ -157,7 +156,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
    */
   def sendSoapRequestAndWaitForResponse() {
     if (Logger.isDebugEnabled) {
-      Logger.debug("RemoteTarget " + service.remoteTarget)
+      Logger.debug("RemoteTarget (soap)" + service.remoteTarget)
     }
 
     requestTimeInMillis = System.currentTimeMillis
@@ -200,7 +199,11 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       {
         // If the request content type is "None", the http method of the request was GET or DELETE,
         // the contentType is set to the response contentType (json, xml or text)
-        requestData.contentType = response.contentType
+        if (response.contentType != null) {
+          requestData.contentType = response.contentType
+        } else {
+          requestData.contentType = "text/plain"
+        }
       }
 
       requestData.response = checkNullOrEmpty(response.body)

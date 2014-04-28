@@ -95,9 +95,7 @@ object Group {
    */
   def findByName(name: String): Option[Group] = DB.withConnection {
     implicit connection =>
-      Cache.getOrElse[Option[Group]](keyCacheByName + name) {
         SQL("select * from groups where name = {name}").on('name -> name).as(Group.simple.singleOpt)
-      }
   }
 
   /**
