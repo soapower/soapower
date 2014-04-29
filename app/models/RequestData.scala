@@ -410,62 +410,58 @@ object RequestData {
    * @param user use who delete the data : admin or akka
    */
   def deleteRequestResponse(environmentIn: String, minDate: Date, maxDate: Date, user: String): Int = {
-    Logger.debug(environmentIn)
-
     val minDateTime = new DateTime(minDate)
     val maxDateTime = new DateTime(maxDate)
 
-    val selector = BSONDocument("environmentName" -> BSONString(environmentIn),
-      "startTime" -> BSONDocument(
-        "$gte" -> BSONDateTime(minDateTime.getMillis),
-        "$lt" -> BSONDateTime(maxDateTime.getMillis))
-    )
+    val selector = environmentIn match {
+      case "all" =>
+        // Modify the request data between the two datetime from all environment
+        BSONDocument(
+          "startTime" -> BSONDocument(
+            "$gte" -> BSONDateTime(minDateTime.getMillis),
+            "$lt" -> BSONDateTime(maxDateTime.getMillis)),
+          "purged" -> false,
+          "isStats" -> null
+        )
 
-    Logger.debug(maxDateTime.getMillis.toString)
+      case _ =>
+        BSONDocument(
+          "environmentName" -> environmentIn,
+          "startTime" -> BSONDocument(
+            "$gte" -> BSONDateTime(minDateTime.getMillis),
+            "$lt" -> BSONDateTime(maxDateTime.getMillis)),
+          "purged" -> false,
+          "isStats" -> null
+        )
+    }
 
     val modifier = BSONDocument(
       "$set" -> BSONDocument(
         "response" -> "",
+        "responseOriginal" -> "",
         "request" -> "",
         "requestHeaders" -> "",
-        "responseHeaders" -> ""
+        "responseHeaders" -> "",
+        "purged" -> true
       ))
 
     Cache.remove(keyCacheServiceAction)
     Cache.remove(keyCacheStatusOptions)
 
-    collection.update(selector, modifier, multi = true)
+    var updatedElement = 0
+    val futureUpdate = collection.update(selector, modifier, multi = true)
 
-    return 0;
+    futureUpdate.onComplete {
+      case Failure(e) => throw e
 
-    /*
-    Logger.debug("Environment:" + environmentIn + " mindate:" + minDate.getTime + " maxDate:" + maxDate.getTime)
-    Logger.debug("EnvironmentSQL:" + sqlAndEnvironnement(environmentIn))
-
-    //val d = new Date()
-    //val deleted = "deleted by " + user + " " + d.toString
-
-    DB.withConnection {
-      implicit connection =>
-        val purgedRequests = SQL(
-          """
-            update request_data
-            set response = '',
-            request = '',
-            requestHeaders = '',
-            responseHeaders = '',
-            purged = 'true'
-            where startTime >= {minDate} and startTime <= {maxDate} and purged = 'false' and isStats = 'false'
-          """
-            + sqlAndEnvironnement(environmentIn)).on(
-            'minDate -> minDate,
-            'maxDate -> maxDate).executeUpdate()
-
-        Cache.remove(keyCacheServiceAction)
-        Cache.remove(keyCacheStatusOptions)
-        purgedRequests
+      case Success(lastError) => {
+        if(lastError.updatedExisting) {
+         updatedElement = lastError.updated
+         Logger.debug(updatedElement + " RequestData of the environment " + environmentIn + " has been purged by "+user)
+        }
+      }
     }
-    */
+    return updatedElement
   }
 
   /**
@@ -475,25 +471,43 @@ object RequestData {
    * @param maxDate max date
    */
   def delete(environmentIn: String, minDate: Date, maxDate: Date): Int = {
-    //TODO
-    ???
-    /*
-    DB.withConnection {
-      implicit connection =>
-        val deletedRequests = SQL(
-          """
-            delete from request_data
-            where startTime >= {minDate} and startTime < {maxDate}
-            and isStats = 'false'
-          """
-            + sqlAndEnvironnement(environmentIn)).on(
-            'minDate -> minDate,
-            'maxDate -> maxDate).executeUpdate()
-        Cache.remove(keyCacheServiceAction)
-        Cache.remove(keyCacheStatusOptions)
-        deletedRequests
+
+    val minDateTime = new DateTime(minDate)
+    val maxDateTime = new DateTime(maxDate)
+
+    val selector = environmentIn match {
+      case "all" =>
+        // Remove the request data between the two datetime from all environment
+        BSONDocument(
+          "startTime" -> BSONDocument(
+            "$gte" -> BSONDateTime(minDateTime.getMillis),
+            "$lt" -> BSONDateTime(maxDateTime.getMillis)),
+          "isStats" -> null
+        )
+
+      case _ =>
+        BSONDocument(
+          "environmentName" -> environmentIn,
+          "startTime" -> BSONDocument(
+            "$gte" -> BSONDateTime(minDateTime.getMillis),
+            "$lt" -> BSONDateTime(maxDateTime.getMillis)),
+          "isStats" -> null
+        )
     }
-    */
+    var removedElement = 0
+    val futurRemove = collection.remove(selector)
+
+    futurRemove.onComplete {
+      case Failure(e) => throw e
+
+      case Success(lastError) =>
+        removedElement = lastError.updated
+        Logger.debug(removedElement + " RequestData of the environment " + environmentIn + " has been purged")
+    }
+    Cache.remove(keyCacheServiceAction)
+    Cache.remove(keyCacheStatusOptions)
+
+    return removedElement
   }
 
   /**
