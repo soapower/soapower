@@ -179,7 +179,6 @@ object Rest extends Controller {
                   BadRequest(err)
               }
             }
-
             case _ => {
               val err = "Soapower doesn't support this HTTP method"
               Logger.error(err)
@@ -241,25 +240,17 @@ object Rest extends Controller {
     // Handle status with empty response
     if(client.response.body == "")
       client.response.contentType = "text/xml"
-
-    if(!isReplay) {
-      new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))//apply(client.response.bodyBytes)
-        .withHeaders("ProxyVia" -> "soapower")
-        .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
-    }
-    else
-    {
-      new Results.Status(client.response.status).apply(client.response.bodyBytes)//chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))//apply(client.response.bodyBytes)
-        .withHeaders("ProxyVia" -> "soapower")
-        .withHeaders(client.response.headers.toArray: _*)
-        .as(client.response.contentType)
-    }
+    new Results.Status(client.response.status).apply(client.response.bodyBytes)
+      .withHeaders("ProxyVia" -> "soapower")
+      .withHeaders(client.response.headers.toArray: _*)
+      .as(client.response.contentType)
   }
 
   /**
    * Get the correct URL for the redirection by parsing the call
    * @param call The call containing the localTarget+"/"+the effective call
    * @param remoteTarget The remoteTarget
+   *
    * @return
    */
   private def getRemoteTargetWithCall(call: String, remoteTarget: String, localTarget: String): String = {
