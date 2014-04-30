@@ -150,7 +150,7 @@ object Soap extends Controller {
         if (service.useMockGroup) {
           val mock = Mock.findByMockGroupAndContent(service.mockGroupId, content)
           client.workWithMock(mock)
-          val sr = new Results.Status(mock.httpStatus).chunked(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
+          val sr = new Results.Status(mock.httpStatus).apply(mock.response.getBytes())
             .withHeaders("ProxyVia" -> "soapower")
             .withHeaders(UtilConvert.headersFromString(mock.httpHeaders).toArray: _*)
             .as(XML)
