@@ -193,7 +193,7 @@ object Rest extends Controller {
             forwardRequest(requestContent, query, service, sender, headers, remoteTargetWithCall, contentType)
           }
       }.getOrElse {
-        val err = "No REST services with the environment " + environment + " and the HTTP method " + httpMethod + " matches the call " + call
+        val err = "No REST service with the environment " + environment + " and the HTTP method " + httpMethod + " matches the call " + call
         Logger.error(err)
         BadRequest(err)
       }
