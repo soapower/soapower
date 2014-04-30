@@ -4,8 +4,7 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
     $scope.isError = false;
     $scope.nbConnected = 0;
     $scope.liveData = [];
-    $scope.showTips = false;
-
+    $scope.showFilter = false;
     $scope.hostname = $location.host();
     $scope.port = $location.port();
 
@@ -19,7 +18,6 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
 
     var receiveEvent = function (event) {
         var data = JSON.parse(event.data);
-
         // Handle errors
         if (data.error || data.kind == "error") {
             if (typeof socket != 'undefined') {
@@ -31,10 +29,12 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
             } else if (data.kind == "error") {
                 $scope.errorInfo = data.message;
             }
+
             $scope.isError = true;
             $scope.$apply();
             return
         }
+
 
         if (data.kind == "talkRequestData") {
             $scope.liveData.push(data.message)

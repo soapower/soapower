@@ -7,6 +7,7 @@ GET           /                                                                 
 
 # Live page
 GET           /live/socket                                                                                  controllers.Live.socket
+POST          /live/changeCriteria                                                                          controllers.Live.changeCriteria
 
 # Admin page
 POST          /admin/delete                                                                                 controllers.admin.Admin.delete

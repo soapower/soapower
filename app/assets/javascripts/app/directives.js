@@ -348,3 +348,36 @@ spApp.directive('spReplayEdit', function () {
         }
     }
 });
+spApp.directive('spFilterLive', function ($http) {
+    return {
+        restrict: 'E',
+        scope: {
+            serviceactions: '='
+        },
+        controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceActionsService, CodesService, UIService) {
+            /*
+            NEED IMPLEMENTATION
+            EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.group, null, true);
+            ServiceActionsService.findAllAndSelect($scope, $routeParams);
+            */
+            CodesService.findAllAndSelect($scope, $routeParams);
+            $scope.ctrlPath = $scope.$parent.ctrlPath;
+
+            $scope.changeLiveCriteria = function () {
+                // SEND THE NEW CRITERIA OF THE USER TO THE SERVER
+
+                $http({ method: "POST",
+                    url: "/live/changeCriteria",
+                    data: $scope.form
+                }).success(function () {
+                    console.log("Success");
+                }).error(function (resp) {
+                    console.log("Bad Request");
+                });
+            };
+
+        },
+        templateUrl: 'partials/common/filterlive.html',
+        replace: true
+    }
+});

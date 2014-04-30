@@ -26,7 +26,7 @@ object Robot {
 
     implicit val timeout = Timeout(1 second)
     // Make the robot join the room
-    liveRoom ? (Join("Robot")) map {
+    liveRoom ? (Join("Robot", null.asInstanceOf[Criterias])) map {
       case Connected(robotChannel) =>
         // Apply this Enumerator on the logger.
         robotChannel |>> loggerIteratee
@@ -69,12 +69,12 @@ object LiveRoom {
     default
   }
 
+  def changeCriterias(username: String, criterias: Criterias) = {
+    default ! ChangeCriterias(username, criterias)
+  }
   def join(username: String): scala.concurrent.Future[(Iteratee[JsValue, _], Enumerator[JsValue])] = {
-
-    (default ? Join(username)).map {
-
+    (default ? Join(username, null.asInstanceOf[Criterias])).map {
       case Connected(enumerator) =>
-
         // Create an Iteratee to consume the feed
         val iteratee = Iteratee.foreach[JsValue] {
           event =>
@@ -102,16 +102,20 @@ object LiveRoom {
 
 class LiveRoom extends Actor {
 
-  var members = Set.empty[String]
+  var members = Map.empty[String, Criterias]
   val (liveEnumerator, channel) = Concurrent.broadcast[JsValue]
 
   def receive = {
 
-    case Join(username) => {
+    case Join(username, criterias) => {
+      Logger.debug("ENTER FUNCTION")
+      Logger.debug(username)
       if (members.contains(username)) {
         sender ! CannotConnect("You have already a navigator on this page !")
       } else {
-        members = members + username
+        val criterias = new Criterias("all", "all", "all", "", true, true)
+        members = members + ((username, criterias))
+        Logger.debug(members.toString)
         sender ! Connected(liveEnumerator)
         self ! NotifyJoin(username)
       }
@@ -134,16 +138,28 @@ class LiveRoom extends Actor {
       notifyAll("quit", username, "has left the room")
     }
 
+    case ChangeCriterias(username, criterias) => {
+      members = members - username
+      members = members + ((username, criterias))
+      Logger.debug(members.toString)
+    }
+
   }
 
   def notifyAll(kind: String, user: String, requestData: RequestData) {
+    var usernames = Set.empty[String]
+    members.foreach{
+      mem =>
+        usernames = usernames + mem._1
+    }
+
     val msg = JsObject(
       Seq(
         "kind" -> JsString(kind),
         "user" -> JsString(user),
         "message" -> requestData.toSimpleJson,
         "members" -> JsArray(
-          members.toList.map(JsString)
+          usernames.toList.map(JsString)
         )
       )
     )
@@ -151,13 +167,19 @@ class LiveRoom extends Actor {
   }
 
   def notifyAll(kind: String, user: String, text: String) {
+    var usernames = Set.empty[String]
+    members.foreach{
+      mem =>
+        usernames = usernames + mem._1
+    }
+
     val msg = JsObject(
       Seq(
         "kind" -> JsString(kind),
         "user" -> JsString(user),
         "message" -> JsString(text),
         "members" -> JsArray(
-          members.toList.map(JsString)
+          usernames.toList.map(JsString)
         )
       )
     )
@@ -166,7 +188,7 @@ class LiveRoom extends Actor {
 
 }
 
-case class Join(username: String)
+case class Join(username: String, criterias: Criterias)
 
 case class Quit(username: String)
 
@@ -179,3 +201,7 @@ case class NotifyJoin(username: String)
 case class Connected(enumerator: Enumerator[JsValue])
 
 case class CannotConnect(msg: String)
+
+case class ChangeCriterias(username: String, criterias: Criterias)
+
+case class Criterias(group: String, serviceAction: String, status: String, search: String, request: Boolean, response: Boolean)

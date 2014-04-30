@@ -7,7 +7,13 @@ var spApp = angular.module('spApp', [ 'ui.bootstrap', 'ngRoute', 'ngResource', '
 spApp.config(function ($routeProvider) {
     $routeProvider
         .when('/home', { templateUrl: 'partials/home/home.html' })
-        .when('/live', { controller: LiveCtrl, templateUrl: 'partials/live/live.html' })
+        .when('/live', {
+            redirectTo: '/live/all/all/all/live/live/all'
+        })
+        .when('/live/:groups/:environment/:serviceaction/live/live/:code', {
+            controller: LiveCtrl, templateUrl: 'partials/live/live.html'
+        })
+        // OLD RESEARCH
         .when('/live/:search', { controller: LiveCtrl, templateUrl: 'partials/live/live.html' })
         .when('/search', { redirectTo: '/search/all/all/all/yesterday/today/all'})
         .when('/search/:groups/:environment/:serviceaction/:mindate/:maxdate/:code', {

@@ -1,0 +1,38 @@
+<div>
+
+    <form name="form" role="form">
+        <div class="form-inline">
+            <div style="width:30%;" class="form-group">
+                <select style="display:block;" ui-select2 class="form-control" ng-model="environment" ng-options="environment.name for environment in environments"></select>
+            </div>
+            <div style="width:30%;" class="form-group">
+                <select style="display:block;"  ui-select2 class="form-control" ng-model="serviceaction" ng-options="s.name for s in serviceactions"></select>
+            </div>
+
+            <div style="width:30%;" class="form-group">
+                <select style="display:block;" ui-select2 class="form-control" ng-model="code" ng-options="c as c for c in codes"></select>
+            </div>
+        </div>
+
+        <div class="form-inline">
+            <div class="form-group">
+                <textarea class="form-control" ng-model="form.search" placeholder="Research..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" ng-model="form.request" ng-value="true" ng-checked="form.request == true">Request
+                </label>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" ng-model="form.response" ng-value="true" ng-checked="form.response == true">Response
+                </label>
+            </div>
+
+            <div class="form-group">
+                <button class="btn btn-primary" ng-click="changeLiveCriteria()">Filter</button>
+            </div>
+        </div>
+    </form>
+
+</div>
