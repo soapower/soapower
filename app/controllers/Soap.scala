@@ -8,7 +8,6 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import reactivemongo.bson.BSONObjectID
-import org.jboss.netty.handler.codec.http.HttpMethod
 
 object Soap extends Controller {
 

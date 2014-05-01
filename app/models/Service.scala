@@ -144,9 +144,9 @@ object Service {
   }
 
   /**
-   * Retrieve the Rest Services matching the environment name and the http method
-   * @param httpMethod
+   * Retrieve a Soap or REST Service from localTarget, environmentName and httpMethod
    * @param environmentName
+   * @param httpMethod HTTP method, POST by default
    * @return
    */
   def findRestByMethodAndEnvironmentName(httpMethod: String, environmentName: String): Future[Option[Service]] = {
