@@ -211,7 +211,7 @@ object Rest extends Controller {
       */
   }
 
-  def replay(requestId: Long) = Action {
+  def replay(requestId: String) = Action {
     implicit request =>
       ???
       //TODO

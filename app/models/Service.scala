@@ -13,6 +13,7 @@ import reactivemongo.bson.BSONString
 import scala.Some
 import reactivemongo.bson.BSONInteger
 import scala.concurrent.duration._
+import org.jboss.netty.handler.codec.http.HttpMethod
 
 case class Service(_id: Option[BSONObjectID],
                    description: String,
@@ -53,7 +54,7 @@ object Service {
 
   implicit object ServicesBSONReader extends BSONDocumentReader[Services] {
     def read(doc: BSONDocument): Services = {
-      if (doc.getAs[List[BSONDocument]]("services") isDefined) {
+      if (doc.getAs[List[BSONDocument]]("services").isDefined) {
         val list = doc.getAs[List[BSONDocument]]("services").get.map(
           s => new Service(s, doc.getAs[String]("name"))
         )
@@ -63,15 +64,6 @@ object Service {
       }
     }
   }
-
-  // TODO use HttpMethod
-  /**
-   * HTTP methods
-   */
-  val POST = "post"
-  val GET = "get"
-  val PUT = "put"
-  val DELETE = "delete"
 
   /**
    * Services
@@ -163,7 +155,7 @@ object Service {
    * @param environmentName Name of environment
    * @return service
    */
-  def findByLocalTargetAndEnvironmentName(typeRequest: String, localTarget: String, environmentName: String, httpMethod: String = Service.POST): Future[Option[Service]] = {
+  def findByLocalTargetAndEnvironmentName(typeRequest: String, localTarget: String, environmentName: String, httpMethod: HttpMethod = HttpMethod.POST): Future[Option[Service]] = {
     // TODO Use httpMethod and typeRequest
     val query = BSONDocument("name" -> environmentName)
     val projection = BSONDocument("name" -> 1, "services" -> BSONDocument(
@@ -297,9 +289,9 @@ object Service {
         dataCsv(csvTitle.get("localTarget").get).trim,
         dataCsv(csvTitle.get("remoteTarget").get).trim,
         dataCsv(csvTitle.get("timeoutms").get).toInt,
-        (dataCsv(csvTitle.get("recordContentData").get).trim == "true"),
-        (dataCsv(csvTitle.get("recordData").get).trim == "true"),
-        (dataCsv(csvTitle.get("useMockGroup").get).trim == "true"),
+        dataCsv(csvTitle.get("recordContentData").get).trim == "true",
+        dataCsv(csvTitle.get("recordData").get).trim == "true",
+        dataCsv(csvTitle.get("useMockGroup").get).trim == "true",
         mockGroupId,
         Some(environmentName))
       Service.insert(service)
