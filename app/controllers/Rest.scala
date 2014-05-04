@@ -8,13 +8,12 @@ import models._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
-import play.api.mvc.SimpleResult
 import play.api.http.HeaderNames
 
 object Rest extends Controller {
 
   def forwardMock(content: String, service: Service, sender: String, headers: Map[String, String], correctUrl: String,
-                  requestContentType: String): SimpleResult = {
+                  requestContentType: String): Result = {
     ???
     //TODO
     /*
@@ -250,7 +249,7 @@ object Rest extends Controller {
   }
 
   def forwardRequest(content: String, query: Map[String, String], service: Service, sender: String, headers: Map[String, String], requestCall: String,
-                     requestContentType: String, isReplay: Boolean = false): SimpleResult = {
+                     requestContentType: String, isReplay: Boolean = false): Result = {
     ???
     //TODO
     /*

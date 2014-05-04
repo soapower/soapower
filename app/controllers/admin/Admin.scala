@@ -85,7 +85,7 @@ object Admin extends Controller {
     f map {
       case _ =>
         val fileContent: Enumerator[Array[Byte]] = Enumerator(content.getBytes)
-        SimpleResult(
+        Result(
           header = ResponseHeader(play.api.http.Status.OK),
           body = fileContent
         ).withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=configuration.csv")).as(BINARY)
@@ -107,7 +107,7 @@ object Admin extends Controller {
 
     // result as a file
     val fileContent: Enumerator[Array[Byte]] = Enumerator(content.getBytes)
-    SimpleResult(
+    Result(
       header = ResponseHeader(play.api.http.Status.OK),
       body = fileContent
     ).withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=requestDataStatsEntries.csv")).as(BINARY)

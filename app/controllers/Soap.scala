@@ -153,7 +153,7 @@ object Soap extends Controller {
       */
   }
 
-  private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String], requestContentType: String): Future[SimpleResult] = {
+  private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String], requestContentType: String): Future[Result] = {
     val service = Service.findByLocalTargetAndEnvironmentName(Service.SOAP, localTarget, environmentName)
     service.map {
       svc => {
@@ -162,7 +162,7 @@ object Soap extends Controller {
           if (svc.get.useMockGroup && svc.get.mockGroupId.isDefined) {
             val mock = Mock.findByMockGroupAndContent(BSONObjectID(svc.get.mockGroupId.get), content)
             client.workWithMock(mock)
-            val sr = new Results.Status(mock.httpStatus).stream(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
+            val sr = new Results.Status(mock.httpStatus).chunked(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
               .withHeaders("ProxyVia" -> "soapower")
               .withHeaders(UtilConvert.headersFromString(mock.httpHeaders).toArray: _*)
               .as(XML)

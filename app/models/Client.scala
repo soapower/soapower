@@ -1,6 +1,6 @@
 package models
 
-import com.ning.http.client.FluentCaseInsensitiveStringsMap
+import com.ning.http.client.{AsyncHttpClient, FluentCaseInsensitiveStringsMap}
 import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -16,6 +16,7 @@ import java.io.PrintWriter
 import play.api.Play.current
 import com.ning.http.client.Realm.AuthScheme
 import org.jboss.netty.handler.codec.http.HttpMethod
+import com.ning.http.client.providers.netty.NettyResponse
 
 object Client {
   private val DEFAULT_NO_SOAPACTION = "Soapower_NoSoapAction"
@@ -71,7 +72,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
   val environment = Environment.findByName(service.environmentName.get)
   var response: ClientResponse = null
 
-  private var futureResponse: Future[Response] = null
+  private var futureResponse: Future[WSResponse] = null
   private var requestTimeInMillis: Long = -1
 
   def workWithMock(mock: Mock) {
@@ -188,7 +189,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
 
   private def waitForResponse(headers: Map[String, String]) = {
     try {
-      val wsResponse: Response = Await.result(futureResponse, service.timeoutms.millis * 1000000)
+      val wsResponse: WSResponse = Await.result(futureResponse, service.timeoutms.millis * 1000000)
       response = new ClientResponse(wsResponse, (System.currentTimeMillis - requestTimeInMillis))
       requestData.timeInMillis = response.responseTimeInMillis
       requestData.status = response.status
@@ -299,14 +300,15 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
 }
 
 
-class ClientResponse(wsResponse: Response = null, val responseTimeInMillis: Long) {
+class ClientResponse(wsResponse: WSResponse = null, val responseTimeInMillis: Long) {
 
   var body: String = if (wsResponse != null) wsResponse.body else ""
-  var contentType: String = if (wsResponse != null && wsResponse.getAHCResponse != null) wsResponse.getAHCResponse.getContentType else ""
-  var bodyBytes = if (wsResponse != null && wsResponse.getAHCResponse != null) wsResponse.getAHCResponse.getResponseBodyAsBytes else null
+  var contentType: String = if (wsResponse != null && wsResponse.underlying[NettyResponse] != null) wsResponse.underlying[NettyResponse].getContentType else ""
+  var bodyBytes = if (wsResponse != null && wsResponse.underlying[NettyResponse] != null) wsResponse.underlying[NettyResponse].getResponseBodyAsBytes else null
   val status: Int = if (wsResponse != null) wsResponse.status else Status.INTERNAL_SERVER_ERROR
 
-  private val headersNing: Map[String, Seq[String]] = if (wsResponse != null) ningHeadersToMap(wsResponse.getAHCResponse.getHeaders()) else Map()
+  private val headersNing: Map[String, Seq[String]] = if (wsResponse != null) ningHeadersToMap(wsResponse.underlying[NettyResponse].getHeaders()) else Map()
+  //TO TEST : private val headersNing: Map[String, Seq[String]] = if (wsResponse != null) wsResponse.allHeaders else Map()
 
   var headers: Map[String, String] = Map()
 

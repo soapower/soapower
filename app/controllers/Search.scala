@@ -91,7 +91,7 @@ object Search extends Controller {
                   filename += ".txt"
               }
 
-              var result = SimpleResult(
+              var result = Result(
                 header = ResponseHeader(play.api.http.Status.OK),
                 body = Enumerator(contentInCorrectFormat.getBytes))
               if (asFile) {
@@ -112,7 +112,7 @@ object Search extends Controller {
                   contentInCorrectFormat = content
                   filename += ".txt"
               }
-              var result = SimpleResult(
+              var result = Result(
                 header = ResponseHeader(play.api.http.Status.OK),
                 body = Enumerator(contentInCorrectFormat.getBytes))
               if (asFile) {
@@ -124,7 +124,7 @@ object Search extends Controller {
             }
             case _ => {
               filename += ".txt"
-              var result = SimpleResult(
+              var result = Result(
                 header = ResponseHeader(play.api.http.Status.OK),
                 body = Enumerator(content.getBytes))
               if (asFile) {

@@ -1,3 +1,5 @@
+import play.PlayImport.PlayKeys
+import play.PlayScala
 import play.Project._
 
 name         := "soapower"
@@ -6,10 +8,13 @@ version      := "2.0.0"
 
 libraryDependencies ++= Seq(
     cache,
+    PlayKeys.ws,
     "org.reactivemongo" %% "reactivemongo" % "0.10.0",
     "org.reactivemongo" %% "play2-reactivemongo" % "0.10.2")
 
-playScalaSettings
+
+lazy val root = (project in file(".")).addPlugins(PlayScala)
+
 
 mappings in Universal <++= baseDirectory map { dir => (dir / "soapowerctl.sh").*** --- dir x relativeTo(dir) }
 
