@@ -15,6 +15,7 @@ import java.io.StringWriter
 import java.io.PrintWriter
 import play.api.Play.current
 import com.ning.http.client.Realm.AuthScheme
+import org.jboss.netty.handler.codec.http.HttpMethod
 
 object Client {
   private val DEFAULT_NO_SOAPACTION = "Soapower_NoSoapAction"
@@ -100,7 +101,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
    * @param correctUrl
    * @param query
    */
-  def sendRestRequestAndWaitForResponse(method: String, correctUrl: String, query: Map[String, String]) {
+  def sendRestRequestAndWaitForResponse(method: HttpMethod, correctUrl: String, query: Map[String, String]) {
     if (Logger.isDebugEnabled) {
       Logger.debug("RemoteTarget (rest) " + service.remoteTarget)
     }
@@ -109,9 +110,9 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     // Keep the call in the request data for replay functionality
     requestData.requestCall = Some(correctUrl)
     // prepare request
-    var wsRequestHolder = WS.url(correctUrl).withRequestTimeout(service.timeoutms.toInt)
+    var wsRequestHolder = WS.url(correctUrl).withRequestTimeout(service.timeoutms)
     wsRequestHolder = wsRequestHolder.withQueryString(query.toList: _*)
-    wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.X_FORWARDED_FOR -> sender))
+    wsRequestHolder = wsRequestHolder.withHeaders(HeaderNames.X_FORWARDED_FOR -> sender)
 
     // add headers
     def filteredHeaders = headers.filterNot {
@@ -122,15 +123,15 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     try {
       // perform request
       method match {
-        case Service.GET =>
+        case HttpMethod.GET =>
           futureResponse = wsRequestHolder.get()
-        case Service.POST =>
-          wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.CONTENT_LENGTH -> content.getBytes.size.toString))
+        case HttpMethod.POST =>
+          wsRequestHolder = wsRequestHolder.withHeaders(HeaderNames.CONTENT_LENGTH -> content.getBytes.size.toString)
           futureResponse = wsRequestHolder.post(content)
-        case Service.DELETE =>
+        case HttpMethod.DELETE =>
           futureResponse = wsRequestHolder.delete()
-        case Service.PUT =>
-          wsRequestHolder = wsRequestHolder.withHeaders((HeaderNames.CONTENT_LENGTH -> content.getBytes.size.toString))
+        case HttpMethod.PUT =>
+          wsRequestHolder = wsRequestHolder.withHeaders(HeaderNames.CONTENT_LENGTH -> content.getBytes.size.toString)
           futureResponse = wsRequestHolder.put(content)
       }
       // wait for the response
@@ -140,11 +141,11 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       case e: Throwable =>
         requestData.contentType match {
           case "application/xml" | "text/xml" =>
-            processError(method, "xml", e)
+            processError("sendRestRequestAndWaitForResponse", "xml", e)
           case "application/json" =>
-            processError(method, "json", e)
+            processError("sendRestRequestAndWaitForResponse", "json", e)
           case _ =>
-            processError(method, "text", e)
+            processError("sendRestRequestAndWaitForResponse", "text", e)
         }
 
     }
