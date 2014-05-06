@@ -69,11 +69,13 @@ object LiveRoom {
     default
   }
 
-  def changeCriterias(username: String, criterias: Criterias) = {
-    default ! ChangeCriterias(username, criterias)
+  def changeCriterias(username: String, criteria: Tuple2[String, String]) = {
+    default ! ChangeCriterias(username, criteria)
   }
-  def join(username: String): scala.concurrent.Future[(Iteratee[JsValue, _], Enumerator[JsValue])] = {
-    (default ? Join(username, null.asInstanceOf[Criterias])).map {
+
+  def join(username: String, criterias: Criterias): scala.concurrent.Future[(Iteratee[JsValue, _], Enumerator[JsValue])] = {
+
+    (default ? Join(username, criterias)).map {
       case Connected(enumerator) =>
         // Create an Iteratee to consume the feed
         val iteratee = Iteratee.foreach[JsValue] {
@@ -83,42 +85,42 @@ object LiveRoom {
           _ =>
             default ! Quit(username)
         }
-
         (iteratee, enumerator)
 
       case CannotConnect(error) =>
         // Connection error
         // A finished Iteratee sending EOF
         val iteratee = Done[JsValue, Unit]((), Input.EOF)
-
         // Send an error and close the socket
         val enumerator = Enumerator[JsValue](JsObject(Seq("error" -> JsString(error)))).andThen(Enumerator.enumInput(Input.EOF))
 
         (iteratee, enumerator)
-
     }
   }
 }
 
 class LiveRoom extends Actor {
 
-  var members = Map.empty[String, Criterias]
-  val (liveEnumerator, channel) = Concurrent.broadcast[JsValue]
+  var members = Map.empty[String, (Criterias, Concurrent.Channel[JsValue])]
 
   def receive = {
 
     case Join(username, criterias) => {
-      Logger.debug("ENTER FUNCTION")
-      Logger.debug(username)
       if (members.contains(username)) {
         sender ! CannotConnect("You have already a navigator on this page !")
       } else {
-        val criterias = new Criterias("all", "all", "all", "", true, true)
-        members = members + ((username, criterias))
-        Logger.debug(members.toString)
-        sender ! Connected(liveEnumerator)
+        val e = Concurrent.unicast[JsValue] {
+          c =>
+            members = members + ((username, (criterias, c)))
+        }
+        sender ! Connected(e)
         self ! NotifyJoin(username)
       }
+    }
+
+    case Quit(username) => {
+      members = members - username
+      notifyAll("quit", username, "has left the room")
     }
 
     case NotifyJoin(username) => {
@@ -133,15 +135,35 @@ class LiveRoom extends Actor {
       notifyAll("talkRequestData", username, requestData)
     }
 
-    case Quit(username) => {
-      members = members - username
-      notifyAll("quit", username, "has left the room")
-    }
+    case ChangeCriterias(username, criteria) => {
+      if(members.get(username).isDefined)
+      {
+        // We retrieve the channel
+        val channel = members.get(username).get._2
+        // We retrieve the old criterias
+        val criterias = members.get(username).get._1
 
-    case ChangeCriterias(username, criterias) => {
-      members = members - username
-      members = members + ((username, criterias))
-      Logger.debug(members.toString)
+        val newCriterias = criteria._1 match {
+          // Create new criterias based on user choice
+          case "group" =>
+            new Criterias(criteria._2, criterias.environment, criterias.serviceAction, criterias.code, criterias.search, criterias.request, criterias.response)
+          case "environment" =>
+            new Criterias(criterias.group, criteria._2, criterias.serviceAction, criterias.code, criterias.search, criterias.request, criterias.response)
+          case "serviceAction" =>
+            new Criterias(criterias.group, criterias.environment, criteria._2, criterias.code, criterias.search, criterias.request, criterias.response)
+          case "code" =>
+            new Criterias(criterias.group, criterias.environment, criterias.serviceAction, criteria._2, criterias.search, criterias.request, criterias.response)
+          case "search" =>
+            new Criterias(criterias.group, criterias.environment, criterias.serviceAction, criterias.code, criteria._2, criterias.request, criterias.response)
+          case "request" =>
+            new Criterias(criterias.group, criterias.environment, criterias.serviceAction, criterias.code, criterias.search, criteria._2.toBoolean, criterias.response)
+          case "response" =>
+            new Criterias(criterias.group, criterias.environment, criterias.serviceAction, criterias.code, criterias.search, criterias.request, criteria._2.toBoolean)
+        }
+
+        members = members - username
+        members = members + ((username,(newCriterias, channel)))
+      }
     }
 
   }
@@ -152,7 +174,7 @@ class LiveRoom extends Actor {
       mem =>
         usernames = usernames + mem._1
     }
-
+    // Create the JSON that will be sent
     val msg = JsObject(
       Seq(
         "kind" -> JsString(kind),
@@ -163,7 +185,16 @@ class LiveRoom extends Actor {
         )
       )
     )
-    channel.push(msg)
+    members.foreach {
+      case (key,value) => {
+        // Iterate on each member of the room and check if their criteria match the incoming request
+        val isAMatch = requestData.checkCriterias(value._1)
+        if(isAMatch) {
+          // If the request data match the criterias, the msg is sent through the channel of the correct client
+          value._2.push(msg)
+        }
+      }
+    }
   }
 
   def notifyAll(kind: String, user: String, text: String) {
@@ -183,7 +214,9 @@ class LiveRoom extends Actor {
         )
       )
     )
-    channel.push(msg)
+    members.foreach { case (key,value) =>
+      value._2.push(msg)
+    }
   }
 
 }
@@ -202,6 +235,6 @@ case class Connected(enumerator: Enumerator[JsValue])
 
 case class CannotConnect(msg: String)
 
-case class ChangeCriterias(username: String, criterias: Criterias)
+case class ChangeCriterias(username: String, criteria: Tuple2[String, String])
 
-case class Criterias(group: String, serviceAction: String, status: String, search: String, request: Boolean, response: Boolean)
+case class Criterias(group: String, environment: String, serviceAction: String, code: String, search: String, request: Boolean, response: Boolean)

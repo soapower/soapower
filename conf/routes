@@ -6,7 +6,7 @@
 GET           /                                                                                             controllers.Assets.at(path="/public", file="index.html")
 
 # Live page
-GET           /live/socket                                                                                  controllers.Live.socket
+GET           /live/socket/:group/:environment/:serviceaction/:code                                         controllers.Live.socket(group, environment, serviceaction, code)
 POST          /live/changeCriteria                                                                          controllers.Live.changeCriteria
 
 # Admin page

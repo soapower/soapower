@@ -23,18 +23,15 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
             if (typeof socket != 'undefined') {
                 socket.close()
             }
-
             if (data.error) {
                 $scope.errorInfo = data.error;
             } else if (data.kind == "error") {
                 $scope.errorInfo = data.message;
             }
-
             $scope.isError = true;
             $scope.$apply();
             return
         }
-
 
         if (data.kind == "talkRequestData") {
             $scope.liveData.push(data.message)
@@ -53,12 +50,12 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
         }
         $scope.isLiveOn = false;
     };
-
     $scope.startWS = function () {
         if ($scope.isLiveOn == false) {
             $scope.isLiveOn = true;
             var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket;
-            $scope.socketLive = new WS("ws://" + $location.host() + ":" + $location.port() + "/live/socket");
+            $scope.socketLive = new WS("ws://" + $location.host() + ":" + $location.port() + "/live/socket/"+$routeParams.groups+"/"+$routeParams.environment+
+                                "/"+$routeParams.serviceaction+"/"+$routeParams.code);
             console.log("Websocket started");
             $scope.socketLive.onmessage = receiveEvent
         } else {

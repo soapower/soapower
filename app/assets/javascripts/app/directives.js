@@ -355,26 +355,55 @@ spApp.directive('spFilterLive', function ($http) {
             serviceactions: '='
         },
         controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceActionsService, CodesService, UIService) {
-            /*
-            NEED IMPLEMENTATION
-            EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.group, null, true);
-            ServiceActionsService.findAllAndSelect($scope, $routeParams);
-            */
-            CodesService.findAllAndSelect($scope, $routeParams);
-            $scope.ctrlPath = $scope.$parent.ctrlPath;
+            // The user arrived on the live, his default criteria are set based on the URL parameters
+            $scope.request = true;
+            $scope.response = true;
+            $scope.search = "";
 
-            $scope.changeLiveCriteria = function () {
-                // SEND THE NEW CRITERIA OF THE USER TO THE SERVER
-
-                $http({ method: "POST",
+            // Called when the user changed the status criteria
+            $scope.changeStatus = function() {
+                // If the user set a new status
+                $http({
+                    method: "POST",
                     url: "/live/changeCriteria",
-                    data: $scope.form
-                }).success(function () {
-                    console.log("Success");
-                }).error(function (resp) {
-                    console.log("Bad Request");
-                });
-            };
+                    data: {key: "code", value: $scope.code},
+                    headers: {'Content-Type': 'application/json'}
+                })
+            }
+
+            CodesService.findAllAndSelect($scope, $routeParams);
+
+            $scope.changeRequest = function() {
+                // If the user check or uncheck the request box
+                $http({
+                    method: "POST",
+                    url: "/live/changeCriteria",
+                    data: {key: "request", value: $scope.request.toString()},
+                    headers: {'Content-Type': 'application/json'}
+                })
+            }
+
+            $scope.changeResponse = function() {
+                // If the user check or uncheck the response box
+                $http({
+                    method: "POST",
+                    url: "/live/changeCriteria",
+                    data: {key: "response", value: $scope.response.toString()},
+                    headers: {'Content-Type': 'application/json'}
+                })
+            }
+
+            // Called when the user change the textarea
+            $scope.changeSearch = function() {
+                $http({
+                    method: "POST",
+                    url: "/live/changeCriteria",
+                    data: {key: "search", value: $scope.search},
+                    headers: {'Content-Type': 'application/json'}
+                })
+            }
+
+            $scope.ctrlPath = $scope.$parent.ctrlPath;
 
         },
         templateUrl: 'partials/common/filterlive.html',
