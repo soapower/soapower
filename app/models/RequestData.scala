@@ -95,6 +95,84 @@ case class RequestData(_id: Option[BSONObjectID],
       "purged" -> purged
     )
   }
+
+  /**
+   * Test if the requestData match the criterias given in parameter
+   * @param criterias
+   * @return
+   */
+  def checkCriterias(criterias: Criterias): Boolean = {
+    if(checkGroup(criterias.group)) {
+      if(checkEnv(criterias.environment)) {
+        if(checkServiceAction(criterias.serviceAction)) {
+          if(checkStatus(criterias.code)) {
+            if(checkSearch(criterias.request, criterias.response, criterias.search)) {
+              return true
+            }
+          }
+        }
+      }
+    }
+    Logger.debug("IS NOT A MATCH")
+    return false
+  }
+
+  /**
+   * Check that the group of the requestData match the group in parameter
+   * @param group
+   */
+  private def checkGroup(group: String): Boolean = {
+    return group == "all"
+  }
+
+  /**
+   * Check that the environment of the requestData match the environment in parameter
+   * @param environment
+   */
+  private def checkEnv(environment: String): Boolean = {
+    return environment == "all" || environment == this.environmentName
+  }
+
+  /**
+   * Check that the serviceAction of the requestData match the serviceAction in parameter
+   * @param serviceAction
+   */
+  private def checkServiceAction(serviceAction: String): Boolean = {
+    return serviceAction == "all" || serviceAction == this.serviceAction
+  }
+
+  /**
+   * Check that the status of the RequestData match the status in parameter
+   * @param status
+   */
+  private def checkStatus(status: String): Boolean = {
+    if(status.startsWith("NOT_")) {
+      val notCode = status.split("NOT_")(1)
+      return this.status.toString != notCode
+    }
+    else
+      return status == "all" || status == this.status.toString
+  }
+
+  /**
+   * Check that the request or the response of the RequestData match the search query in parameter
+   * @param request
+   * @param response
+   * @param search
+   */
+  private def checkSearch(request: Boolean, response: Boolean, search: String): Boolean = {
+
+    if(request) {
+      if(this.request.indexOf(search) > -1) return true
+    }
+    if(response) {
+      if(this.response.indexOf(search) > -1) return true
+    }
+    // if the two checkbox are unchecked, the search field is ignore
+    if(!request && !response) return true
+
+    return false
+  }
 }
 
 object RequestData {

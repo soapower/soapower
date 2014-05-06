@@ -32,7 +32,7 @@ Live status :
 
 <p>There are {{ liveData.length }} results.</p>
 
-<sp-showresults></sp-showresults>
+<sp-filter-live></sp-filter-live>
 
 <sp-replay-edit></sp-replay-edit>
 
@@ -60,13 +60,13 @@ Live status :
         <td style="width: '200px'">{{ line.startTime }}</td>
         <td style="width: '100px'">{{ line.timeInMillis }}</td>
         <td style="width: '80px'">
-            <sp-request>
+            <sp-request></sp-request>
         </td>
         <td style="width: '80px'">
-            <sp-response>
+            <sp-response></sp-response>
         </td>
         <td style="width: '80px'">
-            <sp-replay>
+            <sp-replay></sp-replay>
         </td>
     </tr>
 </table>

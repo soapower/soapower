@@ -192,7 +192,7 @@ spApp.factory("CodesService", function ($http) {
                             $scope.codes.push(valNot);
                             if (valNot == $routeParams.code) $scope.code = valNot;
                         }
-                        if (value == $routeParams.code) $scope.code = value;
+                        if (value == $routeParams.code) {$scope.code = value;}
                     });
                 })
                 .error(function (resp) {

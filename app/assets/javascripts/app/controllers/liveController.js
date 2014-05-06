@@ -1,11 +1,13 @@
 function LiveCtrl($scope, $location, $window, $routeParams) {
+    $scope.choiceNbResults = [ 10, 50, 100, 1000, 10000 ];
+    $scope.nbResults = 50
+
     $scope.ctrlPath = "live";
     $scope.isLiveOn = false;
     $scope.isError = false;
     $scope.nbConnected = 0;
     $scope.liveData = [];
-    $scope.showTips = false;
-
+    $scope.showFilter = false;
     $scope.hostname = $location.host();
     $scope.port = $location.port();
 
@@ -19,13 +21,11 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
 
     var receiveEvent = function (event) {
         var data = JSON.parse(event.data);
-
         // Handle errors
         if (data.error || data.kind == "error") {
             if (typeof socket != 'undefined') {
                 socket.close()
             }
-
             if (data.error) {
                 $scope.errorInfo = data.error;
             } else if (data.kind == "error") {
@@ -53,12 +53,12 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
         }
         $scope.isLiveOn = false;
     };
-
     $scope.startWS = function () {
         if ($scope.isLiveOn == false) {
             $scope.isLiveOn = true;
             var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket;
-            $scope.socketLive = new WS("ws://" + $location.host() + ":" + $location.port() + "/live/socket");
+            $scope.socketLive = new WS("ws://" + $location.host() + ":" + $location.port() + "/live/socket/"+$routeParams.groups+"/"+$routeParams.environment+
+                                "/"+$routeParams.serviceaction+"/"+$routeParams.code);
             console.log("Websocket started");
             $scope.socketLive.onmessage = receiveEvent
         } else {
