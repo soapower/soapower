@@ -1,4 +1,7 @@
 function LiveCtrl($scope, $location, $window, $routeParams) {
+    $scope.choiceNbResults = [ 10, 50, 100, 1000, 10000 ];
+    $scope.nbResults = 50
+
     $scope.ctrlPath = "live";
     $scope.isLiveOn = false;
     $scope.isError = false;
