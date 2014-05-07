@@ -380,11 +380,11 @@ spApp.directive('spFilterLive', function ($http) {
                     headers: {'Content-Type': 'application/json'}
                 })
             }
-            //
-            EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.groups, null, true);
 
-            //
+            EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.groups, null, true);
             CodesService.findAllAndSelect($scope, $routeParams);
+            // TODO
+            //ServiceActionsService.findAll($routeParams.groups);
 
             $scope.changeRequest = function() {
                 // If the user check or uncheck the request box
