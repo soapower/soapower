@@ -53,7 +53,8 @@ spApp.factory("EnvironmentsService", function ($http) {
                     if (environmentName != null || myService != null) {
                         angular.forEach($scope.environments, function (value, key) {
                             if (environmentName != null && value.name == environmentName) {
-                                $scope.environment = value;
+                                // Used in Live and Search pages, we only need the name of the environment for those pages
+                                $scope.environment = value.name;
                             }
                             if (myService != null && value.id == myService.environmentId) {
                                 myService.environment = value;
@@ -192,7 +193,7 @@ spApp.factory("CodesService", function ($http) {
                             $scope.codes.push(valNot);
                             if (valNot == $routeParams.code) $scope.code = valNot;
                         }
-                        if (value == $routeParams.code) {$scope.code = value;}
+                        if (value == $routeParams.code) $scope.code = value;
                     });
                 })
                 .error(function (resp) {
