@@ -106,15 +106,20 @@ class LiveRoom extends Actor {
   def receive = {
 
     case Join(username, criterias) => {
-      if (members.contains(username)) {
-        sender ! CannotConnect("You have already a navigator on this page !")
-      } else {
-        val e = Concurrent.unicast[JsValue] {
-          c =>
-            members = members + ((username, (criterias, c)))
+      if(username == "Robot") {
+        members = members + ((username, (criterias, null.asInstanceOf[Concurrent.Channel[JsValue]])))
+      }
+      else {
+        if (members.contains(username)) {
+          sender ! CannotConnect("You have already a navigator on this page !")
+        } else {
+          val e = Concurrent.unicast[JsValue] {
+            c =>
+              members = members + ((username, (criterias, c)))
+          }
+          sender ! Connected(e)
+          self ! NotifyJoin(username)
         }
-        sender ! Connected(e)
-        self ! NotifyJoin(username)
       }
     }
 
@@ -187,11 +192,13 @@ class LiveRoom extends Actor {
     )
     members.foreach {
       case (key,value) => {
-        // Iterate on each member of the room and check if their criteria match the incoming request
-        val isAMatch = requestData.checkCriterias(value._1)
-        if(isAMatch) {
-          // If the request data match the criterias, the msg is sent through the channel of the correct client
-          value._2.push(msg)
+        if(key != "Robot") {
+          // Iterate on each member of the room and check if their criteria match the incoming request
+          val isAMatch = requestData.checkCriterias(value._1)
+          if(isAMatch ) {
+            // If the request data match the criterias, the msg is sent through the channel of the correct client
+            value._2.push(msg)
+          }
         }
       }
     }
@@ -215,7 +222,8 @@ class LiveRoom extends Actor {
       )
     )
     members.foreach { case (key,value) =>
-      value._2.push(msg)
+      if(key != "Robot")
+        value._2.push(msg)
     }
   }
 
