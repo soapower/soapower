@@ -232,7 +232,9 @@ object Environment {
    * Return a list of all environments in some groups.
    */
   def findInGroups(groups: String): Future[List[Environment]] = {
-    if ("all".equals(groups)) return findAll
+    if ("all".equals(groups)) {
+      return findAll
+    }
     val find = BSONDocument("groups" -> BSONDocument("$in" -> groups.split(',')))
     collection.
       find(find).

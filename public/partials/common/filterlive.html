@@ -2,9 +2,8 @@
     <form name="form" role="form">
         <div class="form-inline">
             <div style="width:30%;" class="form-group">
-                <select style="display:block;" ui-select2 data-placeholder="Pick an environment" class="form-control" ng-model="environment">
-                    <option></option>
-                    <option>Not yet implemented</option>
+                <select ng-model="environment" ui-select2 class="form-control" style="display:block;" ng-change="changeEnvironment()">
+                    <option ng-repeat="e in environments" value="{{ e.name }}">{{ e.name }}</option>
                 </select>
             </div>
             <div style="width:30%;" class="form-group">

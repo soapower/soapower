@@ -113,7 +113,6 @@ case class RequestData(_id: Option[BSONObjectID],
         }
       }
     }
-    Logger.debug("IS NOT A MATCH")
     return false
   }
 

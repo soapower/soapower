@@ -3,6 +3,8 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
     $scope.nbResults = 50
 
     $scope.ctrlPath = "live";
+    // Used to handle criterias when the user manualy close the websocket
+    $scope.manuallyClosed = false;
     $scope.isLiveOn = false;
     $scope.isError = false;
     $scope.nbConnected = 0;
@@ -47,18 +49,29 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
     $scope.stopWS = function () {
         if ($scope.isLiveOn == true && angular.isDefined($scope.socketLive)) {
             $scope.socketLive.close();
+            $scope.manuallyClosed = true;
             console.log("Websocket closed")
         } else {
             console.log("Websocket already closed")
         }
+        // The websocket has been manually closed by the user (click on the stop button)
+        $scope.manuallyClosed = true;
         $scope.isLiveOn = false;
     };
     $scope.startWS = function () {
         if ($scope.isLiveOn == false) {
             $scope.isLiveOn = true;
             var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket;
-            $scope.socketLive = new WS("ws://" + $location.host() + ":" + $location.port() + "/live/socket/"+$routeParams.groups+"/"+$routeParams.environment+
-                                "/"+$routeParams.serviceaction+"/"+$routeParams.code);
+            if ($scope.manuallyClosed == false) {
+                // The websocket is initialized using parameters from the routes
+                var url = "ws://" + $location.host() + ":" + $location.port() + "/live/socket/"+$routeParams.groups+"/"+$routeParams.environment+
+                                                          "/"+$routeParams.serviceaction+"/"+$routeParams.code;
+            } else {
+                // The websocket has been mannualy restart, the websocket is initialized using scope
+                var url = "ws://" + $location.host() + ":" + $location.port() + "/live/socket/"+$routeParams.groups+"/"+$scope.$$childHead.environment+
+                                                          "/"+$routeParams.serviceaction+"/"+$scope.$$childHead.code;
+            }
+            $scope.socketLive = new WS(url);
             console.log("Websocket started");
             $scope.socketLive.onmessage = receiveEvent
         } else {
