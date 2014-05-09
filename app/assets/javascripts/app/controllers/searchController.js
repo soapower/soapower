@@ -1,12 +1,9 @@
 function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window, $filter, ngTableParams, UIService) {
     $scope.ctrlPath = "search";
-
     $scope.showTips = false;
     $scope.hostname = $location.host();
     $scope.port = $location.port();
-
     $scope.totalServerItems = 0;
-
     $scope.reloadTable = function () {
         var groups = $routeParams.groups ? $routeParams.groups : 'all';
         var environment = $routeParams.environment ? $routeParams.environment : 'all';
@@ -21,10 +18,11 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
             '/' + maxdate +
             '/' + code +
             '/listDatatable?' +
-            'iDisplayStart=' + 1 +
+            'sSearch=' +
+            '&iDisplayStart=' + 1 +
             '&iDisplayLength=' + 10000 +
             '&call=' + new Date();
-
+        console.log(url)
         $http({
             method: 'GET',
             url: url,
@@ -86,6 +84,6 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
     $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "SearchCtrl");
 
     $scope.$on("ReloadPage", function (event) {
-        UIService.reloadPage($scope, true);
+        UIService.reloadPage($scope, true, "search");
     });
 }

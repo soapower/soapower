@@ -21,15 +21,22 @@
         </div>
 
         <div class="form-group">
-            <select class="form-control" ng-model="environment" ng-options="environment.name for environment in environments"></select>
+            <select class="form-control" ui-select2 ng-model="environment">
+                <option ng-repeat="e in environments" value="{{ e.name }}">{{ e.name }}</option>
+            </select>
         </div>
 
-        <div class="form-group">
-            <select class="form-control" ng-model="serviceaction" ng-options="s.name for s in serviceactions" ng-show="showServiceactions"></select>
+        <div style="width:30%;" class="form-group">
+            <select style="display:block;" ui-select2 data-placeholder="Pick a serviceaction"  ui-select2 class="form-control" ng-model="serviceaction">
+                <option></option>
+                <option>Not yet implemented</option>
+            </select>
         </div>
 
-        <div class="form-group">
-            <select class="form-control" ng-model="code" ng-options="c as c for c in codes"></select>
+        <div style="width:30%;" class="form-group">
+            <select style="display:block;" ng-model="code" ui-select2 class="form-control" ng-change="changeStatus()">
+                <option ng-repeat="c in codes" value="{{ c }}">{{ c }}</option>
+            </select>
         </div>
 
         <div class="form-group">

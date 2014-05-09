@@ -1,9 +1,15 @@
 package models
 
-import java.util.{Calendar, Date, GregorianCalendar}
+import java.util.{TimeZone, Calendar, Date, GregorianCalendar}
 import java.text.SimpleDateFormat
 import java.text.ParseException
+import scala.util.Success
+import scala.util.Failure
 import play.Logger
+import play.api.libs.concurrent.Execution.Implicits._
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import org.joda.time.DateTime
 
 object UtilDate {
 
@@ -20,45 +26,61 @@ object UtilDate {
     gCal.set(Calendar.MINUTE, 0)
     gCal.set(Calendar.SECOND, 0)
 
-    val mDate: GregorianCalendar = sDate match {
-      case "all" =>
+    sDate match {
+      case "all" => {
         if (isMax) {
+          // the date is set to today date at 23 hour 59 minutes 59s
           gCal.setTimeInMillis(gCal.getTimeInMillis + v23h59min59s);
-          gCal
+          return gCal
         }
         else {
-          gCal.setTime(RequestData.getMinStartTime.getOrElse(new Date));
-          gCal
+          // the date is set to the start time of the oldest requestData
+          val findMin = RequestData.getMinRequestData
+          findMin.onComplete {
+            case Success(request) =>
+              if(request.isDefined) gCal.setTimeInMillis(request.get.startTime.getMillis)
+              else gCal.setTime(new Date);
+
+            case Failure(e) =>
+              gCal.setTime(new Date);
+          }
+          Await.result(findMin, 5000 millis)
+          return gCal
         }
+      }
       case "today" =>
         if (isMax)
+          // the date is set to todays date at 23 hour 59 minutes 59s
           gCal.setTimeInMillis(gCal.getTimeInMillis + v23h59min59s)
-        gCal
+        return gCal
+
       case "yesterday" =>
+        // the date is set to yesterdays date
         gCal.add(Calendar.DATE, -1)
-        if (isMax)
-          gCal.setTimeInMillis(gCal.getTimeInMillis + v23h59min59s)
-        gCal
+        if (isMax) gCal.setTimeInMillis(gCal.getTimeInMillis + v23h59min59s)
+        return gCal
       case pattern(days) =>
-        gCal.add(Calendar.DATE, -(days.toInt)); gCal
+        gCal.add(Calendar.DATE, -(days.toInt));
+        return gCal
       case _ =>
         try {
           val f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm")
           gCal.setTime(f.parse(sDate))
+          return gCal
         }
         catch {
           case e: ParseException =>
             if (isMax) {
               gCal.setTimeInMillis(gCal.getTimeInMillis + v23h59min59s)
+              return gCal
             }
             else {
               gCal.add(Calendar.DATE, -1)
+              return gCal
             }
-            gCal
         }
-        gCal
     }
-    mDate
+
   }
 
   def formatDate(gCal: GregorianCalendar): String = {
@@ -89,5 +111,10 @@ object UtilDate {
 
   def addZero(f: Int): String = {
     if (f < 10) "0" + f.toString else f.toString
+  }
+
+  def getGMTDateTime(date: Date) : DateTime = {
+    TimeZone.setDefault(TimeZone.getTimeZone("GMT"))
+    return new DateTime(date)
   }
 }

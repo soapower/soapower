@@ -185,7 +185,6 @@ object Environment {
     }) {
       throw new Exception("Environment with name " + environment.name.trim + " already exist")
     }
-
     val selector = BSONDocument("_id" -> environment._id)
 
     val modifier = BSONDocument(
@@ -269,6 +268,19 @@ object Environment {
   def findAllGroups(): Future[BSONDocument] = {
     val command = RawCommand(BSONDocument("distinct" -> "environments", "key" -> "groups"))
     collection.db.command(command) // result is Future[BSONDocument]
+  }
+
+  /**
+   * Find an environment using his name and retrieve it if the groups in parameters match the environment groups
+   * @param name
+   * @param groups
+   * @return
+   */
+  def findByNameAndGroups(name: String, groups: String): Future[Option[Environment]] = {
+    val find = BSONDocument("name" -> name, "groups" -> BSONDocument("$in" -> groups.split(',')))
+    collection.
+      find(find).
+      one[Environment]
   }
 
   /**
