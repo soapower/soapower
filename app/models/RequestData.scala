@@ -594,7 +594,6 @@ object RequestData {
     if(environmentIn == "all") {
       // We retrieve the environments of the groups in parameter
       val environments = Environment.optionsInGroups(groups)
-      Logger.debug(environments.toString)
       // We add the environments names to the query
       query = query ++ ("environmentName" -> BSONDocument("$in" -> environments.map{e => e._2}.toArray))
     } else {

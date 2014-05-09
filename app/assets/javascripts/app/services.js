@@ -223,7 +223,7 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
             // Retrieve groups
             $scope.groups = $rootScope.$$childHead.groupsSelected;
 
-            if ($scope.environment) environment = $scope.environment.name;
+            if ($scope.environment) environment = $scope.environment;
 
             if (showServiceactions && $scope.serviceaction) {
                 serviceaction = encodeURIComponent($scope.serviceaction.name);
@@ -237,9 +237,9 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
             }
             if ($scope.code) code = $scope.code;
 
-            var path = $scope.ctrlPath + '/' + $scope.groups + "/" + environment + "/";
+            var path = $scope.ctrlPath + '/' + $scope.groups + "/" + environment + "/" + serviceaction + "/";
 
-            if (showServiceactions) path = path + serviceaction + "/";
+
             if(page == "search") {
                 path = path + mindate + "/" + maxdate + "/" + code;
             }
