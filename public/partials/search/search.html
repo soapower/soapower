@@ -35,7 +35,7 @@
             <td data-title="'Environment'" sortable="'environmentName'" style="width: '100px'">{{ line.environmentName }}</td>
             <td data-title="'Sender'" sortable="'sender'" style="width: '100px'">{{ line.sender }}</td>
             <td data-title="'ServiceAction'" sortable="'serviceAction'" style="width: '100px'">{{ line.serviceAction }}</td>
-            <td data-title="'StartTime'" sortable="'startTime'" style="width: '200px'">{{ line.startTime }}</td>
+            <td data-title="'StartTime'" sortable="'startTime'" style="width: '200px'">{{ line.startTime | date:'yyyy-MM-dd HH:mm:ss'}}</td>
             <td data-title="'TimeInMillis'" sortable="'timeInMillis'" style="width: '100px'">{{ line.timeInMillis }}</td>
             <td data-title="'Request'" style="width: '80px'">
                 <sp-request>

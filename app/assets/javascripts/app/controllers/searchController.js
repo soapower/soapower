@@ -22,7 +22,6 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
             '&iDisplayStart=' + 1 +
             '&iDisplayLength=' + 10000 +
             '&call=' + new Date();
-        console.log(url)
         $http({
             method: 'GET',
             url: url,
