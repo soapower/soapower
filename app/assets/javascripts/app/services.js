@@ -197,7 +197,7 @@ spApp.factory("CodesService", function ($http) {
                     });
                 })
                 .error(function (resp) {
-                    console.log("Error with ServiceActionsService.findAllAndSelect" + resp);
+                    console.log("Error with CodesService.findAllAndSelect" + resp);
                 });
         }
     }
@@ -216,10 +216,12 @@ spApp.factory("LoggersService", function ($http) {
 });
 
 
-spApp.factory("UIService", function ($location, $filter, $routeParams) {
+spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScope) {
     return {
-        reloadPage: function ($scope, showServiceactions) {
+        reloadPage: function ($scope, showServiceactions, page) {
             var environment = "all", serviceaction = "all", mindate = "all", maxdate = "all", code = "all";
+            // Retrieve groups
+            $scope.groups = $rootScope.$$childHead.groupsSelected;
 
             if ($scope.environment) environment = $scope.environment.name;
 
@@ -235,11 +237,15 @@ spApp.factory("UIService", function ($location, $filter, $routeParams) {
             }
             if ($scope.code) code = $scope.code;
 
-            var path = $scope.ctrlPath + '/' + $routeParams.groups + "/" + environment + "/";
+            var path = $scope.ctrlPath + '/' + $scope.groups + "/" + environment + "/";
 
             if (showServiceactions) path = path + serviceaction + "/";
-
-            path = path + mindate + "/" + maxdate + "/" + code;
+            if(page == "search") {
+                path = path + mindate + "/" + maxdate + "/" + code;
+            }
+            else if (page == "live") {
+                path = path + "live/live/" + code;
+            }
             console.log("UIService.reloadPage : Go to " + path);
             $location.path(path);
         },

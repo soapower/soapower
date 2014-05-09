@@ -1,4 +1,4 @@
-function LiveCtrl($scope, $location, $window, $routeParams) {
+function LiveCtrl($scope, $rootScope, $location, $window, $routeParams, UIService) {
     $scope.choiceNbResults = [ 10, 50, 100, 1000, 10000 ];
     $scope.nbResults = 50
 
@@ -100,7 +100,12 @@ function LiveCtrl($scope, $location, $window, $routeParams) {
             $window.open(url);
         }
     };
+    $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "LiveCtrl");
 
     $scope.startWS();
+
+    $scope.$on("ReloadPage", function (event) {
+            UIService.reloadPage($scope, true, "live");
+        });
 
 }
