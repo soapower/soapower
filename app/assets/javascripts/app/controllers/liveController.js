@@ -3,7 +3,7 @@ function LiveCtrl($scope, $rootScope, $location, $window, $routeParams, UIServic
     $scope.nbResults = 50
 
     $scope.ctrlPath = "live";
-    // Used to handle criterias when the user manualy close the websocket
+    // Used to handle criterias when the user manually close the websocket
     $scope.manuallyClosed = false;
     $scope.isLiveOn = false;
     $scope.isError = false;
@@ -67,13 +67,13 @@ function LiveCtrl($scope, $rootScope, $location, $window, $routeParams, UIServic
                 var url = "ws://" + $location.host() + ":" + $location.port() + "/live/socket/"+$routeParams.groups+"/"+$routeParams.environment+
                                                           "/"+$routeParams.serviceaction+"/"+$routeParams.code;
             } else {
-                // The websocket has been mannualy restart, the websocket is initialized using scope
+                // The websocket has been manually restart, the websocket is initialized using scope
                 var url = "ws://" + $location.host() + ":" + $location.port() + "/live/socket/"+$routeParams.groups+"/"+$scope.$$childHead.environment+
                                                           "/"+$routeParams.serviceaction+"/"+$scope.$$childHead.code;
             }
             $scope.socketLive = new WS(url);
             console.log("Websocket started");
-            $scope.socketLive.onmessage = receiveEvent
+            $scope.socketLive.onmessage = receiveEvent;
         } else {
             console.log("Websocket already started");
         }
@@ -107,5 +107,4 @@ function LiveCtrl($scope, $rootScope, $location, $window, $routeParams, UIServic
     $scope.$on("ReloadPage", function (event) {
             UIService.reloadPage($scope, true, "live");
         });
-
 }

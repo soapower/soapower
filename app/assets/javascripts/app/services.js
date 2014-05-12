@@ -242,12 +242,16 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
 
             if(page == "search") {
                 path = path + mindate + "/" + maxdate + "/" + code;
+                // Add the search parameters to the query string
+                var search = {'search': $scope.search, 'request': $scope.request.toString(), 'response': $scope.response.toString()}
+                $location.path(path).search(search);
+                console.log("UIService.reloadPage : Go to " + path);
             }
             else if (page == "live") {
                 path = path + "live/live/" + code;
+                console.log("UIService.reloadPage : Go to " + path);
+                $location.path(path);
             }
-            console.log("UIService.reloadPage : Go to " + path);
-            $location.path(path);
         },
         /*
          /* Transform a string in the format "yyyy-mm-ddThh:mm" to the
@@ -326,6 +330,11 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
 
                 return !!mindate.getTime() && !!maxdate.getTime() && mindate <= maxdate;
             }
+        },
+        stringToBoolean: function(string) {
+            if(string == "true") return true;
+            else if(string == "false") return false;
+            else return true;
         }
     }
 });

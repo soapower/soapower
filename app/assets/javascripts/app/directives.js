@@ -101,7 +101,7 @@ spApp.directive('spGroups', function () {
                     }
                 }
                 $scope.lastGroupSelected = $scope.groupsSelected;
-                if ($scope.showGroup) $rootScope.$broadcast("ReloadPage", $scope.groupsSelected, "spGroups.change()");
+                //if ($scope.showGroup) $rootScope.$broadcast("ReloadPage", $scope.groupsSelected, "spGroups.change()");
             };
 
             $scope.loadGroups = function (callBack) {
@@ -355,6 +355,7 @@ spApp.directive('spFilter', function ($http) {
             page: '@page'
         },
         controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceActionsService, CodesService, UIService) {
+
             EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.groups, null, true);
             CodesService.findAllAndSelect($scope, $routeParams);
             // TODO
@@ -419,13 +420,18 @@ spApp.directive('spFilter', function ($http) {
                         data: {key: "search", value: $scope.search},
                         headers: {'Content-Type': 'application/json'}
                     })
-                }
+                };
             }
             // The directive is called in Search, Analysis or Statistics page
             else if($scope.page == "search") {
                 $scope.showcalendars = true;
                 $scope.showfilterbutton = true;
                 $scope.showresearch = true;
+
+                $scope.request = $routeParams.request ? UIService.stringToBoolean($routeParams.request) : true;
+                $scope.response = $routeParams.response ? UIService.stringToBoolean($routeParams.response) : true;
+
+                $scope.search = $routeParams.search ? $routeParams.search : "";
                 // The directive was called from the search page
                 $scope.mindate = UIService.getInputCorrectDateFormat($routeParams.mindate);
                 $scope.maxdate = UIService.getInputCorrectDateFormat($routeParams.maxdate);
@@ -458,7 +464,6 @@ spApp.directive('spFilter', function ($http) {
                 };
             }
             $scope.ctrlPath = $scope.$parent.ctrlPath;
-
         },
         templateUrl: 'partials/common/filter.html',
         replace: true

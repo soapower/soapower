@@ -11,6 +11,18 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
         var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
         var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
         var code = $routeParams.code ? $routeParams.code : 'all';
+        var search = $routeParams.search ? $routeParams.search : '';
+
+        var request = "true";
+        var response = "true";
+
+        if($routeParams.request === "false"){
+            request = "false";
+        }
+        if($routeParams.response === "false") {
+            response = "false";
+        }
+
         var url = '/search/' + groups +
             '/' + environment +
             '/' + encodeURIComponent(serviceaction) +
@@ -18,7 +30,9 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
             '/' + maxdate +
             '/' + code +
             '/listDatatable?' +
-            'sSearch=' +
+            'sSearch=' + search +
+            '&request=' + request +
+            '&response=' + response +
             '&iDisplayStart=' + 1 +
             '&iDisplayLength=' + 10000 +
             '&call=' + new Date();
@@ -83,6 +97,7 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
     $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "SearchCtrl");
 
     $scope.$on("ReloadPage", function (event) {
+        console.log(event);
         UIService.reloadPage($scope, true, "search");
     });
 }

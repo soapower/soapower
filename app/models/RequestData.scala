@@ -37,6 +37,7 @@ import play.cache.Cache
 import java.text.{SimpleDateFormat, DateFormat}
 import scala.util.{Try, Success, Failure}
 import org.joda.time.DateTime
+import reactivemongo.api.indexes.{IndexType, Index}
 
 case class RequestData(_id: Option[BSONObjectID],
                        sender: String,
@@ -589,7 +590,8 @@ object RequestData {
    * @param pageSize size of line in one page
    * @return
    */
-  def list(groups: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10): Future[List[RequestData]] = {
+  def list(groups: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0,
+           pageSize: Int = 10, sSearch: String, request:Boolean, response: Boolean): Future[List[RequestData]] = {
     var query = BSONDocument()
     if(environmentIn == "all") {
       // We retrieve the environments of the groups in parameter
@@ -623,7 +625,14 @@ object RequestData {
       "$lt" -> BSONDateTime(maxDate.getTime))
     )
 
-    if (status != "all") query ++ ("status" -> status)
+    if (status != "all") query = query ++ ("status" -> status)
+
+    if(sSearch != "") {
+      // We create indexes on request and responseOriginal for the research
+      collection.indexesManager.ensure(
+        Index(List("request" -> IndexType.Text, "responseOriginal" -> IndexType.Text))
+      )
+    }
 
     collection.
       find(query).
