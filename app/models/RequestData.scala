@@ -592,6 +592,7 @@ object RequestData {
    */
   def list(groups: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0,
            pageSize: Int = 10, sSearch: String, request:Boolean, response: Boolean): Future[List[RequestData]] = {
+
     var query = BSONDocument()
     if(environmentIn == "all") {
       // We retrieve the environments of the groups in parameter
@@ -625,7 +626,13 @@ object RequestData {
       "$lt" -> BSONDateTime(maxDate.getTime))
     )
 
-    if (status != "all") query = query ++ ("status" -> status)
+    if (status != "all") {
+      if(status.startsWith("NOT_")) {
+        val notCode = status.split("NOT_")(1)
+        query = query ++ ("status" -> BSONDocument("$ne" -> notCode.toInt))
+      }
+      else query = query ++ ("status" -> status.toInt)
+    }
 
     if(sSearch != "") {
       // We create indexes on request and responseOriginal for the research
@@ -633,7 +640,7 @@ object RequestData {
         Index(List("request" -> IndexType.Text, "responseOriginal" -> IndexType.Text))
       )
     }
-
+    query.elements.foreach(e => e._2.toString)
     collection.
       find(query).
       sort(BSONDocument("startTime" -> -1)).

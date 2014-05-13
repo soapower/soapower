@@ -348,7 +348,7 @@ spApp.directive('spReplayEdit', function () {
         }
     }
 });
-spApp.directive('spFilter', function ($http) {
+spApp.directive('spFilter', function ($http, $filter) {
     return {
         restrict: 'E',
         scope: {
@@ -432,7 +432,6 @@ spApp.directive('spFilter', function ($http) {
                 $scope.response = $routeParams.response ? UIService.stringToBoolean($routeParams.response) : true;
 
                 $scope.search = $routeParams.search ? $routeParams.search : "";
-                // The directive was called from the search page
                 $scope.mindate = UIService.getInputCorrectDateFormat($routeParams.mindate);
                 $scope.maxdate = UIService.getInputCorrectDateFormat($routeParams.maxdate);
 
@@ -455,6 +454,7 @@ spApp.directive('spFilter', function ($http) {
 
                     // Check that the date inputs format are correct and that the mindate is before the maxdate
                     if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
+                        console.log($scope);
                         UIService.reloadPage($scope, $scope.showServiceactions, "search");
                     } else {
                         // Else, mindate and maxdate are set to yesterday's and today's dates
