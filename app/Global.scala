@@ -15,7 +15,7 @@ object Global extends GlobalSettings {
     LiveRoom.init
 
     // initialDelay: Duration : 10 minutes
-    // frequency: Duration : 10 hours
+    // frequency: Duration : 5 hours
     Akka.system.scheduler.schedule(10 minutes, 5 hours) {
       Environment.compileStats()
       Environment.purgeContentData()
