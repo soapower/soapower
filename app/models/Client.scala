@@ -241,7 +241,6 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       val writeStartTime = System.currentTimeMillis()
       scala.concurrent.Future {
         requestData.request = checkNullOrEmpty(content)
-        requestData.storeServiceActionAndStatusInCache()
         RequestData.insert(requestData)
         Robot.talk(requestData)
       }.map {

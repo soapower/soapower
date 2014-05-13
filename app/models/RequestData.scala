@@ -7,9 +7,6 @@ import java.util.zip.{GZIPOutputStream, GZIPInputStream}
 import java.nio.charset.Charset
 
 import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
-import play.api.libs.json.JsString
-import scala.Some
-import play.api.libs.json.JsObject
 
 import scala.concurrent.duration._
 import play.api.Logger
@@ -18,11 +15,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.{Await, Future}
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
-import scala.Some
-import reactivemongo.core.commands.{LastError, RawCommand}
-import reactivemongo.api.collections.default.BSONCollection
-import scala.Some
-import play.api.libs.json.JsObject
+import reactivemongo.core.commands.RawCommand
 import reactivemongo.api.collections.default.BSONCollection
 import play.api.http.HeaderNames
 import reactivemongo.bson.BSONDateTime
@@ -63,25 +56,6 @@ case class RequestData(_id: Option[BSONObjectID],
   def this(sender: String, serviceAction: String, environnmentName: String, serviceId: BSONObjectID, contentType: String) =
     this(Some(BSONObjectID.generate), sender, serviceAction, environnmentName, serviceId, null, null, contentType, null, new DateTime(), null, None, null, -1, -1, false, false)
 
-  /**
-   * Add serviceAction in cache if neccessary.
-   */
-  def storeServiceActionAndStatusInCache() {
-    //TODO
-    /*
-    if (!RequestData.serviceActionOptions.exists(p => p._1 == serviceAction)) {
-      Logger.info("ServiceAction " + serviceAction + " not found in cache : add to cache")
-      val inCache = RequestData.serviceActionOptions ++ (List((serviceAction, serviceAction)))
-      Cache.set(RequestData.keyCacheServiceAction, inCache)
-    }
-    if (!RequestData.statusOptions.exists(p => p._1 == status)) {
-      Logger.info("Status " + serviceAction + " not found in cache : add to cache")
-      val inCache = RequestData.statusOptions ++ (List((status, status)))
-      Cache.set(RequestData.keyCacheStatusOptions, inCache)
-    }
-    */
-  }
-
   def toSimpleJson: JsObject = {
     Json.obj(
       "_id" -> _id,
@@ -103,11 +77,11 @@ case class RequestData(_id: Option[BSONObjectID],
    * @return
    */
   def checkCriterias(criterias: Criterias): Boolean = {
-    if(checkGroup(criterias.group)) {
-      if(checkEnv(criterias.environment)) {
-        if(checkServiceAction(criterias.serviceAction)) {
-          if(checkStatus(criterias.code)) {
-            if(checkSearch(criterias.request, criterias.response, criterias.search)) {
+    if (checkGroup(criterias.group)) {
+      if (checkEnv(criterias.environment)) {
+        if (checkServiceAction(criterias.serviceAction)) {
+          if (checkStatus(criterias.code)) {
+            if (checkSearch(criterias.request, criterias.response, criterias.search)) {
               return true
             }
           }
@@ -146,7 +120,7 @@ case class RequestData(_id: Option[BSONObjectID],
    * @param status
    */
   private def checkStatus(status: String): Boolean = {
-    if(status.startsWith("NOT_")) {
+    if (status.startsWith("NOT_")) {
       val notCode = status.split("NOT_")(1)
       return this.status.toString != notCode
     }
@@ -162,14 +136,14 @@ case class RequestData(_id: Option[BSONObjectID],
    */
   private def checkSearch(request: Boolean, response: Boolean, search: String): Boolean = {
 
-    if(request) {
-      if(this.request.indexOf(search) > -1) return true
+    if (request) {
+      if (this.request.indexOf(search) > -1) return true
     }
-    if(response) {
-      if(this.response.indexOf(search) > -1) return true
+    if (response) {
+      if (this.response.indexOf(search) > -1) return true
     }
     // if the two checkbox are unchecked, the search field is ignore
-    if(!request && !response) return true
+    if (!request && !response) return true
 
     return false
   }
@@ -338,7 +312,9 @@ object RequestData {
    * find the oldest requestData
    */
   def getMinRequestData: Future[Option[RequestData]] = {
-    collection.find(BSONDocument()).sort(BSONDocument({"startTime" -> 1})).one[RequestData]
+    collection.find(BSONDocument()).sort(BSONDocument({
+      "startTime" -> 1
+    })).one[RequestData]
   }
 
   /**
@@ -523,9 +499,9 @@ object RequestData {
       case Failure(e) => throw e
 
       case Success(lastError) => {
-        if(lastError.updatedExisting) {
-         updatedElement = lastError.updated
-         Logger.debug(updatedElement + " RequestData of the environment " + environmentIn + " has been purged by "+user)
+        if (lastError.updatedExisting) {
+          updatedElement = lastError.updated
+          Logger.debug(updatedElement + " RequestData of the environment " + environmentIn + " has been purged by " + user)
         }
       }
     }
@@ -591,31 +567,35 @@ object RequestData {
    * @return
    */
   def list(groups: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0,
-           pageSize: Int = 10, sSearch: String, request:Boolean, response: Boolean): Future[List[RequestData]] = {
+           pageSize: Int = 10, sSearch: String, request: Boolean, response: Boolean): Future[List[RequestData]] = {
 
     var query = BSONDocument()
-    if(environmentIn == "all") {
+    if (environmentIn == "all") {
       // We retrieve the environments of the groups in parameter
       val environments = Environment.optionsInGroups(groups)
       // We add the environments names to the query
-      query = query ++ ("environmentName" -> BSONDocument("$in" -> environments.map{e => e._2}.toArray))
+      query = query ++ ("environmentName" -> BSONDocument("$in" -> environments.map { e => e._2}.toArray))
     } else {
       // We search if an environment with the name environmentIn belong to the groups in parameter
       val environment = Environment.findByNameAndGroups(environmentIn, groups)
       environment.onComplete {
         case Success(e) => {
           Logger.debug(e.toString)
-          if(e.nonEmpty) {
+          if (e.nonEmpty) {
             // If the environment exists, we add it's name to the query
             query = query ++ ("environmentName" -> e.get.name)
           }
           else {
             // No environment with the name environmentIn and the groups groups exist
             // We return an empty List
-            return Future {List.empty[RequestData]}
+            return Future {
+              List.empty[RequestData]
+            }
           }
         }
-        case Failure(e) => return Future {List.empty[RequestData]}
+        case Failure(e) => return Future {
+          List.empty[RequestData]
+        }
       }
     }
 
@@ -624,10 +604,10 @@ object RequestData {
     query = query ++ ("startTime" -> BSONDocument(
       "$gte" -> BSONDateTime(minDate.getTime),
       "$lt" -> BSONDateTime(maxDate.getTime))
-    )
+      )
 
     if (status != "all") {
-      if(status.startsWith("NOT_")) {
+      if (status.startsWith("NOT_")) {
         val notCode = status.split("NOT_")(1)
         query = query ++ ("status" -> BSONDocument("$ne" -> notCode.toInt))
       }
@@ -635,7 +615,7 @@ object RequestData {
     }
 
     Logger.debug(sSearch)
-    if(sSearch != "") {
+    if (sSearch != "") {
       // We use regex research instead of mongoDb $text
       if (request && response) query = query ++ ("$or" -> BSONArray(BSONDocument("request" -> BSONDocument("$regex" -> sSearch)), BSONDocument("response" -> BSONDocument("$regex" -> sSearch))))
       else if (request) query = query ++ ("request" -> BSONDocument("$regex" -> sSearch))
