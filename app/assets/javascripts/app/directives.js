@@ -8,6 +8,7 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
         },
         controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceActionsService, CodesService, UIService) {
             EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.group, null, true);
+
             CodesService.findAllAndSelect($scope, $routeParams);
             $scope.ctrlPath = $scope.$parent.ctrlPath;
 
@@ -83,7 +84,6 @@ spApp.directive('spGroups', function () {
                             }
                         });
                         if ($scope.groupsSelected.length == 0) $scope.groupsSelected = ["all"];
-                        $rootScope.$broadcast("ReloadPage", $scope.groupsSelected, "spGroups.on showGroupsFilter");
                     });
                 }
             });
@@ -101,7 +101,7 @@ spApp.directive('spGroups', function () {
                     }
                 }
                 $scope.lastGroupSelected = $scope.groupsSelected;
-                if ($scope.showGroup) $rootScope.$broadcast("ReloadPage", $scope.groupsSelected, "spGroups.change()");
+                //if ($scope.showGroup) $rootScope.$broadcast("ReloadPage", $scope.groupsSelected, "spGroups.change()");
             };
 
             $scope.loadGroups = function (callBack) {
@@ -348,78 +348,149 @@ spApp.directive('spReplayEdit', function () {
         }
     }
 });
-spApp.directive('spFilterLive', function ($http) {
+spApp.directive('spFilter', function ($http, $filter) {
     return {
         restrict: 'E',
         scope: {
-            serviceactions: '='
+            page: '@page'
         },
         controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceActionsService, CodesService, UIService) {
-            // The user arrived on the live, his default criteria are set based on the URL parameters
-            $scope.request = true;
-            $scope.response = true;
-            $scope.search = "";
-
-            // Called when the user changed the status criteria
-            $scope.changeStatus = function() {
-                // If the user set a new status
-                $http({
-                    method: "POST",
-                    url: "/live/changeCriteria",
-                    data: {key: "code", value: $scope.code},
-                    headers: {'Content-Type': 'application/json'}
-                })
-            }
-
-            $scope.changeEnvironment = function() {
-                // If the user set a new Environment
-                $http({
-                    method: "POST",
-                    url: "/live/changeCriteria",
-                    data: {key: "environment", value: $scope.environment},
-                    headers: {'Content-Type': 'application/json'}
-                })
-            }
 
             EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.groups, null, true);
             CodesService.findAllAndSelect($scope, $routeParams);
             // TODO
-            //ServiceActionsService.findAll($routeParams.groups);
+            //ServiceActionsService.findAllAndSelect($scope, $routeParams);
+            $scope.showcalendars = false;
+            $scope.showfilterbutton = false;
+            $scope.showresearch = false;
 
-            $scope.changeRequest = function() {
-                // If the user check or uncheck the request box
-                $http({
-                    method: "POST",
-                    url: "/live/changeCriteria",
-                    data: {key: "request", value: $scope.request.toString()},
-                    headers: {'Content-Type': 'application/json'}
-                })
+            if($scope.page == "live") {
+                // The directive was called from the Live Page
+                $scope.showresearch = true;
+                // The user arrived on the live, his default criteria are set based on the URL parameters
+                $scope.request = true;
+                $scope.response = true;
+                $scope.search = "";
+                // Called when the user changed the status criteria
+                $scope.changeStatus = function() {
+                    // If the user set a new status
+                    $http({
+                        method: "POST",
+                        url: "/live/changeCriteria",
+                        data: {key: "code", value: $scope.code},
+                        headers: {'Content-Type': 'application/json'}
+                    })
+                }
+
+                $scope.changeEnvironment = function() {
+                    // If the user set a new Environment
+                    $http({
+                        method: "POST",
+                        url: "/live/changeCriteria",
+                        data: {key: "environment", value: $scope.environment},
+                        headers: {'Content-Type': 'application/json'}
+                    })
+                }
+
+                $scope.changeRequest = function() {
+                    if($scope.request == false && $scope.response == false)
+                    {
+                        $scope.search = "";
+                        $scope.changeSearch();
+                    }
+                    // If the user check or uncheck the request box
+                    $http({
+                        method: "POST",
+                        url: "/live/changeCriteria",
+                        data: {key: "request", value: $scope.request.toString()},
+                        headers: {'Content-Type': 'application/json'}
+                    })
+                }
+
+                $scope.changeResponse = function() {
+                    if($scope.request == false && $scope.response == false)
+                    {
+                        $scope.search = "";
+                        $scope.changeSearch();
+                    }
+                    // If the user check or uncheck the response box
+                    $http({
+                        method: "POST",
+                        url: "/live/changeCriteria",
+                        data: {key: "response", value: $scope.response.toString()},
+                        headers: {'Content-Type': 'application/json'}
+                    })
+                }
+
+                // Called when the user change the textarea
+                $scope.changeSearch = function() {
+                    $http({
+                        method: "POST",
+                        url: "/live/changeCriteria",
+                        data: {key: "search", value: $scope.search},
+                        headers: {'Content-Type': 'application/json'}
+                    })
+                };
             }
+            // The directive is called in Search, Analysis or Statistics page
+            else if($scope.page == "search") {
+                $scope.showcalendars = true;
+                $scope.showfilterbutton = true;
+                $scope.showresearch = true;
 
-            $scope.changeResponse = function() {
-                // If the user check or uncheck the response box
-                $http({
-                    method: "POST",
-                    url: "/live/changeCriteria",
-                    data: {key: "response", value: $scope.response.toString()},
-                    headers: {'Content-Type': 'application/json'}
-                })
+                $scope.request = $routeParams.request ? UIService.stringToBoolean($routeParams.request) : true;
+                $scope.response = $routeParams.response ? UIService.stringToBoolean($routeParams.response) : true;
+
+                $scope.search = $routeParams.search ? $routeParams.search : "";
+                $scope.mindate = UIService.getInputCorrectDateFormat($routeParams.mindate);
+                $scope.maxdate = UIService.getInputCorrectDateFormat($routeParams.maxdate);
+
+                // Initialise the calendars to today's date
+                $scope.mindatecalendar = new Date();
+                $scope.maxdatecalendar = new Date();
+
+                // Called when the mindate datetimepicker is set
+                $scope.onMinTimeSet = function (newDate, oldDate) {
+                    $scope.showmindate = false;
+                    $scope.mindate = $filter('date')(newDate, "yyyy-MM-dd HH:mm");
+                };
+                // Called when the maxdate datetimepicker is set
+                $scope.onMaxTimeSet = function (newDate, oldDate) {
+                    $scope.showmaxdate = false;
+                    $scope.maxdate = $filter('date')(newDate, "yyyy-MM-dd HH:mm");
+                };
+
+                // Called when the user check or uncheck the request checkbox
+                $scope.changeRequest = function () {
+                    if($scope.request == false && $scope.response == false)
+                    {
+                        $scope.search = "";
+                    }
+                }
+
+                // Called when the user check or uncheck the response checkbox
+                $scope.changeResponse = function () {
+                    if($scope.request == false && $scope.response == false)
+                    {
+                        $scope.search = "";
+                    }
+                }
+
+                $scope.changeCriteria = function () {
+                    // Check that the date inputs format are correct and that the mindate is before the maxdate
+                    if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
+                        console.log($scope);
+                        UIService.reloadPage($scope, $scope.showServiceactions, "search");
+                    } else {
+                        // Else, mindate and maxdate are set to yesterday's and today's dates
+                        $scope.mindate = UIService.getInputCorrectDateFormat(UIService.getDay("yesterday"));
+                        $scope.maxdate = UIService.getInputCorrectDateFormat(UIService.getDay("today"));
+                    }
+                };
             }
-
-            // Called when the user change the textarea
-            $scope.changeSearch = function() {
-                $http({
-                    method: "POST",
-                    url: "/live/changeCriteria",
-                    data: {key: "search", value: $scope.search},
-                    headers: {'Content-Type': 'application/json'}
-                })
-            }
-
             $scope.ctrlPath = $scope.$parent.ctrlPath;
-
         },
-        templateUrl: 'partials/common/filterlive.html',
+        templateUrl: 'partials/common/filter.html',
         replace: true
     }
 });

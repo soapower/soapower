@@ -1,6 +1,6 @@
 package models
 
-import java.util.{GregorianCalendar, Calendar, Date}
+import java.util.{TimeZone, GregorianCalendar, Calendar, Date}
 import play.api.Play.current
 import play.api.libs.json._
 import java.util.zip.{GZIPOutputStream, GZIPInputStream}
@@ -21,7 +21,6 @@ import play.modules.reactivemongo.json.BSONFormats._
 import scala.Some
 import reactivemongo.core.commands.{LastError, RawCommand}
 import reactivemongo.api.collections.default.BSONCollection
-import org.joda.time.DateTime
 import scala.Some
 import play.api.libs.json.JsObject
 import reactivemongo.api.collections.default.BSONCollection
@@ -37,6 +36,8 @@ import reactivemongo.api.collections.default.BSONCollection
 import play.cache.Cache
 import java.text.{SimpleDateFormat, DateFormat}
 import scala.util.{Try, Success, Failure}
+import org.joda.time.DateTime
+import reactivemongo.api.indexes.{IndexType, Index}
 
 case class RequestData(_id: Option[BSONObjectID],
                        sender: String,
@@ -334,24 +335,14 @@ object RequestData {
   }
 
   /**
-   * find Min Date.
+   * find the oldest requestData
    */
-  //def getMinStartTime: Option[Date] = DB.withConnection {
-  def getMinStartTime: Option[Date] = {
-    //TODO
-    ???
-    /*
-    implicit connection =>
-      Cache.getOrElse[Option[Date]](keyCacheMinStartTime) {
-        Logger.debug("MinStartTime not found in cache: loading from db")
-        SQL("select min(startTime) as startTimeMin from request_data").as(scalar[Option[Date]].single)
-      }
-    */
+  def getMinRequestData: Future[Option[RequestData]] = {
+    collection.find(BSONDocument()).sort(BSONDocument({"startTime" -> 1})).one[RequestData]
   }
 
   /**
    * Insert a new RequestData.
-   *
    * @param requestData the requestData
    */
   def insert(requestData: RequestData): Option[BSONObjectID] = {
@@ -589,7 +580,7 @@ object RequestData {
 
   /**
    * Return a page of RequestData
-   * @param groupName group name
+   * @param groups groups name
    * @param environmentIn name of environnement, "all" default
    * @param serviceAction serviceAction, "all" default
    * @param minDate Min Date
@@ -599,36 +590,57 @@ object RequestData {
    * @param pageSize size of line in one page
    * @return
    */
-  def list(groupName: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10): Future[List[RequestData]] = {
+  def list(groups: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0,
+           pageSize: Int = 10, sSearch: String, request:Boolean, response: Boolean): Future[List[RequestData]] = {
 
-    val query = BSONDocument()
+    var query = BSONDocument()
+    if(environmentIn == "all") {
+      // We retrieve the environments of the groups in parameter
+      val environments = Environment.optionsInGroups(groups)
+      // We add the environments names to the query
+      query = query ++ ("environmentName" -> BSONDocument("$in" -> environments.map{e => e._2}.toArray))
+    } else {
+      // We search if an environment with the name environmentIn belong to the groups in parameter
+      val environment = Environment.findByNameAndGroups(environmentIn, groups)
+      environment.onComplete {
+        case Success(e) => {
+          Logger.debug(e.toString)
+          if(e.nonEmpty) {
+            // If the environment exists, we add it's name to the query
+            query = query ++ ("environmentName" -> e.get.name)
+          }
+          else {
+            // No environment with the name environmentIn and the groups groups exist
+            // We return an empty List
+            return Future {List.empty[RequestData]}
+          }
+        }
+        case Failure(e) => return Future {List.empty[RequestData]}
+      }
+    }
 
-    // TODO Group
-    /*val group = Group.options.find(t => t._2 == groupName)
+    if (serviceAction != "all") query = query ++ ("serviceAction" -> serviceAction)
 
-    if (group isDefined) query ++ ("groupdId" -> group.get._1)
-    */
+    query = query ++ ("startTime" -> BSONDocument(
+      "$gte" -> BSONDateTime(minDate.getTime),
+      "$lt" -> BSONDateTime(maxDate.getTime))
+    )
 
-    // TODO Environment
-    /*if (environmentIn != "all" && Environment.optionsAll.exists(t => t._2 == environmentIn))
-      query ++ ("environmentId" -> Environment.optionsAll.find(t => t._2 == environmentIn).get._1)
-      */
+    if (status != "all") {
+      if(status.startsWith("NOT_")) {
+        val notCode = status.split("NOT_")(1)
+        query = query ++ ("status" -> BSONDocument("$ne" -> notCode.toInt))
+      }
+      else query = query ++ ("status" -> status.toInt)
+    }
 
-    if (serviceAction != "all") query ++ ("serviceAction" -> serviceAction)
-
-    // Convert dates... bad perf anorm ?
-    val g = new GregorianCalendar()
-    g.setTime(minDate)
-    val min = UtilDate.formatDate(g)
-    g.setTime(maxDate)
-    val max = UtilDate.formatDate(g)
-
-    query ++ ("startTime" -> BSONDocument("&gte" -> min, "&lte" -> max))
-
-    if (status != "all") query ++ ("status" -> status)
-
-    // TODO offset
-    // TODO pageSize
+    Logger.debug(sSearch)
+    if(sSearch != "") {
+      // We use regex research instead of mongoDb $text
+      if (request && response) query = query ++ ("$or" -> BSONArray(BSONDocument("request" -> BSONDocument("$regex" -> sSearch)), BSONDocument("response" -> BSONDocument("$regex" -> sSearch))))
+      else if (request) query = query ++ ("request" -> BSONDocument("$regex" -> sSearch))
+      else if (response) query = query ++ ("response" -> BSONDocument("$regex" -> sSearch))
+    }
 
     collection.
       find(query).

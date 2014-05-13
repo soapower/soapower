@@ -13,8 +13,6 @@ spApp.config(function ($routeProvider) {
         .when('/live/:groups/:environment/:serviceaction/live/live/:code', {
             controller: LiveCtrl, templateUrl: 'partials/live/live.html'
         })
-        // OLD RESEARCH
-        .when('/live/:search', { controller: LiveCtrl, templateUrl: 'partials/live/live.html' })
         .when('/search', { redirectTo: '/search/all/all/all/yesterday/today/all'})
         .when('/search/:groups/:environment/:serviceaction/:mindate/:maxdate/:code', {
             controller: SearchCtrl, templateUrl: 'partials/search/search.html'

@@ -20,14 +20,14 @@ object Search extends Controller {
 
   private val UTF8 = "UTF-8"
 
-  def listDatatable(group: String, environment: String, serviceAction: String, minDate: String, maxDate: String, status: String, sSearch: String, iDisplayStart: Int, iDisplayLength: Int) = Action.async {
-    val futureDataList = RequestData.list(group, environment, URLDecoder.decode(serviceAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (iDisplayStart - 1), iDisplayLength)
+  def listDatatable(groups: String, environment: String, serviceAction: String, minDate: String, maxDate: String, status: String, sSearch: String, iDisplayStart: Int, iDisplayLength: Int, request: Boolean, response: Boolean) = Action.async {
+
+    val futureDataList = RequestData.list(groups, environment, URLDecoder.decode(serviceAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (iDisplayStart - 1), iDisplayLength, sSearch, request, response)
     futureDataList.map {
       list =>
         Ok(Json.toJson(Map("data" -> Json.toJson(list))))
     }
   }
-
 
   /**
    * Used to download or render the request

@@ -197,7 +197,7 @@ spApp.factory("CodesService", function ($http) {
                     });
                 })
                 .error(function (resp) {
-                    console.log("Error with ServiceActionsService.findAllAndSelect" + resp);
+                    console.log("Error with CodesService.findAllAndSelect" + resp);
                 });
         }
     }
@@ -216,12 +216,14 @@ spApp.factory("LoggersService", function ($http) {
 });
 
 
-spApp.factory("UIService", function ($location, $filter, $routeParams) {
+spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScope) {
     return {
-        reloadPage: function ($scope, showServiceactions) {
+        reloadPage: function ($scope, showServiceactions, page) {
             var environment = "all", serviceaction = "all", mindate = "all", maxdate = "all", code = "all";
+            // Retrieve groups
+            $scope.groups = $rootScope.$$childHead.groupsSelected;
 
-            if ($scope.environment) environment = $scope.environment.name;
+            if ($scope.environment) environment = $scope.environment;
 
             if (showServiceactions && $scope.serviceaction) {
                 serviceaction = encodeURIComponent($scope.serviceaction.name);
@@ -235,13 +237,21 @@ spApp.factory("UIService", function ($location, $filter, $routeParams) {
             }
             if ($scope.code) code = $scope.code;
 
-            var path = $scope.ctrlPath + '/' + $routeParams.groups + "/" + environment + "/";
+            var path = $scope.ctrlPath + '/' + $scope.groups + "/" + environment + "/" + serviceaction + "/";
 
-            if (showServiceactions) path = path + serviceaction + "/";
 
-            path = path + mindate + "/" + maxdate + "/" + code;
-            console.log("UIService.reloadPage : Go to " + path);
-            $location.path(path);
+            if(page == "search") {
+                path = path + mindate + "/" + maxdate + "/" + code;
+                // Add the search parameters to the query string
+                var search = {'search': $scope.search, 'request': $scope.request.toString(), 'response': $scope.response.toString()}
+                $location.path(path).search(search);
+                console.log("UIService.reloadPage : Go to " + path);
+            }
+            else if (page == "live") {
+                path = path + "live/live/" + code;
+                console.log("UIService.reloadPage : Go to " + path);
+                $location.path(path);
+            }
         },
         /*
          /* Transform a string in the format "yyyy-mm-ddThh:mm" to the
@@ -320,6 +330,11 @@ spApp.factory("UIService", function ($location, $filter, $routeParams) {
 
                 return !!mindate.getTime() && !!maxdate.getTime() && mindate <= maxdate;
             }
+        },
+        stringToBoolean: function(string) {
+            if(string == "true") return true;
+            else if(string == "false") return false;
+            else return true;
         }
     }
 });

@@ -1,12 +1,9 @@
 function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window, $filter, ngTableParams, UIService) {
     $scope.ctrlPath = "search";
-
     $scope.showTips = false;
     $scope.hostname = $location.host();
     $scope.port = $location.port();
-
     $scope.totalServerItems = 0;
-
     $scope.reloadTable = function () {
         var groups = $routeParams.groups ? $routeParams.groups : 'all';
         var environment = $routeParams.environment ? $routeParams.environment : 'all';
@@ -14,6 +11,18 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
         var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
         var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
         var code = $routeParams.code ? $routeParams.code : 'all';
+        var search = $routeParams.search ? $routeParams.search : '';
+
+        var request = "true";
+        var response = "true";
+
+        if($routeParams.request === "false"){
+            request = "false";
+        }
+        if($routeParams.response === "false") {
+            response = "false";
+        }
+
         var url = '/search/' + groups +
             '/' + environment +
             '/' + encodeURIComponent(serviceaction) +
@@ -21,10 +30,12 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
             '/' + maxdate +
             '/' + code +
             '/listDatatable?' +
-            'iDisplayStart=' + 1 +
+            'sSearch=' + search +
+            '&request=' + request +
+            '&response=' + response +
+            '&iDisplayStart=' + 1 +
             '&iDisplayLength=' + 10000 +
             '&call=' + new Date();
-
         $http({
             method: 'GET',
             url: url,
@@ -86,6 +97,7 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
     $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "SearchCtrl");
 
     $scope.$on("ReloadPage", function (event) {
-        UIService.reloadPage($scope, true);
+        console.log(event);
+        UIService.reloadPage($scope, true, "search");
     });
 }
