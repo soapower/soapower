@@ -64,12 +64,12 @@ function LiveCtrl($scope, $rootScope, $location, $window, $routeParams, UIServic
             var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket;
             if ($scope.manuallyClosed == false) {
                 // The websocket is initialized using parameters from the routes
-                var url = "ws://" + $location.host() + ":" + $location.port() + "/live/socket/"+$routeParams.groups+"/"+$routeParams.environment+
-                                                          "/"+$routeParams.serviceaction+"/"+$routeParams.code;
+                var url = "ws://" + $location.host() + ":" + $location.port() + "/live/socket/" + $routeParams.groups + "/" + $routeParams.environment +
+                    "/" + $routeParams.serviceaction + "/" + $routeParams.code;
             } else {
                 // The websocket has been manually restart, the websocket is initialized using scope
-                var url = "ws://" + $location.host() + ":" + $location.port() + "/live/socket/"+$routeParams.groups+"/"+$scope.$$childHead.environment+
-                                                          "/"+$routeParams.serviceaction+"/"+$scope.$$childHead.code;
+                var url = "ws://" + $location.host() + ":" + $location.port() + "/live/socket/" + $routeParams.groups + "/" + $scope.$$childHead.environment +
+                    "/" + $routeParams.serviceaction + "/" + $scope.$$childHead.code;
             }
             $scope.socketLive = new WS(url);
             console.log("Websocket started");
@@ -105,6 +105,6 @@ function LiveCtrl($scope, $rootScope, $location, $window, $routeParams, UIServic
     $scope.startWS();
 
     $scope.$on("ReloadPage", function (event) {
-            UIService.reloadPage($scope, true, "live");
-        });
+        UIService.reloadPage($scope, true, "live");
+    });
 }

@@ -146,24 +146,24 @@ spApp.factory("ServiceActionsService", function ($http) {
         findAll: function (group) {
             return $http.get('/serviceactions/' + group + '/findall');
         },
-        findAllAndSelect: function($scope, $routeParams) {
+        findAllAndSelect: function ($scope, $routeParams) {
             //$http.get('/serviceactions/' + group + '/findall')
             $http.get('/serviceactions/' + "all" + '/findall')
-            .success(function (serviceActions) {
-                $scope.serviceactions = serviceActions.data;
+                .success(function (serviceActions) {
+                    $scope.serviceactions = serviceActions.data;
 
-                if($routeParams.serviceaction != "all") {
-                    angular.forEach($scope.serviceactions, function (value) {
+                    if ($routeParams.serviceaction != "all") {
+                        angular.forEach($scope.serviceactions, function (value) {
                             if (value.name == $routeParams.serviceaction) $scope.serviceaction = value.name;
-                    });
-                } else $scope.serviceaction = "all";
+                        });
+                    } else $scope.serviceaction = "all";
 
-                $scope.serviceactions.unshift({"name":"all"});
+                    $scope.serviceactions.unshift({"name": "all"});
 
-            })
-            .error(function (error) {
-                console.log("Error with ServiceActionsService.findAllAndSelect" + error);
-            });
+                })
+                .error(function (error) {
+                    console.log("Error with ServiceActionsService.findAllAndSelect" + error);
+                });
         },
         regenerate: function () {
             return $http.get('/serviceactions/regenerate');
@@ -259,10 +259,10 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
             var path = $scope.ctrlPath + '/' + $scope.groups + "/" + environment + "/" + serviceaction + "/";
 
 
-            if(page == "search") {
+            if (page == "search") {
                 path = path + mindate + "/" + maxdate + "/" + code;
                 // Add the search parameters to the query string
-                if($scope.search) {
+                if ($scope.search) {
                     var search = {'search': $scope.search, 'request': $scope.request.toString(), 'response': $scope.response.toString()}
                     $location.path(path).search(search);
                 }
@@ -353,9 +353,9 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
                 return !!mindate.getTime() && !!maxdate.getTime() && mindate <= maxdate;
             }
         },
-        stringToBoolean: function(string) {
-            if(string == "true") return true;
-            else if(string == "false") return false;
+        stringToBoolean: function (string) {
+            if (string == "true") return true;
+            else if (string == "false") return false;
             else return true;
         }
     }
