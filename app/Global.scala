@@ -1,3 +1,4 @@
+import controllers.admin.ServiceActions
 import models.{Robot, LiveRoom, Environment}
 import play.api._
 
@@ -17,6 +18,7 @@ object Global extends GlobalSettings {
     // initialDelay: Duration : 10 minutes
     // frequency: Duration : 5 hours
     Akka.system.scheduler.schedule(10 minutes, 5 hours) {
+      ServiceActions.regenerate()
       Environment.compileStats()
       Environment.purgeContentData()
       Environment.purgeAllData()

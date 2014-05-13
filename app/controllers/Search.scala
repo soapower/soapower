@@ -68,8 +68,7 @@ object Search extends Controller {
     var filename = ""
     if (isRequest) {
       filename = "request-" + id
-    }
-    else {
+    } else {
       filename = "response-" + id
     }
 

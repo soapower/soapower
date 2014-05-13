@@ -1,7 +1,6 @@
 package models
 
 import play.api.Play.current
-import play.api.cache._
 
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import play.api.libs.json._
