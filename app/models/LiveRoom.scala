@@ -106,7 +106,7 @@ class LiveRoom extends Actor {
   def receive = {
 
     case Join(username, criterias) => {
-      if(username == "Robot") {
+      if (username == "Robot") {
         members = members + ((username, (criterias, null.asInstanceOf[Concurrent.Channel[JsValue]])))
       }
       else {
@@ -141,8 +141,7 @@ class LiveRoom extends Actor {
     }
 
     case ChangeCriterias(username, criteria) => {
-      if(members.get(username).isDefined)
-      {
+      if (members.get(username).isDefined) {
         // We retrieve the channel
         val channel = members.get(username).get._2
         // We retrieve the old criterias
@@ -167,7 +166,7 @@ class LiveRoom extends Actor {
         }
 
         members = members - username
-        members = members + ((username,(newCriterias, channel)))
+        members = members + ((username, (newCriterias, channel)))
       }
     }
 
@@ -175,7 +174,7 @@ class LiveRoom extends Actor {
 
   def notifyAll(kind: String, user: String, requestData: RequestData) {
     var usernames = Set.empty[String]
-    members.foreach{
+    members.foreach {
       mem =>
         usernames = usernames + mem._1
     }
@@ -190,23 +189,17 @@ class LiveRoom extends Actor {
         )
       )
     )
+    // Iterate on each member of the room and check if their criteria match the incoming request
+    // If the request data match the criterias, the msg is sent through the channel of the correct client
     members.foreach {
-      case (key,value) => {
-        if(key != "Robot") {
-          // Iterate on each member of the room and check if their criteria match the incoming request
-          val isAMatch = requestData.checkCriterias(value._1)
-          if(isAMatch ) {
-            // If the request data match the criterias, the msg is sent through the channel of the correct client
-            value._2.push(msg)
-          }
-        }
-      }
+      case (key, value) =>
+        if (key != "Robot" && requestData.checkCriterias(value._1)) value._2.push(msg)
     }
   }
 
   def notifyAll(kind: String, user: String, text: String) {
     var usernames = Set.empty[String]
-    members.foreach{
+    members.foreach {
       mem =>
         usernames = usernames + mem._1
     }
@@ -221,9 +214,8 @@ class LiveRoom extends Actor {
         )
       )
     )
-    members.foreach { case (key,value) =>
-      if(key != "Robot")
-        value._2.push(msg)
+    members.foreach { case (key, value) =>
+      if (key != "Robot") value._2.push(msg)
     }
   }
 

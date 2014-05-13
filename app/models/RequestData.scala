@@ -52,7 +52,6 @@ case class RequestData(_id: Option[BSONObjectID],
 
   var responseBytes: Array[Byte] = null
 
-
   def this(sender: String, serviceAction: String, environnmentName: String, serviceId: BSONObjectID, contentType: String) =
     this(Some(BSONObjectID.generate), sender, serviceAction, environnmentName, serviceId, null, null, contentType, null, new DateTime(), null, None, null, -1, -1, false, false)
 
@@ -77,18 +76,11 @@ case class RequestData(_id: Option[BSONObjectID],
    * @return
    */
   def checkCriterias(criterias: Criterias): Boolean = {
-    if (checkGroup(criterias.group)) {
-      if (checkEnv(criterias.environment)) {
-        if (checkServiceAction(criterias.serviceAction)) {
-          if (checkStatus(criterias.code)) {
-            if (checkSearch(criterias.request, criterias.response, criterias.search)) {
-              return true
-            }
-          }
-        }
-      }
-    }
-    return false
+    checkGroup(criterias.group) &&
+      checkEnv(criterias.environment) &&
+      checkServiceAction(criterias.serviceAction) &&
+      checkStatus(criterias.code) &&
+      checkSearch(criterias.request, criterias.response, criterias.search)
   }
 
   /**
@@ -96,7 +88,7 @@ case class RequestData(_id: Option[BSONObjectID],
    * @param group
    */
   private def checkGroup(group: String): Boolean = {
-    return group == "all"
+    group == "all"
   }
 
   /**
@@ -104,7 +96,7 @@ case class RequestData(_id: Option[BSONObjectID],
    * @param environment
    */
   private def checkEnv(environment: String): Boolean = {
-    return environment == "all" || environment == this.environmentName
+    environment == "all" || environment == this.environmentName
   }
 
   /**
@@ -112,7 +104,7 @@ case class RequestData(_id: Option[BSONObjectID],
    * @param serviceAction
    */
   private def checkServiceAction(serviceAction: String): Boolean = {
-    return serviceAction == "all" || serviceAction == this.serviceAction
+    serviceAction == "all" || serviceAction == this.serviceAction
   }
 
   /**
@@ -122,29 +114,23 @@ case class RequestData(_id: Option[BSONObjectID],
   private def checkStatus(status: String): Boolean = {
     if (status.startsWith("NOT_")) {
       val notCode = status.split("NOT_")(1)
-      return this.status.toString != notCode
+      this.status.toString != notCode
+    } else {
+      status == "all" || status == this.status.toString
     }
-    else
-      return status == "all" || status == this.status.toString
   }
 
   /**
    * Check that the request or the response of the RequestData match the search query in parameter
-   * @param request
-   * @param response
-   * @param search
+   * @param searchRequest search in Request
+   * @param searchResponse search in Response
+   * @param search search in the string
    */
-  private def checkSearch(request: Boolean, response: Boolean, search: String): Boolean = {
-
-    if (request) {
-      if (this.request.indexOf(search) > -1) return true
-    }
-    if (response) {
-      if (this.response.indexOf(search) > -1) return true
-    }
+  private def checkSearch(searchRequest: Boolean, searchResponse: Boolean, search: String): Boolean = {
+    if (searchRequest && this.request.indexOf(search) > -1) return true
+    if (searchResponse && this.response.indexOf(search) > -1) return true
     // if the two checkbox are unchecked, the search field is ignore
-    if (!request && !response) return true
-
+    if (!searchRequest && !searchResponse) return true
     return false
   }
 }
@@ -228,15 +214,6 @@ object RequestData {
   val keyCacheServiceAction = "serviceaction-options"
   val keyCacheStatusOptions = "status-options"
   val keyCacheMinStartTime = "minStartTime"
-
-  /*implicit def rowToByteArray: Column[Array[Byte]] = Column.nonNull {
-    (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz) = meta
-      value match {
-        case data: Array[Byte] => Right(data)
-        case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Byte Array for column " + qualified))
-      }
-  }*/
 
   /**
    * Anorm Byte conversion
