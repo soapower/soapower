@@ -1,9 +1,9 @@
-function ServiceActionsCtrl($scope, ServiceActionsService, ngTableParams, $filter) {
+function ServiceActionsCtrl($scope, ServiceActionsService, ngTableParams, $filter, $rootScope, $routeParams) {
 
     $scope.btnRegenerateDisabled = false;
     $scope.info = "";
 
-    ServiceActionsService.findAll().
+    ServiceActionsService.findAll("all").
         success(function (serviceActions) {
             $scope.serviceActions = serviceActions.data;
             $scope.tableParams = new ngTableParams({
@@ -19,7 +19,7 @@ function ServiceActionsCtrl($scope, ServiceActionsService, ngTableParams, $filte
                     var serviceActionsData = datafilter($scope.serviceActions, $scope.tableFilter);
                     var orderedData = params.sorting() ? $filter('orderBy')(serviceActionsData, params.orderBy()) : serviceActionsData;
                     var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
-                    params.total(orderedData.length)
+                    params.total(orderedData.length);
                     $defer.resolve(res);
                 },
                 $scope: { $data: {} }
@@ -47,6 +47,7 @@ function ServiceActionsCtrl($scope, ServiceActionsService, ngTableParams, $filte
                 $scope.info = "Error with generate ServiceAction list. See server logs.";
             });
     }
+    //$rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "ServiceActionsCtrl");
 
 }
 
