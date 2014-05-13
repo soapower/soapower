@@ -393,6 +393,11 @@ spApp.directive('spFilter', function ($http, $filter) {
                 }
 
                 $scope.changeRequest = function() {
+                    if($scope.request == false && $scope.response == false)
+                    {
+                        $scope.search = "";
+                        $scope.changeSearch();
+                    }
                     // If the user check or uncheck the request box
                     $http({
                         method: "POST",
@@ -403,6 +408,11 @@ spApp.directive('spFilter', function ($http, $filter) {
                 }
 
                 $scope.changeResponse = function() {
+                    if($scope.request == false && $scope.response == false)
+                    {
+                        $scope.search = "";
+                        $scope.changeSearch();
+                    }
                     // If the user check or uncheck the response box
                     $http({
                         method: "POST",
@@ -450,8 +460,23 @@ spApp.directive('spFilter', function ($http, $filter) {
                     $scope.maxdate = $filter('date')(newDate, "yyyy-MM-dd HH:mm");
                 };
 
-                $scope.changeCriteria = function () {
+                // Called when the user check or uncheck the request checkbox
+                $scope.changeRequest = function () {
+                    if($scope.request == false && $scope.response == false)
+                    {
+                        $scope.search = "";
+                    }
+                }
 
+                // Called when the user check or uncheck the response checkbox
+                $scope.changeResponse = function () {
+                    if($scope.request == false && $scope.response == false)
+                    {
+                        $scope.search = "";
+                    }
+                }
+
+                $scope.changeCriteria = function () {
                     // Check that the date inputs format are correct and that the mindate is before the maxdate
                     if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
                         console.log($scope);

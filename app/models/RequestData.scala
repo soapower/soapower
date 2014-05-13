@@ -634,13 +634,14 @@ object RequestData {
       else query = query ++ ("status" -> status.toInt)
     }
 
+    Logger.debug(sSearch)
     if(sSearch != "") {
-      // We create indexes on request and responseOriginal for the research
-      collection.indexesManager.ensure(
-        Index(List("request" -> IndexType.Text, "responseOriginal" -> IndexType.Text))
-      )
+      // We use regex research instead of mongoDb $text
+      if (request && response) query = query ++ ("$or" -> BSONArray(BSONDocument("request" -> BSONDocument("$regex" -> sSearch)), BSONDocument("response" -> BSONDocument("$regex" -> sSearch))))
+      else if (request) query = query ++ ("request" -> BSONDocument("$regex" -> sSearch))
+      else if (response) query = query ++ ("response" -> BSONDocument("$regex" -> sSearch))
     }
-    query.elements.foreach(e => e._2.toString)
+
     collection.
       find(query).
       sort(BSONDocument("startTime" -> -1)).
