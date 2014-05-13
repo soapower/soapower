@@ -40,8 +40,8 @@ spApp.factory("EnvironmentsService", function ($http) {
         findOptions: function (group) {
             return $http.get('/environments/' + group + '/options');
         },
-        findAllAndSelect: function ($scope, environmentName, environmentGroup, myService, addAll) {
-            $http.get('/environments/' + environmentGroup + '/options')
+        findAllAndSelect: function ($scope, environmentName, groups, myService, addAll) {
+            $http.get('/environments/' + groups + '/options')
                 .success(function (environments) {
                     $scope.environments = environments;
                     if (environments.length == 0) {
@@ -146,9 +146,27 @@ spApp.factory("ServiceActionsService", function ($http) {
         findAll: function (group) {
             return $http.get('/serviceactions/' + group + '/findall');
         },
+        findAllAndSelect: function($scope, $routeParams) {
+            //$http.get('/serviceactions/' + group + '/findall')
+            $http.get('/serviceactions/' + "all" + '/findall')
+            .success(function (serviceActions) {
+                $scope.serviceactions = serviceActions.data;
+
+                if($routeParams.serviceaction != "all") {
+                    angular.forEach($scope.serviceactions, function (value) {
+                            if (value.name == $routeParams.serviceaction) $scope.serviceaction = value.name;
+                    });
+                } else $scope.serviceaction = "all";
+
+                $scope.serviceactions.unshift({"name":"all"});
+
+            })
+            .error(function (error) {
+                console.log("Error with ServiceActionsService.findAllAndSelect" + error);
+            });
+        },
         regenerate: function () {
             return $http.get('/serviceactions/regenerate');
-
         }
     }
 });
@@ -219,14 +237,14 @@ spApp.factory("LoggersService", function ($http) {
 spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScope) {
     return {
         reloadPage: function ($scope, showServiceactions, page) {
-            var environment = "all", serviceaction = "all", mindate = "all", maxdate = "all", code = "all";
+            var environment = "all", serviceaction = "all", mindate = "yesterday", maxdate = "today", code = "all";
             // Retrieve groups
             $scope.groups = $rootScope.$$childHead.groupsSelected;
 
             if ($scope.environment) environment = $scope.environment;
 
-            if (showServiceactions && $scope.serviceaction) {
-                serviceaction = encodeURIComponent($scope.serviceaction.name);
+            if ($scope.serviceaction) {
+                serviceaction = encodeURIComponent($scope.serviceaction);
             }
 
             if ($scope.mindate && $scope.mindate != "" && $scope.mindate != "all") {
@@ -235,6 +253,7 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
             if ($scope.maxdate && $scope.maxdate != "" && $scope.maxdate != "all") {
                 maxdate = this.initDayToUrl(this.getURLCorrectDateFormat($scope.maxdate), "today");
             }
+
             if ($scope.code) code = $scope.code;
 
             var path = $scope.ctrlPath + '/' + $scope.groups + "/" + environment + "/" + serviceaction + "/";
@@ -243,8 +262,11 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
             if(page == "search") {
                 path = path + mindate + "/" + maxdate + "/" + code;
                 // Add the search parameters to the query string
-                var search = {'search': $scope.search, 'request': $scope.request.toString(), 'response': $scope.response.toString()}
-                $location.path(path).search(search);
+                if($scope.search) {
+                    var search = {'search': $scope.search, 'request': $scope.request.toString(), 'response': $scope.response.toString()}
+                    $location.path(path).search(search);
+                }
+                else $location.path(path)
                 console.log("UIService.reloadPage : Go to " + path);
             }
             else if (page == "live") {

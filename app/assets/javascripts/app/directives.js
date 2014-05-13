@@ -95,7 +95,7 @@ spApp.directive('spGroups', function () {
                     }
                 }
                 $scope.lastGroupSelected = $scope.groupsSelected;
-                //if ($scope.showGroup) $rootScope.$broadcast("ReloadPage", $scope.groupsSelected, "spGroups.change()");
+                if ($scope.showGroup) $rootScope.$broadcast("ReloadPage", $scope.groupsSelected, "spGroups.change()");
             };
 
             $scope.loadGroups = function (callBack) {
@@ -256,6 +256,7 @@ spApp.directive('spReplay', function () {
         templateUrl: "partials/common/cellReplayTemplate.html"
     }
 });
+
 spApp.directive('spRequest', function () {
     return {
         restrict: 'E',
@@ -263,6 +264,7 @@ spApp.directive('spRequest', function () {
         templateUrl: "partials/common/cellRequestTemplate.html"
     }
 });
+
 spApp.directive('spResponse', function () {
     return {
         restrict: 'E',
@@ -270,6 +272,7 @@ spApp.directive('spResponse', function () {
         templateUrl: "partials/common/cellResponseTemplate.html"
     }
 });
+
 spApp.directive('spStatus', function () {
     return {
         restrict: 'E',
@@ -280,6 +283,7 @@ spApp.directive('spStatus', function () {
         }
     }
 });
+
 spApp.directive('spShowresults', function () {
     return {
         restrict: 'E',
@@ -291,6 +295,7 @@ spApp.directive('spShowresults', function () {
         }
     }
 });
+
 spApp.directive('spBuildInfo', function () {
     return {
         restrict: 'E',
@@ -303,6 +308,7 @@ spApp.directive('spBuildInfo', function () {
         }
     }
 });
+
 spApp.directive('spDocumentation', function () {
     return {
         restrict: 'E',
@@ -315,6 +321,7 @@ spApp.directive('spDocumentation', function () {
         }
     }
 });
+
 spApp.directive('spReplayEdit', function () {
     return {
         restrict: 'E',
@@ -342,6 +349,7 @@ spApp.directive('spReplayEdit', function () {
         }
     }
 });
+
 spApp.directive('spFilter', function ($http, $filter) {
     return {
         restrict: 'E',
@@ -350,10 +358,11 @@ spApp.directive('spFilter', function ($http, $filter) {
         },
         controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceActionsService, CodesService, UIService) {
 
+            // Scope initialization
             EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.groups, null, true);
             CodesService.findAllAndSelect($scope, $routeParams);
-            // TODO
-            //ServiceActionsService.findAllAndSelect($scope, $routeParams);
+
+            ServiceActionsService.findAllAndSelect($scope, $routeParams);
             $scope.showcalendars = false;
             $scope.showfilterbutton = false;
             $scope.showresearch = false;
@@ -361,11 +370,10 @@ spApp.directive('spFilter', function ($http, $filter) {
             if ($scope.page == "live") {
                 // The directive was called from the Live Page
                 $scope.showresearch = true;
-                // The user arrived on the live, his default criteria are set based on the URL parameters
                 $scope.request = true;
                 $scope.response = true;
                 $scope.search = "";
-                // Called when the user changed the status criteria
+
                 $scope.changeStatus = function () {
                     // If the user set a new status
                     $http({
@@ -400,6 +408,15 @@ spApp.directive('spFilter', function ($http, $filter) {
                     })
                 };
 
+                $scope.changeServiceAction = function () {
+                    $http({
+                        method: "POST",
+                        url: "/live/changeCriteria",
+                        data: {key: "serviceAction", value: $scope.serviceaction},
+                        headers: {'Content-Type': 'application/json'}
+                    })
+                };
+
                 $scope.changeResponse = function () {
                     if ($scope.request == false && $scope.response == false) {
                         $scope.search = "";
@@ -423,17 +440,11 @@ spApp.directive('spFilter', function ($http, $filter) {
                         headers: {'Content-Type': 'application/json'}
                     })
                 };
-            }
-            // The directive is called in Search, Analysis or Statistics page
-            else if ($scope.page == "search") {
+            } else {
+                // Search, Analysis and Statistic need calendars and filter button
                 $scope.showcalendars = true;
                 $scope.showfilterbutton = true;
-                $scope.showresearch = true;
 
-                $scope.request = $routeParams.request ? UIService.stringToBoolean($routeParams.request) : true;
-                $scope.response = $routeParams.response ? UIService.stringToBoolean($routeParams.response) : true;
-
-                $scope.search = $routeParams.search ? $routeParams.search : "";
                 $scope.mindate = UIService.getInputCorrectDateFormat($routeParams.mindate);
                 $scope.maxdate = UIService.getInputCorrectDateFormat($routeParams.maxdate);
 
@@ -452,20 +463,6 @@ spApp.directive('spFilter', function ($http, $filter) {
                     $scope.maxdate = $filter('date')(newDate, "yyyy-MM-dd HH:mm");
                 };
 
-                // Called when the user check or uncheck the request checkbox
-                $scope.changeRequest = function () {
-                    if ($scope.request == false && $scope.response == false) {
-                        $scope.search = "";
-                    }
-                };
-
-                // Called when the user check or uncheck the response checkbox
-                $scope.changeResponse = function () {
-                    if ($scope.request == false && $scope.response == false) {
-                        $scope.search = "";
-                    }
-                };
-
                 $scope.changeCriteria = function () {
                     // Check that the date inputs format are correct and that the mindate is before the maxdate
                     if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
@@ -477,6 +474,31 @@ spApp.directive('spFilter', function ($http, $filter) {
                         $scope.maxdate = UIService.getInputCorrectDateFormat(UIService.getDay("today"));
                     }
                 };
+
+                if ($scope.page == "search") {
+
+                    $scope.showresearch = true;
+                    $scope.request = $routeParams.request ? UIService.stringToBoolean($routeParams.request) : true;
+                    $scope.response = $routeParams.response ? UIService.stringToBoolean($routeParams.response) : true;
+                    $scope.search = $routeParams.search ? $routeParams.search : "";
+
+                    // Called when the user check or uncheck the request checkbox
+                    $scope.changeRequest = function () {
+                        if ($scope.request == false && $scope.response == false) {
+                            $scope.search = "";
+                        }
+                    }
+
+                    // Called when the user check or uncheck the response checkbox
+                    $scope.changeResponse = function () {
+                        if ($scope.request == false && $scope.response == false) {
+                            $scope.search = "";
+                        }
+                    }
+                }
+                else if ($scope.page = "analysis") {
+
+                }
             }
             $scope.ctrlPath = $scope.$parent.ctrlPath;
         },

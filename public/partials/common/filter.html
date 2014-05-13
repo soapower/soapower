@@ -7,9 +7,8 @@
                 </select>
             </div>
             <div style="width:30%;" class="form-group">
-                <select style="display:block;" ui-select2 data-placeholder="Pick a serviceaction"  ui-select2 class="form-control" ng-model="serviceaction">
-                    <option></option>
-                    <option>Not yet implemented</option>
+                <select style="display:block;" ui-select2 data-placeholder="Pick a serviceaction"  ui-select2 class="form-control" ng-model="serviceaction" ng-change="changeServiceAction()">
+                    <option ng-repeat="sa in serviceactions" value="{{ sa.name }}">{{ sa.name }}</option>
                 </select>
             </div>
 

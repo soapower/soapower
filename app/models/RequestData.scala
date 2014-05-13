@@ -553,27 +553,7 @@ object RequestData {
       // We add the environments names to the query
       query = query ++ ("environmentName" -> BSONDocument("$in" -> environments.map { e => e._2}.toArray))
     } else {
-      // We search if an environment with the name environmentIn belong to the groups in parameter
-      val environment = Environment.findByNameAndGroups(environmentIn, groups)
-      environment.onComplete {
-        case Success(e) => {
-          Logger.debug(e.toString)
-          if (e.nonEmpty) {
-            // If the environment exists, we add it's name to the query
-            query = query ++ ("environmentName" -> e.get.name)
-          }
-          else {
-            // No environment with the name environmentIn and the groups groups exist
-            // We return an empty List
-            return Future {
-              List.empty[RequestData]
-            }
-          }
-        }
-        case Failure(e) => return Future {
-          List.empty[RequestData]
-        }
-      }
+      query = query ++ ("environmentName" -> environmentIn)
     }
 
     if (serviceAction != "all") query = query ++ ("serviceAction" -> serviceAction)
@@ -591,7 +571,6 @@ object RequestData {
       else query = query ++ ("status" -> status.toInt)
     }
 
-    Logger.debug(sSearch)
     if (sSearch != "") {
       // We use regex research instead of mongoDb $text
       if (request && response) query = query ++ ("$or" -> BSONArray(BSONDocument("request" -> BSONDocument("$regex" -> sSearch)), BSONDocument("response" -> BSONDocument("$regex" -> sSearch))))
