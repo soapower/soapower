@@ -2,7 +2,7 @@
 
 'use strict';
 
-var spApp = angular.module('spApp', [ 'ui.bootstrap', 'ngRoute', 'ngResource', 'ngUpload', 'ngTable', 'ui.bootstrap.datetimepicker', 'ui.select2']);
+var spApp = angular.module('spApp', [ 'ngRoute', 'ngResource', 'ngUpload', 'ngTable', 'ui.bootstrap.datetimepicker', 'ui.select2']);
 
 spApp.config(function ($routeProvider) {
     $routeProvider

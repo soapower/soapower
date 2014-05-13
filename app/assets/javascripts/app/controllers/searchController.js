@@ -4,6 +4,7 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
     $scope.hostname = $location.host();
     $scope.port = $location.port();
     $scope.totalServerItems = 0;
+    $scope.waitForData = false;
     $scope.reloadTable = function () {
         var groups = $routeParams.groups ? $routeParams.groups : 'all';
         var environment = $routeParams.environment ? $routeParams.environment : 'all';
@@ -12,14 +13,15 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
         var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
         var code = $routeParams.code ? $routeParams.code : 'all';
         var search = $routeParams.search ? $routeParams.search : '';
+        $scope.waitForData = true;
 
         var request = "true";
         var response = "true";
 
-        if($routeParams.request === "false"){
+        if ($routeParams.request === "false") {
             request = "false";
         }
-        if($routeParams.response === "false") {
+        if ($routeParams.response === "false") {
             response = "false";
         }
 
@@ -42,6 +44,7 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
             cache: false
         }).success(function (largeLoad) {
             $scope.data = largeLoad.data;
+            $scope.waitForData = false;
             $scope.tableParams = new ngTableParams({
                 page: 1,            // show first page
                 count: 10,          // count per page

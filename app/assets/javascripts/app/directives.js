@@ -19,13 +19,7 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
             $scope.mindatecalendar = new Date();
             $scope.maxdatecalendar = new Date();
 
-            $scope.showServiceactions = false;
-            if ($attrs.serviceactions == "yes") {
-                $scope.showServiceactions = true;
-                // TODO
-                //ServiceActionsService.findAllAndSelect($scope, $routeParams);
-                //ServiceActionsService.findAllAndSelect($scope, $routeParams);
-            }
+            $scope.showServiceactions = $attrs.serviceactions == "yes";
 
             // Called when the mindate datetimepicker is set
             $scope.onMinTimeSet = function (newDate, oldDate) {
@@ -364,7 +358,7 @@ spApp.directive('spFilter', function ($http, $filter) {
             $scope.showfilterbutton = false;
             $scope.showresearch = false;
 
-            if($scope.page == "live") {
+            if ($scope.page == "live") {
                 // The directive was called from the Live Page
                 $scope.showresearch = true;
                 // The user arrived on the live, his default criteria are set based on the URL parameters
@@ -372,7 +366,7 @@ spApp.directive('spFilter', function ($http, $filter) {
                 $scope.response = true;
                 $scope.search = "";
                 // Called when the user changed the status criteria
-                $scope.changeStatus = function() {
+                $scope.changeStatus = function () {
                     // If the user set a new status
                     $http({
                         method: "POST",
@@ -380,9 +374,9 @@ spApp.directive('spFilter', function ($http, $filter) {
                         data: {key: "code", value: $scope.code},
                         headers: {'Content-Type': 'application/json'}
                     })
-                }
+                };
 
-                $scope.changeEnvironment = function() {
+                $scope.changeEnvironment = function () {
                     // If the user set a new Environment
                     $http({
                         method: "POST",
@@ -390,11 +384,10 @@ spApp.directive('spFilter', function ($http, $filter) {
                         data: {key: "environment", value: $scope.environment},
                         headers: {'Content-Type': 'application/json'}
                     })
-                }
+                };
 
-                $scope.changeRequest = function() {
-                    if($scope.request == false && $scope.response == false)
-                    {
+                $scope.changeRequest = function () {
+                    if ($scope.request == false && $scope.response == false) {
                         $scope.search = "";
                         $scope.changeSearch();
                     }
@@ -405,11 +398,10 @@ spApp.directive('spFilter', function ($http, $filter) {
                         data: {key: "request", value: $scope.request.toString()},
                         headers: {'Content-Type': 'application/json'}
                     })
-                }
+                };
 
-                $scope.changeResponse = function() {
-                    if($scope.request == false && $scope.response == false)
-                    {
+                $scope.changeResponse = function () {
+                    if ($scope.request == false && $scope.response == false) {
                         $scope.search = "";
                         $scope.changeSearch();
                     }
@@ -420,10 +412,10 @@ spApp.directive('spFilter', function ($http, $filter) {
                         data: {key: "response", value: $scope.response.toString()},
                         headers: {'Content-Type': 'application/json'}
                     })
-                }
+                };
 
                 // Called when the user change the textarea
-                $scope.changeSearch = function() {
+                $scope.changeSearch = function () {
                     $http({
                         method: "POST",
                         url: "/live/changeCriteria",
@@ -433,7 +425,7 @@ spApp.directive('spFilter', function ($http, $filter) {
                 };
             }
             // The directive is called in Search, Analysis or Statistics page
-            else if($scope.page == "search") {
+            else if ($scope.page == "search") {
                 $scope.showcalendars = true;
                 $scope.showfilterbutton = true;
                 $scope.showresearch = true;
@@ -462,19 +454,17 @@ spApp.directive('spFilter', function ($http, $filter) {
 
                 // Called when the user check or uncheck the request checkbox
                 $scope.changeRequest = function () {
-                    if($scope.request == false && $scope.response == false)
-                    {
+                    if ($scope.request == false && $scope.response == false) {
                         $scope.search = "";
                     }
-                }
+                };
 
                 // Called when the user check or uncheck the response checkbox
                 $scope.changeResponse = function () {
-                    if($scope.request == false && $scope.response == false)
-                    {
+                    if ($scope.request == false && $scope.response == false) {
                         $scope.search = "";
                     }
-                }
+                };
 
                 $scope.changeCriteria = function () {
                     // Check that the date inputs format are correct and that the mindate is before the maxdate
