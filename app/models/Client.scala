@@ -16,6 +16,7 @@ import java.io.PrintWriter
 import play.api.Play.current
 import com.ning.http.client.Realm.AuthScheme
 import org.jboss.netty.handler.codec.http.HttpMethod
+import scala.util.{Success, Failure}
 
 object Client {
   private val DEFAULT_NO_SOAPACTION = "Soapower_NoSoapAction"
@@ -64,8 +65,15 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     }
 
     Logger.debug("service:" + service)
+    val dbRequest = Environment.findByName(service.environmentName.get)
+    var groups = List.empty[String]
+    dbRequest.onComplete{
+      case Success(request) =>
+        if(request.isDefined) groups = request.get.groups
+    }
+    Await.result(dbRequest, 1.second)
 
-    new RequestData(sender, serviceAction, service.environmentName.get, service._id.get, requestContentType)
+    new RequestData(sender, serviceAction, service.environmentName.get, groups, service._id.get, requestContentType)
   }
 
   val environment = Environment.findByName(service.environmentName.get)

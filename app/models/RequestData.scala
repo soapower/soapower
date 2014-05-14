@@ -28,7 +28,7 @@ import play.api.libs.json.JsObject
 import reactivemongo.api.collections.default.BSONCollection
 import play.cache.Cache
 import java.text.{SimpleDateFormat, DateFormat}
-import scala.util.{Try, Success, Failure}
+import scala.util.{Success, Failure}
 import org.joda.time.DateTime
 import reactivemongo.api.indexes.{IndexType, Index}
 
@@ -36,6 +36,7 @@ case class RequestData(_id: Option[BSONObjectID],
                        sender: String,
                        var serviceAction: String,
                        environmentName: String,
+                       groupsName: List[String],
                        serviceId: BSONObjectID,
                        var request: String,
                        var requestHeaders: Map[String, String],
@@ -52,8 +53,8 @@ case class RequestData(_id: Option[BSONObjectID],
 
   var responseBytes: Array[Byte] = null
 
-  def this(sender: String, serviceAction: String, environnmentName: String, serviceId: BSONObjectID, contentType: String) =
-    this(Some(BSONObjectID.generate), sender, serviceAction, environnmentName, serviceId, null, null, contentType, null, new DateTime(), null, None, null, -1, -1, false, false)
+  def this(sender: String, serviceAction: String, environmentName: String, groupsName: List[String], serviceId: BSONObjectID, contentType: String) =
+    this(Some(BSONObjectID.generate), sender, serviceAction, environmentName, groupsName, serviceId, null, null, contentType, null, new DateTime(), null, None, null, -1, -1, false, false)
 
   def toSimpleJson: JsObject = {
     Json.obj(
@@ -62,6 +63,7 @@ case class RequestData(_id: Option[BSONObjectID],
       "contentType" -> contentType,
       "serviceId" -> serviceId,
       "environmentName" -> environmentName,
+      "groupsName" -> groupsName,
       "sender" -> sender,
       "serviceAction" -> serviceAction,
       "startTime" -> startTime.toString(),
@@ -168,6 +170,7 @@ object RequestData {
         doc.getAs[String]("sender").get,
         doc.getAs[String]("serviceAction").get,
         doc.getAs[String]("environmentName").get,
+        doc.getAs[List[String]]("groupsName").toList.flatten,
         doc.getAs[BSONObjectID]("serviceId").get,
         doc.getAs[String]("request").get,
         doc.getAs[Map[String, String]]("requestHeaders").get,
@@ -194,6 +197,7 @@ object RequestData {
         "sender" -> BSONString(requestData.sender),
         "serviceAction" -> BSONString(requestData.serviceAction),
         "environmentName" -> BSONString(requestData.environmentName),
+        "groupsName" -> requestData.groupsName,
         "serviceId" -> requestData.serviceId,
         "request" -> BSONString(requestData.request),
         "requestHeaders" -> requestData.requestHeaders,
@@ -272,6 +276,7 @@ object RequestData {
    * Construct the Map[String, String] needed to fill a select options set.
    */
   def serviceActionOptions: Future[List[String]] = {
+    //db.requestData.aggregate({$group:{"_id":{servicedAction:"$serviceAction",groupName:"$groupName"}, "NbServiceAction":{$sum:1}}})
     val command = RawCommand(BSONDocument("distinct" -> collection.name, "key" -> "serviceAction", "query" -> BSONDocument()))
     ReactiveMongoPlugin.db.command(command).map(b => b.getAs[List[String]]("values").get)
   }
