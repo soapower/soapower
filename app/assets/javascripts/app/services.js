@@ -238,8 +238,6 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
     return {
         reloadPage: function ($scope, showServiceactions, page) {
             var environment = "all", serviceaction = "all", mindate = "yesterday", maxdate = "today", code = "all";
-            // Retrieve groups
-            $scope.groups = $rootScope.$$childHead.groupsSelected;
 
             if ($scope.environment) environment = $scope.environment;
 

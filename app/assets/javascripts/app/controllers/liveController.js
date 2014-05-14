@@ -104,7 +104,8 @@ function LiveCtrl($scope, $rootScope, $location, $window, $routeParams, UIServic
 
     $scope.startWS();
 
-    $scope.$on("ReloadPage", function (event) {
+    $scope.$on("ReloadPage", function (event, newGroups) {
+        if(newGroups) $scope.groups = newGroups;
         UIService.reloadPage($scope, true, "live");
     });
 }

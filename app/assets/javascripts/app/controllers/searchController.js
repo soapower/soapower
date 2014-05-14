@@ -99,7 +99,8 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
 
     $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "SearchCtrl");
 
-    $scope.$on("ReloadPage", function (event) {
+    $scope.$on("ReloadPage", function (event, newGroups) {
+        if(newGroups) $scope.groups = newGroups;
         UIService.reloadPage($scope, true, "search");
     });
 }
