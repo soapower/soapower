@@ -6,35 +6,35 @@
                     <option ng-repeat="e in environments" value="{{ e.name }}">{{ e.name }}</option>
                 </select>
             </div>
-            <div style="width:30%;" class="form-group">
+            <div ng-show="showserviceactions" style="width:30%;" class="form-group">
                 <select style="display:block;" ui-select2 data-placeholder="Pick a serviceaction"  ui-select2 class="form-control" ng-model="serviceaction" ng-change="changeServiceAction()">
                     <option ng-repeat="sa in serviceactions" value="{{ sa }}">{{ sa }}</option>
                 </select>
             </div>
 
-            <div style="width:30%;" class="form-group">
+            <div ng-show="showstatus" style="width:30%;" class="form-group">
                 <select style="display:block;" ng-model="code" ui-select2 class="form-control" ng-change="changeStatus()">
                     <option ng-repeat="c in codes" value="{{ c }}">{{ c }}</option>
                 </select>
             </div>
         </div>
-        <br>
-        <div class="form-inline">
-            <div ng-show="showresearch" class="form-group">
+
+        <div class="form-inline" ng-show="showresearch">
+            <div class="form-group">
                 <textarea ng-change="changeSearch()" class="form-control" ng-model="search" placeholder="Search in request / response"></textarea>
             </div>
-            <div ng-show="showresearch" class="form-group">
+            <div class="form-group">
                 <label>
                     <input type="checkbox" ng-model="request" ng-change="changeRequest()">Request
                 </label>
             </div>
-            <div ng-show="showresearch" class="form-group">
+            <div class="form-group">
                 <label>
                     <input type="checkbox" ng-model="response" ng-change="changeResponse()">Response
                 </label>
             </div>
         </div>
-        <br>
+
         <div class="form-inline">
             <div ng-show="showcalendars" class="form-group">
                 <label for="from"> From : </label>
@@ -58,5 +58,4 @@
             </div>
         </div>
     </form>
-    <br>
 </div>

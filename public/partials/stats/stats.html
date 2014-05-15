@@ -1,6 +1,6 @@
 <div id="container" style="width: 100%; margin:auto">
 
-    <sp-criterias serviceactions="no"></sp-criterias>
+    <sp-filter page="statistics"></sp-filter>
 
     <i class="fa fa-info pointer" title="click to view help" ng-click="showTips=showTips==false">Tips </i>
 
@@ -15,10 +15,7 @@
         </ul>
     </div>
 
-    <hr>
     <p>There are {{ data.length }} stats.</p>
-
-    <sp-showresults></sp-showresults>
 
     <table ng-table="tableParams" class="table table-striped table-bordered">
         <tr ng-repeat="line in $data">

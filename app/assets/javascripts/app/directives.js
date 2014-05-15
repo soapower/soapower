@@ -357,22 +357,21 @@ spApp.directive('spFilter', function ($http, $filter) {
             page: '@page'
         },
         controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceActionsService, CodesService, UIService) {
-
             // Scope initialization
             EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.groups, null, true);
             CodesService.findAllAndSelect($scope, $routeParams);
-
             ServiceActionsService.findAllAndSelect($scope, $routeParams.serviceaction, $routeParams.groups);
-            $scope.showcalendars = false;
-            $scope.showfilterbutton = false;
-            $scope.showresearch = false;
 
             if ($scope.page == "live") {
                 // The directive was called from the Live Page
                 $scope.showresearch = true;
+                $scope.showstatus = true;
+                $scope.showserviceactions = true;
+
                 $scope.request = true;
                 $scope.response = true;
                 $scope.search = "";
+
 
                 $scope.changeStatus = function () {
                     // If the user set a new status
@@ -444,6 +443,8 @@ spApp.directive('spFilter', function ($http, $filter) {
                 // Search, Analysis and Statistic need calendars and filter button
                 $scope.showcalendars = true;
                 $scope.showfilterbutton = true;
+                $scope.showstatus = true;
+                $scope.showserviceactions = true;
 
                 $scope.mindate = UIService.getInputCorrectDateFormat($routeParams.mindate);
                 $scope.maxdate = UIService.getInputCorrectDateFormat($routeParams.maxdate);
@@ -496,8 +497,12 @@ spApp.directive('spFilter', function ($http, $filter) {
                         }
                     }
                 }
-                else if ($scope.page = "analysis") {
+                else if ($scope.page == "analysis") {
 
+                }
+                else if ($scope.page == "statistics") {
+                    $scope.showserviceactions = false;
+                    $scope.showstatus = false;
                 }
             }
             $scope.ctrlPath = $scope.$parent.ctrlPath;
