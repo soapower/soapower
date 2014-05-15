@@ -69,7 +69,7 @@ function ServiceActionEditCtrl($scope, $routeParams, $location, ServiceAction) {
     };
 
     $scope.save = function () {
-        $scope.serviceAction.update(function () {
+        $scope.serviceAction.$update(function () {
             $location.path('/serviceactions');
         }, function (response) { // error case
             alert(response.data);

@@ -362,7 +362,7 @@ spApp.directive('spFilter', function ($http, $filter) {
             EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.groups, null, true);
             CodesService.findAllAndSelect($scope, $routeParams);
 
-            ServiceActionsService.findAllAndSelect($scope, $routeParams);
+            ServiceActionsService.findAllAndSelect($scope, $routeParams.serviceaction, $routeParams.groups);
             $scope.showcalendars = false;
             $scope.showfilterbutton = false;
             $scope.showresearch = false;

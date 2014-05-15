@@ -137,15 +137,10 @@ object ServiceAction {
    */
   def update(serviceAction: ServiceAction) = {
 
-    if (Await.result(findByName(serviceAction.name.trim).map(e => e), 1.seconds).isDefined) {
-      throw new Exception("ServiceAction with name " + serviceAction.name.trim + " already exist")
-    }
-
     val selector = BSONDocument("_id" -> serviceAction._id)
 
     val modifier = BSONDocument(
       "$set" -> BSONDocument(
-        "name" -> serviceAction.name,
         "thresholdms" -> serviceAction.thresholdms)
     )
 
