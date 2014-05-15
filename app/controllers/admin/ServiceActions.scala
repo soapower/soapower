@@ -30,6 +30,19 @@ object ServiceActions extends Controller {
   }
 
   /**
+   * Find all names in serviceActions collection for given groups
+   * @param groups
+   * @return
+   */
+  def findAllName(groups: String) = Action.async {
+    val futureDataList = ServiceAction.findAllNameInGroups(groups)
+    futureDataList.map {
+      list =>
+        Ok(Json.toJson(Map("data" -> Json.toJson(list))))
+    }
+  }
+
+  /**
    * Display the 'edit form' of a existing ServiceAction.
    *
    * @param id Id of the serviceAction to edit

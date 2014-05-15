@@ -72,7 +72,8 @@ DELETE        /mocks/:mockGroupName/:mockId                                     
 
 # ServiceActions list
 GET           /serviceactions/regenerate                                                                    controllers.admin.ServiceActions.regenerate
-GET           /serviceactions/:group/findall                                                                controllers.admin.ServiceActions.findAll(group:String)
+GET           /serviceactions/:groups/findall                                                                controllers.admin.ServiceActions.findAll(groups:String)
+GET           /serviceactions/:groups/findallname                                                            controllers.admin.ServiceActions.findAllName(groups:String)
 PUT           /serviceactions/:id                                                                           controllers.admin.ServiceActions.update(id:String)
 GET           /serviceactions/:id                                                                           controllers.admin.ServiceActions.edit(id:String)
 DELETE        /serviceactions/:id                                                                           controllers.admin.ServiceActions.delete(id:String)

@@ -147,17 +147,18 @@ spApp.factory("ServiceActionsService", function ($http) {
             return $http.get('/serviceactions/' + groups + '/findall');
         },
         findAllAndSelect: function ($scope, serviceaction, groups) {
-            $http.get('/serviceactions/' + groups + '/findall')
+            // We only retrieve serviceactions names
+            $http.get('/serviceactions/' + groups + '/findallname')
                 .success(function (serviceActions) {
                     $scope.serviceactions = serviceActions.data;
-
                     if (serviceaction != "all") {
                         angular.forEach($scope.serviceactions, function (value) {
-                            if (value.name == serviceaction) $scope.serviceaction = value.name;
+
+                            if (value == serviceaction) $scope.serviceaction = value;
                         });
                     } else $scope.serviceaction = "all";
 
-                    $scope.serviceactions.unshift({"name": "all"});
+                    $scope.serviceactions.unshift("all");
 
                 })
                 .error(function (error) {

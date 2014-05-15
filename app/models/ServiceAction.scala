@@ -57,7 +57,7 @@ object ServiceAction {
    * Csv format.
    */
   def csv(m: ServiceAction) = {
-    csvKey + ";" + m._id.get.stringify + ";" + m.name + ";" + m.thresholdms + ";"+ m.groups.mkString("|") + "\n"
+    csvKey + ";" + m._id.get.stringify + ";" + m.name + ";" + m.thresholdms + ";" + m.groups.mkString("|") + "\n"
   }
 
   /**
@@ -125,7 +125,7 @@ object ServiceAction {
    */
   def insert(serviceAction: ServiceAction) = {
     if (Await.result(findByNameAndGroups(serviceAction.name.trim, serviceAction.groups).map(e => e), 1.seconds).isDefined) {
-      throw new Exception("ServiceAction with name " + serviceAction.name.trim + " and groups "+ serviceAction.groups.toString + " already exist")
+      throw new Exception("ServiceAction with name " + serviceAction.name.trim + " and groups " + serviceAction.groups.toString + " already exist")
     }
     collection.insert(serviceAction)
   }
@@ -179,6 +179,17 @@ object ServiceAction {
       sort(BSONDocument("name" -> 1)).
       cursor[ServiceAction].
       collect[List]()
+  }
+
+  def findAllNameInGroups(groups: String): Future[List[String]] = {
+    var command = RawCommand(BSONDocument("distinct" -> collection.name, "key" -> "name", "query" -> BSONDocument()))
+    if (!("all".equals(groups))) {
+      command = RawCommand(BSONDocument("distinct" -> collection.name, "key" -> "name", "query" -> BSONDocument("groups" -> BSONDocument("$in" -> groups.split(',')))))
+    }
+    collection.db.command(command).map {
+      list =>
+        list.getAs[List[String]]("values").get
+    }
   }
 
   /**
