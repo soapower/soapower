@@ -15,6 +15,7 @@ import reactivemongo.api.collections.default.BSONCollection
 
 case class ServiceAction(_id: Option[BSONObjectID],
                          name: String,
+                         groups: List[String],
                          thresholdms: Int)
 
 object ServiceAction {
@@ -31,6 +32,7 @@ object ServiceAction {
       ServiceAction(
         doc.getAs[BSONObjectID]("_id"),
         doc.getAs[String]("name").get,
+        doc.getAs[List[String]]("groups").toList.flatten,
         doc.getAs[Int]("thresholdms").get
       )
   }
@@ -40,13 +42,14 @@ object ServiceAction {
       BSONDocument(
         "_id" -> serviceAction._id,
         "name" -> BSONString(serviceAction.name),
+        "groups" -> serviceAction.groups,
         "thresholdms" -> BSONInteger(serviceAction.thresholdms))
   }
 
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "thresholdms" -> 3)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groups" -> 3, "thresholdms" -> 4)
 
   val csvKey = "serviceAction"
 
@@ -54,7 +57,7 @@ object ServiceAction {
    * Csv format.
    */
   def csv(m: ServiceAction) = {
-    csvKey + ";" + m._id.get.stringify + ";" + m.name + ";" + m.thresholdms + "\n"
+    csvKey + ";" + m._id.get.stringify + ";" + m.name + ";" + m.thresholdms + ";"+ m.groups.mkString("|") + "\n"
   }
 
   /**
@@ -83,11 +86,31 @@ object ServiceAction {
   }
 
   /**
+   * Retrieve a ServiceAction from name and groups
+   * @param name
+   * @param groups
+   * @return
+   */
+  def findByNameAndGroups(name: String, groups: List[String]): Future[Option[ServiceAction]] = {
+    val query = BSONDocument("name" -> BSONString(name), "groups" -> groups)
+    collection.find(query).one[ServiceAction]
+  }
+
+  /**
    * Count ServiceAction by name. Just to check if serviceAction already exist in collection.
    * @return 0 ou 1
    */
   def countByName(name: String): Int = {
     val futureCount = ReactiveMongoPlugin.db.command(Count(collection.name, Some(BSONDocument("name" -> BSONString(name)))))
+    futureCount.map {
+      count => // count is an Int
+        Logger.debug("COUNT:" + count)
+    }
+    Await.result(futureCount.map(c => c), 1.seconds)
+  }
+
+  def countByNameAndGroups(name: String, groups: List[String]): Int = {
+    val futureCount = ReactiveMongoPlugin.db.command(Count(collection.name, Some(BSONDocument("name" -> BSONString(name), "groups" -> groups))))
     futureCount.map {
       count => // count is an Int
         Logger.debug("COUNT:" + count)
@@ -101,8 +124,8 @@ object ServiceAction {
    * @param serviceAction The serviceAction values.
    */
   def insert(serviceAction: ServiceAction) = {
-    if (Await.result(findByName(serviceAction.name.trim).map(e => e), 1.seconds).isDefined) {
-      throw new Exception("ServiceAction with name " + serviceAction.name.trim + " already exist")
+    if (Await.result(findByNameAndGroups(serviceAction.name.trim, serviceAction.groups).map(e => e), 1.seconds).isDefined) {
+      throw new Exception("ServiceAction with name " + serviceAction.name.trim + " and groups "+ serviceAction.groups.toString + " already exist")
     }
     collection.insert(serviceAction)
   }
@@ -203,14 +226,17 @@ object ServiceAction {
   private def uploadServiceAction(dataCsv: Array[String]) = {
 
     val name = dataCsv(csvTitle.get("name").get)
+    val groups = dataCsv(csvTitle.get("groups").get).split('|').toList
+
     Logger.debug("upload serviceAction:" + name)
 
-    findByName(name).map {
+    findByNameAndGroups(name, groups).map {
       serviceAction => {
         if (serviceAction == None) {
           Logger.debug("Insert new serviceAction with name " + name)
           val newServiceAction = new ServiceAction(Some(BSONObjectID.generate),
             dataCsv(csvTitle.get("name").get).trim,
+            dataCsv(csvTitle.get("groups").get).split('|').toList,
             dataCsv(csvTitle.get("thresholdms").get).trim.toInt
           )
           insert(newServiceAction).map {

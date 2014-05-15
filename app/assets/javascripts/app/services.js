@@ -143,8 +143,8 @@ spApp.factory('ServiceAction', function ($resource) {
 
 spApp.factory("ServiceActionsService", function ($http) {
     return {
-        findAll: function (group) {
-            return $http.get('/serviceactions/' + group + '/findall');
+        findAll: function (groups) {
+            return $http.get('/serviceactions/' + groups + '/findall');
         },
         findAllAndSelect: function ($scope, $routeParams) {
             //$http.get('/serviceactions/' + group + '/findall')
@@ -254,11 +254,10 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
 
             if ($scope.code) code = $scope.code;
 
-            var path = $scope.ctrlPath + '/' + $scope.groups + "/" + environment + "/" + serviceaction + "/";
-
+            var path = $scope.ctrlPath + '/' + $scope.groups;
 
             if (page == "search") {
-                path = path + mindate + "/" + maxdate + "/" + code;
+                path = path + "/" + environment + "/" + serviceaction + "/" + mindate + "/" + maxdate + "/" + code;
                 // Add the search parameters to the query string
                 if ($scope.search) {
                     var search = {'search': $scope.search, 'request': $scope.request.toString(), 'response': $scope.response.toString()}
@@ -268,9 +267,13 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
                 console.log("UIService.reloadPage : Go to " + path);
             }
             else if (page == "live") {
-                path = path + "live/live/" + code;
+                path = path + "/" + environment + "/" + serviceaction + "/" + "live/live/" + code;
                 console.log("UIService.reloadPage : Go to " + path);
                 $location.path(path);
+            }
+            else if (page == "serviceactions") {
+                console.log("UIService.reloadPage : Go to " + path);
+                $location.path(path)
             }
         },
         /*

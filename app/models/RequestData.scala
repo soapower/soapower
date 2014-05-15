@@ -15,7 +15,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.{Await, Future}
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
-import reactivemongo.core.commands.RawCommand
+import reactivemongo.core.commands.{GroupField, Aggregate, RawCommand}
 import reactivemongo.api.collections.default.BSONCollection
 import play.api.http.HeaderNames
 import reactivemongo.bson.BSONDateTime
@@ -31,6 +31,7 @@ import java.text.{SimpleDateFormat, DateFormat}
 import scala.util.{Success, Failure}
 import org.joda.time.DateTime
 import reactivemongo.api.indexes.{IndexType, Index}
+import scala.collection.mutable.ListBuffer
 
 case class RequestData(_id: Option[BSONObjectID],
                        sender: String,
@@ -227,7 +228,7 @@ object RequestData {
   /**
    * Title of csvFile. The value is the order of title.
    */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "serviceAction" -> 2, "startTime" -> 3, "timeInMillis" -> 4, "environmentName" -> 5)
+  val csvTitle = Map("key" -> 0, "id" -> 1, "serviceAction" -> 2, "startTime" -> 3, "timeInMillis" -> 4, "environmentName" -> 5, "environmentGroups" -> 6)
 
   val csvKey = "requestDataStat"
 
@@ -273,13 +274,54 @@ object RequestData {
   */
 
   /**
-   * Construct the Map[String, String] needed to fill a select options set.
+   * Retrieve all distinct serviceactions using name and groups
+   * @return a list of serviceAction's name and groups
    */
-  def serviceActionOptions: Future[List[String]] = {
-    //db.requestData.aggregate({$group:{"_id":{servicedAction:"$serviceAction",groupName:"$groupName"}, "NbServiceAction":{$sum:1}}})
-    val command = RawCommand(BSONDocument("distinct" -> collection.name, "key" -> "serviceAction", "query" -> BSONDocument()))
-    ReactiveMongoPlugin.db.command(command).map(b => b.getAs[List[String]]("values").get)
+  def serviceActionOption: Future[List[(String, List[String])]] = {
+    val command =
+      BSONDocument(
+        "aggregate" -> collection.name, // we aggregate on collection
+        "pipeline" -> BSONArray(
+          BSONDocument(
+            "$group" -> BSONDocument(
+              "_id" -> BSONDocument("serviceAction" -> "$serviceAction", "groupsName" -> "$groupsName"),
+              "nbServiceAction" -> BSONDocument("$sum" -> 1)))
+        )
+      )
+
+
+    var listRes = ListBuffer.empty[(String, List[String])]
+    val query = ReactiveMongoPlugin.db.command(RawCommand(command))
+    query.map {
+      b =>
+        b.getAs[List[BSONValue]]("result").get.foreach {
+          // For each results
+          saOptions =>
+            saOptions.asInstanceOf[BSONDocument].elements.foreach {
+              idOption =>
+                if (idOption._1 == "_id") {
+                  // If the key is "_id", we retrieve the serviceAction's name and groups
+                  var serviceAction = ""
+                  var groups = ListBuffer.empty[String]
+
+                  idOption._2.asInstanceOf[BSONDocument].elements.foreach {
+                    s =>
+                      if (s._1 == "serviceAction") {
+
+                        serviceAction = s._2.asInstanceOf[BSONString].value
+                      }
+                      else {
+                        s._2.asInstanceOf[BSONArray].values.foreach(e => groups += e.asInstanceOf[BSONString].value.toString)
+                      }
+                  }
+                  listRes += ((serviceAction, groups.toList))
+                }
+            }
+        }
+        listRes.toList.sortBy(_._1)
+    }
   }
+
 
   /**
    * Construct the Map[String, String] needed to fill a select options set.
@@ -556,7 +598,9 @@ object RequestData {
       // We retrieve the environments of the groups in parameter
       val environments = Environment.optionsInGroups(groups)
       // We add the environments names to the query
-      query = query ++ ("environmentName" -> BSONDocument("$in" -> environments.map { e => e._2}.toArray))
+      query = query ++ ("environmentName" -> BSONDocument("$in" -> environments.map {
+        e => e._2
+      }.toArray))
     } else {
       query = query ++ ("environmentName" -> environmentIn)
     }

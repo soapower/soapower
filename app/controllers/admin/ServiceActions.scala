@@ -9,6 +9,8 @@ import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
 import play.modules.reactivemongo.json.BSONFormats._
 import play.api.Logger
+import scala.util.Success
+import scala.util.Failure
 
 object ServiceActions extends Controller {
 
@@ -89,18 +91,22 @@ object ServiceActions extends Controller {
    * not, insert it, with default threshold to 30000 ms.
    * @return 200 or 500, with json message
    */
+
   def regenerate() = Action.async {
-    RequestData.serviceActionOptions.map(list => {
-      list.foreach(serviceAction =>
-        if (ServiceAction.countByName(serviceAction) == 0) {
-          Logger.info("ServiceAction " + serviceAction + " not found. Insert in db")
-          ServiceAction.insert(new ServiceAction(Some(BSONObjectID.generate), serviceAction, 30000))
-        } else {
-          Logger.info("ServiceAction " + serviceAction + " found. Do nothing.")
+    RequestData.serviceActionOption.map {
+      list =>
+        list.foreach {
+          nameAndGroups =>
+            if(ServiceAction.countByNameAndGroups(nameAndGroups._1, nameAndGroups._2) == 0) {
+              // The serviceaction does not exist
+              ServiceAction.insert(new ServiceAction(Some(BSONObjectID.generate), nameAndGroups._1, nameAndGroups._2, 30000))
+              Logger.info("ServiceAction " + nameAndGroups._1 + " not found. Insert in db")
+            } else {
+              Logger.info("ServiceAction " + nameAndGroups._1 + " found. Do nothing.")
+            }
         }
-      )
-      Ok(Json.toJson("Success regeneration"))
-    }).recoverWith {
+        Ok(Json.toJson("Success regeneration"))
+      }.recoverWith {
       case e: Exception =>
         Logger.error("Error with regenerate : " + e.getMessage)
         Future.successful(InternalServerError(Json.toJson("Failed regeneration " + e.getMessage)))
