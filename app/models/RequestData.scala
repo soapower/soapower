@@ -750,84 +750,63 @@ object RequestData {
     */
   }
 
-  def loadAvgResponseTimesByAction(groupName: String, environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {
-    ???
-    /*DB.withConnection {
-  def loadAvgResponseTimesByAction(groupName: String, environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {
-    DB.withConnection {
-      implicit connection =>
+  def loadAvgResponseTimesByAction(groupNames: List[String], environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, (Long, Int))] = {
 
-        var whereClause = " where startTime >= {minDate} and startTime <= {maxDate} "
-        whereClause += sqlAndStatus(status)
-        if (!withStats) whereClause += " and isStats = 'false' "
+    val query = BSONDocument("environmentName" -> environmentName,
+                             "groupsName" -> groupNames,
+                             "status" -> 200,
+                             "startTime" -> BSONDocument("$lt" -> BSONDateTime(maxDate.getTime), "$gte" -> BSONDateTime(minDate.getTime)))
 
-        Logger.debug("Load Stats with env:" + environmentName)
-        whereClause += sqlAndEnvironnement(environmentName)
-
-        val pair = sqlFromAndGroup(groupName, environmentName)
-        val fromClause = " from request_data " + pair._1
-        whereClause += pair._2
-
-        val sql = "select serviceAction, timeInMillis " + fromClause + whereClause + " order by timeInMillis asc "
-
-        Logger.debug("SQL (loadAvgResponseTimesByAction) ====> " + sql)
-
-        val responseTimes = SQL(sql)
-          .on(
-            'minDate -> minDate,
-            'maxDate -> maxDate)
-          .as(get[String]("serviceAction") ~ get[Long]("timeInMillis") *)
-          .map(flatten)
-
-        val avgTimesByAction = responseTimes.groupBy(_._1).mapValues {
-          e =>
-            val times = e.map(_._2).toList
-            val ninePercentiles = times.slice(0, times.size * 9 / 10)
-            if (ninePercentiles.size > 0) {
-              ninePercentiles.sum / ninePercentiles.size
-            } else if (times.size == 1) {
-              times.head
-            } else {
-              -1
-            }
+    val list = collection.find(query).cursor[RequestData].collect[List]().map {
+      list =>
+        list.map {
+          rd => (rd.serviceAction, rd.timeInMillis)
+        }.toList
+    }
+    Await.result(list, 1.second).groupBy(_._1).mapValues {
+      e =>
+        val times = e.map(_._2).toList
+        val ninePercentiles = times.slice(0, times.size * 9 / 10)
+        if (ninePercentiles.size > 0) {
+          (ninePercentiles.sum / ninePercentiles.size, ninePercentiles.size)
+        } else if (times.size == 1) {
+          (times.head, 1)
+        } else {
+          (-1, ninePercentiles.size)
         }
-        avgTimesByAction.toList.filterNot(_._2 == -1).sortBy(_._1)
-    }*/
+    }.toList.filterNot(_._2._1 == -1).sortBy(_._1).asInstanceOf[List[(String, (Long, Int))]]
   }
 
   /**
    * Find all day before today, for environment given and state = 200.
-   * @param environmentId environment id
+   * @param environmentName environment name
    * @return list of unique date
    */
-  def findDayNotCompileStats(environmentId: String): List[Date] = {
-    ???
-    /*
-    DB.withConnection {
-      implicit connection =>
+  def findDayNotCompileStats(environmentName: String, groups: List[String]): List[Date] = {
 
-        val gcal = new GregorianCalendar
-        val today = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
+    val gcal = new GregorianCalendar
+    //val tomorrow
+    val today = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
+    val query = BSONDocument("environmentName" -> environmentName,
+      "groupsName" -> groups,
+      "status" -> 200,
+      "isMock" -> false,
+      "startTime" -> BSONDocument("$lt" -> BSONDateTime(today.getTimeInMillis)))
 
-        val startTimes = SQL(
-          """
-          select startTime from request_data
-          where environmentId={environmentId} and status=200 and isStats = 'false' and isMock = 'false' and startTime < {today}
-          """
-        ).on('environmentId -> environmentId, 'today -> today.getTime)
-          .as(get[Date]("startTime") *).toList
-
-        val uniqueStartTimePerDay: Set[Date] = Set()
-        startTimes.foreach {
-          (t) =>
-            gcal.setTimeInMillis(t.getTime)
+    var uniqueStartTimePerDay: Set[Date] = Set()
+    val queryStartTimes = collection.find(query).cursor[RequestData].collect[List]().map {
+      listRequestData =>
+        listRequestData.map {
+          requestData =>
+            gcal.setTimeInMillis(requestData.startTime.getMillis)
             val ccal = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
             uniqueStartTimePerDay += ccal.getTime
         }
         uniqueStartTimePerDay.toList
     }
-    */
+    Await.result(queryStartTimes, 1.second)
   }
+
 
   def load(id: Long): RequestData = {
     ???

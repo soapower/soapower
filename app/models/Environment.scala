@@ -279,17 +279,52 @@ object Environment {
   def findByNameAndGroups(name: String, groups: String): Future[Option[Environment]] = {
     val find = BSONDocument("name" -> name, "groups" -> BSONDocument("$in" -> groups.split(',')))
     collection.
+
       find(find).
       one[Environment]
+  }
+
+  /**
+   * Foreach environment, retrieve his name and his groups
+   * @return
+   */
+  def findNamesAndGroups(): List[(String, List[String])] = {
+    val query = collection.find(BSONDocument()).cursor[Environment].collect[List]().map {
+      list =>
+        list.map {
+          envir =>
+            (envir.name, envir.groups)
+        }
+    }
+    Await.result(query, 1.second)
   }
 
   /**
    * Compile stats for each env / day
    */
   def compileStats() {
-    Logger.info("Compile Stats")
+    Logger.info("Compile Stats, dropping statistics collection")
+    Stat.drop
     val gcal = new GregorianCalendar
+    Environment.findNamesAndGroups.foreach {
+      (e) =>
+        val days = RequestData.findDayNotCompileStats(e._1, e._2)
+        days.foreach {
+          minDate =>
+            Logger.debug("Compile Stats minDate:" + minDate + " env: " + e._1)
+            gcal.setTimeInMillis(minDate.getTime + UtilDate.v1d)
+            val maxDate = gcal.getTime
 
+            val result = RequestData.loadAvgResponseTimesByAction(e._2, e._1, "200", minDate, maxDate, false)
+            result.foreach {
+              (r) =>
+                Logger.debug("update stats for env:" + e._1 + " ServiceAction:" + r._1 + " timeAverage:" + r._2._1 +" number of request " + r._2._2 + " date:" + minDate)
+                Stat.insert(new Stat(e._2, e._1, r._1, r._2._1, r._2._2.toLong))
+            }
+        }
+    }
+
+    /*
     Environment.options.foreach {
       (e) =>
         Logger.debug("Compile Stats env:" + e._2)
@@ -308,7 +343,7 @@ object Environment {
                 RequestData.insertStats(e._1.toLong, r._1, minDate, r._2)
             }
         }
-    }
+    }*/
   }
 
   import ModePurge._
