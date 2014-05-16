@@ -765,7 +765,7 @@ object RequestData {
     }
     Await.result(list, 1.second).groupBy(_._1).mapValues {
       e =>
-        val times = e.map(_._2).toList
+        val times = e.map(_._2).toList.sorted
         val ninePercentiles = times.slice(0, times.size * 9 / 10)
         if (ninePercentiles.size > 0) {
           (ninePercentiles.sum / ninePercentiles.size, ninePercentiles.size)
@@ -785,7 +785,7 @@ object RequestData {
   def findDayNotCompileStats(environmentName: String, groups: List[String]): List[Date] = {
 
     val gcal = new GregorianCalendar
-    //val tomorrow
+
     val today = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
     val query = BSONDocument("environmentName" -> environmentName,
       "groupsName" -> groups,

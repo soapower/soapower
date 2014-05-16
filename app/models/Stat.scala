@@ -19,16 +19,18 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.Logger
 import scala.util.Success
 import scala.util.Failure
+import org.joda.time.DateTime
 
 case class Stat (_id: Option[BSONObjectID],
                     groups: List[String],
                     environmentName: String,
                     serviceAction: String,
                     avgInMillis: Long,
-                    nbOfRequestData: Long) {
+                    nbOfRequestData: Long,
+                    atDate: DateTime) {
 
-  def this(groups: List[String], environmentName: String, serviceAction: String, avgInMillis: Long, nbOfRequestData: Long) =
-  this(Some(BSONObjectID.generate), groups, environmentName, serviceAction, avgInMillis, nbOfRequestData)
+  def this(groups: List[String], environmentName: String, serviceAction: String, avgInMillis: Long, nbOfRequestData: Long, atDate:DateTime) =
+  this(Some(BSONObjectID.generate), groups, environmentName, serviceAction, avgInMillis, nbOfRequestData, atDate)
 
 }
 
@@ -50,7 +52,8 @@ object Stat {
         doc.getAs[String]("environmentName").get,
         doc.getAs[String]("serviceAction").get,
         doc.getAs[Long]("avgInMillis").get,
-        doc.getAs[Long]("nbOfRequestData").get
+        doc.getAs[Long]("nbOfRequestData").get,
+        new DateTime(doc.getAs[BSONDateTime]("atDate").get.value)
       )
     }
   }
@@ -63,7 +66,8 @@ object Stat {
         "environmentName" -> BSONString(stat.environmentName),
         "serviceAction" -> BSONString(stat.serviceAction),
         "avgInMillis" -> BSONLong(stat.avgInMillis),
-        "nbOfRequestData" -> BSONLong(stat.nbOfRequestData))
+        "nbOfRequestData" -> BSONLong(stat.nbOfRequestData),
+        "atDate" -> BSONDateTime(stat.atDate.getMillis))
   }
 
   /**
@@ -74,27 +78,11 @@ object Stat {
     val exists = findByGroupsEnvirService(stat)
     exists.onComplete {
       case Success(option) =>
-        if(option.isDefined) {
-          val oldAvg = option.get.avgInMillis
-          val oldNb = option.get.nbOfRequestData
-          val newAvg = (oldAvg*oldNb + stat.avgInMillis*stat.nbOfRequestData)/(oldNb + stat.nbOfRequestData)
-
-          update(stat, newAvg, oldNb + stat.nbOfRequestData)
-        } else {
+        if(!option.isDefined) {
           collection.insert(stat)
         }
+      case Failure(e) => throw new Exception("Error when inserting statistic")
     }
-  }
-
-  def update(stat: Stat, newAvg: Long, newNb: Long) = {
-    val selector = BSONDocument("groups" -> stat.groups, "environmentName" -> stat.environmentName, "serviceAction" -> stat.serviceAction)
-
-    val modifier = BSONDocument(
-      "$set" -> BSONDocument(
-        "avgInMillis" -> newAvg,
-        "nbOfRequestData" -> newNb)
-    )
-    collection.update(selector, modifier)
   }
 
   def findByGroupsEnvirService(stat: Stat): Future[Option[Stat]] = {
@@ -102,13 +90,5 @@ object Stat {
     collection
       .find(find)
       .one[Stat]
-  }
-
-  /**
-   * Drop the statistics mongo collection (called at the beginning of statistics compiling)
-   * @return
-   */
-  def drop() = {
-    collection.drop
   }
 }

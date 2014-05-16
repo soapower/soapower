@@ -14,6 +14,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import reactivemongo.core.commands.RawCommand
 import play.api.Logger
 import reactivemongo.api.collections.default.BSONCollection
+import org.joda.time.DateTime
 
 case class Environment(_id: Option[BSONObjectID],
                        name: String,
@@ -303,8 +304,7 @@ object Environment {
    * Compile stats for each env / day
    */
   def compileStats() {
-    Logger.info("Compile Stats, dropping statistics collection")
-    Stat.drop
+    Logger.info("Compile Stats")
     val gcal = new GregorianCalendar
     Environment.findNamesAndGroups.foreach {
       (e) =>
@@ -319,7 +319,7 @@ object Environment {
             result.foreach {
               (r) =>
                 Logger.debug("update stats for env:" + e._1 + " ServiceAction:" + r._1 + " timeAverage:" + r._2._1 +" number of request " + r._2._2 + " date:" + minDate)
-                Stat.insert(new Stat(e._2, e._1, r._1, r._2._1, r._2._2.toLong))
+                Stat.insert(new Stat(e._2, e._1, r._1, r._2._1, r._2._2.toLong, new DateTime(minDate)))
             }
         }
     }
