@@ -20,6 +20,7 @@ import play.Logger
 import scala.util.Success
 import scala.util.Failure
 import org.joda.time.DateTime
+import java.util.Date
 
 case class Stat (_id: Option[BSONObjectID],
                     groups: List[String],
@@ -85,10 +86,33 @@ object Stat {
     }
   }
 
+  /**
+   * Find a stat using groups, environmnentName and serviceaction
+   * @param stat
+   * @return
+   */
   def findByGroupsEnvirService(stat: Stat): Future[Option[Stat]] = {
     val find = BSONDocument("groups" -> stat.groups, "environmentName" -> stat.environmentName, "serviceAction" -> stat.serviceAction)
     collection
       .find(find)
       .one[Stat]
   }
+
+  def find(groups: String, environmentName: String, minDate: Date, maxDate: Date) : Future[List[Stat]] = {
+    var query = BSONDocument()
+    if(groups != "all") {
+      query = query ++ ("groups" -> BSONDocument("$in" -> groups.split(',')))
+    }
+    if(environmentName != "all") {
+      query = query ++ ("environmentName" -> environmentName)
+    }
+    // TODO
+    // dates and stats avg
+    collection.
+      find(query).
+      cursor[Stat].
+      collect[List]()
+  }
+
+
 }

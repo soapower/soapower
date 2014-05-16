@@ -23,8 +23,8 @@ spApp.config(function ($routeProvider) {
         .when('/analysis/:groups/:environment/:serviceaction/:mindate/:maxdate/:code', {
             controller: AnalysisCtrl, templateUrl: 'partials/analysis/analysis.html'
         })
-        .when('/stats', { redirectTo: '/stats/all/all/yesterday/today/all' })
-        .when('/stats/:groups/:environment/:mindate/:maxdate/:code', { controller: StatsCtrl, templateUrl: 'partials/stats/stats.html' })
+        .when('/stats', { redirectTo: '/stats/all/all/yesterday/today' })
+        .when('/stats/:groups/:environment/:mindate/:maxdate', { controller: StatsCtrl, templateUrl: 'partials/stats/stats.html' })
 
         .when('/monitor', { controller: MonitorCtrl, templateUrl: 'partials/admin/monitor/monitor.html' })
         .when('/loggers', { controller: LoggersCtrl, templateUrl: 'partials/admin/monitor/loggers.html'})

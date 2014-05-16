@@ -275,6 +275,11 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
                 console.log("UIService.reloadPage : Go to " + path);
                 $location.path(path)
             }
+            else if (page == "statistics") {
+                path = path + "/" + environment + "/" + mindate+"/"+maxdate
+                console.log("UIService.reloadPage : Go to " + path);
+                $location.path(path)
+            }
         },
         /*
          /* Transform a string in the format "yyyy-mm-ddThh:mm" to the

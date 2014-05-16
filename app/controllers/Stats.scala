@@ -7,6 +7,7 @@ import models.UtilDate._
 import java.util.Date
 import java.net.URLDecoder
 import play.Logger
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 object Stats extends Controller {
 
@@ -22,26 +23,17 @@ object Stats extends Controller {
     }
   }
 
-  def listDataTable(groupName: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String, status: String) = Action {
-    ???
-    /*
-    implicit request =>
-    // load thresholds
-      val thresholdsByServiceActions = ServiceAction.loadAll().map(action => (action.name, action.thresholdms)).toMap
+  def listDataTable(groupNames: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String) = Action.async {
+    Logger.debug(getDate(minDateAsStr).getTime.toString)
+    Logger.debug(getDate(maxDateAsStr, v23h59min59s, true).getTime.toString)
+    val futureDataList = Stat.find(groupNames, environmentName, getDate(minDateAsStr).getTime, getDate(maxDateAsStr, v23h59min59s, true).getTime)
 
-      // compute average response times
-      val minDate = getDate(minDateAsStr).getTime()
-      val maxDate = getDate(maxDateAsStr, v23h59min59s).getTime()
-      val avgResponseTimesByAction = RequestData.loadAvgResponseTimesByAction(groupName, environmentName, status, minDate, maxDate, true)
+    futureDataList.map {
+      list =>
+        Logger.debug(list.toString)
+        Ok(Json.toJson(Map("data" -> Json.toJson(list))))
+    }
 
-      val data = avgResponseTimesByAction.map(d => (environmentName, d._1, d._2, thresholdsByServiceActions.getOrElse[Long](d._1, -1)))
-
-      Ok(Json.toJson(Map(
-        "iTotalRecords" -> Json.toJson(data.size),
-        "iTotalDisplayRecords" -> Json.toJson(data.size),
-        "data" -> Json.toJson(data)))).as(JSON)
-        */
-    BadRequest("TODO")
   }
 
   /**

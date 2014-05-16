@@ -19,10 +19,10 @@
 
     <table ng-table="tableParams" class="table table-striped table-bordered">
         <tr ng-repeat="line in $data">
-            <td data-title="'Environment'" sortable="'env'">{{ line.env }}</td>
+            <td data-title="'Environment'" sortable="'env'">{{ line.environmentName }}</td>
             <td data-title="'ServiceAction'" sortable="'serviceAction'">{{ line.serviceAction }}</td>
-            <td data-title="'Avg Time In Millis'" sortable="'avgTime'">{{ line.avgTime }}</td>
-            <td data-title="'Threshold'" sortable="'threshold'">{{ line.threshold }}</td>
+            <td data-title="'Avg Time In Millis'" sortable="'avgTime'">{{ line.avgInMillis }}</td>
+            <td data-title="'Threshold'" sortable="'threshold'">TODO</td>
         </tr>
     </table>
 </div>
