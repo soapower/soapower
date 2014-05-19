@@ -501,6 +501,9 @@ spApp.directive('spFilter', function ($http, $filter) {
                     $scope.showserviceactions = false;
                     $scope.showstatus = false;
                 }
+                else if ($scope.page == "analysis") {
+                   $scope.showstatus = false;
+                }
             }
             $scope.ctrlPath = $scope.$parent.ctrlPath;
         },

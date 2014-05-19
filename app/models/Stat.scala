@@ -157,5 +157,26 @@ object Stat {
         res.toList
     }
   }
+
+  def findResponseTimes(groups: String, environmentName: String, serviceAction: String, minDate: Date, maxDate: Date, status: String): Future[List[Stat]] = {
+    var query = BSONDocument()
+    if (groups != "all") {
+      query = query ++ ("groups" -> BSONDocument("$in" -> groups.split(',')))
+    }
+    if (environmentName != "all") {
+      query = query ++ ("environmentName" -> environmentName)
+    }
+
+    query = query ++ ("atDate" -> BSONDocument(
+      "$gte" -> BSONDateTime(minDate.getTime),
+      "$lt" -> BSONDateTime(maxDate.getTime))
+      )
+
+    if (serviceAction != "all") {
+      query = query ++ ("serviceAction" -> serviceAction)
+    }
+
+    collection.find(query).cursor[Stat].collect[List]()
+  }
 }
 

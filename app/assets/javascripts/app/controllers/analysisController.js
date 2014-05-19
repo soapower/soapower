@@ -70,7 +70,8 @@ function AnalysisCtrl($scope, $rootScope, $routeParams, $http, UIService) {
 
     $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "AnalysisCtrl");
 
-    $scope.$on("ReloadPage", function (event) {
-        UIService.reloadPage($scope, true);
+    $scope.$on("ReloadPage", function (event, newGroups) {
+        if(newGroups) $scope.groups = newGroups;
+        UIService.reloadPage($scope, true, "analysis");
     });
 }

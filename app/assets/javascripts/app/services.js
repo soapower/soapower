@@ -280,6 +280,9 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
                 console.log("UIService.reloadPage : Go to " + path);
                 $location.path(path)
             }
+            else if (page == "analysis") {
+
+            }
         },
         /*
          /* Transform a string in the format "yyyy-mm-ddThh:mm" to the
