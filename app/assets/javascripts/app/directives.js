@@ -468,7 +468,7 @@ spApp.directive('spFilter', function ($http, $filter) {
                     // Check that the date inputs format are correct and that the mindate is before the maxdate
                     if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
                         $scope.groups = $routeParams.groups;
-                        UIService.reloadPage($scope, $scope.showServiceactions, "search");
+                        UIService.reloadPage($scope, $scope.showServiceactions, $scope.page);
                     } else {
                         // Else, mindate and maxdate are set to yesterday's and today's dates
                         $scope.mindate = UIService.getInputCorrectDateFormat(UIService.getDay("yesterday"));
@@ -496,9 +496,6 @@ spApp.directive('spFilter', function ($http, $filter) {
                             $scope.search = "";
                         }
                     }
-                }
-                else if ($scope.page == "analysis") {
-
                 }
                 else if ($scope.page == "statistics") {
                     $scope.showserviceactions = false;

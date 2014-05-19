@@ -787,8 +787,8 @@ object RequestData {
     val gcal = new GregorianCalendar
     TimeZone.setDefault(TimeZone.getTimeZone("GMT"))
     val today = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
-    today.add(Calendar.DAY_OF_MONTH, 1)
-    val query = BSONDocument("environmentName" -> environmentName,
+
+    val query = BSONDocument("environmentName" ->environmentName,
       "groupsName" -> groups,
       "status" -> 200,
       "isMock" -> false,
@@ -797,8 +797,11 @@ object RequestData {
     var uniqueStartTimePerDay: Set[Date] = Set()
     val queryStartTimes = collection.find(query).cursor[RequestData].collect[List]().map {
       listRequestData =>
+
         listRequestData.map {
           requestData =>
+            Logger.debug(requestData.serviceAction)
+            Logger.debug(requestData.environmentName)
             gcal.setTimeInMillis(requestData.startTime.getMillis)
             val ccal = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
             uniqueStartTimePerDay += ccal.getTime

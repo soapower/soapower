@@ -80,6 +80,7 @@ object Environment {
 
   val csvKey = "environment"
 
+
   /**
    * Csv format.
    */
@@ -306,8 +307,9 @@ object Environment {
   def compileStats() {
     Logger.info("Compile Stats")
     val gcal = new GregorianCalendar
-    Environment.findNamesAndGroups.foreach {
+      findNamesAndGroups.foreach {
       (e) =>
+
         val days = RequestData.findDayNotCompileStats(e._1, e._2)
         days.foreach {
           minDate =>
@@ -318,7 +320,7 @@ object Environment {
             val result = RequestData.loadAvgResponseTimesByAction(e._2, e._1, "200", minDate, maxDate, false)
             result.foreach {
               (r) =>
-                Logger.debug("update stats for env:" + e._1 + " ServiceAction:" + r._1 + " timeAverage:" + r._2._1 +" number of request " + r._2._2 + " date:" + minDate)
+                Logger.debug("Stats for env:" + e._1 + " ServiceAction:" + r._1 + " timeAverage:" + r._2._1 +" number of request " + r._2._2 + " date:" + minDate)
                 Stat.insert(new Stat(e._2, e._1, r._1, r._2._1, r._2._2.toLong, new DateTime(minDate)))
             }
         }

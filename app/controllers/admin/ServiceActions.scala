@@ -100,7 +100,7 @@ object ServiceActions extends Controller {
   }
 
   /**
-   * Check if all knowned soapAction from requestData are store in collection soapAction. If
+   * Check if all knowned serviceAction from requestData are store in collection serviceAction. If
    * not, insert it, with default threshold to 30000 ms.
    * @return 200 or 500, with json message
    */

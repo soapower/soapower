@@ -12,14 +12,15 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 object Stats extends Controller {
 
   // use by Json : from scala to json
-  private implicit object StatsDataWrites extends Writes[(String, String, Long, Long)] {
-    def writes(data: (String, String, Long, Long)): JsValue = {
+  private implicit object StatsDataWrites extends Writes[(String, String, String, Long, Long)] {
+    def writes(data: (String, String, String, Long, Long)): JsValue = {
       JsObject(
         List(
-          "env" -> JsString(data._1),
-          "serviceAction" -> JsString(data._2),
-          "avgTime" -> JsNumber(data._3),
-          "threshold" -> JsNumber(data._4)))
+          "groups" -> JsString(data._1),
+          "environmentName" -> JsString(data._2),
+          "serviceAction" -> JsString(data._3),
+          "avgTime" -> JsNumber(data._4),
+          "treshold" -> JsNumber(data._5)))
     }
   }
 
@@ -30,7 +31,6 @@ object Stats extends Controller {
 
     futureDataList.map {
       list =>
-        Logger.debug(list.toString)
         Ok(Json.toJson(Map("data" -> Json.toJson(list))))
     }
 

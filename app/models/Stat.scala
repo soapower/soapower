@@ -21,17 +21,18 @@ import scala.util.Success
 import scala.util.Failure
 import org.joda.time.DateTime
 import java.util.Date
+import scala.collection.mutable.ListBuffer
 
-case class Stat (_id: Option[BSONObjectID],
-                    groups: List[String],
-                    environmentName: String,
-                    serviceAction: String,
-                    avgInMillis: Long,
-                    nbOfRequestData: Long,
-                    atDate: DateTime) {
+case class Stat(_id: Option[BSONObjectID],
+                groups: List[String],
+                environmentName: String,
+                serviceAction: String,
+                avgInMillis: Long,
+                nbOfRequestData: Long,
+                atDate: DateTime) {
 
-  def this(groups: List[String], environmentName: String, serviceAction: String, avgInMillis: Long, nbOfRequestData: Long, atDate:DateTime) =
-  this(Some(BSONObjectID.generate), groups, environmentName, serviceAction, avgInMillis, nbOfRequestData, atDate)
+  def this(groups: List[String], environmentName: String, serviceAction: String, avgInMillis: Long, nbOfRequestData: Long, atDate: DateTime) =
+    this(Some(BSONObjectID.generate), groups, environmentName, serviceAction, avgInMillis, nbOfRequestData, atDate)
 
 }
 
@@ -39,7 +40,7 @@ object Stat {
 
   /*
    * Collection MongoDB
-   * The collection cannot be named "stats"
+   *
    */
   def collection: BSONCollection = ReactiveMongoPlugin.db.collection[BSONCollection]("statistics")
 
@@ -72,14 +73,14 @@ object Stat {
   }
 
   /**
-   * Insert stat if it doesn't already exists, update stat otherwise
+   * Insert stat
    * @param stat
    */
   def insert(stat: Stat) = {
     val exists = findByGroupsEnvirService(stat)
     exists.onComplete {
       case Success(option) =>
-        if(!option.isDefined) {
+        if (!option.isDefined) {
           collection.insert(stat)
         }
       case Failure(e) => throw new Exception("Error when inserting statistic")
@@ -98,21 +99,63 @@ object Stat {
       .one[Stat]
   }
 
-  def find(groups: String, environmentName: String, minDate: Date, maxDate: Date) : Future[List[Stat]] = {
+  /**
+   * Return a page of stats
+   * @param groups
+   * @param environmentName
+   * @param minDate
+   * @param maxDate
+   * @return a list of (groups, environmentName, serviceaction, avgTime, Treshold)
+   */
+  def find(groups: String, environmentName: String, minDate: Date, maxDate: Date): Future[List[(String, String, String, Long, Long)]] = {
     var query = BSONDocument()
-    if(groups != "all") {
+    if (groups != "all") {
       query = query ++ ("groups" -> BSONDocument("$in" -> groups.split(',')))
     }
-    if(environmentName != "all") {
+    if (environmentName != "all") {
       query = query ++ ("environmentName" -> environmentName)
     }
-    // TODO
-    // dates and stats avg
+    // We retrieve a map of all serviceactions and their treshold, organized by name and groups
+    val serviceActions = Await.result(ServiceAction.findAll, 1.second).map {
+      sa =>
+        ((sa.name, sa.groups), sa.thresholdms)
+    }.toMap
+
+    query = query ++ ("atDate" -> BSONDocument(
+      "$gte" -> BSONDateTime(minDate.getTime),
+      "$lt" -> BSONDateTime(maxDate.getTime))
+      )
     collection.
       find(query).
       cursor[Stat].
-      collect[List]()
+      collect[List]().map {
+      list =>
+        var res = ListBuffer.empty[(String, String, String, Long, Long)]
+        // We group by all the stats by groups
+        val map = list.groupBy(_.groups)
+        map.foreach {
+          statsByGroups =>
+            val statsByServiceActions = statsByGroups._2.groupBy(_.serviceAction)
+
+            statsByServiceActions.foreach {
+              statsBySingleService =>
+              // For each stats, grouped by serviceaction, we calculate the average time of response
+                var avg = 0.toLong
+                var nb = 0.toLong
+                statsBySingleService._2.foreach {
+                  stat =>
+                    avg += stat.avgInMillis * stat.nbOfRequestData
+                    nb += stat.nbOfRequestData
+                }
+                avg = avg / nb
+
+                val treshold = serviceActions.apply((statsBySingleService._1, statsByGroups._1))
+                res += ((statsByGroups._1.mkString(", "), environmentName, statsBySingleService._1, avg, treshold))
+            }
+            res
+        }
+        res.toList
+    }
   }
-
-
 }
+
