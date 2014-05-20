@@ -22,6 +22,7 @@ import scala.util.Failure
 import org.joda.time.DateTime
 import java.util.Date
 import scala.collection.mutable.ListBuffer
+import org.joda.time.format.ISODateTimeFormat
 
 case class Stat(_id: Option[BSONObjectID],
                 groups: List[String],
@@ -77,7 +78,7 @@ object Stat {
    * @param stat
    */
   def insert(stat: Stat) = {
-    val exists = findByGroupsEnvirService(stat)
+    val exists = findByGroupsEnvirServiceDate(stat)
     exists.onComplete {
       case Success(option) =>
         if (!option.isDefined) {
@@ -92,8 +93,8 @@ object Stat {
    * @param stat
    * @return
    */
-  def findByGroupsEnvirService(stat: Stat): Future[Option[Stat]] = {
-    val find = BSONDocument("groups" -> stat.groups, "environmentName" -> stat.environmentName, "serviceAction" -> stat.serviceAction)
+  def findByGroupsEnvirServiceDate(stat: Stat): Future[Option[Stat]] = {
+    val find = BSONDocument("groups" -> stat.groups, "environmentName" -> stat.environmentName, "serviceAction" -> stat.serviceAction, "atDate" -> BSONDocument("$eq" -> BSONDateTime(stat.atDate.toDate.getTime)))
     collection
       .find(find)
       .one[Stat]
