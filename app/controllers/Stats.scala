@@ -8,25 +8,24 @@ import java.util.Date
 import java.net.URLDecoder
 import play.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import models.Stat.PageStat
 
 object Stats extends Controller {
 
   // use by Json : from scala to json
-  private implicit object StatsDataWrites extends Writes[(String, String, String, Long, Long)] {
-    def writes(data: (String, String, String, Long, Long)): JsValue = {
+  private implicit object StatsDataWrites extends Writes[PageStat] {
+    def writes(data: PageStat): JsValue = {
       JsObject(
         List(
-          "groups" -> JsString(data._1),
-          "environmentName" -> JsString(data._2),
-          "serviceAction" -> JsString(data._3),
-          "avgTime" -> JsNumber(data._4),
-          "treshold" -> JsNumber(data._5)))
+          "groups" -> JsString(data.groups.mkString(", ")),
+          "environmentName" -> JsString(data.environmentName),
+          "serviceAction" -> JsString(data.serviceAction),
+          "avgTime" -> JsNumber(data.avgInMillis),
+          "treshold" -> JsNumber(data.treshold)))
     }
   }
 
   def listDataTable(groupNames: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String) = Action.async {
-    Logger.debug(getDate(minDateAsStr).getTime.toString)
-    Logger.debug(getDate(maxDateAsStr, v23h59min59s, true).getTime.toString)
     val futureDataList = Stat.find(groupNames, environmentName, getDate(minDateAsStr).getTime, getDate(maxDateAsStr, v23h59min59s, true).getTime)
 
     futureDataList.map {

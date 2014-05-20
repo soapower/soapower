@@ -23,6 +23,7 @@ import org.joda.time.DateTime
 import java.util.Date
 import scala.collection.mutable.ListBuffer
 import org.joda.time.format.ISODateTimeFormat
+import reactivemongo.core.commands.RawCommand
 
 case class Stat(_id: Option[BSONObjectID],
                 groups: List[String],
@@ -100,6 +101,8 @@ object Stat {
       .one[Stat]
   }
 
+  case class PageStat(groups: List[String], environmentName: String, serviceAction: String, avgInMillis: Long, treshold: Long)
+
   /**
    * Return a page of stats
    * @param groups
@@ -108,54 +111,122 @@ object Stat {
    * @param maxDate
    * @return a list of (groups, environmentName, serviceaction, avgTime, Treshold)
    */
-  def find(groups: String, environmentName: String, minDate: Date, maxDate: Date): Future[List[(String, String, String, Long, Long)]] = {
-    var query = BSONDocument()
-    if (groups != "all") {
-      query = query ++ ("groups" -> BSONDocument("$in" -> groups.split(',')))
-    }
-    if (environmentName != "all") {
-      query = query ++ ("environmentName" -> environmentName)
-    }
-    // We retrieve a map of all serviceactions and their treshold, organized by name and groups
+  def find(groups: String, environmentName: String, minDate: Date, maxDate: Date): Future[List[PageStat]] = {
+
+    // First, we retrieve a map of all serviceactions and their treshold, organized by name and groups
     val serviceActions = Await.result(ServiceAction.findAll, 1.second).map {
       sa =>
         ((sa.name, sa.groups), sa.thresholdms)
     }.toMap
+    Logger.debug("TAILLE : "+serviceActions.size)
 
-    query = query ++ ("atDate" -> BSONDocument(
+    var matchQuery = BSONDocument("atDate" -> BSONDocument(
       "$gte" -> BSONDateTime(minDate.getTime),
       "$lt" -> BSONDateTime(maxDate.getTime))
+    )
+
+
+    if(groups != "all") {
+      matchQuery = matchQuery ++ ("groups" -> BSONDocument("$in" -> groups.split(',')))
+    }
+    if(environmentName != "all") {
+      matchQuery = matchQuery ++ ("environmentName" -> environmentName)
+    }
+
+    val command =
+      BSONDocument(
+        "aggregate" -> collection.name, // we aggregate on collection
+        "pipeline" -> BSONArray(
+          BSONDocument(
+            "$match" -> matchQuery
+          ),
+          BSONDocument(
+            "$project" -> BSONDocument(
+              "groups" -> "$groups",
+              "environmentName" -> "$environmentName",
+              "serviceAction" -> "$serviceAction",
+              "atDate" -> "$atDate",
+              "nbOfRequestData" -> "$nbOfRequestData",
+              "ponderateAvg" -> BSONDocument("$multiply" -> BSONArray("$nbOfRequestData", "$avgInMillis"))
+            )
+          ),
+          BSONDocument(
+            "$group" -> BSONDocument(
+              "_id" -> BSONDocument("groups" -> "$groups",
+                                    "serviceAction" -> "$serviceAction"
+              ),
+              "sumOfPonderate" -> BSONDocument(
+                "$sum" -> "$ponderateAvg"
+              ),
+              "totalRequest" -> BSONDocument(
+                "$sum" -> "$nbOfRequestData"
+              )
+            )
+          ),
+          BSONDocument(
+            "$project" -> BSONDocument(
+              "groups" -> "$groups",
+              "serviceAction" -> "$serviceAction",
+              "totalAvg" -> BSONDocument(
+                "$divide" -> BSONArray(
+                  "$sumOfPonderate",
+                  "$totalRequest"
+                )
+              )
+            )
+          )
+        )
       )
-    collection.
-      find(query).
-      cursor[Stat].
-      collect[List]().map {
+
+    // Perform the query
+    val query = ReactiveMongoPlugin.db.command(RawCommand(command))
+    query.map {
       list =>
-        var res = ListBuffer.empty[(String, String, String, Long, Long)]
-        // We group by all the stats by groups
-        val map = list.groupBy(_.groups)
-        map.foreach {
-          statsByGroups =>
-            val statsByServiceActions = statsByGroups._2.groupBy(_.serviceAction)
-
-            statsByServiceActions.foreach {
-              statsBySingleService =>
-              // For each stats, grouped by serviceaction, we calculate the average time of response
-                var avg = 0.toLong
-                var nb = 0.toLong
-                statsBySingleService._2.foreach {
-                  stat =>
-                    avg += stat.avgInMillis * stat.nbOfRequestData
-                    nb += stat.nbOfRequestData
+        // Decode the result
+        var listRes = ListBuffer.empty[PageStat]
+        list.elements.foreach {
+          document =>
+            if(document._1 == "result") {
+              // We retrieve the result element (contain all the results)
+              if(document._2.isInstanceOf[BSONArray]) {
+                // Each result is a BSONArray containing a list of BSONDocuments
+                document._2.asInstanceOf[BSONArray].values.foreach {
+                  result =>
+                    var sa = ""
+                    var groups = ListBuffer.empty[String]
+                    var avg = 0.toLong
+                    if(result.isInstanceOf[BSONDocument]) {
+                      // Each BSONDocument is a statistics composed of the id (groups and service action) and the avg time
+                      result.asInstanceOf[BSONDocument].elements.foreach {
+                        stat =>
+                          if(stat._1 == "_id") {
+                            stat._2.asInstanceOf[BSONDocument].elements.foreach {
+                              groupsOrService =>
+                                if(groupsOrService._1 == "groups") {
+                                  // For each element we retrieve its groups
+                                  groupsOrService._2.asInstanceOf[BSONArray].values.foreach{
+                                    group =>
+                                      groups += group.asInstanceOf[BSONString].value
+                                  }
+                                }
+                                if(groupsOrService._1 == "serviceAction") {
+                                  sa = groupsOrService._2.asInstanceOf[BSONString].value
+                                }
+                            }
+                          }
+                          else if (stat._1 == "totalAvg") {
+                            // We retrieve the average
+                            avg = stat._2.asInstanceOf[BSONDouble].value.toLong
+                          }
+                      }
+                    }
+                    val pageStat = new PageStat(groups.toList, environmentName, sa, avg, serviceActions.apply((sa, groups.toList)))
+                    listRes += pageStat
                 }
-                avg = avg / nb
-
-                val treshold = serviceActions.apply((statsBySingleService._1, statsByGroups._1))
-                res += ((statsByGroups._1.mkString(", "), environmentName, statsBySingleService._1, avg, treshold))
+              }
             }
-            res
         }
-        res.toList
+       listRes.toList
     }
   }
 
