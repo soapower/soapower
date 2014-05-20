@@ -118,7 +118,6 @@ object Stat {
       sa =>
         ((sa.name, sa.groups), sa.thresholdms)
     }.toMap
-    Logger.debug("TAILLE : "+serviceActions.size)
 
     var matchQuery = BSONDocument("atDate" -> BSONDocument(
       "$gte" -> BSONDateTime(minDate.getTime),
