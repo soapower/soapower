@@ -17,8 +17,7 @@ object Global extends GlobalSettings {
 
     // initialDelay: Duration : 10 minutes
     // frequency: Duration : 5 hours
-    //Akka.system.scheduler.schedule(30 minutes, 5 hours) {
-    Akka.system.scheduler.schedule(5.seconds, 5 hours) {
+    Akka.system.scheduler.schedule(30 minutes, 5 hours) {
       ServiceActions.regenerate()
       RequestData.compileStats()
       Environment.purgeContentData()
