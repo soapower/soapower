@@ -172,6 +172,7 @@ object Stat {
             "$project" -> BSONDocument(
               "groups" -> "$groups",
               "serviceAction" -> "$serviceAction",
+              "environment" -> "$environmentName",
               "totalAvg" -> BSONDocument(
                 "$divide" -> BSONArray(
                   "$sumOfPonderate",
@@ -199,6 +200,7 @@ object Stat {
                   result =>
                     var sa = ""
                     var groups = ListBuffer.empty[String]
+                    var realEnvironmentName = ""
                     var avg = 0.toLong
                     if(result.isInstanceOf[BSONDocument]) {
                       // Each BSONDocument is a statistics composed of the id (groups and service action) and the avg time
@@ -217,6 +219,9 @@ object Stat {
                                 if(groupsOrService._1 == "serviceAction") {
                                   sa = groupsOrService._2.asInstanceOf[BSONString].value
                                 }
+                                if(groupsOrService._1 == "environmentName") {
+                                  realEnvironmentName = groupsOrService._2.asInstanceOf[BSONString].value
+                                }
                             }
                           }
                           else if (stat._1 == "totalAvg") {
@@ -225,7 +230,7 @@ object Stat {
                           }
                       }
                     }
-                    val pageStat = new PageStat(groups.toList, environmentName, sa, avg, serviceActions.apply((sa, groups.toList)))
+                    val pageStat = new PageStat(groups.toList, realEnvironmentName, sa, avg, serviceActions.apply((sa, groups.toList)))
                     listRes += pageStat
                 }
               }

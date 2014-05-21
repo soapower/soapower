@@ -816,19 +816,49 @@ object RequestData {
    * the avg responseTime of the day for this requestData, and the number of requestData.
    * @return
    */
-  def findStatsPerDay(groups: String, environmentName: String, minDate: Date, maxDate: Date): Future[List[Stat]] = {
+  def findStatsPerDay(groups: String, environmentName: String, minDate: Date, maxDate: Date, realTime: Boolean = false): Future[List[Stat]] = {
+    var finalGroupById = BSONDocument()
+    if (realTime) {
+      finalGroupById = BSONDocument(
+        "_id" -> BSONDocument(
+          "groups" -> "$groups",
+          "environmentName" -> "$environmentName",
+          "serviceAction" -> "$serviceAction"
+        )
+      )
+    } else {
+      finalGroupById = BSONDocument(
+        "_id" -> BSONDocument(
+          "groups" -> "$groups",
+          "environmentName" -> "$environmentName",
+          "serviceAction" -> "$serviceAction",
+          "year" -> "$year",
+          "month" -> "$month",
+          "days" -> "$days"
+        )
+      )
+    }
+
+    var finalGroupBy = finalGroupById ++ (
+      "timeInMillis" -> BSONDocument(
+        "$push" -> "$timeInMillis"
+      ),
+        "nbRequest" -> BSONDocument(
+          "$sum" -> 1
+        )
+      )
 
     var matchQuery = BSONDocument("startTime" -> BSONDocument(
-        "$gte" -> BSONDateTime(minDate.getTime),
-        "$lt" -> BSONDateTime(maxDate.getTime)),
+      "$gte" -> BSONDateTime(minDate.getTime),
+      "$lt" -> BSONDateTime(maxDate.getTime)),
       "isMock" -> false,
       "status" -> 200
     )
 
-    if(groups != "all") {
+    if (groups != "all") {
       matchQuery = matchQuery ++ ("groupsName" -> BSONDocument("$in" -> groups.split(',')))
     }
-    if(environmentName != "all") {
+    if (environmentName != "all") {
       matchQuery = matchQuery ++ ("environmentName" -> environmentName)
     }
 
@@ -859,22 +889,7 @@ object RequestData {
             )
           ),
           BSONDocument(
-            "$group" -> BSONDocument(
-              "_id" -> BSONDocument(
-                "groups" -> "$groups",
-                "environmentName" -> "$environmentName",
-                "serviceAction" -> "$serviceAction",
-                "year" -> "$year",
-                "month" -> "$month",
-                "days" -> "$days"
-              ),
-              "timeInMillis" -> BSONDocument(
-                "$push" -> "$timeInMillis"
-              ),
-              "nbRequest" -> BSONDocument(
-                "$sum" -> 1
-              )
-            )
+            "$group" -> finalGroupBy
           )
         )
       )
@@ -913,10 +928,10 @@ object RequestData {
                             else if (test._1 == "serviceAction") {
                               sa = test._2.asInstanceOf[BSONString].value
                             }
-                            else if(test._1 == "year") {
+                            else if (test._1 == "year") {
                               year = test._2.asInstanceOf[BSONInteger].value
                             }
-                            else if(test._1 == "month") {
+                            else if (test._1 == "month") {
                               month = test._2.asInstanceOf[BSONInteger].value
                             }
                             else if (test._1 == "days") {
@@ -934,10 +949,10 @@ object RequestData {
                         nbRequest = e2._2.asInstanceOf[BSONInteger].value.toLong
                       }
                   }
-                  val date =  new GregorianCalendar(year, month-1, days).getTime
+                  val date = new GregorianCalendar(year, month - 1, days).getTime
                   val ninePercentiles = avgList.slice(0, avgList.size * 9 / 10)
                   val avg = {
-                    if(ninePercentiles.size > 0) ninePercentiles.sum / ninePercentiles.size
+                    if (ninePercentiles.size > 0) ninePercentiles.sum / ninePercentiles.size
                     else if (avgList.size == 1) avgList.head
                     else -1
                   }
@@ -969,7 +984,7 @@ object RequestData {
       list =>
         list.foreach {
           stat =>
-            if(today.getTime.getTime == stat.atDate.getMillis) {
+            if (today.getTime.getTime == stat.atDate.getMillis) {
               Logger.debug("Today stats, it will not be saved ")
             } else {
               Stat.insert(stat)

@@ -43,7 +43,7 @@ object Stats extends Controller {
   }
 
   def listWithLiveCompile(groupNames: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String) = {
-    val query = RequestData.findStatsPerDay(groupNames, environmentName, getDate(minDateAsStr).getTime, getDate(maxDateAsStr, v23h59min59s, true).getTime)
+    val query = RequestData.findStatsPerDay(groupNames, environmentName, getDate(minDateAsStr).getTime, getDate(maxDateAsStr, v23h59min59s, true).getTime, true)
     query.map {
       list =>
         Ok(Json.toJson(Map("data" -> Json.toJson(list))))
