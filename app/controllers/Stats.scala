@@ -9,6 +9,8 @@ import java.net.URLDecoder
 import play.Logger
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import models.Stat.PageStat
+import org.joda.time.DateTime
+import play.modules.reactivemongo.json.BSONFormats._
 
 object Stats extends Controller {
 
@@ -17,22 +19,35 @@ object Stats extends Controller {
     def writes(data: PageStat): JsValue = {
       JsObject(
         List(
-          "groups" -> JsString(data.groups.mkString(", ")),
+          "groups" -> JsString("[\""+data.groups.mkString("\", \"")+"\"]"),
           "environmentName" -> JsString(data.environmentName),
           "serviceAction" -> JsString(data.serviceAction),
-          "avgTime" -> JsNumber(data.avgInMillis),
+          "avgInMillis" -> JsNumber(data.avgInMillis),
           "treshold" -> JsNumber(data.treshold)))
     }
   }
 
-  def listDataTable(groupNames: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String) = Action.async {
-    val futureDataList = Stat.find(groupNames, environmentName, getDate(minDateAsStr).getTime, getDate(maxDateAsStr, v23h59min59s, true).getTime)
 
-    futureDataList.map {
+  def listDataTable(groupNames: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String, live:Boolean) = Action.async {
+    if(!live) {
+      val futureDataList = Stat.find(groupNames, environmentName, getDate(minDateAsStr).getTime, getDate(maxDateAsStr, v23h59min59s, true).getTime)
+
+      futureDataList.map {
+        list =>
+          Ok(Json.toJson(Map("data" -> Json.toJson(list))))
+      }
+    } else {
+      listWithLiveCompile(groupNames, environmentName, minDateAsStr, maxDateAsStr)
+    }
+
+  }
+
+  def listWithLiveCompile(groupNames: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String) = {
+    val query = RequestData.findStatsPerDay(groupNames, environmentName, getDate(minDateAsStr).getTime, getDate(maxDateAsStr, v23h59min59s, true).getTime)
+    query.map {
       list =>
         Ok(Json.toJson(Map("data" -> Json.toJson(list))))
     }
-
   }
 
   /**

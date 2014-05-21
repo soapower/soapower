@@ -753,9 +753,9 @@ object RequestData {
   def loadAvgResponseTimesByAction(groupNames: List[String], environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, (Long, Int))] = {
 
     val query = BSONDocument("environmentName" -> environmentName,
-                             "groupsName" -> groupNames,
-                             "status" -> 200,
-                             "startTime" -> BSONDocument("$lt" -> BSONDateTime(maxDate.getTime), "$gte" -> BSONDateTime(minDate.getTime)))
+      "groupsName" -> groupNames,
+      "status" -> 200,
+      "startTime" -> BSONDocument("$lt" -> BSONDateTime(maxDate.getTime), "$gte" -> BSONDateTime(minDate.getTime)))
 
     val list = collection.find(query).cursor[RequestData].collect[List]().map {
       list =>
@@ -788,7 +788,7 @@ object RequestData {
     TimeZone.setDefault(TimeZone.getTimeZone("GMT"))
     val today = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
 
-    val query = BSONDocument("environmentName" ->environmentName,
+    val query = BSONDocument("environmentName" -> environmentName,
       "groupsName" -> groups,
       "status" -> 200,
       "isMock" -> false,
@@ -809,6 +809,173 @@ object RequestData {
         uniqueStartTimePerDay.toList
     }
     Await.result(queryStartTimes, 1.second)
+  }
+
+  /**
+   * Retrieve a list of requestData grouped by serviceAction, environment, groups and day (year + day). The list will contain
+   * the avg responseTime of the day for this requestData, and the number of requestData.
+   * @return
+   */
+  def findStatsPerDay(groups: String, environmentName: String, minDate: Date, maxDate: Date): Future[List[Stat]] = {
+
+    var matchQuery = BSONDocument("startTime" -> BSONDocument(
+        "$gte" -> BSONDateTime(minDate.getTime),
+        "$lt" -> BSONDateTime(maxDate.getTime)),
+      "isMock" -> false,
+      "status" -> 200
+    )
+
+    if(groups != "all") {
+      matchQuery = matchQuery ++ ("groupsName" -> BSONDocument("$in" -> groups.split(',')))
+    }
+    if(environmentName != "all") {
+      matchQuery = matchQuery ++ ("environmentName" -> environmentName)
+    }
+
+    val command =
+      BSONDocument(
+        "aggregate" -> collection.name, // we aggregate on collection
+        "pipeline" -> BSONArray(
+          BSONDocument(
+            "$match" -> matchQuery
+          ),
+          BSONDocument(
+            "$project" -> BSONDocument(
+              "groups" -> "$groupsName",
+              "serviceAction" -> "$serviceAction",
+              "environmentName" -> "$environmentName",
+              "year" -> BSONDocument("$year" -> BSONArray("$startTime")),
+              "month" -> BSONDocument("$month" -> BSONArray("$startTime")),
+              "days" -> BSONDocument("$dayOfMonth" -> BSONArray("$startTime")),
+              "timeInMillis" -> "$timeInMillis"
+            )
+          ),
+          BSONDocument(
+            "$sort" -> BSONDocument(
+              "groups" -> 1,
+              "environmentName" -> 1,
+              "serviceAction" -> 1,
+              "timeInMillis" -> 1
+            )
+          ),
+          BSONDocument(
+            "$group" -> BSONDocument(
+              "_id" -> BSONDocument(
+                "groups" -> "$groups",
+                "environmentName" -> "$environmentName",
+                "serviceAction" -> "$serviceAction",
+                "year" -> "$year",
+                "month" -> "$month",
+                "days" -> "$days"
+              ),
+              "timeInMillis" -> BSONDocument(
+                "$push" -> "$timeInMillis"
+              ),
+              "nbRequest" -> BSONDocument(
+                "$sum" -> 1
+              )
+            )
+          )
+        )
+      )
+
+    val query = ReactiveMongoPlugin.db.command(RawCommand(command))
+    query.map {
+      list =>
+        val listRes = ListBuffer.empty[Stat]
+        list.elements.foreach {
+          results =>
+            if (results._1 == "result") {
+              results._2.asInstanceOf[BSONArray].values.foreach {
+                e =>
+                  var groups = ListBuffer.empty[String]
+                  var environment = ""
+                  var sa = ""
+                  var year = 0
+                  var month = 0
+                  var days = 0
+                  var avgList = ListBuffer.empty[Long]
+                  var nbRequest = 0.toLong
+                  e.asInstanceOf[BSONDocument].elements.foreach {
+                    e2 =>
+                      if (e2._1 == "_id") {
+                        e2._2.asInstanceOf[BSONDocument].elements.foreach {
+                          test =>
+                            if (test._1 == "groups") {
+                              test._2.asInstanceOf[BSONArray].values.foreach {
+                                group =>
+                                  groups += group.asInstanceOf[BSONString].value
+                              }
+                            }
+                            else if (test._1 == "environmentName") {
+                              environment = test._2.asInstanceOf[BSONString].value
+                            }
+                            else if (test._1 == "serviceAction") {
+                              sa = test._2.asInstanceOf[BSONString].value
+                            }
+                            else if(test._1 == "year") {
+                              year = test._2.asInstanceOf[BSONInteger].value
+                            }
+                            else if(test._1 == "month") {
+                              month = test._2.asInstanceOf[BSONInteger].value
+                            }
+                            else if (test._1 == "days") {
+                              days = test._2.asInstanceOf[BSONInteger].value
+                            }
+                        }
+                      }
+                      else if (e2._1 == "timeInMillis") {
+                        e2._2.asInstanceOf[BSONArray].values.foreach {
+                          avg =>
+                            avgList += avg.asInstanceOf[BSONLong].value
+                        }
+                      }
+                      else if (e2._1 == "nbRequest") {
+                        nbRequest = e2._2.asInstanceOf[BSONInteger].value.toLong
+                      }
+                  }
+                  val date =  new GregorianCalendar(year, month-1, days).getTime
+                  val ninePercentiles = avgList.slice(0, avgList.size * 9 / 10)
+                  val avg = {
+                    if(ninePercentiles.size > 0) ninePercentiles.sum / ninePercentiles.size
+                    else if (avgList.size == 1) avgList.head
+                    else -1
+                  }
+                  val stat = new Stat(groups.toList, environment, sa, avg, nbRequest, (new DateTime(date)))
+                  listRes += stat
+              }
+            }
+        }
+        listRes.toList
+    }
+  }
+
+  /**
+   * Compile all requestData
+   */
+  def compileStats() {
+    // all requestDatas between the minimum requestData' startTime in DB and today will be compiled
+    TimeZone.setDefault(TimeZone.getTimeZone("GMT"))
+    val minDate = UtilDate.getDate("2014-05-05T00:00").getTime
+    val maxDate = UtilDate.getDate("today", UtilDate.v23h59min59s, true).getTime
+
+    // We retrieve the list of all statistics, using mongodb aggregation framework on requestData collection
+    val query = findStatsPerDay("all", "all", minDate, maxDate)
+    // create a calendar based on today
+    val gcal = new GregorianCalendar
+    val today = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
+    Logger.debug(today.getTime.toString)
+    query.map {
+      list =>
+        list.foreach {
+          stat =>
+            if(today.getTime.getTime == stat.atDate.getMillis) {
+              Logger.debug("Today stats, it will not be saved ")
+            } else {
+              Stat.insert(stat)
+            }
+        }
+    }
   }
 
 

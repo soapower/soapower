@@ -301,53 +301,6 @@ object Environment {
     Await.result(query, 1.second)
   }
 
-  /**
-   * Compile stats for each env / day
-   */
-  def compileStats() {
-    Logger.info("Compile Stats")
-    val gcal = new GregorianCalendar
-      findNamesAndGroups.foreach {
-      (e) =>
-
-        val days = RequestData.findDayNotCompileStats(e._1, e._2)
-        days.foreach {
-          minDate =>
-            Logger.debug("Compile Stats minDate:" + minDate + " env: " + e._1)
-            gcal.setTimeInMillis(minDate.getTime + UtilDate.v1d)
-            val maxDate = gcal.getTime
-
-            val result = RequestData.loadAvgResponseTimesByAction(e._2, e._1, "200", minDate, maxDate, false)
-            result.foreach {
-              (r) =>
-                Logger.debug("Stats for env:" + e._1 + " ServiceAction:" + r._1 + " timeAverage:" + r._2._1 +" number of request " + r._2._2 + " date:" + minDate)
-                Stat.insert(new Stat(e._2, e._1, r._1, r._2._1, r._2._2.toLong, new DateTime(minDate)))
-            }
-        }
-    }
-
-    /*
-    Environment.options.foreach {
-      (e) =>
-        Logger.debug("Compile Stats env:" + e._2)
-        val days = RequestData.findDayNotCompileStats(e._1)
-
-        days.foreach {
-          minDate =>
-            Logger.debug("Compile Stats minDate:" + minDate + " env:" + e._2)
-            gcal.setTimeInMillis(minDate.getTime + UtilDate.v1d)
-            val maxDate = gcal.getTime
-
-            val result = RequestData.loadAvgResponseTimesByAction("all", e._1, "200", minDate, maxDate, false)
-            result.foreach {
-              (r) =>
-                Logger.debug("call insertStats env:" + e._2 + " ServiceAction:" + r._1 + " timeAverage:" + r._2 + " date:" + minDate)
-                RequestData.insertStats(e._1.toLong, r._1, minDate, r._2)
-            }
-        }
-    }*/
-  }
-
   import ModePurge._
 
   def purgeContentData() {

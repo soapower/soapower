@@ -53,6 +53,11 @@
                 </div>
                 <input class="input-small" type="hidden" id="to" ng-model="maxdate" ng-click="showmaxdate = !showmaxdate"/>
             </div>
+            <div ng-show="showlive" class="form-group">
+                <label>
+                    <input type="checkbox" ng-model="live" ng-change="changeResponse()">Live stats
+                </label>
+            </div>
             <div ng-show="showfilterbutton" class="form-group">
                 <button class="btn btn-primary" ng-click="changeCriteria()">Filter</button>
             </div>

@@ -10,11 +10,13 @@ function StatsCtrl($scope, $rootScope, $http, $location, $routeParams, $filter, 
     var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
     var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
     var code = $routeParams.code ? $routeParams.code : 'all';
+    var live = $routeParams.live ? $routeParams.live : 'false'
     var url = $scope.ctrlPath +
         '/' + groups +
         '/' + environment +
         '/' + mindate +
         '/' + maxdate +
+        '/' + live +
         '/listDatatable?' +
         'sSearch=' +
         '&iDisplayStart=' + 0 +

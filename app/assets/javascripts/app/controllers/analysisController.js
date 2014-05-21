@@ -24,10 +24,13 @@ function AnalysisCtrl($scope, $rootScope, $routeParams, $http, UIService) {
     }).success(function (largeLoad) {
         testdata = largeLoad.map(function (series) {
             series.values = series.values.map(function (d) {
+                console.log("test");
+                console.log(d[0]);
                 return {x: d[0], y: d[1] }
             });
             return series;
         });
+        console.log(testdata);
 
         var chart;
 

@@ -83,14 +83,18 @@ object Stat {
     exists.onComplete {
       case Success(option) =>
         if (!option.isDefined) {
+          Logger.debug("New statistics for env : "+stat.environmentName+", in groups : "+stat.groups.mkString(", ")+" and for serviceAction : "+stat.serviceAction+" at "+stat.atDate.toDate)
           collection.insert(stat)
+        }
+        else {
+          Logger.debug("This statistic already exists")
         }
       case Failure(e) => throw new Exception("Error when inserting statistic")
     }
   }
 
   /**
-   * Find a stat using groups, environmnentName and serviceaction
+   * Find a stat using groups, environmentName and serviceaction
    * @param stat
    * @return
    */
@@ -119,11 +123,12 @@ object Stat {
         ((sa.name, sa.groups), sa.thresholdms)
     }.toMap
 
+    // We remove 1000 millisecond to minDate to avoid issue with last two milliseconds being random
+    // when mindate is set to yesterday
     var matchQuery = BSONDocument("atDate" -> BSONDocument(
-      "$gte" -> BSONDateTime(minDate.getTime),
-      "$lt" -> BSONDateTime(maxDate.getTime))
+      "$gt" -> BSONDateTime(minDate.getTime - 1000),
+      "$lte" -> BSONDateTime(maxDate.getTime))
     )
-
 
     if(groups != "all") {
       matchQuery = matchQuery ++ ("groups" -> BSONDocument("$in" -> groups.split(',')))
@@ -152,6 +157,7 @@ object Stat {
           BSONDocument(
             "$group" -> BSONDocument(
               "_id" -> BSONDocument("groups" -> "$groups",
+                                    "environmentName" -> "$environmentName",
                                     "serviceAction" -> "$serviceAction"
               ),
               "sumOfPonderate" -> BSONDocument(
