@@ -87,18 +87,18 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     requestData.timeInMillis = mock.timeoutms
     requestData.status = mock.httpStatus
 
-    requestData.requestHeaders = headers
-    requestData.response = checkNullOrEmpty(mock.response)
-    requestData.responseHeaders = UtilConvert.headersFromString(mock.httpHeaders)
+    requestData.requestHeaders = Some(headers)
+    requestData.response = Some(checkNullOrEmpty(mock.response))
+    requestData.responseHeaders = Some(UtilConvert.headersFromString(mock.httpHeaders))
     if (requestData.contentType == "None") {
-      val mockResponseType = requestData.responseHeaders.get("Content-Type")
+      val mockResponseType = requestData.responseHeaders.get.get("Content-Type")
       mockResponseType match {
         case Some(content) =>
-          requestData.contentType = requestData.responseHeaders.get("Content-Type").get
+          requestData.contentType = requestData.responseHeaders.get.get("Content-Type").get
         case _ =>
           requestData.contentType = "text/html"
       }
-      requestData.contentType = requestData.responseHeaders.get("Content-Type").get
+      requestData.contentType = requestData.responseHeaders.get.get("Content-Type").get
     }
     saveData(content)
     Logger.debug("End workWithMock")
@@ -201,7 +201,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       requestData.timeInMillis = response.responseTimeInMillis
       requestData.status = response.status
       Client.processQueue(requestData)
-      requestData.requestHeaders = headers
+      requestData.requestHeaders = Some(headers)
 
       if (requestData.contentType == "None") {
         // If the request content type is "None", the http method of the request was GET or DELETE,
@@ -213,10 +213,10 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
         }
       }
 
-      requestData.response = checkNullOrEmpty(response.body)
+      requestData.response = Some(checkNullOrEmpty(response.body))
       requestData.responseBytes = response.bodyBytes
 
-      requestData.responseHeaders = response.headers
+      requestData.responseHeaders = Some(response.headers)
 
       if (Logger.isDebugEnabled) {
         Logger.debug("Response in " + response.responseTimeInMillis + " ms")
@@ -248,7 +248,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       // asynchronously writes data to the DB
       val writeStartTime = System.currentTimeMillis()
       scala.concurrent.Future {
-        requestData.request = checkNullOrEmpty(content)
+        requestData.request = Some(checkNullOrEmpty(content))
         RequestData.insert(requestData)
         Robot.talk(requestData)
       }.map {
@@ -278,7 +278,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       response.body = faultTextResponse("Server", exception.getMessage, stackTraceWriter.toString)
     }
 
-    requestData.response = response.body
+    requestData.response = Some(response.body)
     requestData.status = Status.INTERNAL_SERVER_ERROR
   }
 

@@ -39,14 +39,14 @@ case class RequestData(_id: Option[BSONObjectID],
                        environmentName: String,
                        groupsName: List[String],
                        serviceId: BSONObjectID,
-                       var request: String,
-                       var requestHeaders: Map[String, String],
+                       var request: Option[String],
+                       var requestHeaders: Option[Map[String, String]],
                        var contentType: String,
                        var requestCall: Option[String],
                        startTime: DateTime,
-                       var response: String,
+                       var response: Option[String],
                        var responseOriginal: Option[String],
-                       var responseHeaders: Map[String, String],
+                       var responseHeaders: Option[Map[String, String]],
                        var timeInMillis: Long,
                        var status: Int,
                        var purged: Boolean,
@@ -130,8 +130,8 @@ case class RequestData(_id: Option[BSONObjectID],
    * @param search search in the string
    */
   private def checkSearch(searchRequest: Boolean, searchResponse: Boolean, search: String): Boolean = {
-    if (searchRequest && this.request.indexOf(search) > -1) return true
-    if (searchResponse && this.response.indexOf(search) > -1) return true
+    if (searchRequest && this.request.get.indexOf(search) > -1) return true
+    if (searchResponse && this.response.get.indexOf(search) > -1) return true
     // if the two checkbox are unchecked, the search field is ignore
     if (!searchRequest && !searchResponse) return true
     return false
@@ -173,14 +173,14 @@ object RequestData {
         doc.getAs[String]("environmentName").get,
         doc.getAs[List[String]]("groupsName").toList.flatten,
         doc.getAs[BSONObjectID]("serviceId").get,
-        doc.getAs[String]("request").get,
-        doc.getAs[Map[String, String]]("requestHeaders").get,
+        doc.getAs[String]("request"),
+        doc.getAs[Map[String, String]]("requestHeaders"),
         doc.getAs[String]("contentType").get,
         doc.getAs[String]("requestCall"),
         new DateTime(doc.getAs[BSONDateTime]("startTime").get.value),
-        doc.getAs[String]("response").get,
+        doc.getAs[String]("response"),
         doc.getAs[String]("responseOriginal"),
-        doc.getAs[Map[String, String]]("responseHeaders").get,
+        doc.getAs[Map[String, String]]("responseHeaders"),
         doc.getAs[Long]("timeInMillis").get,
         doc.getAs[Int]("status").get,
         doc.getAs[Boolean]("purged").get,
@@ -200,14 +200,14 @@ object RequestData {
         "environmentName" -> BSONString(requestData.environmentName),
         "groupsName" -> requestData.groupsName,
         "serviceId" -> requestData.serviceId,
-        "request" -> BSONString(requestData.request),
-        "requestHeaders" -> requestData.requestHeaders,
+        "request" -> Option(requestData.request),
+        "requestHeaders" -> Option(requestData.requestHeaders),
         "contentType" -> BSONString(requestData.contentType),
         "requestCall" -> Option(requestData.requestCall),
         "startTime" -> BSONDateTime(requestData.startTime.getMillis),
-        "response" -> BSONString(requestData.response),
+        "response" -> Option(requestData.response),
         "responseOriginal" -> Option(requestData.responseOriginal),
-        "responseHeaders" -> requestData.responseHeaders,
+        "responseHeaders" -> Option(requestData.responseHeaders),
         "timeInMillis" -> BSONLong(requestData.timeInMillis),
         "status" -> BSONInteger(requestData.status),
         "purged" -> BSONBoolean(requestData.purged),
@@ -403,15 +403,15 @@ object RequestData {
     requestData.request = contentRequest
     requestData.response = contentResponse
 */
-    def transferEncodingResponse = requestData.responseHeaders.filter {
+    def transferEncodingResponse = requestData.responseHeaders.get.filter {
       _._1 == HeaderNames.CONTENT_ENCODING
     }
 
     transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
       case Some("gzip") =>
         Logger.debug("Response in gzip Format")
-        requestData.responseOriginal = Some(requestData.response)
-        requestData.response = uncompressString(requestData.responseBytes)
+        requestData.responseOriginal = Some(requestData.response.get)
+        requestData.response = Some(uncompressString(requestData.responseBytes))
       case _ =>
         Logger.debug("Response in plain Format")
     }
@@ -626,7 +626,6 @@ object RequestData {
       else if (request) query = query ++ ("request" -> BSONDocument("$regex" -> sSearch))
       else if (response) query = query ++ ("response" -> BSONDocument("$regex" -> sSearch))
     }
-
     collection.
       find(query).
       sort(BSONDocument("startTime" -> -1)).
