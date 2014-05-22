@@ -12,7 +12,7 @@ import java.net.URLDecoder
 import scala.concurrent.{Future, ExecutionContext}
 import ExecutionContext.Implicits.global
 import play.api.Logger
-import reactivemongo.bson.{BSONObjectID, BSONDocument}
+import reactivemongo.bson.{BSONString, BSONArray, BSONObjectID, BSONDocument}
 
 case class Search(environmentId: Long)
 
@@ -78,7 +78,13 @@ object Search extends Controller {
       tuple => tuple match {
         case Some(doc: BSONDocument) => {
           val contentType = tuple.get.getAs[String]("contentType").get
-          val content = tuple.get.getAs[String](keyContent).get
+          // doc.getAs[String]("response")
+          var content = ""
+          tuple.get.get(keyContent).get.asInstanceOf[BSONArray].values.foreach {
+            e =>
+              content = e.asInstanceOf[BSONString].value
+          }
+
 
           contentType match {
             case "application/xml" | "text/xml" => {
