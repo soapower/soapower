@@ -5,6 +5,7 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
     $scope.port = $location.port();
     $scope.totalServerItems = 0;
     $scope.waitForData = false;
+
     $scope.reloadTable = function () {
         var groups = $routeParams.groups ? $routeParams.groups : 'all';
         var environment = $routeParams.environment ? $routeParams.environment : 'all';
@@ -14,7 +15,6 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
         var code = $routeParams.code ? $routeParams.code : 'all';
         var search = $routeParams.search ? $routeParams.search : '';
         $scope.waitForData = true;
-
         var request = "true";
         var response = "true";
 
@@ -24,7 +24,6 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
         if ($routeParams.response === "false") {
             response = "false";
         }
-
         var url = '/search/' + groups +
             '/' + environment +
             '/' + encodeURIComponent(serviceaction) +
@@ -36,7 +35,7 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
             '&request=' + request +
             '&response=' + response +
             '&iDisplayStart=' + 1 +
-            '&iDisplayLength=' + 10000 +
+            '&iDisplayLength=' + 10 +
             '&call=' + new Date();
         $http({
             method: 'GET',
@@ -44,6 +43,7 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
             cache: false
         }).success(function (largeLoad) {
             $scope.data = largeLoad.data;
+            $scope.totalSize = largeLoad.totalDataSize
             $scope.waitForData = false;
             $scope.tableParams = new ngTableParams({
                 page: 1,            // show first page
@@ -54,13 +54,35 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
             }, {
                 total: largeLoad.data.length, // length of data
                 getData: function ($defer, params) {
-                    var datafilter = $filter('customAndSearch');
-                    var requestsData = datafilter(largeLoad.data, $scope.tableFilter);
+                    // At each changes on page or on number of displayed request
+                    // The datas are retrieved, and the number of data to get is (page number) * (number of requests per page)
+                        var numberRequestToLoad = params.page() * params.count()
+                        var url = '/search/' + groups +
+                            '/' + environment +
+                            '/' + encodeURIComponent(serviceaction) +
+                            '/' + mindate +
+                            '/' + maxdate +
+                            '/' + code +
+                            '/listDatatable?' +
+                            'sSearch=' + search +
+                            '&request=' + request +
+                            '&response=' + response +
+                            '&iDisplayStart=' + 1 +
+                            '&iDisplayLength=' + numberRequestToLoad +
+                            '&call=' + new Date();
+                        $http({
+                            method: 'GET',
+                            url: url,
+                            cache: false
+                        }).success(function(newLoad) {
+                            var datafilter = $filter('customAndSearch');
+                            var requestsData = datafilter(newLoad.data, $scope.tableFilter);
+                            var orderedData = params.sorting() ? $filter('orderBy')(requestsData, params.orderBy()) : requestsData;
+                            var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
+                            params.total(newLoad.totalDataSize)
+                            $defer.resolve(res);
+                        });
 
-                    var orderedData = params.sorting() ? $filter('orderBy')(requestsData, params.orderBy()) : requestsData;
-                    var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
-                    params.total(orderedData.length)
-                    $defer.resolve(res);
                 },
                 $scope: { $data: {} }
             });

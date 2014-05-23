@@ -32,6 +32,20 @@ import scala.util.{Success, Failure}
 import org.joda.time.DateTime
 import reactivemongo.api.indexes.{IndexType, Index}
 import scala.collection.mutable.ListBuffer
+import models.UtilDate._
+import reactivemongo.bson.BSONDateTime
+import reactivemongo.bson.BSONBoolean
+import scala.util.Failure
+import scala.Some
+import reactivemongo.core.commands.RawCommand
+import reactivemongo.bson.BSONLong
+import reactivemongo.bson.BSONInteger
+import scala.util.Success
+import reactivemongo.api.collections.default.BSONCollection
+import models.Criterias
+import reactivemongo.bson.BSONString
+import play.api.libs.json.JsObject
+import reactivemongo.api.QueryOpts
 
 case class RequestData(_id: Option[BSONObjectID],
                        sender: String,
@@ -593,6 +607,7 @@ object RequestData {
   def list(groups: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0,
            pageSize: Int = 10, sSearch: String, request: Boolean, response: Boolean): Future[List[RequestData]] = {
 
+
     var query = BSONDocument()
     if (environmentIn == "all") {
       // We retrieve the environments of the groups in parameter
@@ -621,16 +636,94 @@ object RequestData {
     }
 
     if (sSearch != "") {
-      // We use regex research instead of mongoDb $text
+      // We use regex research instead of MongoDb $text
       if (request && response) query = query ++ ("$or" -> BSONArray(BSONDocument("request" -> BSONDocument("$regex" -> sSearch)), BSONDocument("response" -> BSONDocument("$regex" -> sSearch))))
       else if (request) query = query ++ ("request" -> BSONDocument("$regex" -> sSearch))
       else if (response) query = query ++ ("response" -> BSONDocument("$regex" -> sSearch))
     }
+
+
     collection.
       find(query).
       sort(BSONDocument("startTime" -> -1)).
       cursor[RequestData].
-      collect[List]()
+      collect[List](pageSize)
+  }
+
+  def getTotalSize(groups: String, environment: String, serviceAction: String, minDate: Date, maxDate: Date,
+                   status: String, sSearch: String, request: Boolean, response: Boolean): Future[Long] = {
+
+    var matchQuery = BSONDocument ()
+    if (environment == "all") {
+      // We retrieve the environments of the groups in parameter
+      val environments = Environment.optionsInGroups (groups)
+      // We add the environments names to the query
+      matchQuery = matchQuery ++ ("environmentName" -> BSONDocument ("$in" -> environments.map {
+        e => e._2
+      }.toArray))
+    } else {
+      matchQuery = matchQuery ++ ("environmentName" -> environment)
+    }
+
+    if (serviceAction != "all") {
+      matchQuery = matchQuery ++ ("serviceAction" -> serviceAction)}
+
+    matchQuery = matchQuery ++ ("startTime" -> BSONDocument (
+    "$gte" -> BSONDateTime (minDate.getTime),
+    "$lt" -> BSONDateTime (maxDate.getTime) )
+    )
+
+    if (status != "all") {
+    if (status.startsWith ("NOT_") ) {
+    val notCode = status.split ("NOT_") (1)
+      matchQuery = matchQuery ++ ("status" -> BSONDocument ("$ne" -> notCode.toInt) )
+  }
+    else matchQuery = matchQuery ++ ("status" -> status.toInt)
+  }
+
+    if (sSearch != "") {
+      // We use regex research instead of MongoDb $text
+      if (request && response) matchQuery = matchQuery ++ ("$or" -> BSONArray (BSONDocument ("request" -> BSONDocument ("$regex" -> sSearch) ), BSONDocument ("response" -> BSONDocument ("$regex" -> sSearch) ) ) )
+      else if (request) matchQuery = matchQuery ++ ("request" -> BSONDocument ("$regex" -> sSearch) )
+      else if (response) matchQuery = matchQuery ++ ("response" -> BSONDocument ("$regex" -> sSearch) )
+    }
+
+    val command =
+      BSONDocument(
+        "aggregate" -> collection.name, // we aggregate on collection
+        "pipeline" -> BSONArray(
+          BSONDocument(
+            "$match" -> matchQuery
+          ),
+          BSONDocument(
+            "$group" -> BSONDocument(
+              "_id" -> "singleton",
+              "total" -> BSONDocument(
+                "$sum" -> 1
+              )
+            )
+          )
+        )
+      )
+    ReactiveMongoPlugin.db.command(RawCommand(command)).map {
+      list =>
+        var result = 0L
+        list.elements.foreach{
+          results =>
+            if(results._1 == "result") {
+              results._2.asInstanceOf[BSONArray].values.foreach {
+                singleResult =>
+                  singleResult.asInstanceOf[BSONDocument].elements.foreach{
+                    total =>
+                      if(total._1 == "total"){
+                        result = total._2.asInstanceOf[BSONInteger].value.toLong
+                      }
+                  }
+              }
+            }
+        }
+        result
+    }
   }
 
   /**
@@ -838,13 +931,13 @@ object RequestData {
       )
     }
 
-    var finalGroupBy = finalGroupById ++ (
+    var finalGroupBy = finalGroupById ++(
       "timeInMillis" -> BSONDocument(
         "$push" -> "$timeInMillis"
       ),
-        "nbRequest" -> BSONDocument(
-          "$sum" -> 1
-        )
+      "nbRequest" -> BSONDocument(
+        "$sum" -> 1
+      )
       )
 
     var matchQuery = BSONDocument("startTime" -> BSONDocument(
