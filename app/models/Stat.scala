@@ -240,30 +240,6 @@ object Stat {
     }
   }
 
-  def findResponseTimes(groups: String, environmentName: String, serviceAction: String, minDate: Date, maxDate: Date, status: String): Future[List[Stat]] = {
-    var query = BSONDocument()
-
-    if (groups != "all") {
-      query = query ++ ("groups" -> BSONDocument("$in" -> groups.split(',')))
-    }
-    if (environmentName != "all") {
-      query = query ++ ("environmentName" -> environmentName)
-    }
-
-    // We remove 1000 millisecond to minDate to avoid issue with last two milliseconds being random
-    // when mindate is set to yesterday
-    query = query ++ ("atDate" -> BSONDocument(
-      "$gte" -> BSONDateTime(minDate.getTime - 1000),
-      "$lt" -> BSONDateTime(maxDate.getTime))
-      )
-
-    if (serviceAction != "all") {
-      query = query ++ ("serviceAction" -> serviceAction)
-    }
-
-    collection.find(query).cursor[Stat].collect[List]()
-  }
-
   case class AnalysisEntity(groups: List[String], serviceAction: String, dateAndAvg: List[(Long, Long)])
 
   /**
