@@ -283,7 +283,9 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
                 $location.path(path)
             }
             else if (page == "analysis") {
-
+                path = path + "/" + environment + "/" + serviceaction + "/" + mindate + "/" + maxdate;
+                console.log("UIService.reloadPage : Go to " + path);
+                $location.path(path)
             }
         },
         /*

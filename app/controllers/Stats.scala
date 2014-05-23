@@ -32,6 +32,7 @@ object Stats extends Controller {
 
 
   def listDataTable(groupNames: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String, live:Boolean) = Action.async {
+
     if(!live) {
       val futureDataList = Stat.find(groupNames, environmentName, getDate(minDateAsStr).getTime, getDate(maxDateAsStr, v23h59min59s, true).getTime)
 

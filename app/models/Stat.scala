@@ -83,7 +83,7 @@ object Stat {
     exists.onComplete {
       case Success(option) =>
         if (!option.isDefined) {
-          Logger.debug("New statistics for env : "+stat.environmentName+", in groups : "+stat.groups.mkString(", ")+" and for serviceAction : "+stat.serviceAction+" at "+stat.atDate.toDate)
+          Logger.debug("New statistics for env : " + stat.environmentName + ", in groups : " + stat.groups.mkString(", ") + " and for serviceAction : " + stat.serviceAction + " at " + stat.atDate.toDate)
           collection.insert(stat)
         }
         else {
@@ -130,10 +130,10 @@ object Stat {
       "$lte" -> BSONDateTime(maxDate.getTime))
     )
 
-    if(groups != "all") {
+    if (groups != "all") {
       matchQuery = matchQuery ++ ("groups" -> BSONDocument("$in" -> groups.split(',')))
     }
-    if(environmentName != "all") {
+    if (environmentName != "all") {
       matchQuery = matchQuery ++ ("environmentName" -> environmentName)
     }
 
@@ -157,8 +157,8 @@ object Stat {
           BSONDocument(
             "$group" -> BSONDocument(
               "_id" -> BSONDocument("groups" -> "$groups",
-                                    "environmentName" -> "$environmentName",
-                                    "serviceAction" -> "$serviceAction"
+                "environmentName" -> "$environmentName",
+                "serviceAction" -> "$serviceAction"
               ),
               "sumOfPonderate" -> BSONDocument(
                 "$sum" -> "$ponderateAvg"
@@ -188,13 +188,13 @@ object Stat {
     val query = ReactiveMongoPlugin.db.command(RawCommand(command))
     query.map {
       list =>
-        // Decode the result
+      // Decode the result
         var listRes = ListBuffer.empty[PageStat]
         list.elements.foreach {
           document =>
-            if(document._1 == "result") {
+            if (document._1 == "result") {
               // We retrieve the result element (contain all the results)
-              if(document._2.isInstanceOf[BSONArray]) {
+              if (document._2.isInstanceOf[BSONArray]) {
                 // Each result is a BSONArray containing a list of BSONDocuments
                 document._2.asInstanceOf[BSONArray].values.foreach {
                   result =>
@@ -202,24 +202,24 @@ object Stat {
                     var groups = ListBuffer.empty[String]
                     var realEnvironmentName = ""
                     var avg = 0.toLong
-                    if(result.isInstanceOf[BSONDocument]) {
+                    if (result.isInstanceOf[BSONDocument]) {
                       // Each BSONDocument is a statistics composed of the id (groups and service action) and the avg time
                       result.asInstanceOf[BSONDocument].elements.foreach {
                         stat =>
-                          if(stat._1 == "_id") {
+                          if (stat._1 == "_id") {
                             stat._2.asInstanceOf[BSONDocument].elements.foreach {
                               groupsOrService =>
-                                if(groupsOrService._1 == "groups") {
+                                if (groupsOrService._1 == "groups") {
                                   // For each element we retrieve its groups
-                                  groupsOrService._2.asInstanceOf[BSONArray].values.foreach{
+                                  groupsOrService._2.asInstanceOf[BSONArray].values.foreach {
                                     group =>
                                       groups += group.asInstanceOf[BSONString].value
                                   }
                                 }
-                                if(groupsOrService._1 == "serviceAction") {
+                                if (groupsOrService._1 == "serviceAction") {
                                   sa = groupsOrService._2.asInstanceOf[BSONString].value
                                 }
-                                if(groupsOrService._1 == "environmentName") {
+                                if (groupsOrService._1 == "environmentName") {
                                   realEnvironmentName = groupsOrService._2.asInstanceOf[BSONString].value
                                 }
                             }
@@ -236,12 +236,13 @@ object Stat {
               }
             }
         }
-       listRes.toList
+        listRes.toList
     }
   }
 
   def findResponseTimes(groups: String, environmentName: String, serviceAction: String, minDate: Date, maxDate: Date, status: String): Future[List[Stat]] = {
     var query = BSONDocument()
+
     if (groups != "all") {
       query = query ++ ("groups" -> BSONDocument("$in" -> groups.split(',')))
     }
@@ -249,8 +250,10 @@ object Stat {
       query = query ++ ("environmentName" -> environmentName)
     }
 
+    // We remove 1000 millisecond to minDate to avoid issue with last two milliseconds being random
+    // when mindate is set to yesterday
     query = query ++ ("atDate" -> BSONDocument(
-      "$gte" -> BSONDateTime(minDate.getTime),
+      "$gte" -> BSONDateTime(minDate.getTime - 1000),
       "$lt" -> BSONDateTime(maxDate.getTime))
       )
 
@@ -259,6 +262,131 @@ object Stat {
     }
 
     collection.find(query).cursor[Stat].collect[List]()
+  }
+
+  case class AnalysisEntity(groups: List[String], serviceAction: String, dateAndAvg: List[(Long, Long)])
+
+  /**
+   * Response times using mongoDB aggregation framework
+   * @param groups
+   * @param environmentName
+   * @param serviceAction
+   * @param minDate
+   * @param maxDate
+   * @return
+   */
+  def findResponseTimes(groups: String, environmentName: String, serviceAction: String, minDate: Date, maxDate: Date): Future[List[AnalysisEntity]] = {
+    var matchQuery = BSONDocument()
+    var groupQuery = BSONDocument()
+
+    if (groups != "all") {
+      matchQuery = matchQuery ++ ("groups" -> BSONDocument("$in" -> groups.split(',')))
+    }
+    if (environmentName != "all") {
+      matchQuery = matchQuery ++ ("environmentName" -> environmentName)
+    }
+    if (serviceAction != "all") {
+      matchQuery = matchQuery ++ ("serviceAction" -> serviceAction)
+    }
+
+    groupQuery = groupQuery ++
+      ("groups" -> "$groups",
+        "serviceAction" -> "$serviceAction")
+
+    // We remove 1000 millisecond to minDate to avoid issue with last two milliseconds being random
+    // when mindate is set to yesterday
+    matchQuery = matchQuery ++ ("atDate" -> BSONDocument(
+      "$gte" -> BSONDateTime(minDate.getTime - 1000),
+      "$lt" -> BSONDateTime(maxDate.getTime))
+      )
+
+
+    val command =
+      BSONDocument(
+        "aggregate" -> collection.name, // we aggregate on collection
+        "pipeline" -> BSONArray(
+          BSONDocument(
+            "$match" -> matchQuery
+          ),
+          BSONDocument(
+            "$sort" -> BSONDocument(
+              "groups" -> 1,
+              "environmentName" -> 1,
+              "serviceAction" -> 1,
+              "atDate" -> 1
+            )
+          ),
+          BSONDocument(
+            "$group" -> BSONDocument(
+              "_id" -> groupQuery,
+              "dates" -> BSONDocument(
+                "$push" -> "$atDate"
+              ),
+              "avgs" -> BSONDocument(
+                "$push" -> "$avgInMillis"
+              )
+            )
+          )
+        )
+      )
+
+    ReactiveMongoPlugin.db.command(RawCommand(command)).map {
+      list =>
+        val resList = ListBuffer.empty[AnalysisEntity]
+        list.elements.foreach {
+          results =>
+            if(results._1 == "result") {
+              results._2.asInstanceOf[BSONArray].values.foreach {
+                listOfStats =>
+                  var groups = ListBuffer.empty[String]
+                  var serviceAction = ""
+                  var dateAndAvg = ListBuffer.empty[(Long, Long)]
+                  var dates = List.empty[Long]
+                  var avgs = List.empty[Long]
+
+                  listOfStats.asInstanceOf[BSONDocument].elements.foreach {
+                    stat =>
+                      if(stat._1 ==  "_id") {
+                        stat._2.asInstanceOf[BSONDocument].elements.foreach {
+                          id =>
+                            if(id._1 == "groups") {
+                              id._2.asInstanceOf[BSONArray].values.foreach {
+                                group =>
+                                  groups += group.asInstanceOf[BSONString].value
+                              }
+                            }
+                            if(id._1 == "serviceAction") {
+                              serviceAction = id._2.asInstanceOf[BSONString].value
+                            }
+                            if(id._1 == "serviceAction") {
+                              serviceAction = id._2.asInstanceOf[BSONString].value
+                            }
+                        }
+                      }
+
+                      else if (stat._1 == "dates") {
+                        dates = stat._2.asInstanceOf[BSONArray].values.toList.map {
+                          date =>
+                            date.asInstanceOf[BSONDateTime].value
+                        }
+                      }
+                      else if (stat._1 == "avgs") {
+                        avgs = stat._2.asInstanceOf[BSONArray].values.toList.map {
+                          avg =>
+                            avg.asInstanceOf[BSONLong].value
+                        }
+                      }
+                  }
+                  val size = avgs.size
+                  for (i <- 0 to (size-1)) {
+                    dateAndAvg += ((dates.apply(i), avgs.apply(i)))
+                  }
+                  resList += new AnalysisEntity(groups.toList, serviceAction, dateAndAvg.toList)
+              }
+            }
+        }
+        resList.toList
+    }
   }
 }
 

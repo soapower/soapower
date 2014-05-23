@@ -18,9 +18,9 @@ spApp.config(function ($routeProvider) {
             controller: SearchCtrl, templateUrl: 'partials/search/search.html'
         })
         .when('/analysis', {
-            redirectTo: '/analysis/all/all/yesterday/today'
+            redirectTo: '/analysis/all/all/all/yesterday/today'
         })
-        .when('/analysis/:groups/:environment/:mindate/:maxdate', {
+        .when('/analysis/:groups/:environment/:serviceaction/:mindate/:maxdate', {
             controller: AnalysisCtrl, templateUrl: 'partials/analysis/analysis.html'
         })
         .when('/stats', { redirectTo: '/stats/all/all/yesterday/today' })

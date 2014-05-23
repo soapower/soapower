@@ -15,8 +15,6 @@ function AnalysisCtrl($scope, $rootScope, $routeParams, $http, UIService) {
         '/' + code +
         '/true/load?call=' + new Date();
 
-    ///analysis/:environment/:serviceAction/:minDate/:maxDate/:status/:statsOnly/load
-
     $http({
         method: 'GET',
         url: url,
@@ -24,13 +22,11 @@ function AnalysisCtrl($scope, $rootScope, $routeParams, $http, UIService) {
     }).success(function (largeLoad) {
         testdata = largeLoad.map(function (series) {
             series.values = series.values.map(function (d) {
-                console.log("test");
-                console.log(d[0]);
                 return {x: d[0], y: d[1] }
             });
             return series;
         });
-        console.log(testdata);
+
 
         var chart;
 

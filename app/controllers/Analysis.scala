@@ -6,11 +6,13 @@ import play.api.libs.json._
 import models._
 import models.UtilDate._
 import java.util.Date
-
+import scala.concurrent.{ExecutionContext, Await}
+import ExecutionContext.Implicits.global
 import collection.mutable.Map
 import play.Logger
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import models.Stat.AnalysisEntity
 
 object Analysis extends Controller {
 
@@ -26,57 +28,38 @@ object Analysis extends Controller {
     )
   }
 
-  implicit object TupleWrites extends Writes[(Long, Long, Long)] {
-    def writes(data: (Long, Long, Long)): JsValue = JsArray(
-      Seq(JsNumber(data._1), JsNumber(data._2), JsNumber(data._3))
+  implicit object TupleWrites extends Writes[(Long, Long)] {
+    def writes(data: (Long, Long)): JsValue = JsArray(
+      Seq(JsNumber(data._1), JsNumber(data._2))
     )
   }
 
-  implicit object formatWrites extends Writes[Map[(List[String], String), Entity]] {
-    def writes(data: Map[(List[String], String), Entity]): JsValue = {
-
+  implicit object AnalysisEntityWrites extends Writes[List[AnalysisEntity]] {
+    def writes (data: List[AnalysisEntity]): JsValue = {
       var x = JsArray()
 
       data.foreach {
-        d =>
+        analysis =>
           x ++= Json.arr(
             Json.obj(
-              "key" -> JsString(d._1._1.mkString(", ") + " " + d._1._2),
-              "values" -> d._2.tuples
+              "key" -> JsString(analysis.serviceAction+" ["+ analysis.groups.mkString(", ")+"]"),
+              "values" -> analysis.dateAndAvg
             )
           )
-
       }
-      Logger.debug("x =>" + x)
       x
     }
   }
 
-  // class containing a Tuple : date, nb_request, avg_time
-  case class Entity(tuples : List[(Long, Long, Long)])
+  def load(groupName: String, environment: String, serviceAction: String, minDate: String, maxDate: String, status: String, statsOnly: String) = Action.async {
 
-  def load(groupName: String, environment: String, serviceAction: String, minDate: String, maxDate: String, status: String, statsOnly: String) = Action {
-
-    val responseTimesByData = Stat.findResponseTimes(groupName, environment, serviceAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s).getTime, status)
-
-    var a: Map[(List[String],String), Entity] = Map()
-    // GROUP BY GROUPS
-    val statsByGroups = Await.result(responseTimesByData, 1.second).groupBy(_.groups)
-    statsByGroups.foreach {
-      statsForGroups =>
-        statsForGroups._2.foreach {
-          stat =>
-            if(a.contains((stat.groups, stat.serviceAction))) {
-              val list = List((stat.atDate.getMillis, stat.nbOfRequestData, stat.avgInMillis)) ++ (a.get(stat.groups, stat.serviceAction).get).tuples
-              a.put((stat.groups, stat.serviceAction), new Entity(list) )
-            } else {
-              a.put((stat.groups, stat.serviceAction), new Entity(List((stat.atDate.getMillis, stat.nbOfRequestData, stat.avgInMillis))))
-            }
-        }
+    Stat.findResponseTimes(groupName, environment, serviceAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime).map {
+      list =>
+        Ok(Json.toJson(list))
     }
-    Logger.debug(a.toString);
-    Ok(Json.toJson(a)).as(JSON)
   }
 
+
 }
+
 
