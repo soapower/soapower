@@ -5,14 +5,14 @@ import play.api.libs.json._
 import models._
 import models.UtilDate._
 import play.api.libs.iteratee.Enumerator
-import play.api.http.{ContentTypes, HeaderNames}
+import play.api.http.{HeaderNames}
 import scala.xml.PrettyPrinter
 import org.xml.sax.SAXParseException
 import java.net.URLDecoder
 import scala.concurrent.{Await, Future, ExecutionContext}
 import ExecutionContext.Implicits.global
 import play.api.Logger
-import reactivemongo.bson.{BSONString, BSONArray, BSONObjectID, BSONDocument}
+import reactivemongo.bson.{BSONString, BSONArray, BSONDocument}
 import scala.concurrent.duration._
 
 case class Search(environmentId: Long)
@@ -21,16 +21,14 @@ object Search extends Controller {
 
   private val UTF8 = "UTF-8"
 
-  def listDatatable(groups: String, environment: String, serviceAction: String, minDate: String, maxDate: String, status: String, sSearch: String, iDisplayStart: Int, iDisplayLength: Int, request: Boolean, response: Boolean) = Action.async {
-
-    val futureDataList = RequestData.list(groups, environment, URLDecoder.decode(serviceAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (iDisplayStart - 1), iDisplayLength, sSearch, request, response)
-    // We need the total number of requests
+  def listDatatable(groups: String, environment: String, serviceAction: String, minDate: String, maxDate: String, status: String, sSearch: String, page: Int, pageSize: Int, sortKey: String, sortVal: String, request: Boolean, response: Boolean) = Action.async {
+    val futureDataList = RequestData.list(groups, environment, URLDecoder.decode(serviceAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (page - 1), pageSize, sortKey, sortVal, sSearch, request, response)
     futureDataList.map {
       list =>
         val queryTotalSize = RequestData.getTotalSize(groups, environment, URLDecoder.decode(serviceAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, sSearch, request, response)
         val totalSize = Await.result(queryTotalSize, 1.second)
         Ok(Json.toJson(Map("data" -> Json.toJson(list),
-                           "totalDataSize" -> Json.toJson(totalSize.asInstanceOf[Long]))))
+          "totalDataSize" -> Json.toJson(totalSize.asInstanceOf[Long]))))
     }
   }
 

@@ -42,10 +42,10 @@ import reactivemongo.bson.BSONLong
 import reactivemongo.bson.BSONInteger
 import scala.util.Success
 import reactivemongo.api.collections.default.BSONCollection
-import models.Criterias
 import reactivemongo.bson.BSONString
 import play.api.libs.json.JsObject
 import reactivemongo.api.QueryOpts
+import java.net.URLDecoder
 
 case class RequestData(_id: Option[BSONObjectID],
                        sender: String,
@@ -543,7 +543,7 @@ object RequestData {
         }
       }
     }
-    return updatedElement
+    updatedElement
   }
 
   /**
@@ -589,68 +589,86 @@ object RequestData {
     Cache.remove(keyCacheServiceAction)
     Cache.remove(keyCacheStatusOptions)
 
-    return removedElement
+    removedElement
   }
 
   /**
    * Return a page of RequestData
    * @param groups groups name
-   * @param environmentIn name of environnement, "all" default
+   * @param environment name of environnement, "all" default
    * @param serviceAction serviceAction, "all" default
    * @param minDate Min Date
    * @param maxDate Max Date
    * @param status Status
-   * @param offset offset in search
+   * @param page offset in search
    * @param pageSize size of line in one page
    * @return
    */
-  def list(groups: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0,
-           pageSize: Int = 10, sSearch: String, request: Boolean, response: Boolean): Future[List[RequestData]] = {
+  def list(groups: String, environment: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, page: Int = 0,
+           pageSize: Int = 10, sortKey: String, sortVal: String, sSearch: String, request: Boolean, response: Boolean): Future[List[RequestData]] = {
 
+    var order = 1
+    if (sortVal == "desc") order = -1
 
-    var query = BSONDocument()
-    if (environmentIn == "all") {
-      // We retrieve the environments of the groups in parameter
-      val environments = Environment.optionsInGroups(groups)
-      // We add the environments names to the query
-      query = query ++ ("environmentName" -> BSONDocument("$in" -> environments.map {
-        e => e._2
-      }.toArray))
-    } else {
-      query = query ++ ("environmentName" -> environmentIn)
-    }
-
-    if (serviceAction != "all") query = query ++ ("serviceAction" -> serviceAction)
-
-    query = query ++ ("startTime" -> BSONDocument(
-      "$gte" -> BSONDateTime(minDate.getTime),
-      "$lt" -> BSONDateTime(maxDate.getTime))
+    val command =
+      BSONDocument(
+        "aggregate" -> collection.name, // we aggregate on collection
+        "pipeline" -> BSONArray(
+          BSONDocument(
+            "$match" -> getMatchQuery(groups, environment, serviceAction, minDate, maxDate, status, sSearch, request, response)
+          ), BSONDocument(
+            "$project" -> BSONDocument(
+              "sender" -> 1,
+              "serviceAction" -> 1,
+              "environmentName" -> 1,
+              "groupsName" -> 1,
+              "serviceId" -> 1,
+              "contentType" -> 1,
+              "startTime" -> 1,
+              "timeInMillis" -> 1,
+              "status" -> 1,
+              "purged" -> 1,
+              "isMock" -> 1
+            )
+          ), BSONDocument(
+            "$sort" -> BSONDocument(
+              sortKey -> order
+            )
+          ), BSONDocument(
+            "$skip" -> page * pageSize
+          ), BSONDocument(
+            "$limit" -> pageSize
+          )
+        )
       )
 
-    if (status != "all") {
-      if (status.startsWith("NOT_")) {
-        val notCode = status.split("NOT_")(1)
-        query = query ++ ("status" -> BSONDocument("$ne" -> notCode.toInt))
+    var ret: List[RequestData] = null
+
+    ReactiveMongoPlugin.db.command(RawCommand(command)).map {
+      list => {
+        list.elements.foreach {
+          results => if (results._1 == "result") {
+            ret = results._2.asInstanceOf[BSONArray].as[List[RequestData]]
+          }
+
+        }
+        ret
       }
-      else query = query ++ ("status" -> status.toInt)
     }
 
-    if (sSearch != "") {
-      // We use regex research instead of MongoDb $text
-      if (request && response) query = query ++ ("$or" -> BSONArray(BSONDocument("request" -> BSONDocument("$regex" -> sSearch)), BSONDocument("response" -> BSONDocument("$regex" -> sSearch))))
-      else if (request) query = query ++ ("request" -> BSONDocument("$regex" -> sSearch))
-      else if (response) query = query ++ ("response" -> BSONDocument("$regex" -> sSearch))
-    }
-
-    collection.
-      find(query).
-      sort(BSONDocument("startTime" -> -1)).
-      cursor[RequestData].
-      collect[List](pageSize)
   }
 
-  def getTotalSize(groups: String, environment: String, serviceAction: String, minDate: Date, maxDate: Date,
-                   status: String, sSearch: String, request: Boolean, response: Boolean): Future[Long] = {
+  /**
+   * Return a page of RequestData
+   * @param groups groups name
+   * @param environment name of environnement, "all" default
+   * @param serviceAction serviceAction, "all" default
+   * @param minDate Min Date
+   * @param maxDate Max Date
+   * @param status Status
+   * @return BSONDocument of query
+   */
+  def getMatchQuery(groups: String, environment: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, sSearch: String, request: Boolean, response: Boolean): BSONDocument = {
 
     var matchQuery = BSONDocument()
     if (environment == "all") {
@@ -688,12 +706,18 @@ object RequestData {
       else if (response) matchQuery = matchQuery ++ ("response" -> BSONDocument("$regex" -> sSearch))
     }
 
+    matchQuery
+  }
+
+  def getTotalSize(groups: String, environment: String, serviceAction: String, minDate: Date, maxDate: Date,
+                   status: String, sSearch: String, request: Boolean, response: Boolean): Future[Long] = {
+
     val command =
       BSONDocument(
         "aggregate" -> collection.name, // we aggregate on collection
         "pipeline" -> BSONArray(
           BSONDocument(
-            "$match" -> matchQuery
+            "$match" -> getMatchQuery(groups, environment, serviceAction, minDate, maxDate, status, sSearch, request, response)
           ),
           BSONDocument(
             "$group" -> BSONDocument(
