@@ -67,6 +67,11 @@ object Admin extends Controller {
       case (k, v) => content += k + ";"
     }
     content = content.dropRight(1) + "\n"
+    content += "#for key " + Stat.csvKey + "\n"
+    Stat.csvTitle.toList.sortBy(_._2).foreach {
+      case (k, v) => content += k + ";"
+    }
+    content = content.dropRight(1) + "\n"
 
     def combine(csv: List[Object]) = csv.foreach(s => content += s)
 
@@ -75,10 +80,9 @@ object Admin extends Controller {
         environments <- Environment.fetchCsv()
         mockGroups <- MockGroup.fetchCsv()
         services <- Service.fetchCsv()
-        // TODO
-        servicesActions <- Environment.fetchCsv() // ServiceAction.fetchCsv
-
-      } yield combine(environments ++ servicesActions ++ mockGroups ++ services)
+        servicesActions <- ServiceAction.fetchCsv()
+        statistics <- Stat.fetchCsv()
+      } yield combine(environments ++ servicesActions ++ mockGroups ++ services ++ statistics)
     }
 
     // result as a file

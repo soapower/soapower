@@ -57,7 +57,7 @@ object ServiceAction {
    * Csv format.
    */
   def csv(m: ServiceAction) = {
-    csvKey + ";" + m._id.get.stringify + ";" + m.name + ";" + m.thresholdms + ";" + m.groups.mkString("|") + "\n"
+    csvKey + ";" + m._id.get.stringify + ";" + m.name + ";" + m.groups.mkString("|") + ";" + m.thresholdms + "\n"
   }
 
   /**
