@@ -7,20 +7,17 @@ import models._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import reactivemongo.bson.{BSON, BSONDocument, BSONObjectID}
+import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import models.RequestData._
 
 object Soap extends Controller {
 
   def index(environment: String, localTarget: String) = Action.async(parse.xml) {
     implicit request =>
-
       Logger.debug("Request on environment:" + environment + " localTarget:" + localTarget)
-
       val requestContentType = request.contentType.get
       val sender = request.remoteAddress
       val content = request.body.toString()
-
       val headers = request.headers.toSimpleMap
       forwardRequest(environment, localTarget, sender, content, headers, requestContentType)
   }

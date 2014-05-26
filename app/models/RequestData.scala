@@ -30,8 +30,6 @@ import scala.util.Success
 import reactivemongo.api.collections.default.BSONCollection
 import reactivemongo.bson.BSONString
 import play.api.libs.json.JsObject
-import reactivemongo.api.QueryOpts
-import java.net.URLDecoder
 import models.Stat.AnalysisEntity
 
 case class RequestData(_id: Option[BSONObjectID],
@@ -233,12 +231,6 @@ object RequestData {
   val csvTitle = Map("key" -> 0, "id" -> 1, "serviceAction" -> 2, "startTime" -> 3, "timeInMillis" -> 4, "environmentName" -> 5, "environmentGroups" -> 6)
 
   val csvKey = "requestDataStat"
-
-  //def fetchCsv(): List[String] = DB.withConnection {
-  def fetchCsv(): List[String] = {
-    //TODO
-    ???
-  }
 
   /**
    * Retrieve all distinct serviceactions using name and groups
@@ -840,7 +832,7 @@ object RequestData {
 
             }
             // At the end of the loop the last tuple is add to the result list only if a result exists
-            if(!first) {
+            if (!first) {
               res += new AnalysisEntity(previousTuple._1, previousTuple._2, datesAndAvgForSameTuple.toList)
             }
           }

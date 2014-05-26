@@ -22,7 +22,7 @@ object Stats extends Controller {
     def writes(data: PageStat): JsValue = {
       JsObject(
         List(
-          "groups" -> JsString("[\""+data.groups.mkString("\", \"")+"\"]"),
+          "groups" -> JsString("[\"" + data.groups.mkString("\", \"") + "\"]"),
           "environmentName" -> JsString(data.environmentName),
           "serviceAction" -> JsString(data.serviceAction),
           "avgInMillis" -> JsNumber(data.avgInMillis),
@@ -31,9 +31,9 @@ object Stats extends Controller {
   }
 
 
-  def listDataTable(groupNames: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String, live:Boolean) = Action.async {
+  def listDataTable(groupNames: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String, live: Boolean) = Action.async {
 
-    if(!live) {
+    if (!live) {
       val futureDataList = Stat.find(groupNames, environmentName, getDate(minDateAsStr).getTime, getDate(maxDateAsStr, v23h59min59s, true).getTime)
 
       futureDataList.map {

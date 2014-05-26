@@ -14,9 +14,9 @@ object Live extends Controller {
    */
   def socket(group: String, environment: String, serviceaction: String, code: String) = WebSocket.async[JsValue] {
     implicit request =>
-        // Create the client criterias based on the URL
-        val clientCriterias = new Criterias(group, environment, serviceaction, code, "", true, true)
-        LiveRoom.join(request.remoteAddress, clientCriterias)
+      // Create the client criterias based on the URL
+      val clientCriterias = new Criterias(group, environment, serviceaction, code, "", true, true)
+      LiveRoom.join(request.remoteAddress, clientCriterias)
   }
 
   implicit val format = Json.format[Criteria]

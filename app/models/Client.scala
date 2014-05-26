@@ -55,7 +55,7 @@ object Client {
 
 class Client(pService: Service, sender: String, content: String, headers: Map[String, String], typeRequest: String, requestContentType: String) {
 
-  var environment : Environment = null
+  var environment: Environment = null
   val service = pService
 
   val requestData = {
@@ -69,9 +69,9 @@ class Client(pService: Service, sender: String, content: String, headers: Map[St
 
     Logger.debug("service:" + service)
     val f = Environment.findByName(service.environmentName.get)
-    f.onComplete{
+    f.onComplete {
       case Success(e) =>
-        if(e.isDefined) {
+        if (e.isDefined) {
           environment = e.get
         }
     }

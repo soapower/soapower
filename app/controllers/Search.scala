@@ -11,8 +11,7 @@ import org.xml.sax.SAXParseException
 import java.net.URLDecoder
 import scala.concurrent.{Await, Future, ExecutionContext}
 import ExecutionContext.Implicits.global
-import play.api.Logger
-import reactivemongo.bson.{BSONString, BSONArray, BSONDocument}
+import reactivemongo.bson.BSONDocument
 import scala.concurrent.duration._
 
 case class Search(environmentId: Long)

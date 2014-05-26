@@ -35,7 +35,7 @@ object Rest extends Controller {
   def autoIndex(group: String, environment: String, remoteTarget: String) = Action {
     request =>
       ???
-      //TODO
+    //TODO
     /*
       val requestHttpMethod = request.method
       Logger.info("Automatic service detection request on group: " + group + " environment:" + environment + " remoteTarget: " + remoteTarget)
@@ -144,7 +144,7 @@ object Rest extends Controller {
   def index(environment: String, call: String) = Action {
     request =>
       ???
-      //TODO
+    //TODO
     /*
       val sender = request.remoteAddress
       val headers = request.headers.toSimpleMap
@@ -214,7 +214,7 @@ object Rest extends Controller {
   def replay(requestId: String) = Action {
     implicit request =>
       ???
-      //TODO
+    //TODO
     /*
 
       val requestData = RequestData.loadForREST(requestId)

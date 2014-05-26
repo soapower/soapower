@@ -38,7 +38,7 @@ object UtilDate {
           val findMin = RequestData.getMinRequestData
           findMin.onComplete {
             case Success(request) =>
-              if(request.isDefined) gCal.setTimeInMillis(request.get.startTime.getMillis)
+              if (request.isDefined) gCal.setTimeInMillis(request.get.startTime.getMillis)
               else gCal.setTime(new Date);
 
             case Failure(e) =>
@@ -50,7 +50,7 @@ object UtilDate {
       }
       case "today" =>
         if (isMax)
-          // the date is set to todays date at 23 hour 59 minutes 59s
+        // the date is set to todays date at 23 hour 59 minutes 59s
           gCal.setTimeInMillis(gCal.getTimeInMillis + v23h59min59s)
         return gCal
 
@@ -113,7 +113,7 @@ object UtilDate {
     if (f < 10) "0" + f.toString else f.toString
   }
 
-  def getGMTDateTime(date: Date) : DateTime = {
+  def getGMTDateTime(date: Date): DateTime = {
     TimeZone.setDefault(TimeZone.getTimeZone("GMT"))
     return new DateTime(date)
   }

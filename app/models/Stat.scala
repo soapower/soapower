@@ -221,7 +221,7 @@ object Stat {
     val query = ReactiveMongoPlugin.db.command(RawCommand(command))
     query.map {
       list =>
-      // Decode the result
+        // Decode the result
         var listRes = ListBuffer.empty[PageStat]
         list.elements.foreach {
           document =>
@@ -344,7 +344,7 @@ object Stat {
         val resList = ListBuffer.empty[AnalysisEntity]
         list.elements.foreach {
           results =>
-            if(results._1 == "result") {
+            if (results._1 == "result") {
               results._2.asInstanceOf[BSONArray].values.foreach {
                 listOfStats =>
                   var groups = ListBuffer.empty[String]
@@ -355,19 +355,19 @@ object Stat {
 
                   listOfStats.asInstanceOf[BSONDocument].elements.foreach {
                     stat =>
-                      if(stat._1 ==  "_id") {
+                      if (stat._1 == "_id") {
                         stat._2.asInstanceOf[BSONDocument].elements.foreach {
                           id =>
-                            if(id._1 == "groups") {
+                            if (id._1 == "groups") {
                               id._2.asInstanceOf[BSONArray].values.foreach {
                                 group =>
                                   groups += group.asInstanceOf[BSONString].value
                               }
                             }
-                            if(id._1 == "serviceAction") {
+                            if (id._1 == "serviceAction") {
                               serviceAction = id._2.asInstanceOf[BSONString].value
                             }
-                            if(id._1 == "serviceAction") {
+                            if (id._1 == "serviceAction") {
                               serviceAction = id._2.asInstanceOf[BSONString].value
                             }
                         }
@@ -387,7 +387,7 @@ object Stat {
                       }
                   }
                   val size = avgs.size
-                  for (i <- 0 to (size-1)) {
+                  for (i <- 0 to (size - 1)) {
                     dateAndAvg += ((dates.apply(i), avgs.apply(i)))
                   }
                   resList += new AnalysisEntity(groups.toList, serviceAction, dateAndAvg.toList)

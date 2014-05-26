@@ -110,7 +110,7 @@ object ServiceActions extends Controller {
       list =>
         list.foreach {
           nameAndGroups =>
-            if(ServiceAction.countByNameAndGroups(nameAndGroups._1, nameAndGroups._2) == 0) {
+            if (ServiceAction.countByNameAndGroups(nameAndGroups._1, nameAndGroups._2) == 0) {
               // The serviceaction does not exist
               ServiceAction.insert(new ServiceAction(Some(BSONObjectID.generate), nameAndGroups._1, nameAndGroups._2, 30000))
               Logger.info("ServiceAction " + nameAndGroups._1 + " not found. Insert in db")
@@ -119,7 +119,7 @@ object ServiceActions extends Controller {
             }
         }
         Ok(Json.toJson("Success regeneration"))
-      }.recoverWith {
+    }.recoverWith {
       case e: Exception =>
         Logger.error("Error with regenerate : " + e.getMessage)
         Future.successful(InternalServerError(Json.toJson("Failed regeneration " + e.getMessage)))

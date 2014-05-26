@@ -35,14 +35,14 @@ object Analysis extends Controller {
   }
 
   implicit object AnalysisEntityWrites extends Writes[List[AnalysisEntity]] {
-    def writes (data: List[AnalysisEntity]): JsValue = {
+    def writes(data: List[AnalysisEntity]): JsValue = {
       var x = JsArray()
 
       data.foreach {
         analysis =>
           x ++= Json.arr(
             Json.obj(
-              "key" -> JsString(analysis.serviceAction+" ["+ analysis.groups.mkString(", ")+"]"),
+              "key" -> JsString(analysis.serviceAction + " [" + analysis.groups.mkString(", ") + "]"),
               "values" -> analysis.dateAndAvg
             )
           )
@@ -53,7 +53,7 @@ object Analysis extends Controller {
 
   def load(groupName: String, environment: String, serviceAction: String, minDate: String, maxDate: String, live: Boolean) = Action.async {
     Logger.debug(live.toString)
-    if(!live) {
+    if (!live) {
       Stat.findResponseTimes(groupName, environment, serviceAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime).map {
         list =>
           Ok(Json.toJson(list))
