@@ -15,24 +15,10 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.{Await, Future}
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
-import reactivemongo.core.commands.{GroupField, Aggregate, RawCommand}
-import reactivemongo.api.collections.default.BSONCollection
 import play.api.http.HeaderNames
-import reactivemongo.bson.BSONDateTime
-import reactivemongo.bson.BSONBoolean
-import reactivemongo.bson.BSONString
-import scala.Some
-import reactivemongo.bson.BSONLong
-import reactivemongo.bson.BSONInteger
-import play.api.libs.json.JsObject
-import reactivemongo.api.collections.default.BSONCollection
 import play.cache.Cache
-import java.text.{SimpleDateFormat, DateFormat}
-import scala.util.{Success, Failure}
 import org.joda.time.DateTime
-import reactivemongo.api.indexes.{IndexType, Index}
 import scala.collection.mutable.ListBuffer
-import models.UtilDate._
 import reactivemongo.bson.BSONDateTime
 import reactivemongo.bson.BSONBoolean
 import scala.util.Failure
@@ -358,76 +344,58 @@ object RequestData {
   /**
    * Insert a new RequestData.
    * @param requestData the requestData
+   * @param service service used by this requestDate
+   * @param environment environment which contains service
    */
-  def insert(requestData: RequestData): Option[BSONObjectID] = {
+  def insert(requestData: RequestData, service: Service, environment: Environment): Option[BSONObjectID] = {
 
-    //TODO
-    /*
     var contentRequest: String = null
     var contentResponse: String = null
 
-    val f = Environment.findById(requestData.environmentId).map(e => e)
-    val environment = Await result(f, 1.seconds)
-
-    val service = Service.findById(requestData.serviceId).get
     val date = new Date()
     val gcal = new GregorianCalendar()
     gcal.setTime(date)
     gcal.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
 
-    if (!service.recordData || !environment.get.recordData) {
+    if (!service.recordData || !environment.recordData) {
       Logger.debug("Data not recording for this service or this environment")
       return None
-    } else if (!service.recordContentData) {
-      val msg = "Content Data not recording for this service. See Admin."
-      requestContent = compressString(msg)
-      responseContent = compressString(msg)
-      Logger.debug(msg)
+    }
+
+    var msg = ""
+    if (!service.recordContentData) {
+      msg = "Content Data not recording for this service. See Admin."
     } else if (!environment.recordContentData) {
-      val msg = "Content Data not recording for this environment. See Admin."
-      requestContent = compressString(msg)
-      responseContent = compressString(msg)
+      msg = "Content Data not recording for this environment. See Admin."
+    }
+
+    if (msg != "") {
+      requestData.request = Some(msg)
+      requestData.responseOriginal = Some(msg)
+      requestData.response = Some(msg)
       Logger.debug(msg)
     } else if (requestData.status != 200 || (
       environment.hourRecordContentDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
         environment.hourRecordContentDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
       // Record Data if it is a soap fault (status != 200) or
       // if we can record data with environment's configuration (hours of recording)
-      requestContent = compressString(requestData.request)
-
-      def transferEncodingResponse = requestData.responseHeaders.filter {
+      def transferEncodingResponse = requestData.responseHeaders.get.filter {
         _._1 == HeaderNames.CONTENT_ENCODING
       }
 
       transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
         case Some("gzip") =>
           Logger.debug("Response in gzip Format")
-          contentResponse = "TODO response in gzip format" // TODO requestData.responseBytes
+          requestData.responseOriginal = Some(requestData.response.get)
+          requestData.response = Some(uncompressString(requestData.responseBytes))
         case _ =>
           Logger.debug("Response in plain Format")
-          contentResponse = requestData.response
       }
     } else {
-      val msg = "Content Data not recording. Record between " + environment.get.hourRecordContentDataMin + "h to " + environment.get.hourRecordContentDataMax + "h for this environment."
+      val msg = "Content Data not recording. Record between " + environment.hourRecordContentDataMin + "h to " + environment.hourRecordContentDataMax + "h for this environment."
       contentRequest = msg
       contentResponse = msg
       Logger.debug(msg)
-    }
-
-    requestData.request = contentRequest
-    requestData.response = contentResponse
-*/
-    def transferEncodingResponse = requestData.responseHeaders.get.filter {
-      _._1 == HeaderNames.CONTENT_ENCODING
-    }
-
-    transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
-      case Some("gzip") =>
-        Logger.debug("Response in gzip Format")
-        requestData.responseOriginal = Some(requestData.response.get)
-        requestData.response = Some(uncompressString(requestData.responseBytes))
-      case _ =>
-        Logger.debug("Response in plain Format")
     }
 
     val f = collection.insert(requestData)
