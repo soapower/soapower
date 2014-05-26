@@ -51,11 +51,18 @@ object Analysis extends Controller {
     }
   }
 
-  def load(groupName: String, environment: String, serviceAction: String, minDate: String, maxDate: String, status: String, statsOnly: String) = Action.async {
-
-    Stat.findResponseTimes(groupName, environment, serviceAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime).map {
-      list =>
-        Ok(Json.toJson(list))
+  def load(groupName: String, environment: String, serviceAction: String, minDate: String, maxDate: String, live: Boolean) = Action.async {
+    Logger.debug(live.toString)
+    if(!live) {
+      Stat.findResponseTimes(groupName, environment, serviceAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime).map {
+        list =>
+          Ok(Json.toJson(list))
+      }
+    } else {
+      RequestData.findResponseTimes(groupName, environment, serviceAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime).map {
+        list =>
+          Ok(Json.toJson(list))
+      }
     }
   }
 

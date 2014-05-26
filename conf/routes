@@ -16,10 +16,10 @@ GET           /admin/downloadRequestDataStatsEntries                            
 POST          /admin/uploadConfiguration                                                                    controllers.admin.Admin.uploadConfiguration
 
 # Search page
-GET           /search/:groups/:environment/:serviceAction/:minDate/:maxDate/:status/listDatatable            controllers.Search.listDatatable(groups, environment, serviceAction, minDate, maxDate, status, sSearch:String, page: Int, pageSize: Int, sortKey: String, sortVal: String, request: Boolean, response: Boolean)
+GET           /search/:groups/:environment/:serviceAction/:minDate/:maxDate/:status/listDatatable           controllers.Search.listDatatable(groups, environment, serviceAction, minDate, maxDate, status, sSearch:String, page: Int, pageSize: Int, sortKey: String, sortVal: String, request: Boolean, response: Boolean)
 
 # Analysis page
-GET           /analysis/:group/:environment/:serviceAction/:minDate/:maxDate/:status/:statsOnly/load        controllers.Analysis.load(group, environment, serviceAction, minDate, maxDate, status, statsOnly)
+GET           /analysis/:group/:environment/:serviceAction/:minDate/:maxDate/:live/load                     controllers.Analysis.load(group, environment, serviceAction, minDate, maxDate, live: Boolean)
 
 # REST
 DELETE        /rest/:environment/*call                                                                      controllers.Rest.index(environment, call)

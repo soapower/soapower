@@ -7,13 +7,14 @@ function AnalysisCtrl($scope, $rootScope, $routeParams, $http, UIService) {
     var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
     var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
     var code = $routeParams.code ? $routeParams.code : 'all';
+    var live = $routeParams.live ? $routeParams.live : 'false';
     var url = '/analysis/' + groups +
         '/' + environment +
         '/' + encodeURIComponent(serviceaction) +
         '/' + mindate +
         '/' + maxdate +
-        '/' + code +
-        '/true/load?call=' + new Date();
+        '/' + live +
+        '/load?call=' + new Date();
 
     $http({
         method: 'GET',

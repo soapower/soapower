@@ -75,9 +75,7 @@ object Admin extends Controller {
         environments <- Environment.fetchCsv()
         mockGroups <- MockGroup.fetchCsv()
         services <- Service.fetchCsv()
-        // TODO
-        servicesActions <- Environment.fetchCsv() // ServiceAction.fetchCsv
-
+        servicesActions <- ServiceAction.fetchCsv()
       } yield combine(environments ++ servicesActions ++ mockGroups ++ services)
     }
 
@@ -92,25 +90,29 @@ object Admin extends Controller {
     }
   }
 
-  def downloadRequestDataStatsEntries = Action {
+  def downloadRequestDataStatsEntries = Action.async {
     // Title
-    var content = "#for key " + RequestData.csvKey + "\n"
-    RequestData.csvTitle.toList.sortBy(_._2).foreach {
+    var content = "#for key " + Stat.csvKey + "\n"
+    Stat.csvTitle.toList.sortBy(_._2).foreach {
       case (k, v) => content += k + ";"
     }
     content = content.dropRight(1) + "\n" // delete last ; and add new line
 
     // data
-    RequestData.fetchCsv().foreach {
-      s => content += RequestData.csvKey + ";" + s
-    }
+    Stat.fetchCsv().map {
+      list =>
+        list.foreach {
+          s =>
+            content += s
+        }
 
-    // result as a file
-    val fileContent: Enumerator[Array[Byte]] = Enumerator(content.getBytes)
-    SimpleResult(
-      header = ResponseHeader(play.api.http.Status.OK),
-      body = fileContent
-    ).withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=requestDataStatsEntries.csv")).as(BINARY)
+        val fileContent: Enumerator[Array[Byte]] = Enumerator(content.getBytes)
+        SimpleResult(
+          header = ResponseHeader(play.api.http.Status.OK),
+          body = fileContent
+        ).withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=requestDataStatsEntries.csv")).as(BINARY)
+
+    }
   }
 
   implicit val adminFormat = Json.format[AdminForm]

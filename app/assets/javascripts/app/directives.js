@@ -497,10 +497,16 @@ spApp.directive('spFilter', function ($http, $filter) {
                         }
                     }
                 }
-                else if ($scope.page == "statistics" || $scope.page == "analysis") {
+                else if ($scope.page == "statistics") {
                     $scope.showserviceactions = false;
                     $scope.showlive = true
                     $scope.showstatus = false;
+                }
+                else if ($scope.page == "analysis") {
+                    $scope.showserviceactions = false;
+                    $scope.showlive = true
+                    $scope.showstatus = false;
+                    $scope.showserviceactions = true;
                 }
             }
             $scope.ctrlPath = $scope.$parent.ctrlPath;
