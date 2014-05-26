@@ -7,6 +7,9 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
     $scope.waitForData = false;
 
     $scope.reloadTable = function () {
+
+        console.log("HOP");
+
         var groups = $routeParams.groups ? $routeParams.groups : 'all';
         var environment = $routeParams.environment ? $routeParams.environment : 'all';
         var serviceaction = $routeParams.serviceaction ? $routeParams.serviceaction : 'all';
@@ -24,73 +27,49 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
         if ($routeParams.response === "false") {
             response = "false";
         }
-        var url = '/search/' + groups +
-            '/' + environment +
-            '/' + encodeURIComponent(serviceaction) +
-            '/' + mindate +
-            '/' + maxdate +
-            '/' + code +
-            '/listDatatable?' +
-            'sSearch=' + search +
-            '&request=' + request +
-            '&response=' + response +
-            '&iDisplayStart=' + 1 +
-            '&iDisplayLength=' + 10 +
-            '&call=' + new Date();
-        $http({
-            method: 'GET',
-            url: url,
-            cache: false
-        }).success(function (largeLoad) {
-            $scope.data = largeLoad.data;
-            $scope.totalSize = largeLoad.totalDataSize
-            $scope.waitForData = false;
-            $scope.tableParams = new ngTableParams({
-                page: 1,            // show first page
-                count: 10,          // count per page
-                sorting: {
-                    'startTime': 'desc'     // initial sorting
-                }
-            }, {
-                total: largeLoad.data.length, // length of data
-                getData: function ($defer, params) {
-                    // At each changes on page or on number of displayed request
-                    // The datas are retrieved, and the number of data to get is (page number) * (number of requests per page)
-                        var numberRequestToLoad = params.page() * params.count()
-                        var url = '/search/' + groups +
-                            '/' + environment +
-                            '/' + encodeURIComponent(serviceaction) +
-                            '/' + mindate +
-                            '/' + maxdate +
-                            '/' + code +
-                            '/listDatatable?' +
-                            'sSearch=' + search +
-                            '&request=' + request +
-                            '&response=' + response +
-                            '&iDisplayStart=' + 1 +
-                            '&iDisplayLength=' + numberRequestToLoad +
-                            '&call=' + new Date();
-                        $http({
-                            method: 'GET',
-                            url: url,
-                            cache: false
-                        }).success(function(newLoad) {
-                            var datafilter = $filter('customAndSearch');
-                            var requestsData = datafilter(newLoad.data, $scope.tableFilter);
-                            var orderedData = params.sorting() ? $filter('orderBy')(requestsData, params.orderBy()) : requestsData;
-                            var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
-                            params.total(newLoad.totalDataSize)
-                            $defer.resolve(res);
-                        });
 
-                },
-                $scope: { $data: {} }
-            });
 
-            $scope.$watch("tableFilter", function () {
-                $scope.tableParams.reload()
-            });
+        $scope.waitForData = false;
+        $scope.tableParams = new ngTableParams({
+            page: 1,            // show first page
+            count: 10,          // count per page
+            sorting: {
+                'startTime': 'desc'     // initial sorting
+            }
+        }, {
+            total: 0,//largeLoad.data.length, // length of data
+            getData: function ($defer, params) {
+                var orderedData = params.sorting();
+                var sortKey = Object.keys(orderedData)[0];
+                var sortVal = orderedData[sortKey];
 
+                var url = '/search/' + groups +
+                    '/' + environment +
+                    '/' + encodeURIComponent(serviceaction) +
+                    '/' + mindate +
+                    '/' + maxdate +
+                    '/' + code +
+                    '/listDatatable?' +
+                    'sSearch=' + search +
+                    '&request=' + request +
+                    '&response=' + response +
+                    '&page=' + params.page() +
+                    '&pageSize=' + params.count() +
+                    '&sortKey=' + sortKey +
+                    '&sortVal=' + sortVal +
+                    '&call=' + new Date();
+
+                $http({
+                    method: 'GET',
+                    url: url,
+                    cache: false
+                }).success(function (newLoad) {
+                    $scope.totalSize = newLoad.totalDataSize;
+                    params.total(newLoad.totalDataSize);
+                    $defer.resolve(newLoad.data);
+                });
+
+            }
         });
     };
 
@@ -122,7 +101,7 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
     $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "SearchCtrl");
 
     $scope.$on("ReloadPage", function (event, newGroups) {
-        if(newGroups) $scope.groups = newGroups;
+        if (newGroups) $scope.groups = newGroups;
         UIService.reloadPage($scope, true, "search");
     });
 }
