@@ -134,7 +134,7 @@ case class RequestData(_id: Option[BSONObjectID],
     if (searchResponse && this.response.get.indexOf(search) > -1) return true
     // if the two checkbox are unchecked, the search field is ignore
     if (!searchRequest && !searchResponse) return true
-    return false
+    false
   }
 }
 
@@ -154,15 +154,16 @@ object RequestData {
     }
   }
 
-  implicit object MapBSONReader extends BSONDocumentReader[Map[String, String]] {
-    def read(bson: BSONDocument): Map[String, String] = {
-      val elements = bson.elements.map {
-        tuple =>
-          tuple._1 -> tuple._2.toString
+  implicit def MapBSONReader[T](implicit reader: BSONReader[_ <: BSONValue, T]): BSONDocumentReader[Map[String, T]] =
+    new BSONDocumentReader[Map[String, T]] {
+      def read(doc: BSONDocument): Map[String, T] = {
+        doc.elements.collect {
+          case (key, value) => value.seeAsOpt[T](reader) map {
+            ov => (key, ov)
+          }
+        }.flatten.toMap
       }
-      elements.toMap
     }
-  }
 
   implicit object RequestDataBSONReader extends BSONDocumentReader[RequestData] {
     def read(doc: BSONDocument): RequestData = {
@@ -200,14 +201,14 @@ object RequestData {
         "environmentName" -> BSONString(requestData.environmentName),
         "groupsName" -> requestData.groupsName,
         "serviceId" -> requestData.serviceId,
-        "request" -> Option(requestData.request),
-        "requestHeaders" -> Option(requestData.requestHeaders),
+        "request" -> requestData.request.get,
+        "requestHeaders" -> requestData.requestHeaders.get,
         "contentType" -> BSONString(requestData.contentType),
         "requestCall" -> Option(requestData.requestCall),
         "startTime" -> BSONDateTime(requestData.startTime.getMillis),
-        "response" -> Option(requestData.response),
-        "responseOriginal" -> Option(requestData.responseOriginal),
-        "responseHeaders" -> Option(requestData.responseHeaders),
+        "response" -> requestData.response,
+        "responseOriginal" -> requestData.responseOriginal,
+        "responseHeaders" -> requestData.responseHeaders,
         "timeInMillis" -> BSONLong(requestData.timeInMillis),
         "status" -> BSONInteger(requestData.status),
         "purged" -> BSONBoolean(requestData.purged),
@@ -239,41 +240,6 @@ object RequestData {
   }
 
   /**
-   * Parse required parts of a RequestData from a ResultSet in order to replay the request
-   */
-  /* TODO
-  val forReplay = {
-    get[Pk[Long]]("request_data.id") ~
-      str("request_data.sender") ~
-      str("request_data.serviceAction") ~
-      long("request_data.environmentId") ~
-      long("request_data.serviceId") ~
-      bytes("request_data.request") ~
-      str("request_data.requestHeaders") ~
-      str("request_data.contentType") map {
-      case id ~ sender ~ serviceAction ~ environnmentId ~ serviceId ~ request ~ requestHeaders ~ contentType =>
-        val headers = UtilConvert.headersFromString(requestHeaders)
-        new RequestData(id, sender, serviceAction, environnmentId, serviceId, uncompressString(request), headers, contentType, null, null, null, null, -1, -1, false, false)
-    }
-  }
-
-  val forRESTReplay = {
-    get[Pk[Long]]("request_data.id") ~
-      str("request_data.sender") ~
-      str("request_data.serviceAction") ~
-      long("request_data.environmentId") ~
-      long("request_data.serviceId") ~
-      bytes("request_data.request") ~
-      str("request_data.requestHeaders") ~
-      str("request_data.requestCall") map {
-      case id ~ sender ~ serviceAction ~ environnmentId ~ serviceId ~ request ~ requestHeaders ~ requestCall =>
-        val headers = UtilConvert.headersFromString(requestHeaders)
-        new RequestData(id, sender, serviceAction, environnmentId, serviceId, uncompressString(request), headers, null, requestCall, null, null, null, -1, -1, false, false)
-    }
-  }
-  */
-
-  /**
    * Retrieve all distinct serviceactions using name and groups
    * @return a list of serviceAction's name and groups
    */
@@ -288,7 +254,6 @@ object RequestData {
               "nbServiceAction" -> BSONDocument("$sum" -> 1)))
         )
       )
-
 
     var listRes = ListBuffer.empty[(String, List[String])]
     val query = ReactiveMongoPlugin.db.command(RawCommand(command))
@@ -923,7 +888,7 @@ object RequestData {
       )
     }
 
-    var finalGroupBy = finalGroupById ++(
+    val finalGroupBy = finalGroupById ++(
       "timeInMillis" -> BSONDocument(
         "$push" -> "$timeInMillis"
       ),
@@ -1077,19 +1042,9 @@ object RequestData {
     }
   }
 
-
-  def load(id: Long): RequestData = {
-    ???
-    /*DB.withConnection {
-      implicit connection =>
-        SQL("select id, sender, serviceAction, environmentId, serviceId, request, requestHeaders, contentType, requestCall from request_data where id= {id}")
-          .on('id -> id).as(RequestData.forReplay.single)
-    }*/
-  }
-
   def loadRequest(id: String): Future[Option[BSONDocument]] = {
     val query = BSONDocument("_id" -> BSONObjectID(id))
-    val projection = BSONDocument("request" -> 1, "contentType" -> 1)
+    val projection = BSONDocument("request" -> 1, "contentType" -> 1, "environmentName" -> 1, "serviceId" -> 1, "sender" -> 1, "requestHeaders" -> 1)
     collection.find(query, projection).cursor[BSONDocument].headOption
   }
 

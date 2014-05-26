@@ -80,14 +80,9 @@ object Search extends Controller {
     future.map {
       tuple => tuple match {
         case Some(doc: BSONDocument) => {
-          val contentType = tuple.get.getAs[String]("contentType").get
+          val contentType = doc.getAs[String]("contentType").get
           // doc.getAs[String]("response")
-          var content = ""
-          tuple.get.get(keyContent).get.asInstanceOf[BSONArray].values.foreach {
-            e =>
-              content = e.asInstanceOf[BSONString].value
-          }
-
+          val content = doc.getAs[String](keyContent).get
 
           contentType match {
             case "application/xml" | "text/xml" => {

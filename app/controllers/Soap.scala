@@ -7,7 +7,8 @@ import models._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import reactivemongo.bson.BSONObjectID
+import reactivemongo.bson.{BSON, BSONDocument, BSONObjectID}
+import models.RequestData._
 
 object Soap extends Controller {
 
@@ -116,41 +117,29 @@ object Soap extends Controller {
 
   /**
    * Replay a given request.
+   * @param requestId request to replay, content is post by user
    */
-  def replay(requestId: String) = Action {
-    //TODO
-    ???
-    BadRequest("TODO")
-    /*
+  def replay(requestId: String) = Action.async(parse.xml) {
     implicit request =>
-      val requestData = RequestData.load(requestId)
-
-      val environmentTuple = Environment.options.find {
-        case (k, v) => k == requestData.environmentId.toString
-      }
-
-      if (!environmentTuple.isDefined) {
-        val err = "environment with id " + requestData.environmentId + " unknown"
-        Logger.error(err)
-        BadRequest(err)
-
-      } else {
-        val sender = requestData.sender
-        val content = request.body.asXml.get.toString()
-        Logger.debug("Content:" + content)
-        val headers = requestData.requestHeaders
-        val environmentName = environmentTuple.get._2
-        if (requestData.serviceId > 0) {
-          val service = Service.findById(requestData.serviceId).get
-          forwardRequest(environmentName, service.localTarget, sender, content, headers, requestData.contentType)
-          
-        } else {
-          val err = "service with id " + requestData.serviceId + " unknown"
-          Logger.error(err)
-          BadRequest(err)
+      RequestData.loadRequest(requestId).map {
+        tuple => tuple match {
+          case Some(doc: BSONDocument) =>
+            val contentType = doc.getAs[String]("contentType").get
+            val sender = doc.getAs[String]("sender").get
+            val content = request.body.toString()
+            val headers = doc.getAs[Map[String, String]]("requestHeaders").get
+            val environmentName = doc.getAs[String]("environmentName").get
+            val s = Service.findById(environmentName, doc.getAs[BSONObjectID]("serviceId").get.stringify)
+            val service = Await.result(s, 1.seconds)
+            if (!service.isDefined) {
+              NotFound("The service " + doc.getAs[BSONObjectID]("serviceId").get.stringify + " does not exist")
+            } else {
+              Await.result(forwardRequest(environmentName, service.get.localTarget, sender, content, headers, contentType), 10.seconds)
+            }
+          case _ =>
+            NotFound("The request does not exist")
         }
       }
-      */
   }
 
   private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String], requestContentType: String): Future[SimpleResult] = {

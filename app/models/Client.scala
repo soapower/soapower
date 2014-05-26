@@ -71,9 +71,11 @@ class Client(pService: Service, sender: String, content: String, headers: Map[St
     val f = Environment.findByName(service.environmentName.get)
     f.onComplete{
       case Success(e) =>
-        if(e.isDefined) environment = e.get
+        if(e.isDefined) {
+          environment = e.get
+        }
     }
-    Await.result(f, 1.second)
+    Await.result(f, 2.second)
 
     new RequestData(sender, serviceAction, service.environmentName.get, environment.groups, service._id.get, requestContentType)
   }
