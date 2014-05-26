@@ -32,6 +32,7 @@ import reactivemongo.bson.BSONString
 import play.api.libs.json.JsObject
 import reactivemongo.api.QueryOpts
 import java.net.URLDecoder
+import models.Stat.AnalysisEntity
 
 case class RequestData(_id: Option[BSONObjectID],
                        sender: String,
@@ -719,44 +720,170 @@ object RequestData {
   }
 
   /**
-   * Load reponse times for given parameters
+   * Find the 90 percentiles response time for each day and for each serviceaction in the requestData collection
+   * @param groups
+   * @param environment
+   * @param serviceAction
+   * @param minDate
+   * @param maxDate
+   * @return
    */
-  def findResponseTimes(groupName: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, statsOnly: Boolean): List[(Long, String, Date, Long)] = {
-    ???
-    /*
-      var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
-      whereClause += sqlAndStatus(status)
-      Logger.debug("DDDDD==>" + whereClause)
-      if (serviceAction != "all") whereClause += " and serviceAction = {serviceAction}"
-      whereClause += sqlAndEnvironnement(environmentIn)
+  def findResponseTimes(groups: String, environment: String, serviceAction: String, minDate: Date, maxDate: Date): Future[List[AnalysisEntity]] = {
+    var matchQuery = BSONDocument()
+    if (groups != "all") {
+      matchQuery = matchQuery ++ ("groupsName" -> BSONDocument("$in" -> groups.split(',')))
+    }
+    if (environment != "all") {
+      matchQuery = matchQuery ++ ("environmentName" -> environment)
+    }
 
-      val pair = sqlFromAndGroup(groupName, environmentIn)
-      val fromClause = " from request_data " + pair._1
-      whereClause += pair._2
+    if (serviceAction != "all") {
+      matchQuery = matchQuery ++ ("serviceAction" -> serviceAction)
+    }
 
-      val params: Array[(Any, anorm.ParameterValue[_])] = Array(
-        'minDate -> minDate,
-        'maxDate -> maxDate,
-        'serviceAction -> serviceAction)
+    matchQuery = matchQuery ++ ("startTime" -> BSONDocument(
+      "$gte" -> BSONDateTime(minDate.getTime - 1000),
+      "$lt" -> BSONDateTime(maxDate.getTime))
+      )
 
-      var sql = "select environmentId, serviceAction, startTime, timeInMillis " + fromClause + whereClause
+    val command =
+      BSONDocument(
+        "aggregate" -> collection.name, // we aggregate on collection
+        "pipeline" -> BSONArray(
+          BSONDocument(
+            "$match" -> matchQuery
+          ),
+          BSONDocument(
+            "$project" -> BSONDocument(
+              "groupsName" -> "$groupsName",
+              "serviceAction" -> "$serviceAction",
+              "environmentName" -> "$environmentName",
+              "year" -> BSONDocument(
+                "$year" -> BSONArray("$startTime")
+              ),
+              "month" -> BSONDocument(
+                "$month" -> BSONArray("$startTime")
+              ),
+              "days" -> BSONDocument(
+                "$dayOfMonth" -> BSONArray("$startTime")
+              ),
+              "timeInMillis" -> "$timeInMillis"
+            )
+          ),
+          BSONDocument(
+            "$sort" -> BSONDocument(
+              "groupsName" -> 1,
+              "serviceAction" -> 1,
+              "timeInMillis" -> 1
+            )
+          ),
+          BSONDocument(
+            "$group" -> BSONDocument(
+              "_id" -> BSONDocument(
+                "groupsName" -> "$groupsName",
+                "serviceAction" -> "$serviceAction",
+                "year" -> "$year",
+                "month" -> "$month",
+                "days" -> "$days"
+              ),
+              "avgs" -> BSONDocument(
+                "$push" -> "$timeInMillis"
+              )
+            )
+          ),
+          BSONDocument(
+            "$sort" -> BSONDocument(
+              "_id.groupsName" -> 1,
+              "_id.serviceAction" -> 1,
+              "_id.year" -> 1,
+              "_id.month" -> 1,
+              "_id.days" -> 1
+            )
+          )
+        )
+      )
 
-      if (statsOnly) {
-        sql += " and isStats = 'true' "
+    ReactiveMongoPlugin.db.command(RawCommand(command)).map {
+      list => {
+        var res = ListBuffer.empty[AnalysisEntity]
+        list.elements.foreach {
+          results => if (results._1 == "result") {
+            // The current Tuple will hold the data (serviceAction, groups) for the current document in the loop
+            var currentTuple = (List.empty[String], "")
+            // The previous tuple will hold the data (serviceAction, groups) for the n-1 document in the loop
+            var previousTuple = (List.empty[String], "")
+
+            var currentTupleDate = 0L
+            var datesAndAvgForSameTuple = ListBuffer.empty[(Long, Long)]
+            var first = true
+            var isDifferent = false
+
+            results._2.asInstanceOf[BSONArray].values.foreach {
+              singleElement =>
+                singleElement.asInstanceOf[BSONDocument].elements.foreach {
+                  key =>
+                    if (key._1 == "_id") {
+                      if (first) {
+                        // If this is the first element retrieved, the previous element is set to the current element
+                        previousTuple = ((key._2.asInstanceOf[BSONDocument].get("groupsName").get.asInstanceOf[BSONArray].values.map(e => e.asInstanceOf[BSONString].value).toList,
+                          key._2.asInstanceOf[BSONDocument].get("serviceAction").get.asInstanceOf[BSONString].value))
+                        first = false
+                      }
+
+                      // The current tuple is set to the groupsName and the serviceAction of the current document
+                      currentTuple = ((key._2.asInstanceOf[BSONDocument].get("groupsName").get.asInstanceOf[BSONArray].values.map(e => e.asInstanceOf[BSONString].value).toList,
+                        key._2.asInstanceOf[BSONDocument].get("serviceAction").get.asInstanceOf[BSONString].value))
+
+                      currentTupleDate = new GregorianCalendar(key._2.asInstanceOf[BSONDocument].get("year").get.asInstanceOf[BSONInteger].value,
+                        key._2.asInstanceOf[BSONDocument].get("month").get.asInstanceOf[BSONInteger].value - 1,
+                        key._2.asInstanceOf[BSONDocument].get("days").get.asInstanceOf[BSONInteger].value).getTime.getTime
+
+                      // We check if the current Tuple is equal to the previous tuple
+                      isDifferent = !currentTuple.equals(previousTuple)
+                    }
+                    if (key._1 == "avgs") {
+
+                      if (isDifferent) {
+                        // If the current tuple was different from the previous tuple, the previous tuple is saved in the result list
+                        res += new AnalysisEntity(previousTuple._1, previousTuple._2, datesAndAvgForSameTuple.toList)
+                        datesAndAvgForSameTuple = ListBuffer.empty[(Long, Long)]
+                      }
+
+                      // We retrieve the timeInMillis of each request data for the current document
+                      val avgs = key._2.asInstanceOf[BSONArray].values.map {
+                        avg => avg.asInstanceOf[BSONLong].value
+                      }.toList
+
+                      // We keep only 90 percentiles
+                      val ninePercentiles = avgs.slice(0, avgs.size * 9 / 10)
+                      val avg = {
+                        if (ninePercentiles.size > 0) {
+                          ninePercentiles.sum / ninePercentiles.size
+                        } else if (avgs.size == 1) {
+                          avgs.head
+                        } else {
+                          -1L
+                        }
+                      }
+                      // The date and the avg of the current element is save to the dateAndAvgForSameTuple list
+                      datesAndAvgForSameTuple += ((currentTupleDate, avg))
+
+                      // The previous tuple is set to the current tuple
+                      previousTuple = currentTuple
+                    }
+                }
+
+            }
+            // At the end of the loop the last tuple is add to the result list only if a result exists
+            if(!first) {
+              res += new AnalysisEntity(previousTuple._1, previousTuple._2, datesAndAvgForSameTuple.toList)
+            }
+          }
+        }
+        res.toList
       }
-      sql += " order by request_data.id asc"
 
-      Logger.debug("SQL (findResponseTimes, g:" + groupName + ") ====> " + sql)
-
-      DB.withConnection {
-        implicit connection =>
-        // explainPlan(sql, params: _*)
-          SQL(sql)
-            .on(params: _*)
-            .as(get[Long]("environmentId") ~ get[String]("serviceAction") ~ get[Date]("startTime") ~ get[Long]("timeInMillis") *)
-            .map(flatten)
-      }*/
-
+    }
   }
 
 

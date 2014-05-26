@@ -20,7 +20,7 @@ spApp.config(function ($routeProvider) {
         .when('/analysis', {
             redirectTo: '/analysis/all/all/all/yesterday/today'
         })
-        .when('/analysis/:groups/:environment/:serviceaction/:mindate/:maxdate', {
+        .when('/analysis/:groups/:environment/:serviceaction/:mindate/:maxdate/:live?', {
             controller: AnalysisCtrl, templateUrl: 'partials/analysis/analysis.html'
         })
         .when('/stats', { redirectTo: '/stats/all/all/yesterday/today' })
