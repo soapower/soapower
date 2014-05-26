@@ -112,7 +112,10 @@ object Stat {
    * @return
    */
   def fetchCsv(): Future[List[String]] = {
-    findAll.map(statistic => statistic.map(s => csv(s)))
+    findAll.map(statistic => statistic.map {
+      s =>
+        csv(s)
+    })
   }
 
   def findAll(): Future[List[Stat]] = {
