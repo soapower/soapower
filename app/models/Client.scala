@@ -53,7 +53,10 @@ object Client {
   }
 }
 
-class Client(service: Service, sender: String, content: String, headers: Map[String, String], typeRequest: String, requestContentType: String) {
+class Client(pService: Service, sender: String, content: String, headers: Map[String, String], typeRequest: String, requestContentType: String) {
+
+  var environment : Environment = null
+  val service = pService
 
   val requestData = {
     var serviceAction = ""
@@ -65,18 +68,16 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     }
 
     Logger.debug("service:" + service)
-    val dbRequest = Environment.findByName(service.environmentName.get)
-    var groups = List.empty[String]
-    dbRequest.onComplete{
-      case Success(request) =>
-        if(request.isDefined) groups = request.get.groups
+    val f = Environment.findByName(service.environmentName.get)
+    f.onComplete{
+      case Success(e) =>
+        if(e.isDefined) environment = e.get
     }
-    Await.result(dbRequest, 1.second)
+    Await.result(f, 1.second)
 
-    new RequestData(sender, serviceAction, service.environmentName.get, groups, service._id.get, requestContentType)
+    new RequestData(sender, serviceAction, service.environmentName.get, environment.groups, service._id.get, requestContentType)
   }
 
-  val environment = Environment.findByName(service.environmentName.get)
   var response: ClientResponse = null
 
   private var futureResponse: Future[Response] = null
@@ -249,7 +250,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       val writeStartTime = System.currentTimeMillis()
       scala.concurrent.Future {
         requestData.request = Some(checkNullOrEmpty(content))
-        RequestData.insert(requestData)
+        RequestData.insert(requestData, service, environment)
         Robot.talk(requestData)
       }.map {
         result =>
