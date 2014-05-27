@@ -1,6 +1,5 @@
 package models
 
-
 import scala.collection.mutable.Map
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
@@ -211,27 +210,6 @@ object Service {
   def findAll: Future[List[Service]] = {
     val query = BSONDocument()
     Environment.collection.find(query).cursor[Services].collect[List]().map(l => l.flatMap(s => s.services))
-  }
-
-  /**
-   * Return a list of Service which are linked to an environment which group is the given group
-   */
-  def list(group: String): List[(Service, Environment)] = {
-    ???
-    /*
-    DB.withConnection {
-      implicit connection =>
-        val services = SQL(
-          """
-          select * from service, environment, groups
-          where service.environment_id = environment.id
-          and environment.groupId = groups.id
-          and groups.name = {group}
-          order by environment.name asc, description asc
-          """).on('group -> group).as(Service.withEnvironment *)
-        services
-    }
-    */
   }
 
   /**

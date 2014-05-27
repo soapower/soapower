@@ -368,49 +368,6 @@ object RequestData {
   }
 
   /**
-   * Insert a new RequestData.
-   */
-  def insertStats(environmentId: Long, serviceAction: String, startTime: Date, timeInMillis: Long) = {
-    /*
-    try {
-
-      DB.withConnection {
-        implicit connection =>
-
-          val purgedStats = SQL(
-            """
-            delete from request_data
-            where isStats = 'true'
-            and environmentId = {environmentId}
-            and startTime >= {startTime} and startTime <= {startTime}
-            and serviceAction = {serviceAction}
-            """
-          ).on(
-              'serviceAction -> serviceAction,
-              'environmentId -> environmentId,
-              'startTime -> startTime).executeUpdate()
-
-          Logger.debug("Purged " + purgedStats + " existing stats for:" + environmentId + " serviceAction: " + serviceAction + " and startTime:" + startTime)
-
-          SQL(
-            """
-            insert into request_data
-              (sender, serviceAction, environmentId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status, isStats, isMock) values (
-              '', {serviceAction}, {environmentId}, '', '', {startTime}, '', '', {timeInMillis}, 200, 'true', 'false'
-            )
-            """).on(
-              'serviceAction -> serviceAction,
-              'environmentId -> environmentId,
-              'startTime -> startTime,
-              'timeInMillis -> timeInMillis).executeUpdate()
-      }
-    } catch {
-      case e: Exception => Logger.error("Error during insertion of RequestData Stats", e)
-    }
-    */
-  }
-
-  /**
    * Delete data (request & reponse) between min and max date
    * @param environmentIn environmement or "" / all if all
    * @param minDate min date
@@ -844,80 +801,6 @@ object RequestData {
   }
 
 
-  def loadAvgResponseTimesByEnvirAndAction(groupName: String, environmentName: String, serviceAction: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): Long = {
-    ???
-    /*
-    var avg = -1.toLong
-    DB.withConnection {
-      implicit connection =>
-        var whereClause = " where startTime >= {minDate} and startTime <= {maxDate} "
-        if (!withStats) whereClause += " and isStats = 'false' "
-        whereClause += " and serviceAction = \"" + serviceAction + "\""
-
-        if (groupName != "all")
-          whereClause += "and request_data.id = environment.id and environment.groupId = " + Group.options.find(t => t._2 == groupName).get._1
-        else
-          whereClause += "and request_data.environmentId = environment.id "
-
-        whereClause += "and environment.name = \"" + environmentName + "\" "
-        val fromClause = " from request_data, environment, groups "
-
-        val sql = "select timeInMillis " + fromClause + whereClause + " order by timeInMillis asc"
-        Logger.debug("SQL (loadAvgResponseTimesByEnvirAndAction) ====> " + sql)
-        val responseTimes = SQL(sql)
-          .on(
-            'minDate -> minDate,
-            'maxDate -> maxDate)
-          .as(get[Long]("timeInMillis") *)
-          .toList
-        val times = responseTimes.slice(0, responseTimes.size * 9 / 10)
-        if (responseTimes.size != 0 && times.size != 0) {
-          avg = times.sum / times.size
-        }
-    }
-    avg
-    */
-  }
-
-  def loadAvgResponseTimesBySpecificAction(groupName: String, serviceAction: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): Long = {
-    ???
-    /*
-    var avg = -1.toLong
-    DB.withConnection {
-      implicit connection =>
-        var whereClause = " where startTime >= {minDate} and startTime <= {maxDate} "
-        whereClause += sqlAndStatus(status)
-        if (!withStats) whereClause += " and isStats = 'false' "
-        Logger.debug("Load Stats with ServiceAction: " + serviceAction)
-        whereClause += " and serviceAction = \"" + serviceAction + "\""
-
-        if (groupName != "all")
-          whereClause += "and request_data.id = environment.id and environment.groupId = " + Group.options.find(t => t._2 == groupName).get._1
-        else
-          whereClause += "and request_data.environmentId = environment.id"
-
-        val fromClause = " from request_data, environment, groups "
-        val sql = "select timeInMillis " + fromClause + whereClause + " order by timeInMillis asc"
-        Logger.debug("SQL (loadAvgResponseTimesBySpecificAction) ====> " + sql)
-
-        val responseTimes = SQL(sql)
-          .on(
-            'minDate -> minDate,
-            'maxDate -> maxDate)
-          .as(get[Long]("timeInMillis") *)
-          .toList
-
-
-
-        val times = responseTimes.slice(0, responseTimes.size * 9 / 10)
-        if (responseTimes.size != 0 && times.size != 0) {
-          avg = times.sum / times.size;
-        }
-    }
-    avg
-    */
-  }
-
   def loadAvgResponseTimesByAction(groupNames: List[String], environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, (Long, Int))] = {
 
     val query = BSONDocument("environmentName" -> environmentName,
@@ -1171,58 +1054,6 @@ object RequestData {
     val query = BSONDocument("_id" -> BSONObjectID(id))
     val projection = BSONDocument("response" -> 1, "contentType" -> 1)
     collection.find(query, projection).cursor[BSONDocument].headOption
-  }
-
-  /**
-   * Upload a csvLine => insert requestDataStat.
-   *
-   * @param csvLine line in csv file
-   * @return nothing
-   */
-  def upload(csvLine: String) = {
-    ???
-    /*
-    val dataCsv = csvLine.split(";")
-
-    if (dataCsv.size != csvTitle.size)
-      throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
-
-    if (dataCsv(csvTitle.get("key").get) != csvKey) {
-      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
-    } else {
-      val environmentName = dataCsv(csvTitle.get("environmentName").get).trim
-      val e = Environment.findByName(environmentName)
-
-      e.map {
-        environment =>
-          insertStats(environment.id, dataCsv(csvTitle.get("serviceAction").get).trim, UtilDate.parse(dataCsv(csvTitle.get("startTime").get).trim), dataCsv(csvTitle.get("timeInMillis").get).toLong)
-      }.getOrElse {
-        Logger.warn("Warning : Environment " + environmentName + " unknown")
-        throw new Exception("Warning : Environment " + environmentName + " already exist")
-      }
-    }
-    */
-  }
-
-  /**
-   * Compress a string with Gzip
-   *
-   * @param inputString String to compress
-   * @return compressed string
-   */
-  def compressString(inputString: String): Array[Byte] = {
-    try {
-      val os = new ByteArrayOutputStream(inputString.length())
-      val gos = new GZIPOutputStream(os)
-      gos.write(inputString.getBytes(Charset.forName("utf-8")))
-      gos.close()
-      val compressed = os.toByteArray()
-      os.close()
-      compressed
-    } catch {
-      case e: Exception => Logger.error("compressString : Error during compress string")
-        inputString.getBytes(Charset.forName("utf-8"))
-    }
   }
 
   /**

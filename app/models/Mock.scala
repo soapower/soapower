@@ -100,20 +100,6 @@ object Mock {
   }
 
   /**
-   * Construct the Map[String,String] needed to fill a select options set.
-   */
-  private def optionsAll: Seq[(String, String)] = {
-    ???
-    /*implicit connection =>
-      val envs = Cache.getOrElse[Seq[(String, String)]](keyCacheAllOptions) {
-        Logger.debug("Mocks not found in cache: loading from db")
-        SQL("select * from mock order by name").as(Mock.simple *).map(c => c.id.toString -> c.name)
-      }
-      envs
-      */
-  }
-
-  /**
    * Retrieve a Mock.
    * @param mockGroupName Name of mock Group
    * @param mockId ObjectID of mock
@@ -124,20 +110,6 @@ object Mock {
     val projection = BSONDocument("mocks" -> BSONDocument(
       "$elemMatch" -> BSONDocument("_id" -> BSONObjectID(mockId))))
     MockGroup.collection.find(query, projection).cursor[Mock].headOption
-  }
-
-  /**
-   * Retrieve an Mock from name.
-   */
-  def findByName(name: String): Option[Mock] = {
-    ???
-    /*
-    // FIXME : add key to clearCache
-    //Cache.getOrElse[Option[Mock]](keyCacheByName + name) {
-      SQL("select * from mock where name = {name}").on(
-        'name -> name).as(Mock.simple.singleOpt)
-    //}
-    */
   }
 
   /**
@@ -189,53 +161,6 @@ object Mock {
 
   def clearCache() {
     Cache.remove(keyCacheAllOptions)
-  }
-
-  /**
-   * Return a list of all Mock which are contained into the given group
-   *
-   */
-  def list(mockGroup: String): List[Mock] = {
-    ???
-    /*
-    DB.withConnection {
-      implicit connection =>
-
-        val mocks = SQL(
-          """
-          select mock.id, mock.name, mock.mockGroupId, mock.description, mock.timeoutms,
-          mock.httpStatus, mock.httpHeaders, mock.criteria
-          from mock, mock_group
-          where mock.mockGroupId = mock_group.id
-          and mock_group.name = {mockGroup}
-          order by mock.mockGroupId asc, mock.name
-          """).on('mockGroup -> mockGroup).as(Mock.simpleWithoutResponse *)
-
-        mocks
-    }
-    */
-  }
-
-  /**
-   * Return a list of all Mock
-   *
-   */
-  def list(): List[Mock] = {
-
-    ???
-    /*
-    DB.withConnection {
-      implicit connection =>
-
-        val mocks = SQL(
-          """
-          select id, name, mockGroupId, description, timeoutms, criteria from mock
-          order by mock.name
-          """).as(Mock.simpleWithoutResponse *)
-
-        mocks
-    }
-    */
   }
 
   /**
