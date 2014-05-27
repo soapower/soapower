@@ -10,6 +10,7 @@ import scala.concurrent.{Await, Future}
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import models.RequestData._
 import org.jboss.netty.handler.codec.http.HttpMethod
+import scala.util.{Failure, Success}
 
 object Soap extends Controller {
 
@@ -136,34 +137,30 @@ object Soap extends Controller {
 
   private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String], requestContentType: String): Future[SimpleResult] = {
     val service = Service.findByLocalTargetAndEnvironmentName(Service.SOAP, localTarget, environmentName)
-    service.map {
-      svc => {
-        if (svc.isDefined && svc.get != null) {
-          val client = new Client(svc.get, sender, content, headers, Service.SOAP, requestContentType)
-          if (svc.get.useMockGroup && svc.get.mockGroupId.isDefined) {
-            val mock = Mock.findByMockGroupAndContent(BSONObjectID(svc.get.mockGroupId.get), content)
-            client.workWithMock(mock)
-            val sr = new Results.Status(mock.httpStatus).stream(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
-              .withHeaders("ProxyVia" -> "soapower")
-              .withHeaders(UtilConvert.headersFromString(mock.httpHeaders).toArray: _*)
-              .as(XML)
-
-            val timeoutFuture = play.api.libs.concurrent.Promise.timeout(sr, mock.timeoutms.milliseconds)
-            Await.result(timeoutFuture, 10.second) // 10 seconds (10000 ms) is the maximum allowed.
-          } else {
-            client.sendSoapRequestAndWaitForResponse
-            // forward the response to the client
-            new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
-              .withHeaders("ProxyVia" -> "soapower")
-              .withHeaders(client.response.headers.toArray: _*).as(XML)
-          }
+    service.map(svc =>
+      if (svc.isDefined && svc.get != null) {
+        val client = new Client(svc.get, sender, content, headers, Service.SOAP, requestContentType)
+        if (svc.get.useMockGroup && svc.get.mockGroupId.isDefined) {
+          val mock = Mock.findByMockGroupAndContent(BSONObjectID(svc.get.mockGroupId.get), content)
+          client.workWithMock(mock)
+          val sr = new Results.Status(mock.httpStatus).stream(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
+            .withHeaders("ProxyVia" -> "soapower")
+            .withHeaders(UtilConvert.headersFromString(mock.httpHeaders).toArray: _*)
+            .as(XML)
+          val timeoutFuture = play.api.libs.concurrent.Promise.timeout(sr, mock.timeoutms.milliseconds)
+          Await.result(timeoutFuture, 10.second) // 10 seconds (10000 ms) is the maximum allowed.
         } else {
-          val err = "environment " + environmentName + " with localTarget " + localTarget + " unknown"
-          Logger.error(err)
-          BadRequest(err)
+          client.sendSoapRequestAndWaitForResponse
+          // forward the response to the client
+          new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
+            .withHeaders("ProxyVia" -> "soapower")
+            .withHeaders(client.response.headers.toArray: _*).as(XML)
         }
-
+      } else {
+        val err = "environment " + environmentName + " with localTarget " + localTarget + " unknown"
+        Logger.error(err)
+        BadRequest(err)
       }
-    }
+    )
   }
 }

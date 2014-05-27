@@ -280,10 +280,7 @@ object Environment {
    */
   def findByNameAndGroups(name: String, groups: String): Future[Option[Environment]] = {
     val find = BSONDocument("name" -> name, "groups" -> BSONDocument("$in" -> groups.split(',')))
-    collection.
-
-      find(find).
-      one[Environment]
+    collection.find(find).one[Environment]
   }
 
   /**
@@ -324,7 +321,6 @@ object Environment {
     Environment.findAll.map(environments => environments.map(
       env => {
         var nbDay = 100
-
         val maxDate = new GregorianCalendar
         if (mode == ModePurge.CONTENT)
           nbDay = env.nbDayKeepContentData

@@ -7,6 +7,10 @@ import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
 import play.modules.reactivemongo.json.BSONFormats._
 import play.api.libs.json.Json
+import reactivemongo.bson.BSONInteger
+import reactivemongo.bson.BSONString
+import play.api.Logger
+import org.apache.http.HttpStatus
 
 case class Mock(_id: Option[BSONObjectID],
                 name: String,
@@ -230,28 +234,28 @@ object Mock {
    * Retrieve an Mock from name.
    */
   def findByMockGroupAndContent(mockGroupId: BSONObjectID, requestBody: String): Mock = {
+    Logger.debug("requestBody:" + requestBody)
+    val query = BSONDocument("_id" -> mockGroupId)
+    val mocksGroup = MockGroup.collection.find(query).cursor[Mocks].headOption.value
 
-    ???
-    /*
+    //FIXME work with future
 
-      val mocks: List[Mock] = SQL("select * from mock where mockGroupId = {mockGroupId}").on(
-        'mockGroupId -> mockGroupId).as(Mock.simple *)
-
-      // for each mocks in group, find the first eligible
-      var ret: Mock = null
-      mocks.takeWhile(_ => ret == null).foreach(mock =>
+    var ret: Mock = null
+    if (mocksGroup.isDefined && mocksGroup.get != null && mocksGroup.get.get.isDefined) {
+      val mocks = mocksGroup.get.get
+      mocks.get.mocks.takeWhile(_ => ret == null).foreach(mock =>
         if (mock.criteria.trim().equals("*") || requestBody.contains(mock.criteria)) {
+          Logger.debug("Mock Found : " + mock._id.get.stringify)
           ret = mock
         }
       )
-
-      if (ret == null) {
-        ret = new Mock(-1, "mockNotFoundName", -1,
-          "mockNotFoundDescription", 0, HttpStatus.SC_INTERNAL_SERVER_ERROR, "", "noCriteria",
-          "Error getting Mock with mockGroupId " + mockGroupId
-        )
-      }
-      ret
-      */
+    }
+    if (ret == null) {
+      ret = new Mock(Some(BSONObjectID.generate), "mockNotFoundName", "mockNotFoundDescription", -1,
+        0, HttpStatus.SC_INTERNAL_SERVER_ERROR.toString, "noCriteria", "no mock found in soapower",
+        Some("Error getting Mock with mockGroupId " + mockGroupId)
+      )
+    }
+    ret
   }
 }
