@@ -501,12 +501,14 @@ spApp.directive('spFilter', function ($http, $filter) {
                     $scope.showserviceactions = false;
                     $scope.showlive = true
                     $scope.showstatus = false;
+                    $scope.live = $routeParams.live ? UIService.stringToBoolean($routeParams.live) : false;
                 }
                 else if ($scope.page == "analysis") {
                     $scope.showserviceactions = false;
                     $scope.showlive = true
                     $scope.showstatus = false;
                     $scope.showserviceactions = true;
+                    $scope.live = $routeParams.live ? UIService.stringToBoolean($routeParams.live) : false;
                 }
             }
             $scope.ctrlPath = $scope.$parent.ctrlPath;

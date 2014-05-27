@@ -237,11 +237,12 @@ spApp.factory("LoggersService", function ($http) {
 spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScope) {
     return {
         reloadPage: function ($scope, showServiceactions, page) {
+
             var environment = "all", serviceaction = "all", mindate = "yesterday", maxdate = "today", code = "all", live="false";
 
             if ($scope.environment) environment = $scope.environment;
 
-            if ($scope.live) live = $scope.live
+            if ($scope.live) live = $scope.live;
 
             if ($scope.serviceaction) {
                 serviceaction = encodeURIComponent($scope.serviceaction);
