@@ -24,9 +24,6 @@
 # Default values : 
 # - SOAPOWER_HOME : /opt/soapower
 # - SOAPOWER_HTTP_PORT : 9010
-# - SOAPOWER_DB_URL : jdbc:mysql://localhost:3306/soapower
-# - SOAPOWER_DB_USER : soapower
-# - SOAPOWER_DB_PASSWORD : soapower
 ########################################
 if [[ -z "${SOAPOWER_HOME}" ]]; then
     SOAPOWER_HOME="/opt/soapower"
@@ -34,18 +31,6 @@ fi
 
 if [[ -z "${SOAPOWER_HTTP_PORT}" ]]; then
     SOAPOWER_HTTP_PORT=9010
-fi
-
-if [[ -z "${SOAPOWER_DB_URL}" ]]; then
-    SOAPOWER_DB_URL="jdbc:mysql://localhost:3306/soapower"
-fi
-
-if [[ -z "${SOAPOWER_DB_USER}" ]]; then
-    SOAPOWER_DB_USER="soapower"
-fi
-
-if [[ -z "${SOAPOWER_DB_PASSWORD}" ]]; then
-    SOAPOWER_DB_PASSWORD="soapower"
 fi
 
 ########################################
@@ -145,7 +130,7 @@ start() {
         fi
     fi
 
-    CMD="${SOAPOWER_CURRENT}/bin/soapower -Dlogger.file=${SOAPOWER_CURRENT}/conf/logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT} -DapplyEvolutions.default=true -Ddb.default.url=${SOAPOWER_DB_URL} -Ddb.default.user=${SOAPOWER_DB_USER} -Ddb.default.password=${SOAPOWER_DB_PASSWORD}"
+    CMD="${SOAPOWER_CURRENT}/bin/soapower -Dlogger.file=${SOAPOWER_CURRENT}/conf/logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT}"
 
     if [ "x${RUN}" = "xrun" ]; then
         echo "Running Soapower..."
