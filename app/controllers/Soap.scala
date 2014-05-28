@@ -137,16 +137,19 @@ object Soap extends Controller {
 
   private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String], requestContentType: String): Future[SimpleResult] = {
     val service = Service.findByLocalTargetAndEnvironmentName(Service.SOAP, localTarget, environmentName)
+
     service.map(svc =>
       if (svc.isDefined && svc.get != null) {
         val client = new Client(svc.get, sender, content, headers, Service.SOAP, requestContentType)
         if (svc.get.useMockGroup && svc.get.mockGroupId.isDefined) {
-          val mock = Mock.findByMockGroupAndContent(BSONObjectID(svc.get.mockGroupId.get), content)
+          val fmock = Mock.findByMockGroupAndContent(BSONObjectID(svc.get.mockGroupId.get), content)
+          val mock = Await.result(fmock, 1.second)
           client.workWithMock(mock)
           val sr = new Results.Status(mock.httpStatus).stream(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
             .withHeaders("ProxyVia" -> "soapower")
             .withHeaders(UtilConvert.headersFromString(mock.httpHeaders).toArray: _*)
             .as(XML)
+
           val timeoutFuture = play.api.libs.concurrent.Promise.timeout(sr, mock.timeoutms.milliseconds)
           Await.result(timeoutFuture, 10.second) // 10 seconds (10000 ms) is the maximum allowed.
         } else {

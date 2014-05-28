@@ -233,29 +233,34 @@ object Mock {
   /**
    * Retrieve an Mock from name.
    */
-  def findByMockGroupAndContent(mockGroupId: BSONObjectID, requestBody: String): Mock = {
+  def findByMockGroupAndContent(mockGroupId: BSONObjectID, requestBody: String): Future[Mock] = {
     Logger.debug("requestBody:" + requestBody)
     val query = BSONDocument("_id" -> mockGroupId)
-    val mocksGroup = MockGroup.collection.find(query).cursor[Mocks].headOption.value
+    val mocksGroup = MockGroup.collection.find(query).cursor[Mocks].headOption
 
-    //FIXME work with future
+    mocksGroup.map(
+      omocks => {
+        val noMockFound: Mock = new Mock(Some(BSONObjectID.generate), "mockNotFoundName", "mockNotFoundDescription", -1,
+          0, HttpStatus.SC_INTERNAL_SERVER_ERROR.toString, "noCriteria", "no mock found in soapower",
+          Some("Error getting Mock with mockGroupId " + mockGroupId)
+        )
 
-    var ret: Mock = null
-    if (mocksGroup.isDefined && mocksGroup.get != null && mocksGroup.get.get.isDefined) {
-      val mocks = mocksGroup.get.get
-      mocks.get.mocks.takeWhile(_ => ret == null).foreach(mock =>
-        if (mock.criteria.trim().equals("*") || requestBody.contains(mock.criteria)) {
-          Logger.debug("Mock Found : " + mock._id.get.stringify)
-          ret = mock
+        if (omocks.isDefined) {
+          val mocks = omocks.get.mocks
+          var ret = null.asInstanceOf[Mock]
+          Logger.debug("mockgroup found with " + mocks.length + " nb")
+          mocks.takeWhile(_ => ret == null).foreach(mock =>
+            if (mock.criteria.trim().equals("*") || requestBody.contains(mock.criteria)) {
+              Logger.debug("Mock Found : " + mock._id.get.stringify)
+              ret = mock
+            }
+          )
+          if (ret == null) noMockFound else ret
+        } else {
+          noMockFound
         }
-      )
-    }
-    if (ret == null) {
-      ret = new Mock(Some(BSONObjectID.generate), "mockNotFoundName", "mockNotFoundDescription", -1,
-        0, HttpStatus.SC_INTERNAL_SERVER_ERROR.toString, "noCriteria", "no mock found in soapower",
-        Some("Error getting Mock with mockGroupId " + mockGroupId)
-      )
-    }
-    ret
+      }
+    )
   }
+
 }
