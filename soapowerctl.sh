@@ -173,7 +173,6 @@ stop() {
         return 0
     fi
 
-
     echo "Stopping Soapower (on running http.port ${SOAPOWER_HTTP_PORT})..."
     ps -ef | grep java | grep soapower | grep "http.port=${SOAPOWER_HTTP_PORT}" | grep -v grep | while read a b c; do kill -15 $b ; done
 
