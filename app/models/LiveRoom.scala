@@ -235,6 +235,6 @@ case class Connected(enumerator: Enumerator[JsValue])
 
 case class CannotConnect(msg: String)
 
-case class ChangeCriterias(username: String, criteria: Tuple2[String, String])
+case class ChangeCriterias(username: String, criteria: (String, String))
 
 case class Criterias(group: String, environment: String, serviceAction: String, code: String, search: String, request: Boolean, response: Boolean)

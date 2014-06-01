@@ -2,14 +2,9 @@ package models
 
 import play.api.Play.current
 import reactivemongo.bson._
-import reactivemongo.api.collections.default.BSONCollection
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import play.modules.reactivemongo.json.BSONFormats._
 import play.api.libs.json.Json
-import scala.Some
-import reactivemongo.api.collections.default.BSONCollection
-import reactivemongo.bson.BSONInteger
-import reactivemongo.bson.BSONBoolean
 import reactivemongo.bson.BSONString
 import scala.Some
 import reactivemongo.api.collections.default.BSONCollection
@@ -22,7 +17,6 @@ import scala.util.Failure
 import org.joda.time.DateTime
 import java.util.Date
 import scala.collection.mutable.ListBuffer
-import org.joda.time.format.ISODateTimeFormat
 import reactivemongo.core.commands.RawCommand
 
 case class Stat(_id: Option[BSONObjectID],
@@ -85,8 +79,7 @@ object Stat {
         if (!option.isDefined) {
           Logger.debug("New statistics for env : " + stat.environmentName + ", in groups : " + stat.groups.mkString(", ") + " and for serviceAction : " + stat.serviceAction + " at " + stat.atDate.toDate)
           collection.insert(stat)
-        }
-        else {
+        } else {
           Logger.debug("This statistic already exists")
         }
       case Failure(e) => throw new Exception("Error when inserting statistic")
@@ -112,10 +105,7 @@ object Stat {
    * @return
    */
   def fetchCsv(): Future[List[String]] = {
-    findAll.map(statistic => statistic.map {
-      s =>
-        csv(s)
-    })
+    findAll.map(statistic => statistic.map { s => csv(s)})
   }
 
   def findAll(): Future[List[Stat]] = {
@@ -133,9 +123,7 @@ object Stat {
    */
   def findByGroupsEnvirServiceDate(stat: Stat): Future[Option[Stat]] = {
     val find = BSONDocument("groups" -> stat.groups, "environmentName" -> stat.environmentName, "serviceAction" -> stat.serviceAction, "atDate" -> BSONDocument("$eq" -> BSONDateTime(stat.atDate.toDate.getTime)))
-    collection
-      .find(find)
-      .one[Stat]
+    collection.find(find).one[Stat]
   }
 
   case class PageStat(groups: List[String], environmentName: String, serviceAction: String, avgInMillis: Long, treshold: Long)
@@ -248,16 +236,13 @@ object Stat {
                                     group =>
                                       groups += group.asInstanceOf[BSONString].value
                                   }
-                                }
-                                if (groupsOrService._1 == "serviceAction") {
+                                } else if (groupsOrService._1 == "serviceAction") {
                                   sa = groupsOrService._2.asInstanceOf[BSONString].value
-                                }
-                                if (groupsOrService._1 == "environmentName") {
+                                } else if (groupsOrService._1 == "environmentName") {
                                   realEnvironmentName = groupsOrService._2.asInstanceOf[BSONString].value
                                 }
                             }
-                          }
-                          else if (stat._1 == "totalAvg") {
+                          } else if (stat._1 == "totalAvg") {
                             // We retrieve the average
                             avg = stat._2.asInstanceOf[BSONDouble].value.toLong
                           }
@@ -298,9 +283,7 @@ object Stat {
       matchQuery = matchQuery ++ ("serviceAction" -> serviceAction)
     }
 
-    groupQuery = groupQuery ++
-      ("groups" -> "$groups",
-        "serviceAction" -> "$serviceAction")
+    groupQuery = groupQuery ++("groups" -> "$groups", "serviceAction" -> "$serviceAction")
 
     // We remove 1000 millisecond to minDate to avoid issue with last two milliseconds being random
     // when mindate is set to yesterday
@@ -363,23 +346,18 @@ object Stat {
                                 group =>
                                   groups += group.asInstanceOf[BSONString].value
                               }
-                            }
-                            if (id._1 == "serviceAction") {
+                            } else if (id._1 == "serviceAction") {
                               serviceAction = id._2.asInstanceOf[BSONString].value
-                            }
-                            if (id._1 == "serviceAction") {
+                            } else if (id._1 == "serviceAction") {
                               serviceAction = id._2.asInstanceOf[BSONString].value
                             }
                         }
-                      }
-
-                      else if (stat._1 == "dates") {
+                      } else if (stat._1 == "dates") {
                         dates = stat._2.asInstanceOf[BSONArray].values.toList.map {
                           date =>
                             date.asInstanceOf[BSONDateTime].value
                         }
-                      }
-                      else if (stat._1 == "avgs") {
+                      } else if (stat._1 == "avgs") {
                         avgs = stat._2.asInstanceOf[BSONArray].values.toList.map {
                           avg =>
                             avg.asInstanceOf[BSONLong].value

@@ -14,7 +14,6 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import reactivemongo.core.commands.RawCommand
 import play.api.Logger
 import reactivemongo.api.collections.default.BSONCollection
-import org.joda.time.DateTime
 
 case class Environment(_id: Option[BSONObjectID],
                        name: String,
@@ -274,8 +273,8 @@ object Environment {
 
   /**
    * Find an environment using his name and retrieve it if the groups in parameters match the environment groups
-   * @param name
-   * @param groups
+   * @param name name of environment
+   * @param groups groups, separated by ',', example group1,group2...
    * @return
    */
   def findByNameAndGroups(name: String, groups: String): Future[Option[Environment]] = {
@@ -289,11 +288,7 @@ object Environment {
    */
   def findNamesAndGroups(): List[(String, List[String])] = {
     val query = collection.find(BSONDocument()).cursor[Environment].collect[List]().map {
-      list =>
-        list.map {
-          envir =>
-            (envir.name, envir.groups)
-        }
+      list => list.map { envir => (envir.name, envir.groups)}
     }
     Await.result(query, 1.second)
   }
