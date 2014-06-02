@@ -157,7 +157,7 @@ object Soap extends Controller {
           // forward the response to the client
           new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
             .withHeaders("ProxyVia" -> "soapower")
-            .withHeaders(client.response.headers.toArray: _*).as(XML)
+            .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
         }
       } else {
         val err = "environment " + environmentName + " with localTarget " + localTarget + " unknown"
