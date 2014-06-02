@@ -2,7 +2,7 @@ import play.Project._
 
 name         := "soapower"
 
-version      := "2.0.0-Alpha1"
+version      := "2.0.0-Alpha2"
 
 libraryDependencies ++= Seq(
     cache,
