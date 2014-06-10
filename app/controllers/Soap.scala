@@ -10,7 +10,6 @@ import scala.concurrent.{Await, Future}
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import models.RequestData._
 import org.jboss.netty.handler.codec.http.HttpMethod
-import scala.util.{Failure, Success}
 
 object Soap extends Controller {
 

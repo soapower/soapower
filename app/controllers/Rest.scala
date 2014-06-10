@@ -9,18 +9,18 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.mvc.SimpleResult
-import play.api.http.HeaderNames
+import org.jboss.netty.handler.codec.http.HttpMethod
+import reactivemongo.bson.{BSONDocument, BSONObjectID}
 
 object Rest extends Controller {
 
   def forwardMock(content: String, service: Service, sender: String, headers: Map[String, String], correctUrl: String,
                   requestContentType: String): SimpleResult = {
-    ???
-    //TODO
-    /*
-
     val client = new Client(service, sender, content, headers, Service.REST, requestContentType)
-    val mock = Mock.findByMockGroupAndContent(service.mockGroupId, content)
+
+    val fmock = Mock.findByMockGroupAndContent(BSONObjectID(service.mockGroupId.get), content)
+    val mock = Await.result(fmock, 1.second)
+    client.workWithMock(mock)
 
     val sr = new Results.Status(mock.httpStatus).chunked(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
       .withHeaders("ProxyVia" -> "soapower")
@@ -29,7 +29,7 @@ object Rest extends Controller {
 
     val timeoutFuture = play.api.libs.concurrent.Promise.timeout(sr, mock.timeoutms.milliseconds)
     Await.result(timeoutFuture, 10.second) // 10 seconds (10000 ms) is the maximum allowed.
-    */
+
   }
 
   def autoIndex(group: String, environment: String, remoteTarget: String) = Action {
@@ -141,11 +141,8 @@ object Rest extends Controller {
       */
   }
 
-  def index(environment: String, call: String) = Action {
-    request =>
-      ???
-    //TODO
-    /*
+  def index(environment: String, call: String) = Action.async {
+    implicit request =>
       val sender = request.remoteAddress
       val headers = request.headers.toSimpleMap
 
@@ -157,12 +154,12 @@ object Rest extends Controller {
       val httpMethod = request.method
 
       // We retrieve the id of the service bound to the call
-      val service = Service.findByLocalTargetAndEnvironmentName(Service.REST, call, environment, request.method.toLowerCase)
+      val service = Service.findByLocalTargetAndEnvironmentName(Service.REST, call, environment, HttpMethod.valueOf(request.method))
 
-      service.map {
-        service =>
-        // Get the correct URL for the redirection by parsing the call.
-          val remoteTargetWithCall = getRemoteTargetWithCall(call, service.remoteTarget, service.localTarget)
+      service.map(svc => {
+        if (svc.isDefined && svc.get != null) {
+          // Get the correct URL for the redirection by parsing the call.
+          val remoteTargetWithCall = getRemoteTargetWithCall(call, svc.get.remoteTarget, svc.get.localTarget)
           // The contentType is set to none by default
           var contentType = "None"
           var requestContent = ""
@@ -197,73 +194,80 @@ object Rest extends Controller {
             }
           }
 
-          if (service.useMockGroup) {
-            forwardMock(requestContent, service, sender, headers, remoteTargetWithCall, contentType)
+          if (svc.get.useMockGroup && svc.get.mockGroupId.isDefined) {
+            forwardMock(requestContent, svc.get, sender, headers, remoteTargetWithCall, contentType)
           } else {
             // Forward the request
-            forwardRequest(requestContent, query, service, sender, headers, remoteTargetWithCall, contentType)
+            forwardRequest(requestContent, query, svc.get, sender, headers, remoteTargetWithCall, contentType)
           }
-      }.getOrElse {
-        val err = "No REST service with the environment " + environment + " and the HTTP method " + httpMethod + " matches the call " + call
-        Logger.error(err)
-        BadRequest(err)
-      }
-      */
+        } else {
+          val err = "No REST service with the environment " + environment + " and the HTTP method " + httpMethod + " matches the call " + call
+          Logger.error(err)
+          BadRequest(err)
+        }
+      })
   }
 
-  def replay(requestId: String) = Action {
+  def replay(requestId: String) = Action.async {
     implicit request =>
-      ???
-    //TODO
-    /*
+      RequestData.loadRequest(requestId).map {
+        tuple => tuple match {
+          case Some(doc: BSONDocument) =>
+            val requestContentType = doc.getAs[String]("contentType").get
+            val sender = doc.getAs[String]("sender").get
+            val content = request.body.toString()
+            import RequestData._
+            val headers = doc.getAs[Map[String, String]]("requestHeaders").get
+            val environmentName = doc.getAs[String]("environmentName").get
+            val s = Service.findById(environmentName, doc.getAs[BSONObjectID]("serviceId").get.stringify)
+            val service = Await.result(s, 1.seconds)
 
-      val requestData = RequestData.loadForREST(requestId)
+            val requestCall = doc.getAs[String]("requestCall").get
 
-      // The http method is retrieved from the service
-      val headers = requestData.requestHeaders
-      val service = Service.findById(requestData.serviceId).get
-      val httpMethod = service.httpMethod
-      var requestContentType = "None"
-      var requestContent = ""
+            if (!service.isDefined) {
+              NotFound("The service " + doc.getAs[BSONObjectID]("serviceId").get.stringify + " does not exist")
+            } else {
 
-      httpMethod match {
-        case "get" | "delete" =>
-          requestContent = getRequestContent(requestData.requestCall, "")
-        case "post" | "delete" =>
-          requestContentType = request.contentType.get
-          requestContentType match {
-            case "application/json" =>
-              requestContent = request.body.asJson.get.toString
-            case "application/xml" | "text/xml" =>
-              requestContent = request.body.asXml.get.toString
-          }
+              val httpMethod = service.get.httpMethod
+              var requestContent = ""
+
+              httpMethod match {
+                case "get" | "delete" =>
+                  requestContent = getRequestContent(requestCall, "")
+                case "post" | "delete" =>
+                  requestContentType match {
+                    case "application/json" =>
+                      requestContent = request.body.asJson.get.toString
+                    case "application/xml" | "text/xml" =>
+                      requestContent = request.body.asXml.get.toString
+                  }
+              }
+
+              val query = request.queryString.map {
+                case (k, v) => k -> v.mkString
+              }
+
+              forwardRequest(requestContent, query, service.get, sender, headers, requestCall, requestContentType, true)
+            }
+          case _ =>
+            NotFound("The request does not exist")
+        }
       }
 
-      val sender = requestData.sender
-      val requestCall = requestData.requestCall
-      val query = request.queryString.map {
-        case (k, v) => k -> v.mkString
-      }
 
-      forwardRequest(requestContent, query, service, sender, headers, requestCall, requestContentType, true)
-      */
   }
 
   def forwardRequest(content: String, query: Map[String, String], service: Service, sender: String, headers: Map[String, String], requestCall: String,
                      requestContentType: String, isReplay: Boolean = false): SimpleResult = {
-    ???
-    //TODO
-    /*
     val client = new Client(service, sender, content, headers, Service.REST, requestContentType)
-    client.sendRestRequestAndWaitForResponse(service.httpMethod, requestCall, query)
+    client.sendRestRequestAndWaitForResponse(HttpMethod.valueOf(service.httpMethod), requestCall, query)
     // Handle status with empty response
-    if(client.response.body == "")
+    if (client.response.body == "")
       client.response.contentType = "text/xml"
     new Results.Status(client.response.status).apply(client.response.bodyBytes)
       .withHeaders("ProxyVia" -> "soapower")
       .withHeaders(client.response.headers.toArray: _*)
       .as(client.response.contentType)
-      */
   }
 
   /**
@@ -274,7 +278,6 @@ object Rest extends Controller {
    * @return
    */
   private def getRemoteTargetWithCall(call: String, remoteTarget: String, localTarget: String): String = {
-
     val effectiveCall = call.split(localTarget)
     if (effectiveCall.length > 1) {
       return remoteTarget + call.split(localTarget)(1)
