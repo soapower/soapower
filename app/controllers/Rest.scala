@@ -5,32 +5,14 @@ import play.Logger
 import java.net.URLDecoder
 import play.api.libs.iteratee.Enumerator
 import models._
-import scala.concurrent.Await
+import scala.concurrent.{Future, Await}
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.mvc.SimpleResult
 import org.jboss.netty.handler.codec.http.HttpMethod
-import reactivemongo.bson.{BSONDocument, BSONObjectID}
+import reactivemongo.bson.{BSONObjectID, BSONDocument}
 
 object Rest extends Controller {
-
-  def forwardMock(content: String, service: Service, sender: String, headers: Map[String, String], correctUrl: String,
-                  requestContentType: String): SimpleResult = {
-    val client = new Client(service, sender, content, headers, Service.REST, requestContentType)
-
-    val fmock = Mock.findByMockGroupAndContent(BSONObjectID(service.mockGroupId.get), content)
-    val mock = Await.result(fmock, 1.second)
-    client.workWithMock(mock)
-
-    val sr = new Results.Status(mock.httpStatus).chunked(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
-      .withHeaders("ProxyVia" -> "soapower")
-      .withHeaders(UtilConvert.headersFromString(mock.httpHeaders).toArray: _*)
-      .as(client.requestData.contentType)
-
-    val timeoutFuture = play.api.libs.concurrent.Promise.timeout(sr, mock.timeoutms.milliseconds)
-    Await.result(timeoutFuture, 10.second) // 10 seconds (10000 ms) is the maximum allowed.
-
-  }
 
   def autoIndex(group: String, environment: String, remoteTarget: String) = Action {
     request =>
@@ -152,60 +134,78 @@ object Rest extends Controller {
         case (k, v) => URLDecoder.decode(k, "UTF-8") -> URLDecoder.decode(v.mkString, "UTF-8")
       }
       val httpMethod = request.method
+      val contentType = request.contentType
+      val queryString = URLDecoder.decode(request.rawQueryString, "UTF-8")
 
-      // We retrieve the id of the service bound to the call
-      val service = Service.findByLocalTargetAndEnvironmentName(Service.REST, call, environment, HttpMethod.valueOf(request.method))
+      forwardRequest(call, environment, sender, headers, requestBody, query, httpMethod, contentType, queryString)
+  }
 
-      service.map(svc => {
-        if (svc.isDefined && svc.get != null) {
-          // Get the correct URL for the redirection by parsing the call.
-          val remoteTargetWithCall = getRemoteTargetWithCall(call, svc.get.remoteTarget, svc.get.localTarget)
-          // The contentType is set to none by default
-          var contentType = "None"
-          var requestContent = ""
+  private def forwardRequest(call: String, environment: String, sender: String, headers: Map[String, String], requestBody: AnyContent, query: Map[String, String], httpMethod: String, contentType: Option[String], queryString: String): Future[SimpleResult] = {
 
-          httpMethod match {
-            case "GET" | "DELETE" => {
-              // We decode the query
-              val queryString = URLDecoder.decode(request.rawQueryString, "UTF-8")
-              // The content of a GET or DELETE http request is the http method and the remote target call
-              requestContent = getRequestContent(remoteTargetWithCall, queryString)
-            }
+    // We retrieve the id of the service bound to the call
+    val service = Service.findByLocalTargetAndEnvironmentName(Service.REST, call, environment, HttpMethod.valueOf(httpMethod))
 
-            case "POST" | "PUT" => {
-              // The contentType is set to the content type of the request
-              contentType = request.contentType.get
-              // The request has a POST or a PUT http method so the request has a body in JSON or XML format
-              contentType match {
-                case "application/json" =>
-                  requestContent = requestBody.asJson.get.toString
-                case "application/xml" | "text/xml" =>
-                  requestContent = requestBody.asXml.get.toString
-                case _ =>
-                  val err = "Soapower doesn't support request body in this format : " + contentType
-                  Logger.error(err)
-                  BadRequest(err)
-              }
-            }
-            case _ => {
-              val err = "Soapower doesn't support this HTTP method"
-              Logger.error(err)
-              BadRequest(err)
-            }
+    service.map(svc =>
+      if (svc.isDefined && svc.get != null) {
+        // Get the correct URL for the redirection by parsing the call.
+        val remoteTargetWithCall = getRemoteTargetWithCall(call, svc.get.remoteTarget, svc.get.localTarget)
+        // The contentType is set to none by default
+        var requestContent = ""
+
+        var err = ""
+        var contentTypeExtract = "None"
+
+        httpMethod match {
+          case "GET" | "DELETE" => {
+            // The content of a GET or DELETE http request is the http method and the remote target call
+            requestContent = getRequestContent(remoteTargetWithCall, queryString)
           }
 
-          if (svc.get.useMockGroup && svc.get.mockGroupId.isDefined) {
-            forwardMock(requestContent, svc.get, sender, headers, remoteTargetWithCall, contentType)
-          } else {
-            // Forward the request
-            forwardRequest(requestContent, query, svc.get, sender, headers, remoteTargetWithCall, contentType)
+          case "POST" | "PUT" => {
+            contentTypeExtract = contentType.get
+            // The request has a POST or a PUT http method so the request has a body in JSON or XML format
+            contentType.get match {
+              case "application/json" =>
+                requestContent = requestBody.asJson.get.toString
+              case "application/xml" | "text/xml" =>
+                requestContent = requestBody.asXml.get.toString
+              case _ =>
+                err = "Soapower doesn't support request body in this format : " + contentType
+            }
           }
-        } else {
-          val err = "No REST service with the environment " + environment + " and the HTTP method " + httpMethod + " matches the call " + call
+          case _ => {
+            err = "Soapower doesn't support this HTTP method"
+          }
+        }
+
+        val client = new Client(svc.get, sender, requestContent, headers, Service.REST, contentTypeExtract)
+
+        if (err != "") {
           Logger.error(err)
           BadRequest(err)
+        } else if (svc.get.useMockGroup && svc.get.mockGroupId.isDefined) {
+          val fmock = Mock.findByMockGroupAndContent(BSONObjectID(svc.get.mockGroupId.get), requestContent)
+          val mock = Await.result(fmock, 1.second)
+          client.workWithMock(mock)
+
+          val sr = new Results.Status(mock.httpStatus).chunked(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
+            .withHeaders("ProxyVia" -> "soapower")
+            .withHeaders(UtilConvert.headersFromString(mock.httpHeaders).toArray: _*).as(client.requestData.contentType)
+
+          val timeoutFuture = play.api.libs.concurrent.Promise.timeout(sr, mock.timeoutms.milliseconds)
+          Await.result(timeoutFuture, 10.second) // 10 seconds (10000 ms) is the maximum allowed.
+        } else {
+          client.sendRestRequestAndWaitForResponse(HttpMethod.valueOf(httpMethod), remoteTargetWithCall, query)
+          if (client.response.body == "") client.response.contentType = "text/xml"
+          new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
+            .withHeaders("ProxyVia" -> "soapower").withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
         }
-      })
+      } else {
+        val err = "No REST service with the environment " + environment + " and the HTTP method " + httpMethod + " matches the call " + call
+        Logger.error(err)
+        BadRequest(err)
+      }
+    )
   }
 
   def replay(requestId: String) = Action.async {
@@ -227,47 +227,14 @@ object Rest extends Controller {
             if (!service.isDefined) {
               NotFound("The service " + doc.getAs[BSONObjectID]("serviceId").get.stringify + " does not exist")
             } else {
-
-              val httpMethod = service.get.httpMethod
-              var requestContent = ""
-
-              httpMethod match {
-                case "get" | "delete" =>
-                  requestContent = getRequestContent(requestCall, "")
-                case "post" | "delete" =>
-                  requestContentType match {
-                    case "application/json" =>
-                      requestContent = request.body.asJson.get.toString
-                    case "application/xml" | "text/xml" =>
-                      requestContent = request.body.asXml.get.toString
-                  }
-              }
-
-              val query = request.queryString.map {
-                case (k, v) => k -> v.mkString
-              }
-
-              forwardRequest(requestContent, query, service.get, sender, headers, requestCall, requestContentType, true)
+              ???
+              // TODO
+              //Await.result(forwardRequest(requestCall, environmentName, sender, headers, requestBody, query, httpMethod, contentType, queryString), 10.seconds)
             }
           case _ =>
             NotFound("The request does not exist")
         }
       }
-
-
-  }
-
-  def forwardRequest(content: String, query: Map[String, String], service: Service, sender: String, headers: Map[String, String], requestCall: String,
-                     requestContentType: String, isReplay: Boolean = false): SimpleResult = {
-    val client = new Client(service, sender, content, headers, Service.REST, requestContentType)
-    client.sendRestRequestAndWaitForResponse(HttpMethod.valueOf(service.httpMethod), requestCall, query)
-    // Handle status with empty response
-    if (client.response.body == "")
-      client.response.contentType = "text/xml"
-    new Results.Status(client.response.status).apply(client.response.bodyBytes)
-      .withHeaders("ProxyVia" -> "soapower")
-      .withHeaders(client.response.headers.toArray: _*)
-      .as(client.response.contentType)
   }
 
   /**
