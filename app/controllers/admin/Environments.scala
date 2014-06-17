@@ -1,5 +1,7 @@
 package controllers.admin
 
+import java.net.InetSocketAddress
+
 import play.api.mvc._
 import models._
 import play.api.libs.json._
@@ -133,11 +135,15 @@ object Environments extends Controller {
   }
 
   def findAllGroups() = Action.async {
-    // TODO add MockGroup.findAllGroups()
-    Environment.findAllGroups().map {
-      list =>
-        Ok(Json.toJson(list))
+    for {
+      f1 <- MockGroup.findAllGroups()
+      f2 <- Environment.findAllGroups()
+    } yield {
+      f1.get("values")
+      val r = f1.getAs[List[String]]("values").toSet.flatten union f2.getAs[List[String]]("values").toSet.flatten
+      Ok(Json.toJson(r))
     }
+
   }
 
 }
