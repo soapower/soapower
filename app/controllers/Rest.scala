@@ -75,6 +75,7 @@ object Rest extends Controller {
             Service.insert(serviceInsert)
         }.getOrElse {
           err = Some("environment " + environment + " with group " + group + " unknown")
+          Logger.error(err.get)
         }
       }
 
