@@ -155,10 +155,12 @@ object Service {
    * @return service
    */
   def findByLocalTargetAndEnvironmentName(typeRequest: String, localTarget: String, environmentName: String, httpMethod: HttpMethod = HttpMethod.POST): Future[Option[Service]] = {
-    // TODO Use httpMethod and typeRequest
     val query = BSONDocument("name" -> environmentName)
     val projection = BSONDocument("name" -> 1, "services" -> BSONDocument(
-      "$elemMatch" -> BSONDocument("localTarget" -> BSONString(localTarget))))
+      "$elemMatch" -> BSONDocument(
+        "localTarget" -> BSONString(localTarget),
+        "httpMethod" -> BSONString(httpMethod.toString),
+        "typeRequest" -> BSONString(typeRequest))))
     Environment.collection.find(query, projection).cursor[Service].headOption
   }
 
