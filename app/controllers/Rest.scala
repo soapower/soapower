@@ -136,14 +136,12 @@ object Rest extends Controller {
       val httpMethod = request.method
       val contentType = request.contentType
       val queryString = URLDecoder.decode(request.rawQueryString, "UTF-8")
+      val service = Service.findByLocalTargetAndEnvironmentName(Service.REST, call, environment, HttpMethod.valueOf(httpMethod))
 
-      forwardRequest(call, environment, sender, headers, requestBody, query, httpMethod, contentType, queryString)
+      forwardRequest(service, call, environment, sender, headers, requestBody, query, contentType, queryString)
   }
 
-  private def forwardRequest(call: String, environment: String, sender: String, headers: Map[String, String], requestBody: AnyContent, query: Map[String, String], httpMethod: String, contentType: Option[String], queryString: String): Future[SimpleResult] = {
-
-    // We retrieve the id of the service bound to the call
-    val service = Service.findByLocalTargetAndEnvironmentName(Service.REST, call, environment, HttpMethod.valueOf(httpMethod))
+  private def forwardRequest(service: Future[Option[Service]], call: String, environment: String, sender: String, headers: Map[String, String], requestBody: AnyContent, query: Map[String, String], contentType: Option[String], queryString: String): Future[SimpleResult] = {
 
     service.map(svc =>
       if (svc.isDefined && svc.get != null) {
@@ -155,7 +153,7 @@ object Rest extends Controller {
         var err = ""
         var contentTypeExtract = "None"
 
-        httpMethod match {
+        svc.get.httpMethod match {
           case "GET" | "DELETE" => {
             // The content of a GET or DELETE http request is the http method and the remote target call
             requestContent = getRequestContent(remoteTargetWithCall, queryString)
@@ -195,13 +193,13 @@ object Rest extends Controller {
           val timeoutFuture = play.api.libs.concurrent.Promise.timeout(sr, mock.timeoutms.milliseconds)
           Await.result(timeoutFuture, 10.second) // 10 seconds (10000 ms) is the maximum allowed.
         } else {
-          client.sendRestRequestAndWaitForResponse(HttpMethod.valueOf(httpMethod), remoteTargetWithCall, query)
+          client.sendRestRequestAndWaitForResponse(HttpMethod.valueOf(svc.get.httpMethod), remoteTargetWithCall, query)
           if (client.response.body == "") client.response.contentType = "text/xml"
           new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
             .withHeaders("ProxyVia" -> "soapower").withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
         }
       } else {
-        val err = "No REST service with the environment " + environment + " and the HTTP method " + httpMethod + " matches the call " + call
+        val err = "No REST service with the environment " + environment + " and the HTTP method " + svc.get.httpMethod + " matches the call " + call
         Logger.error(err)
         BadRequest(err)
       }
@@ -215,24 +213,21 @@ object Rest extends Controller {
           case Some(doc: BSONDocument) =>
             val requestContentType = doc.getAs[String]("contentType").get
             val sender = doc.getAs[String]("sender").get
-            val content = request.body.toString()
+            val requestBody = request.body
             import RequestData._
             val headers = doc.getAs[Map[String, String]]("requestHeaders").get
             val environmentName = doc.getAs[String]("environmentName").get
-            val s = Service.findById(environmentName, doc.getAs[BSONObjectID]("serviceId").get.stringify)
-            val service = Await.result(s, 1.seconds)
-
+            val service = Service.findById(environmentName, doc.getAs[BSONObjectID]("serviceId").get.stringify)
             val requestCall = doc.getAs[String]("requestCall").get
 
-            if (!service.isDefined) {
-              NotFound("The service " + doc.getAs[BSONObjectID]("serviceId").get.stringify + " does not exist")
-            } else {
-              ???
-              // TODO
-              //Await.result(forwardRequest(requestCall, environmentName, sender, headers, requestBody, query, httpMethod, contentType, queryString), 10.seconds)
+            val query = request.queryString.map {
+              case (k, v) => URLDecoder.decode(k, "UTF-8") -> URLDecoder.decode(v.mkString, "UTF-8")
             }
+            val queryString = URLDecoder.decode(request.rawQueryString, "UTF-8")
+
+            Await.result(forwardRequest(service, requestCall, environmentName, sender, headers, requestBody, query, Some(requestContentType), queryString), 10.seconds)
           case _ =>
-            NotFound("The request does not exist")
+            NotFound("The request " + requestId + "does not exist")
         }
       }
   }

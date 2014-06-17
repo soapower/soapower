@@ -203,7 +203,7 @@ object RequestData {
         "request" -> requestData.request.get,
         "requestHeaders" -> requestData.requestHeaders.get,
         "contentType" -> BSONString(requestData.contentType),
-        "requestCall" -> Option(requestData.requestCall),
+        "requestCall" -> requestData.requestCall,
         "startTime" -> BSONDateTime(requestData.startTime.getMillis),
         "response" -> requestData.response,
         "responseOriginal" -> requestData.responseOriginal,
@@ -1046,7 +1046,7 @@ object RequestData {
 
   def loadRequest(id: String): Future[Option[BSONDocument]] = {
     val query = BSONDocument("_id" -> BSONObjectID(id))
-    val projection = BSONDocument("request" -> 1, "contentType" -> 1, "environmentName" -> 1, "serviceId" -> 1, "sender" -> 1, "requestHeaders" -> 1)
+    val projection = BSONDocument("request" -> 1, "contentType" -> 1, "environmentName" -> 1, "serviceId" -> 1, "sender" -> 1, "requestHeaders" -> 1, "requestCall" -> 1)
     collection.find(query, projection).cursor[BSONDocument].headOption
   }
 

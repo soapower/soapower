@@ -75,7 +75,7 @@ class Client(pService: Service, sender: String, content: String, headers: Map[St
           environment = e.get
         }
     }
-    Await.result(f, 5.second)
+    Await.result(f, 2.second)
 
     new RequestData(sender, serviceAction, service.environmentName.get, environment.groups, service._id.get, requestContentType)
   }
