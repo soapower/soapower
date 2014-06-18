@@ -66,7 +66,7 @@ configtest() {
 
     cd ${SOAPOWER_CURRENT}
     JAR_FILE=`cd lib && ls *soapower*`
-    grep $JAR_FILE bin/soapower >/dev/null 2>&1
+    grep ${JAR_FILE} bin/soapower >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo "ERROR : bin/soapower file does not match with jar in dir lib/, please check your installation"
         ERROR=1
@@ -86,7 +86,7 @@ configtest() {
         ERROR=1
     fi
 
-    return $ERROR
+    return ${ERROR}
 }
 ########################################
 #          Run
@@ -112,7 +112,6 @@ start() {
     RUN=$1
 
     ERROR=0
-    
 
     ps -ef | grep java | grep soapower | grep "http.port=${SOAPOWER_HTTP_PORT}" | grep -v grep >/dev/null 2>&1
 
@@ -130,14 +129,14 @@ start() {
         fi
     fi
 
-    CMD="${SOAPOWER_CURRENT}/bin/soapower -Dlogger.file=${SOAPOWER_CURRENT}/conf/logger-prod.xml -Dhttp.port=${SOAPOWER_HTTP_PORT}"
+    CMD="${SOAPOWER_CURRENT}/bin/soapower -Dhttp.port=${SOAPOWER_HTTP_PORT} -J-server -Dconfig.file=conf/application.conf"
 
     if [ "x${RUN}" = "xrun" ]; then
         echo "Running Soapower..."
-        $CMD
+        ${CMD}
     else
         echo "Starting Soapower (with nohup)..."
-        nohup $CMD >/dev/null 2>&1 &
+        nohup ${CMD} >/dev/null 2>&1 &
 
         if [ $? -ne 0 ]; then
             echo "ERROR while starting soapower. Please run this command and check the log file:"
@@ -156,7 +155,7 @@ start() {
             ERROR=1
         fi
 
-        return $ERROR
+        return ${ERROR}
     fi;
 }
 
@@ -179,7 +178,7 @@ stop() {
     sleep 4
 
     # kill if necessary
-    ps -ef | grep java | grep soapower | grep "http.port=${SOAPOWER_HTTP_PORT}" | grep -v grep | while read a b c; do echo "Normal TERM failed, kill -9 soapower..." kill -9 $b ; done
+    ps -ef | grep java | grep soapower | grep "http.port=${SOAPOWER_HTTP_PORT}" | grep -v grep | while read a b c; do echo "Normal TERM failed, kill -9 soapower..." kill -9 ${b} ; done
 
     return 0
 }
@@ -192,7 +191,7 @@ stop() {
 status() {
     echo "Status (all instances of soapower are scanned):"
     ps -ef | grep java | grep soapower | grep -v grep | while read a b c; do 
-        PORT=$(echo $c | sed 's/\(.*\)-Dhttp.port.\([0-9]*\)\(.*\)/\2/; 1q')
+        PORT=$(echo ${c} | sed 's/\(.*\)-Dhttp.port.\([0-9]*\)\(.*\)/\2/; 1q')
         echo "Soapower is started with pid:$b and http.port:${PORT}"
     done
 
@@ -225,7 +224,7 @@ action() {
         $1
         ERROR=$?
     fi
-    return $ERROR
+    return ${ERROR}
 }
 
 #########################
@@ -237,9 +236,9 @@ ARGV="$@"
 ERROR=0
 
 
-case $ACMD in
+case ${ACMD} in
 start|stop|restart|run)
-    action $ACMD
+    action ${ACMD}
     ERROR=$?
     ;;
 configtest)
@@ -254,4 +253,4 @@ status)
     ERROR=$?
 esac
 
-exit $ERROR
+exit ${ERROR}
