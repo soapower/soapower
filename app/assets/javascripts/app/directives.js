@@ -100,7 +100,7 @@ spApp.directive('spGroups', function () {
 
             $scope.loadGroups = function (callBack) {
                 GroupsService.findAll().success(function (groups) {
-                    $scope.groups = groups.values;
+                    $scope.groups = groups;
                     $scope.groups.unshift("all");
                     if (callBack) callBack();
                 });
