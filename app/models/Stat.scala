@@ -86,28 +86,6 @@ object Stat {
     }
   }
 
-  /**
-   * Title of csvFile. The value is the order of title.
-   */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "groups" -> 2, "environmentName" -> 3, "serviceAction" -> 4, "avgInMillis" -> 5, "nbOfRequestData" -> 6, "atDate" -> 7)
-
-  val csvKey = "Stat"
-
-  /**
-   * Csv format.
-   */
-  def csv(s: Stat) = {
-    csvKey + ";" + s._id.get.stringify + ";" + s.groups.mkString("|") + ";" + s.environmentName + ";" + s.serviceAction + ";" + s.avgInMillis + ";" + s.nbOfRequestData + ";" + s.atDate + "\n"
-  }
-
-  /**
-   * Get all statistics, CSV format
-   * @return
-   */
-  def fetchCsv(): Future[List[String]] = {
-    findAll.map(statistic => statistic.map { s => csv(s)})
-  }
-
   def findAll(): Future[List[Stat]] = {
     collection.
       find(BSONDocument()).

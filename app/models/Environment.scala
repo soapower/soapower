@@ -73,29 +73,6 @@ object Environment {
   private val ENVIRONMENT_NAME_PATTERN = "[a-zA-Z0-9]{1,200}"
 
   /**
-   * Title of csvFile. The value is the order of title.
-   */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groups" -> 3, "hourRecordContentDataMin" -> 4, "hourRecordContentDataMax" -> 5, "nbDayKeepContentData" -> 6, "nbDayKeepAllData" -> 7, "recordContentData" -> 8, "recordData" -> 9)
-
-  val csvKey = "environment"
-
-
-  /**
-   * Csv format.
-   */
-  def csv(e: Environment) = {
-    csvKey + ";" + e._id.get.stringify + ";" + e.name + ";" + e.groups.mkString("|") + ";" + e.hourRecordContentDataMin + ";" + e.hourRecordContentDataMax + ";" + e.nbDayKeepContentData + ";" + e.nbDayKeepAllData + ";" + e.recordContentData + ";" + e.recordData + "\n"
-  }
-
-  /**
-   * Get All environments, csv format.
-   * @return List of Environements, csv format
-   */
-  def fetchCsv(): Future[List[String]] = {
-    findAll.map(environment => environment.map(e => csv(e)))
-  }
-
-  /**
    * Sort the given env option seq
    */
   private def sortEnvs(envs: Seq[(String, String)]): Seq[(String, String)] = {
@@ -334,68 +311,4 @@ object Environment {
     Logger.info("Purging " + mode + " data: done (" + purgedRequests + " requests purged)")
   }
 
-
-  /**
-   * Upload a csvLine => insert environment.
-   *
-   * @param csvLine line in csv file
-   * @return nothing
-   */
-  def upload(csvLine: String) = {
-
-    val dataCsv = csvLine.split(";")
-
-    if (dataCsv.size != csvTitle.size) {
-      throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
-    }
-
-    if (dataCsv(csvTitle.get("key").get) == csvKey) {
-      uploadEnvironment(dataCsv)
-    } else {
-      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
-    }
-  }
-
-  /**
-   * Check if environment already exist (with same name). Insert or do nothing if exist.
-   *
-   * @param dataCsv line in csv file
-   * @return environment (new or not)
-   */
-  private def uploadEnvironment(dataCsv: Array[String]) = {
-
-    val name = dataCsv(csvTitle.get("name").get)
-
-    Logger.debug("upload environment:" + name)
-
-    findByName(name).map {
-      environment => {
-        if (environment == None) {
-          Logger.debug("Insert new environment with name " + name)
-          val newEnvironment = new Environment(Some(BSONObjectID.generate),
-            dataCsv(csvTitle.get("name").get).trim,
-            dataCsv(csvTitle.get("groups").get).split('|').toList, // single quote of split is important
-            dataCsv(csvTitle.get("hourRecordContentDataMin").get).toInt,
-            dataCsv(csvTitle.get("hourRecordContentDataMax").get).toInt,
-            dataCsv(csvTitle.get("nbDayKeepContentData").get).toInt,
-            dataCsv(csvTitle.get("nbDayKeepAllData").get).toInt,
-            dataCsv(csvTitle.get("recordContentData").get).trim == "true",
-            dataCsv(csvTitle.get("recordData").get).trim == "true"
-          )
-          insert(newEnvironment).map {
-            lastError =>
-              if (lastError.ok) {
-                Logger.debug("OK Insert new environment with name " + name)
-              } else {
-                Logger.error("Detected error:%s".format(lastError))
-                throw new Exception("Error while inserting new group with name : " + name)
-              }
-          }
-        } else {
-          Logger.warn("Warning : Environment " + name + " already exist")
-          throw new Exception("Warning : Environment " + name + " already exist")
-        }
-      }
-    }
-  }
 }

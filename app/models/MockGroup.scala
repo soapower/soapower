@@ -47,28 +47,6 @@ object MockGroup {
   private val keyCacheAllOptions = "mockGroup-options"
   private val MOCKGROUP_NAME_PATTERN = "[a-zA-Z0-9]{1,200}"
 
-  /**
-   * Title of csvFile. The value is the order of title.
-   */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groups" -> 3)
-
-  val csvKey = "mockGroup"
-
-  /**
-   * Csv format.
-   */
-  def csv(m: MockGroup) = {
-    csvKey + ";" + m._id.get.stringify + ";" + m.name + ";" + m.groups.mkString("|") + "\n"
-  }
-
-  /**
-   * Get All mockGroups, csv format.
-   * @return List of MockGroups, csv format
-   */
-  def fetchCsv(): Future[List[String]] = {
-    findAll.map(mockGroup => mockGroup.map(e => csv(e)))
-  }
-
 
   /**
    * Retrieve an MockGroup from id.
@@ -179,60 +157,4 @@ object MockGroup {
     collection.db.command(command) // result is Future[BSONDocument]
   }
 
-  /**
-   * Upload a csvLine => insert mockGroup.
-   *
-   * @param csvLine line in csv file
-   * @return nothing
-   */
-  def upload(csvLine: String) = {
-
-    val dataCsv = csvLine.split(";")
-
-    if (dataCsv.size != csvTitle.size) {
-      throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
-    }
-
-    if (dataCsv(csvTitle.get("key").get) == csvKey) {
-      uploadMockGroup(dataCsv)
-    } else {
-      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
-    }
-  }
-
-  /**
-   * Check if mockGroup already exist (with same name). Insert or do nothing if exist.
-   *
-   * @param dataCsv line in csv file
-   * @return mockGroup (new or not)
-   */
-  private def uploadMockGroup(dataCsv: Array[String]) = {
-
-    val name = dataCsv(csvTitle.get("name").get)
-    Logger.debug("upload mockGroup:" + name)
-
-    findByName(name).map {
-      mockGroup => {
-        if (mockGroup == None) {
-          Logger.debug("Insert new mockGroup with name " + name)
-          val newMockGroup = new MockGroup(Some(BSONObjectID.generate),
-            dataCsv(csvTitle.get("name").get).trim,
-            dataCsv(csvTitle.get("groups").get).split('|').toList // single quote of split is important
-          )
-          insert(newMockGroup).map {
-            lastError =>
-              if (lastError.ok) {
-                Logger.debug("OK Insert new mockGroup with name " + name)
-              } else {
-                Logger.error("Detected error:%s".format(lastError))
-                throw new Exception("Error while inserting new group with name : " + name)
-              }
-          }
-        } else {
-          Logger.warn("Warning : MockGroup " + name + " already exist")
-          throw new Exception("Warning : MockGroup " + name + " already exist")
-        }
-      }
-    }
-  }
 }

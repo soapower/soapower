@@ -42,7 +42,6 @@ object Mock {
   implicit val mocksFormat = Json.format[Mocks]
 
   private val keyCacheAllOptions = "mock-options"
-  private val keyCacheById = "mock-all"
 
   implicit object MocksBSONReader extends BSONDocumentReader[Mocks] {
     def read(doc: BSONDocument): Mocks = {
@@ -75,32 +74,6 @@ object Mock {
         "httpHeaders" -> BSONString(mock.httpHeaders),
         "criteria" -> BSONString(mock.criteria),
         "response" -> BSONString(mock.response))
-  }
-
-  /**
-   * Title of csvFile. The value is the order of title.
-   */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "description" -> 3, "timeoutms" -> 4, "httpStatus" -> 5, "httpHeaders" -> 6, "criteria" -> 7, "response" -> 8, "groupName" -> 9)
-
-  val csvKey = "mock"
-
-  /**
-   * Csv format of one mock.
-   * @param m mock
-   * @return csv format of the mock (String)
-   */
-  def csv(m: Mock) = {
-    csvKey + ";" + m._id.get.stringify + ";" + m.name + ";" + m.description + ";" + m.timeoutms + ";" + m.httpStatus + ";" + m.httpHeaders + ";" + m.criteria + ";" + m.response + ";" + ";" + m.mockGroupName + "\n"
-  }
-
-  /**
-   * Get All mock, csv format.
-   * @return List of Mocks, csv format
-   */
-  def fetchCsv(): Future[List[String]] = {
-    ???
-    //TODO
-    //findAll.map(mocks => mocks.map(m => csv(m)))
   }
 
   /**
@@ -165,69 +138,6 @@ object Mock {
 
   def clearCache() {
     Cache.remove(keyCacheAllOptions)
-  }
-
-  /**
-   * Upload a csvLine => insert mock.
-   *
-   * @param csvLine line in csv file
-   * @return nothing
-   */
-  def upload(csvLine: String) = {
-
-    //TODO
-    ???
-    /*
-    val dataCsv = csvLine.split(";")
-
-    if (dataCsv.size != csvTitle.size) {
-      throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
-    }
-
-    if (dataCsv(csvTitle.get("key").get) == csvKey) {
-      val mockGroup = MockGroup.upload(dataCsv(csvTitle.get("mockGroupName").get), Group.ID_DEFAULT_GROUP)
-      uploadMock(dataCsv, mockGroup)
-    } else {
-      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
-    }
-    */
-  }
-
-  /**
-   * Check if mock already exist (with same name). Insert or do nothing if exist.
-   *
-   * @param dataCsv line in csv file
-   * @param mockGroup mock's mockGroup
-   * @return mock (new or not)
-   */
-  private def uploadMock(dataCsv: Array[String], mockGroup: MockGroup) = {
-
-    ???
-    // TODO
-    /*
-    val name = dataCsv(csvTitle.get("name").get)
-    val s = findByName(name)
-
-    s.map {
-      mock =>
-        Logger.warn("Warning : Mock " + mock.name + " already exist")
-        throw new Exception("Warning : Mock " + mock.name + " already exist")
-    }.getOrElse {
-      val mock = new Mock(
-        -1,
-        dataCsv(csvTitle.get("name").get).trim,
-        mockGroup._id.get.stringify,
-        dataCsv(csvTitle.get("description").get).trim,
-        dataCsv(csvTitle.get("timeoutms").get).toInt,
-        dataCsv(csvTitle.get("httpStatus").get).toInt,
-        dataCsv(csvTitle.get("httpHeaders").get).trim,
-        dataCsv(csvTitle.get("criteria").get).trim,
-        dataCsv(csvTitle.get("response").get).trim
-      )
-      Mock.insert(mock)
-      Logger.info("Insert Mock " + mock.name)
-    }
-    */
   }
 
   /**

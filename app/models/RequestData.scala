@@ -221,18 +221,6 @@ object RequestData {
   val keyCacheMinStartTime = "minStartTime"
 
   /**
-   * Anorm Byte conversion
-   */
-  //def bytes(columnName: String): RowParser[Array[Byte]] = get[Array[Byte]](columnName)(implicitly[Column[Array[Byte]]])
-
-  /**
-   * Title of csvFile. The value is the order of title.
-   */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "serviceAction" -> 2, "startTime" -> 3, "timeInMillis" -> 4, "environmentName" -> 5, "environmentGroups" -> 6)
-
-  val csvKey = "requestDataStat"
-
-  /**
    * Retrieve all distinct serviceactions using name and groups
    * @return a list of serviceAction's name and groups
    */

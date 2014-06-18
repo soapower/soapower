@@ -1,23 +1,4 @@
 function AdminCtrl($scope, EnvironmentsService, $http, $filter, UIService) {
-    $scope.urlDlConfig = "/admin/downloadConfiguration";
-    $scope.urlDlRequestDataStatsEntries = "/admin/downloadRequestDataStatsEntries";
-    $scope.urlUploadConfiguration = "/admin/uploadConfiguration";
-    $scope.typeAction = "xml-data";
-
-    $scope.showResponseUpload = false;
-    $scope.showUploadRunning = false;
-
-    $scope.startUpload = function () {
-        $scope.showUploadRunning = true;
-        $scope.showResponseUpload = false;
-    };
-
-    $scope.uploadComplete = function (content) {
-        $scope.response = content;
-        $scope.showUploadRunning = false;
-        $scope.showResponseUpload = true;
-    };
-
     $scope.mindatecalendar = new Date();
     $scope.maxdatecalendar = new Date();
 

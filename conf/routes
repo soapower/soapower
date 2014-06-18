@@ -11,9 +11,6 @@ POST          /live/changeCriteria                                              
 
 # Admin page
 POST          /admin/delete                                                                                 controllers.admin.Admin.delete
-GET           /admin/downloadConfiguration                                                                  controllers.admin.Admin.downloadConfiguration
-GET           /admin/downloadRequestDataStatsEntries                                                        controllers.admin.Admin.downloadRequestDataStatsEntries
-POST          /admin/uploadConfiguration                                                                    controllers.admin.Admin.uploadConfiguration
 
 # Search page
 GET           /search/:groups/:environment/:serviceAction/:minDate/:maxDate/:status/listDatatable           controllers.Search.listDatatable(groups, environment, serviceAction, minDate, maxDate, status, sSearch:String, page: Int, pageSize: Int, sortKey: String, sortVal: String, request: Boolean, response: Boolean)

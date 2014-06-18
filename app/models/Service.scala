@@ -1,17 +1,13 @@
 package models
 
-import scala.collection.mutable.Map
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.{Await, Future}
 import play.api.libs.json.Json
-import play.api.Logger
 import reactivemongo.bson.BSONBoolean
 import reactivemongo.bson.BSONString
-import scala.Some
 import reactivemongo.bson.BSONInteger
-import scala.concurrent.duration._
 import org.jboss.netty.handler.codec.http.HttpMethod
 
 case class Service(_id: Option[BSONObjectID],
@@ -95,30 +91,6 @@ object Service {
         "recordData" -> BSONBoolean(service.recordData),
         "useMockGroup" -> BSONBoolean(service.useMockGroup),
         "mockGroupId" -> service.mockGroupId)
-  }
-
-  /**
-   * Title of csvFile. The value is the order of title.
-   */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "description" -> 2, "typeRequest" -> 3, "httpMethod" -> 4, "localTarget" -> 5, "remoteTarget" -> 6, "timeoutms" -> 7, "recordContentData" -> 8, "recordData" -> 9, "useMockGroup" -> 10, "environmentName" -> 11, "mockGroupName" -> 12)
-
-  val csvKey = "service"
-
-  /**
-   * Csv format of one service.
-   * @param s service
-   * @return csv format of the service (String)
-   */
-  def csv(s: Service) = {
-    csvKey + ";" + s._id.get.stringify + ";" + s.description + ";" + s.typeRequest + ";" + s.httpMethod + ";" + s.localTarget + ";" + s.remoteTarget + ";" + s.timeoutms + ";" + s.recordContentData + ";" + s.recordData + ";" + s.useMockGroup + ";" + s.environmentName.get + ";" + s.mockGroupId + "\n"
-  }
-
-  /**
-   * Get All service, csv format.
-   * @return List of Services, csv format
-   */
-  def fetchCsv(): Future[List[String]] = {
-    findAll.map(services => services.map(service => csv(service)))
   }
 
   /**
@@ -213,72 +185,6 @@ object Service {
     val query = BSONDocument()
     Environment.collection.find(query).cursor[Services].collect[List]().map(l => l.flatMap(s => s.services))
   }
-
-  /**
-   * Upload a csvLine => insert service & environment.
-   *
-   * @param csvLine line in csv file
-   * @return nothing
-   */
-  def upload(csvLine: String) = {
-    val dataCsv = csvLine.split(";")
-
-    if (dataCsv.size != csvTitle.size) {
-      Logger.error("Please check csvFile, " + csvTitle.size + " fields required")
-      throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
-    }
-
-    if (dataCsv(csvTitle.get("key").get) == csvKey) {
-      uploadService(dataCsv)
-    } else {
-      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
-    }
-  }
-
-  /**
-   * Check if service already exist (with localTarget and Environment). Insert or do nothing if exist.
-   *
-   * @param dataCsv line in csv file
-   * @return service (new or not)
-   */
-  private def uploadService(dataCsv: Array[String]) = {
-
-    val environmentName = dataCsv(csvTitle.get("environmentName").get)
-    val localTarget = dataCsv(csvTitle.get("localTarget").get)
-
-    val typeRequest = dataCsv(csvTitle.get("typeRequest").get)
-    val f = findByLocalTargetAndEnvironmentName(typeRequest, localTarget, environmentName)
-
-    val service = Await.result(f, 1.seconds)
-    if (service.get != null) {
-      // null comes from ServiceBSONReader
-      Logger.warn("Service " + environmentName + "/" + localTarget + " already exist")
-      throw new Exception("Warning : Service " + environmentName + "/" + localTarget + " already exist")
-    } else {
-      var mockGroupId: Option[String] = None
-      if (dataCsv(csvTitle.get("mockGroupName").get) != "None") {
-        val m = Await.result(MockGroup.findByName(dataCsv(csvTitle.get("mockGroupName").get)), 1.seconds)
-        if (m.isDefined) mockGroupId = Some(m.get._id.get.stringify)
-      }
-
-      val service = new Service(
-        Some(BSONObjectID.generate),
-        dataCsv(csvTitle.get("description").get).trim,
-        dataCsv(csvTitle.get("typeRequest").get).trim,
-        dataCsv(csvTitle.get("httpMethod").get).trim,
-        dataCsv(csvTitle.get("localTarget").get).trim,
-        dataCsv(csvTitle.get("remoteTarget").get).trim,
-        dataCsv(csvTitle.get("timeoutms").get).toInt,
-        dataCsv(csvTitle.get("recordContentData").get).trim == "true",
-        dataCsv(csvTitle.get("recordData").get).trim == "true",
-        dataCsv(csvTitle.get("useMockGroup").get).trim == "true",
-        mockGroupId,
-        Some(environmentName))
-      Service.insert(service)
-      Logger.info("Insert Service " + environmentName + "/" + localTarget)
-    }
-  }
-
 
   /**
    * Remove first / in localTarget.

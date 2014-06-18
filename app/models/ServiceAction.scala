@@ -47,29 +47,6 @@ object ServiceAction {
   }
 
   /**
-   * Title of csvFile. The value is the order of title.
-   */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groups" -> 3, "thresholdms" -> 4)
-
-  val csvKey = "serviceAction"
-
-  /**
-   * Csv format.
-   */
-  def csv(m: ServiceAction) = {
-    csvKey + ";" + m._id.get.stringify + ";" + m.name + ";" + m.groups.mkString("|") + ";" + m.thresholdms + "\n"
-  }
-
-  /**
-   * Get All serviceActions, csv format.
-   * @return List of ServiceActions, csv format
-   */
-  def fetchCsv(): Future[List[String]] = {
-    findAll.map(serviceAction => serviceAction.map(e => csv(e)))
-  }
-
-
-  /**
    * Retrieve an ServiceAction from id.
    */
   def findById(objectId: BSONObjectID): Future[Option[ServiceAction]] = {
@@ -202,63 +179,4 @@ object ServiceAction {
     collection.db.command(command) // result is Future[BSONDocument]
   }
 
-  /**
-   * Upload a csvLine => insert serviceAction.
-   *
-   * @param csvLine line in csv file
-   * @return nothing
-   */
-  def upload(csvLine: String) = {
-
-    val dataCsv = csvLine.split(";")
-
-    if (dataCsv.size != csvTitle.size) {
-      throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
-    }
-
-    if (dataCsv(csvTitle.get("key").get) == csvKey) {
-      uploadServiceAction(dataCsv)
-    } else {
-      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
-    }
-  }
-
-  /**
-   * Check if serviceAction already exist (with same name). Insert or do nothing if exist.
-   *
-   * @param dataCsv line in csv file
-   * @return serviceAction (new or not)
-   */
-  private def uploadServiceAction(dataCsv: Array[String]) = {
-
-    val name = dataCsv(csvTitle.get("name").get)
-    val groups = dataCsv(csvTitle.get("groups").get).split('|').toList
-
-    Logger.debug("upload serviceAction:" + name)
-
-    findByNameAndGroups(name, groups).map {
-      serviceAction => {
-        if (serviceAction == None) {
-          Logger.debug("Insert new serviceAction with name " + name)
-          val newServiceAction = new ServiceAction(Some(BSONObjectID.generate),
-            dataCsv(csvTitle.get("name").get).trim,
-            dataCsv(csvTitle.get("groups").get).split('|').toList,
-            dataCsv(csvTitle.get("thresholdms").get).trim.toInt
-          )
-          insert(newServiceAction).map {
-            lastError =>
-              if (lastError.ok) {
-                Logger.debug("OK Insert new serviceAction with name " + name)
-              } else {
-                Logger.error("Detected error:%s".format(lastError))
-                throw new Exception("Error while inserting new group with name : " + name)
-              }
-          }
-        } else {
-          Logger.warn("Warning : ServiceAction " + name + " already exist")
-          throw new Exception("Warning : ServiceAction " + name + " already exist")
-        }
-      }
-    }
-  }
 }
