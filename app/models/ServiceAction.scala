@@ -55,14 +55,6 @@ object ServiceAction {
   }
 
   /**
-   * Retrieve an ServiceAction from name.
-   */
-  def findByName(name: String): Future[Option[ServiceAction]] = {
-    val query = BSONDocument("name" -> BSONString(name))
-    collection.find(query).one[ServiceAction]
-  }
-
-  /**
    * Retrieve a ServiceAction from name and groups
    * @param name
    * @param groups
@@ -71,6 +63,16 @@ object ServiceAction {
   def findByNameAndGroups(name: String, groups: List[String]): Future[Option[ServiceAction]] = {
     val query = BSONDocument("name" -> BSONString(name), "groups" -> groups)
     collection.find(query).one[ServiceAction]
+  }
+
+  def getThreshold(name: String, groups: List[String]) : Long = {
+    val f = findByNameAndGroups(name, groups)
+    val s = Await.result(f, 1.seconds)
+      if (s.isDefined) {
+        s.get.thresholdms.toLong
+      } else {
+        -1
+      }
   }
 
   /**

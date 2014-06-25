@@ -658,8 +658,8 @@ object RequestData {
           BSONDocument(
             "$project" -> BSONDocument(
               "groupsName" -> "$groupsName",
-              "serviceAction" -> "$serviceAction",
               "environmentName" -> "$environmentName",
+              "serviceAction" -> "$serviceAction",
               "year" -> BSONDocument(
                 "$year" -> BSONArray("$startTime")
               ),
@@ -675,6 +675,7 @@ object RequestData {
           BSONDocument(
             "$sort" -> BSONDocument(
               "groupsName" -> 1,
+              "environmentName" -> "$environmentName",
               "serviceAction" -> 1,
               "timeInMillis" -> 1
             )
@@ -683,6 +684,7 @@ object RequestData {
             "$group" -> BSONDocument(
               "_id" -> BSONDocument(
                 "groupsName" -> "$groupsName",
+                "environmentName" -> "$environmentName",
                 "serviceAction" -> "$serviceAction",
                 "year" -> "$year",
                 "month" -> "$month",
@@ -696,6 +698,7 @@ object RequestData {
           BSONDocument(
             "$sort" -> BSONDocument(
               "_id.groupsName" -> 1,
+              "_id.environmentName" -> 1,
               "_id.serviceAction" -> 1,
               "_id.year" -> 1,
               "_id.month" -> 1,
@@ -711,9 +714,9 @@ object RequestData {
         list.elements.foreach {
           results => if (results._1 == "result") {
             // The current Tuple will hold the data (serviceAction, groups) for the current document in the loop
-            var currentTuple = (List.empty[String], "")
+            var currentTuple = (List.empty[String], "", "")
             // The previous tuple will hold the data (serviceAction, groups) for the n-1 document in the loop
-            var previousTuple = (List.empty[String], "")
+            var previousTuple = (List.empty[String], "", "")
 
             var currentTupleDate = 0L
             var datesAndAvgForSameTuple = ListBuffer.empty[(Long, Long)]
@@ -727,14 +730,16 @@ object RequestData {
                     if (key._1 == "_id") {
                       if (first) {
                         // If this is the first element retrieved, the previous element is set to the current element
-                        previousTuple = ((key._2.asInstanceOf[BSONDocument].get("groupsName").get.asInstanceOf[BSONArray].values.map(e => e.asInstanceOf[BSONString].value).toList,
-                          key._2.asInstanceOf[BSONDocument].get("serviceAction").get.asInstanceOf[BSONString].value))
+                        previousTuple = (key._2.asInstanceOf[BSONDocument].get("groupsName").get.asInstanceOf[BSONArray].values.map(e => e.asInstanceOf[BSONString].value).toList,
+                          key._2.asInstanceOf[BSONDocument].get("environmentName").get.asInstanceOf[BSONString].value,
+                          key._2.asInstanceOf[BSONDocument].get("serviceAction").get.asInstanceOf[BSONString].value)
                         first = false
                       }
 
                       // The current tuple is set to the groupsName and the serviceAction of the current document
-                      currentTuple = ((key._2.asInstanceOf[BSONDocument].get("groupsName").get.asInstanceOf[BSONArray].values.map(e => e.asInstanceOf[BSONString].value).toList,
-                        key._2.asInstanceOf[BSONDocument].get("serviceAction").get.asInstanceOf[BSONString].value))
+                      currentTuple = (key._2.asInstanceOf[BSONDocument].get("groupsName").get.asInstanceOf[BSONArray].values.map(e => e.asInstanceOf[BSONString].value).toList,
+                        key._2.asInstanceOf[BSONDocument].get("environmentName").get.asInstanceOf[BSONString].value,
+                        key._2.asInstanceOf[BSONDocument].get("serviceAction").get.asInstanceOf[BSONString].value)
 
                       currentTupleDate = new GregorianCalendar(key._2.asInstanceOf[BSONDocument].get("year").get.asInstanceOf[BSONInteger].value,
                         key._2.asInstanceOf[BSONDocument].get("month").get.asInstanceOf[BSONInteger].value - 1,
@@ -747,7 +752,7 @@ object RequestData {
 
                       if (isDifferent) {
                         // If the current tuple was different from the previous tuple, the previous tuple is saved in the result list
-                        res += new AnalysisEntity(previousTuple._1, previousTuple._2, datesAndAvgForSameTuple.toList)
+                        res += new AnalysisEntity(previousTuple._1, previousTuple._2, previousTuple._3, datesAndAvgForSameTuple.toList)
                         datesAndAvgForSameTuple = ListBuffer.empty[(Long, Long)]
                       }
 
@@ -778,7 +783,7 @@ object RequestData {
             }
             // At the end of the loop the last tuple is add to the result list only if a result exists
             if (!first) {
-              res += new AnalysisEntity(previousTuple._1, previousTuple._2, datesAndAvgForSameTuple.toList)
+              res += new AnalysisEntity(previousTuple._1, previousTuple._2, previousTuple._3, datesAndAvgForSameTuple.toList)
             }
           }
         }
@@ -786,34 +791,6 @@ object RequestData {
       }
 
     }
-  }
-
-
-  def loadAvgResponseTimesByAction(groupNames: List[String], environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, (Long, Int))] = {
-
-    val query = BSONDocument("environmentName" -> environmentName,
-      "groupsName" -> groupNames,
-      "status" -> 200,
-      "startTime" -> BSONDocument("$lt" -> BSONDateTime(maxDate.getTime), "$gte" -> BSONDateTime(minDate.getTime)))
-
-    val list = collection.find(query).cursor[RequestData].collect[List]().map {
-      list =>
-        list.map {
-          rd => (rd.serviceAction, rd.timeInMillis)
-        }.toList
-    }
-    Await.result(list, 1.second).groupBy(_._1).mapValues {
-      e =>
-        val times = e.map(_._2).toList.sorted
-        val ninePercentiles = times.slice(0, times.size * 9 / 10)
-        if (ninePercentiles.size > 0) {
-          (ninePercentiles.sum / ninePercentiles.size, ninePercentiles.size)
-        } else if (times.size == 1) {
-          (times.head, 1)
-        } else {
-          (-1, ninePercentiles.size)
-        }
-    }.toList.filterNot(_._2._1 == -1).sortBy(_._1).asInstanceOf[List[(String, (Long, Int))]]
   }
 
   /**

@@ -236,7 +236,7 @@ object Stat {
     }
   }
 
-  case class AnalysisEntity(groups: List[String], serviceAction: String, dateAndAvg: List[(Long, Long)])
+  case class AnalysisEntity(groups: List[String], environment: String, serviceAction: String, dateAndAvg: List[(Long, Long)])
 
   /**
    * Response times using mongoDB aggregation framework
@@ -261,7 +261,7 @@ object Stat {
       matchQuery = matchQuery ++ ("serviceAction" -> serviceAction)
     }
 
-    groupQuery = groupQuery ++("groups" -> "$groups", "serviceAction" -> "$serviceAction")
+    groupQuery = groupQuery ++ ("groups" -> "$groups", "environmentName" -> "$environmentName", "serviceAction" -> "$serviceAction")
 
     // We remove 1000 millisecond to minDate to avoid issue with last two milliseconds being random
     // when mindate is set to yesterday
@@ -269,7 +269,6 @@ object Stat {
       "$gte" -> BSONDateTime(minDate.getTime - 1000),
       "$lt" -> BSONDateTime(maxDate.getTime))
       )
-
 
     val command =
       BSONDocument(
@@ -309,6 +308,7 @@ object Stat {
               results._2.asInstanceOf[BSONArray].values.foreach {
                 listOfStats =>
                   var groups = ListBuffer.empty[String]
+                  var environment = ""
                   var serviceAction = ""
                   var dateAndAvg = ListBuffer.empty[(Long, Long)]
                   var dates = List.empty[Long]
@@ -326,8 +326,8 @@ object Stat {
                               }
                             } else if (id._1 == "serviceAction") {
                               serviceAction = id._2.asInstanceOf[BSONString].value
-                            } else if (id._1 == "serviceAction") {
-                              serviceAction = id._2.asInstanceOf[BSONString].value
+                            } else if (id._1 == "environmentName") {
+                              environment = id._2.asInstanceOf[BSONString].value
                             }
                         }
                       } else if (stat._1 == "dates") {
@@ -346,7 +346,7 @@ object Stat {
                   for (i <- 0 to (size - 1)) {
                     dateAndAvg += ((dates.apply(i), avgs.apply(i)))
                   }
-                  resList += new AnalysisEntity(groups.toList, serviceAction, dateAndAvg.toList)
+                  resList += new AnalysisEntity(groups.toList, environment, serviceAction, dateAndAvg.toList)
               }
             }
         }
