@@ -1,7 +1,21 @@
 Only 90percentiles stats are showned on this graph. Times of today are not displayed.
 
-<!--<sp-criterias serviceactions="yes"></sp-criterias>-->
 <sp-filter page="analysis"></sp-filter>
+
+<i class="fa fa-info pointer" title="click to view help" ng-click="showTips=showTips==false">Tips </i>
+
+<div class="well" ng-show="showTips">
+    You can bookmark this page :
+    <ul>
+        <li>http://{{ hostname }}:{{ port }}/search/&lt;environment&gt;/&lt;serviceAction&gt;/&lt;fromDate&gt;/&lt;toDate&gt;/&lt;errorCode&gt;/</li>
+        <li>Default page : /search/all/all/all/today/all : all requests</li>
+        <li>Change start date : /search/all/all/2012-12-10T10:00/today/all : all requests from 2012-12-10 at 10</li>
+        <li>Advanced : /search/dev/login/yesterday/today/200 : Results for environment dev, serviceAction login from
+            yesterday, to today with the error code 200
+        </li>
+    </ul>
+    <b>Live stats</b> checkbox : Check it to filter stats from requestData (usefull to display stats for today, but can be slower to display).
+</div>
 
 <div id="container" style="width: 100%; margin:auto">
     <div id="chart1">
