@@ -249,14 +249,11 @@ object RequestData {
                   // If the key is "_id", we retrieve the serviceAction's name and groups
                   var serviceAction = ""
                   var groups = ListBuffer.empty[String]
-
                   idOption._2.asInstanceOf[BSONDocument].elements.foreach {
                     s =>
                       if (s._1 == "serviceAction") {
-
                         serviceAction = s._2.asInstanceOf[BSONString].value
-                      }
-                      else {
+                      } else {
                         s._2.asInstanceOf[BSONArray].values.foreach(e => groups += e.asInstanceOf[BSONString].value.toString)
                       }
                   }

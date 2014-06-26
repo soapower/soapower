@@ -81,19 +81,11 @@ object ServiceAction {
    */
   def countByName(name: String): Int = {
     val futureCount = ReactiveMongoPlugin.db.command(Count(collection.name, Some(BSONDocument("name" -> BSONString(name)))))
-    futureCount.map {
-      count => // count is an Int
-        Logger.debug("COUNT:" + count)
-    }
     Await.result(futureCount.map(c => c), 1.seconds)
   }
 
   def countByNameAndGroups(name: String, groups: List[String]): Int = {
     val futureCount = ReactiveMongoPlugin.db.command(Count(collection.name, Some(BSONDocument("name" -> BSONString(name), "groups" -> groups))))
-    futureCount.map {
-      count => // count is an Int
-        Logger.debug("COUNT:" + count)
-    }
     Await.result(futureCount.map(c => c), 1.seconds)
   }
 
@@ -115,14 +107,11 @@ object ServiceAction {
    * @param serviceAction The serviceAction values.
    */
   def update(serviceAction: ServiceAction) = {
-
     val selector = BSONDocument("_id" -> serviceAction._id)
-
     val modifier = BSONDocument(
       "$set" -> BSONDocument(
         "thresholdms" -> serviceAction.thresholdms)
     )
-
     collection.update(selector, modifier)
   }
 
