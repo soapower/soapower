@@ -70,6 +70,7 @@ object Environment {
   }
 
   private val keyCacheAllOptions = "environment-options"
+  private val keyCacheByName = "environment-name-"
   private val ENVIRONMENT_NAME_PATTERN = "[a-zA-Z0-9]{1,200}"
 
   /**
@@ -126,8 +127,10 @@ object Environment {
    * Retrieve an Environment from name.
    */
   def findByName(name: String): Future[Option[Environment]] = {
-    val query = BSONDocument("name" -> name)
-    collection.find(query).one[Environment]
+    Cache.getOrElse(keyCacheByName + name) {
+      val query = BSONDocument("name" -> name)
+      collection.find(query).one[Environment]
+    }
   }
 
   /**
@@ -187,10 +190,12 @@ object Environment {
    */
   def delete(id: String) = {
     val objectId = new BSONObjectID(id)
+    clearCache()
     collection.remove(BSONDocument("_id" -> objectId))
   }
 
   def clearCache() {
+    this.options.map(e => Cache.remove(keyCacheByName + e._2))
     Cache.remove(keyCacheAllOptions)
   }
 

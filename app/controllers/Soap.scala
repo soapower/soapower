@@ -137,7 +137,7 @@ object Soap extends Controller {
 
     service.map(svc =>
       if (svc.isDefined && svc.get != null) {
-        val client = new Client(svc.get, sender, content, headers, Service.SOAP, requestContentType)
+        val client = new Client(svc.get, environmentName, sender, content, headers, Service.SOAP, requestContentType)
         if (svc.get.useMockGroup && svc.get.mockGroupId.isDefined) {
           val fmock = Mock.findByMockGroupAndContent(BSONObjectID(svc.get.mockGroupId.get), content)
           val mock = Await.result(fmock, 1.second)

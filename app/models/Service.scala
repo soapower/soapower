@@ -101,7 +101,7 @@ object Service {
    */
   def findById(environmentName: String, serviceId: String): Future[Option[Service]] = {
     val query = BSONDocument("name" -> environmentName)
-    val projection = BSONDocument("name" -> 1, "services" -> BSONDocument(
+    val projection = BSONDocument("name" -> 1, "groups" -> 1, "services" -> BSONDocument(
       "$elemMatch" -> BSONDocument("_id" -> BSONObjectID(serviceId))))
     Environment.collection.find(query, projection).cursor[Service].headOption
   }
@@ -114,7 +114,7 @@ object Service {
    */
   def findRestByMethodAndEnvironmentName(httpMethod: String, environmentName: String): Future[Option[Service]] = {
     val query = BSONDocument("name" -> environmentName)
-    val projection = BSONDocument("name" -> 1, "services" -> BSONDocument(
+    val projection = BSONDocument("name" -> 1, "groups" -> 1, "services" -> BSONDocument(
       "$elemMatch" -> BSONDocument("httpMethod" -> BSONString(httpMethod), "typeRequest" -> "REST")))
     Environment.collection.find(query, projection).cursor[Service].headOption
   }
@@ -128,7 +128,7 @@ object Service {
    */
   def findByLocalTargetAndEnvironmentName(typeRequest: String, localTarget: String, environmentName: String, httpMethod: HttpMethod = HttpMethod.POST): Future[Option[Service]] = {
     val query = BSONDocument("name" -> environmentName)
-    val projection = BSONDocument("name" -> 1, "services" -> BSONDocument(
+    val projection = BSONDocument("name" -> 1, "groups" -> 1, "services" -> BSONDocument(
       "$elemMatch" -> BSONDocument(
         "localTarget" -> BSONString(localTarget),
         "httpMethod" -> BSONString(httpMethod.toString),

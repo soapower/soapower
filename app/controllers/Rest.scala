@@ -107,7 +107,7 @@ object Rest extends Controller {
       forwardRequest(service, call, environment, sender, headers, requestBody, query, contentType, queryString, request.method)
   }
 
-  private def forwardRequest(service: Future[Option[Service]], call: String, environment: String, sender: String, headers: Map[String, String], requestBody: AnyContent, query: Map[String, String], contentType: Option[String], queryString: String, httpMethodForLog: String): Future[SimpleResult] = {
+  private def forwardRequest(service: Future[Option[Service]], call: String, environmentName: String, sender: String, headers: Map[String, String], requestBody: AnyContent, query: Map[String, String], contentType: Option[String], queryString: String, httpMethodForLog: String): Future[SimpleResult] = {
 
     service.map(svc =>
       if (svc.isDefined && svc.get != null) {
@@ -142,7 +142,7 @@ object Rest extends Controller {
           }
         }
 
-        val client = new Client(svc.get, sender, requestContent, headers, Service.REST, contentTypeExtract)
+        val client = new Client(svc.get, environmentName, sender, requestContent, headers, Service.REST, contentTypeExtract)
 
         if (err != "") {
           Logger.error(err)
@@ -165,7 +165,7 @@ object Rest extends Controller {
             .withHeaders("ProxyVia" -> "soapower").withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
         }
       } else {
-        val err = "No REST service with the environment " + environment + " and the HTTP method " + httpMethodForLog + " matches the call " + call
+        val err = "No REST service with the environment " + environmentName + " and the HTTP method " + httpMethodForLog + " matches the call " + call
         Logger.error(err)
         BadRequest(err)
       }

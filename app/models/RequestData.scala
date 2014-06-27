@@ -36,8 +36,8 @@ case class RequestData(_id: Option[BSONObjectID],
                        sender: String,
                        var serviceAction: String,
                        environmentName: String,
-                       groupsName: List[String],
                        serviceId: BSONObjectID,
+                       var groupsName: Option[List[String]],
                        var request: Option[String],
                        var requestHeaders: Option[Map[String, String]],
                        var contentType: String,
@@ -53,8 +53,8 @@ case class RequestData(_id: Option[BSONObjectID],
 
   var responseBytes: Array[Byte] = null
 
-  def this(sender: String, serviceAction: String, environmentName: String, groupsName: List[String], serviceId: BSONObjectID, contentType: String) =
-    this(Some(BSONObjectID.generate), sender, serviceAction, environmentName, groupsName, serviceId, null, null, contentType, null, new DateTime(), null, None, null, -1, -1, false, false)
+  def this(sender: String, serviceAction: String, environmentName: String, serviceId: BSONObjectID, contentType: String) =
+    this(Some(BSONObjectID.generate), sender, serviceAction, environmentName, serviceId, null, null, null, contentType, null, new DateTime(), null, None, null, -1, -1, false, false)
 
   def toSimpleJson: JsObject = {
     Json.obj(
@@ -63,7 +63,7 @@ case class RequestData(_id: Option[BSONObjectID],
       "contentType" -> contentType,
       "serviceId" -> serviceId,
       "environmentName" -> environmentName,
-      "groupsName" -> groupsName,
+      "groupsName" -> groupsName.get,
       "sender" -> sender,
       "serviceAction" -> serviceAction,
       "startTime" -> startTime.toString(),
@@ -171,8 +171,8 @@ object RequestData {
         doc.getAs[String]("sender").get,
         doc.getAs[String]("serviceAction").get,
         doc.getAs[String]("environmentName").get,
-        doc.getAs[List[String]]("groupsName").toList.flatten,
         doc.getAs[BSONObjectID]("serviceId").get,
+        Some(doc.getAs[List[String]]("groupsName").toList.flatten),
         doc.getAs[String]("request"),
         doc.getAs[Map[String, String]]("requestHeaders"),
         doc.getAs[String]("contentType").get,
@@ -203,7 +203,9 @@ object RequestData {
         "request" -> requestData.request.get,
         "requestHeaders" -> requestData.requestHeaders.get,
         "contentType" -> BSONString(requestData.contentType),
-        "requestCall" -> requestData.requestCall,
+        "requestCall" -> {
+          if (requestData.requestCall != null) requestData.requestCall.get else ""
+        },
         "startTime" -> BSONDateTime(requestData.startTime.getMillis),
         "response" -> requestData.response,
         "responseOriginal" -> requestData.responseOriginal,
@@ -288,9 +290,8 @@ object RequestData {
    * Insert a new RequestData.
    * @param requestData the requestData
    * @param service service used by this requestDate
-   * @param environment environment which contains service
    */
-  def insert(requestData: RequestData, service: Service, environment: Environment): Option[BSONObjectID] = {
+  def insert(requestData: RequestData, service: Service) = {
 
     var contentRequest: String = null
     var contentResponse: String = null
@@ -300,56 +301,61 @@ object RequestData {
     gcal.setTime(date)
     gcal.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
 
-    if (!service.recordData || !environment.recordData) {
-      Logger.debug("Data not recording for this service or this environment")
-      return None
-    }
+    Environment.findByName(service.environmentName.get).map {
+      e => {
+        val environment = e.get
+        requestData.groupsName = Some(environment.groups)
+        Robot.talk(requestData)
 
-    var msg = ""
-    if (!service.recordContentData) {
-      msg = "Content Data not recording for this service. See Admin."
-    } else if (!environment.recordContentData) {
-      msg = "Content Data not recording for this environment. See Admin."
-    }
+        if (!service.recordData || !environment.recordData) {
+          Logger.debug("Data not recording for this service or this environment")
+        } else {
+          var msg = ""
+          if (!service.recordContentData) {
+            msg = "Content Data not recording for this service. See Admin."
+          } else if (!environment.recordContentData) {
+            msg = "Content Data not recording for this environment. See Admin."
+          }
 
-    if (msg != "") {
-      requestData.request = Some(msg)
-      requestData.responseOriginal = Some(msg)
-      requestData.response = Some(msg)
-      Logger.debug(msg)
-    } else if (requestData.status != 200 || (
-      environment.hourRecordContentDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
-        environment.hourRecordContentDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
-      // Record Data if it is a soap fault (status != 200) or
-      // if we can record data with environment's configuration (hours of recording)
-      def transferEncodingResponse = requestData.responseHeaders.get.filter {
-        _._1 == HeaderNames.CONTENT_ENCODING
+          if (msg != "") {
+            requestData.request = Some(msg)
+            requestData.responseOriginal = Some(msg)
+            requestData.response = Some(msg)
+            Logger.debug(msg)
+          } else if (requestData.status != 200 || (
+            environment.hourRecordContentDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
+              environment.hourRecordContentDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
+            // Record Data if it is a soap fault (status != 200) or
+            // if we can record data with environment's configuration (hours of recording)
+            def transferEncodingResponse = requestData.responseHeaders.get.filter {
+              _._1 == HeaderNames.CONTENT_ENCODING
+            }
+
+            transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
+              case Some("gzip") =>
+                Logger.debug("Response in gzip Format")
+                requestData.responseOriginal = Some(requestData.response.get)
+                requestData.response = Some(uncompressString(requestData.responseBytes))
+              case _ =>
+                Logger.debug("Response in plain Format")
+            }
+          } else {
+            val msg = "Content Data not recording. Record between " + environment.hourRecordContentDataMin + "h to " + environment.hourRecordContentDataMax + "h for this environment."
+            contentRequest = msg
+            contentResponse = msg
+            Logger.debug(msg)
+          }
+
+          val f = collection.insert(requestData)
+          f.onComplete {
+            case Failure(e) => throw e
+            case Success(lastError) => {
+              Logger.debug(s"Successfully inserted RequestData with LastError: $lastError")
+            }
+          }
+        }
       }
-
-      transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
-        case Some("gzip") =>
-          Logger.debug("Response in gzip Format")
-          requestData.responseOriginal = Some(requestData.response.get)
-          requestData.response = Some(uncompressString(requestData.responseBytes))
-        case _ =>
-          Logger.debug("Response in plain Format")
-      }
-    } else {
-      val msg = "Content Data not recording. Record between " + environment.hourRecordContentDataMin + "h to " + environment.hourRecordContentDataMax + "h for this environment."
-      contentRequest = msg
-      contentResponse = msg
-      Logger.debug(msg)
     }
-
-    val f = collection.insert(requestData)
-    f.onFailure {
-      case t => new Exception("An unexpected server error has occured: " + t.getMessage)
-    }
-    f.map {
-      lastError =>
-        Logger.debug(s"Successfully inserted RequestData with LastError: $lastError")
-    }
-    requestData._id
   }
 
   /**

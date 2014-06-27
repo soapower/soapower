@@ -53,9 +53,8 @@ object Client {
   }
 }
 
-class Client(pService: Service, sender: String, content: String, headers: Map[String, String], typeRequest: String, requestContentType: String) {
+class Client(pService: Service, environmentName: String, sender: String, content: String, headers: Map[String, String], typeRequest: String, requestContentType: String) {
 
-  var environment: Environment = null
   val service = pService
 
   val requestData = {
@@ -68,16 +67,7 @@ class Client(pService: Service, sender: String, content: String, headers: Map[St
     }
 
     Logger.debug("service:" + service)
-    val f = Environment.findByName(service.environmentName.get)
-    f.onComplete {
-      case Success(e) =>
-        if (e.isDefined) {
-          environment = e.get
-        }
-    }
-    Await.result(f, 2.second)
-
-    new RequestData(sender, serviceAction, service.environmentName.get, environment.groups, service._id.get, requestContentType)
+    new RequestData(sender, serviceAction, environmentName, service._id.get, requestContentType)
   }
 
   var response: ClientResponse = null
@@ -248,16 +238,8 @@ class Client(pService: Service, sender: String, content: String, headers: Map[St
 
   private def saveData(content: String) = {
     try {
-      // asynchronously writes data to the DB
-      val writeStartTime = System.currentTimeMillis()
-      scala.concurrent.Future {
-        requestData.request = Some(checkNullOrEmpty(content))
-        RequestData.insert(requestData, service, environment)
-        Robot.talk(requestData)
-      }.map {
-        result =>
-          Logger.debug("Request Data written to DB in " + (System.currentTimeMillis() - writeStartTime) + " ms")
-      }
+      requestData.request = Some(checkNullOrEmpty(content))
+      RequestData.insert(requestData, service)
     } catch {
       case e: Throwable => Logger.error("Error writing to DB", e)
     }
