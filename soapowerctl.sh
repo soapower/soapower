@@ -65,7 +65,7 @@ configtest() {
     fi
 
     cd ${SOAPOWER_CURRENT}
-    JAR_FILE=`cd lib && ls *soapower*`
+    JAR_FILE=`cd lib && ls *soapower* | grep -v assets`
     grep ${JAR_FILE} bin/soapower >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo "ERROR : bin/soapower file does not match with jar in dir lib/, please check your installation"
