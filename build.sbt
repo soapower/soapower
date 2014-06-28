@@ -3,7 +3,7 @@ import play.PlayScala
 
 name         := "soapower"
 
-version      := "2.0.0-Beta2"
+version      := "2.0.0-Beta3"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala,SbtWeb)
 
