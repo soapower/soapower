@@ -8,6 +8,7 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
         },
         controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceActionsService, CodesService, UIService) {
             EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.group, null, true);
+
             CodesService.findAllAndSelect($scope, $routeParams);
             $scope.ctrlPath = $scope.$parent.ctrlPath;
 
@@ -18,13 +19,7 @@ spApp.directive('spCriterias', ['$filter', function ($filter) {
             $scope.mindatecalendar = new Date();
             $scope.maxdatecalendar = new Date();
 
-            $scope.showServiceactions = false;
-            if ($attrs.serviceactions == "yes") {
-                $scope.showServiceactions = true;
-                // TODO
-                //ServiceActionsService.findAllAndSelect($scope, $routeParams);
-                //ServiceActionsService.findAllAndSelect($scope, $routeParams);
-            }
+            $scope.showServiceactions = $attrs.serviceactions == "yes";
 
             // Called when the mindate datetimepicker is set
             $scope.onMinTimeSet = function (newDate, oldDate) {
@@ -83,7 +78,6 @@ spApp.directive('spGroups', function () {
                             }
                         });
                         if ($scope.groupsSelected.length == 0) $scope.groupsSelected = ["all"];
-                        $rootScope.$broadcast("ReloadPage", $scope.groupsSelected, "spGroups.on showGroupsFilter");
                     });
                 }
             });
@@ -106,7 +100,7 @@ spApp.directive('spGroups', function () {
 
             $scope.loadGroups = function (callBack) {
                 GroupsService.findAll().success(function (groups) {
-                    $scope.groups = groups.values;
+                    $scope.groups = groups;
                     $scope.groups.unshift("all");
                     if (callBack) callBack();
                 });
@@ -262,6 +256,7 @@ spApp.directive('spReplay', function () {
         templateUrl: "partials/common/cellReplayTemplate.html"
     }
 });
+
 spApp.directive('spRequest', function () {
     return {
         restrict: 'E',
@@ -269,6 +264,7 @@ spApp.directive('spRequest', function () {
         templateUrl: "partials/common/cellRequestTemplate.html"
     }
 });
+
 spApp.directive('spResponse', function () {
     return {
         restrict: 'E',
@@ -276,6 +272,7 @@ spApp.directive('spResponse', function () {
         templateUrl: "partials/common/cellResponseTemplate.html"
     }
 });
+
 spApp.directive('spStatus', function () {
     return {
         restrict: 'E',
@@ -286,6 +283,7 @@ spApp.directive('spStatus', function () {
         }
     }
 });
+
 spApp.directive('spShowresults', function () {
     return {
         restrict: 'E',
@@ -297,6 +295,7 @@ spApp.directive('spShowresults', function () {
         }
     }
 });
+
 spApp.directive('spBuildInfo', function () {
     return {
         restrict: 'E',
@@ -309,6 +308,7 @@ spApp.directive('spBuildInfo', function () {
         }
     }
 });
+
 spApp.directive('spDocumentation', function () {
     return {
         restrict: 'E',
@@ -321,6 +321,7 @@ spApp.directive('spDocumentation', function () {
         }
     }
 });
+
 spApp.directive('spReplayEdit', function () {
     return {
         restrict: 'E',
@@ -346,5 +347,173 @@ spApp.directive('spReplayEdit', function () {
                 $('#myModal').modal('hide')
             };
         }
+    }
+});
+
+spApp.directive('spFilter', function ($http, $filter) {
+    return {
+        restrict: 'E',
+        scope: {
+            page: '@page'
+        },
+        controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceActionsService, CodesService, UIService) {
+            // Scope initialization
+            EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.groups, null, true);
+            CodesService.findAllAndSelect($scope, $routeParams);
+            ServiceActionsService.findAllAndSelect($scope, $routeParams.serviceaction, $routeParams.groups);
+
+            if ($scope.page == "live") {
+                // The directive was called from the Live Page
+                $scope.showresearch = true;
+                $scope.showstatus = true;
+                $scope.showserviceactions = true;
+
+                $scope.request = true;
+                $scope.response = true;
+                $scope.search = "";
+
+
+                $scope.changeStatus = function () {
+                    // If the user set a new status
+                    $http({
+                        method: "POST",
+                        url: "/live/changeCriteria",
+                        data: {key: "code", value: $scope.code},
+                        headers: {'Content-Type': 'application/json'}
+                    })
+                };
+
+                $scope.changeEnvironment = function () {
+                    // If the user set a new Environment
+                    $http({
+                        method: "POST",
+                        url: "/live/changeCriteria",
+                        data: {key: "environment", value: $scope.environment},
+                        headers: {'Content-Type': 'application/json'}
+                    })
+                };
+
+                $scope.changeRequest = function () {
+                    if ($scope.request == false && $scope.response == false) {
+                        $scope.search = "";
+                        $scope.changeSearch();
+                    }
+                    // If the user check or uncheck the request box
+                    $http({
+                        method: "POST",
+                        url: "/live/changeCriteria",
+                        data: {key: "request", value: $scope.request.toString()},
+                        headers: {'Content-Type': 'application/json'}
+                    })
+                };
+
+                $scope.changeServiceAction = function () {
+                    $http({
+                        method: "POST",
+                        url: "/live/changeCriteria",
+                        data: {key: "serviceAction", value: $scope.serviceaction},
+                        headers: {'Content-Type': 'application/json'}
+                    })
+                };
+
+                $scope.changeResponse = function () {
+                    if ($scope.request == false && $scope.response == false) {
+                        $scope.search = "";
+                        $scope.changeSearch();
+                    }
+                    // If the user check or uncheck the response box
+                    $http({
+                        method: "POST",
+                        url: "/live/changeCriteria",
+                        data: {key: "response", value: $scope.response.toString()},
+                        headers: {'Content-Type': 'application/json'}
+                    })
+                };
+
+                // Called when the user change the textarea
+                $scope.changeSearch = function () {
+                    $http({
+                        method: "POST",
+                        url: "/live/changeCriteria",
+                        data: {key: "search", value: $scope.search},
+                        headers: {'Content-Type': 'application/json'}
+                    })
+                };
+            } else {
+                // Search, Analysis and Statistic need calendars and filter button
+                $scope.showcalendars = true;
+                $scope.showfilterbutton = true;
+                $scope.showstatus = true;
+                $scope.showserviceactions = true;
+
+                $scope.mindate = UIService.getInputCorrectDateFormat($routeParams.mindate);
+                $scope.maxdate = UIService.getInputCorrectDateFormat($routeParams.maxdate);
+
+                // Initialise the calendars to today's date
+                $scope.mindatecalendar = new Date();
+                $scope.maxdatecalendar = new Date();
+
+                // Called when the mindate datetimepicker is set
+                $scope.onMinTimeSet = function (newDate, oldDate) {
+                    $scope.showmindate = false;
+                    $scope.mindate = $filter('date')(newDate, "yyyy-MM-dd HH:mm");
+                };
+                // Called when the maxdate datetimepicker is set
+                $scope.onMaxTimeSet = function (newDate, oldDate) {
+                    $scope.showmaxdate = false;
+                    $scope.maxdate = $filter('date')(newDate, "yyyy-MM-dd HH:mm");
+                };
+
+                $scope.changeCriteria = function () {
+                    // Check that the date inputs format are correct and that the mindate is before the maxdate
+                    if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
+                        $scope.groups = $routeParams.groups;
+                        UIService.reloadPage($scope, $scope.showServiceactions, $scope.page);
+                    } else {
+                        // Else, mindate and maxdate are set to yesterday's and today's dates
+                        $scope.mindate = UIService.getInputCorrectDateFormat(UIService.getDay("yesterday"));
+                        $scope.maxdate = UIService.getInputCorrectDateFormat(UIService.getDay("today"));
+                    }
+                };
+
+                if ($scope.page == "search") {
+
+                    $scope.showresearch = true;
+                    $scope.request = $routeParams.request ? UIService.stringToBoolean($routeParams.request) : true;
+                    $scope.response = $routeParams.response ? UIService.stringToBoolean($routeParams.response) : true;
+                    $scope.search = $routeParams.search ? $routeParams.search : "";
+
+                    // Called when the user check or uncheck the request checkbox
+                    $scope.changeRequest = function () {
+                        if ($scope.request == false && $scope.response == false) {
+                            $scope.search = "";
+                        }
+                    }
+
+                    // Called when the user check or uncheck the response checkbox
+                    $scope.changeResponse = function () {
+                        if ($scope.request == false && $scope.response == false) {
+                            $scope.search = "";
+                        }
+                    }
+                }
+                else if ($scope.page == "statistics") {
+                    $scope.showserviceactions = false;
+                    $scope.showlive = true
+                    $scope.showstatus = false;
+                    $scope.live = $routeParams.live ? UIService.stringToBoolean($routeParams.live) : false;
+                }
+                else if ($scope.page == "analysis") {
+                    $scope.showserviceactions = false;
+                    $scope.showlive = true
+                    $scope.showstatus = false;
+                    $scope.showserviceactions = true;
+                    $scope.live = $routeParams.live ? UIService.stringToBoolean($routeParams.live) : false;
+                }
+            }
+            $scope.ctrlPath = $scope.$parent.ctrlPath;
+        },
+        templateUrl: 'partials/common/filter.html',
+        replace: true
     }
 });

@@ -26,7 +26,7 @@ object Robot {
 
     implicit val timeout = Timeout(1 second)
     // Make the robot join the room
-    liveRoom ? (Join("Robot")) map {
+    liveRoom ? (Join("Robot", null.asInstanceOf[Criterias])) map {
       case Connected(robotChannel) =>
         // Apply this Enumerator on the logger.
         robotChannel |>> loggerIteratee
@@ -69,12 +69,14 @@ object LiveRoom {
     default
   }
 
-  def join(username: String): scala.concurrent.Future[(Iteratee[JsValue, _], Enumerator[JsValue])] = {
+  def changeCriterias(username: String, criteria: Tuple2[String, String]) = {
+    default ! ChangeCriterias(username, criteria)
+  }
 
-    (default ? Join(username)).map {
+  def join(username: String, criterias: Criterias): scala.concurrent.Future[(Iteratee[JsValue, _], Enumerator[JsValue])] = {
 
+    (default ? Join(username, criterias)).map {
       case Connected(enumerator) =>
-
         // Create an Iteratee to consume the feed
         val iteratee = Iteratee.foreach[JsValue] {
           event =>
@@ -83,38 +85,47 @@ object LiveRoom {
           _ =>
             default ! Quit(username)
         }
-
         (iteratee, enumerator)
 
       case CannotConnect(error) =>
         // Connection error
         // A finished Iteratee sending EOF
         val iteratee = Done[JsValue, Unit]((), Input.EOF)
-
         // Send an error and close the socket
         val enumerator = Enumerator[JsValue](JsObject(Seq("error" -> JsString(error)))).andThen(Enumerator.enumInput(Input.EOF))
 
         (iteratee, enumerator)
-
     }
   }
 }
 
 class LiveRoom extends Actor {
 
-  var members = Set.empty[String]
-  val (liveEnumerator, channel) = Concurrent.broadcast[JsValue]
+  var members = Map.empty[String, (Criterias, Concurrent.Channel[JsValue])]
 
   def receive = {
 
-    case Join(username) => {
-      if (members.contains(username)) {
-        sender ! CannotConnect("You have already a navigator on this page !")
-      } else {
-        members = members + username
-        sender ! Connected(liveEnumerator)
-        self ! NotifyJoin(username)
+    case Join(username, criterias) => {
+      if (username == "Robot") {
+        members = members + ((username, (criterias, null.asInstanceOf[Concurrent.Channel[JsValue]])))
       }
+      else {
+        if (members.contains(username)) {
+          sender ! CannotConnect("You have already a navigator on this page !")
+        } else {
+          val e = Concurrent.unicast[JsValue] {
+            c =>
+              members = members + ((username, (criterias, c)))
+          }
+          sender ! Connected(e)
+          self ! NotifyJoin(username)
+        }
+      }
+    }
+
+    case Quit(username) => {
+      members = members - username
+      notifyAll("quit", username, "has left the room")
     }
 
     case NotifyJoin(username) => {
@@ -129,44 +140,88 @@ class LiveRoom extends Actor {
       notifyAll("talkRequestData", username, requestData)
     }
 
-    case Quit(username) => {
-      members = members - username
-      notifyAll("quit", username, "has left the room")
+    case ChangeCriterias(username, criteria) => {
+      if (members.get(username).isDefined) {
+        // We retrieve the channel
+        val channel = members.get(username).get._2
+        // We retrieve the old criterias
+        val criterias = members.get(username).get._1
+
+        val newCriterias = criteria._1 match {
+          // Create new criterias based on user choice
+          case "group" =>
+            new Criterias(criteria._2, criterias.environment, criterias.serviceAction, criterias.code, criterias.search, criterias.request, criterias.response)
+          case "environment" =>
+            new Criterias(criterias.group, criteria._2, criterias.serviceAction, criterias.code, criterias.search, criterias.request, criterias.response)
+          case "serviceAction" =>
+            new Criterias(criterias.group, criterias.environment, criteria._2, criterias.code, criterias.search, criterias.request, criterias.response)
+          case "code" =>
+            new Criterias(criterias.group, criterias.environment, criterias.serviceAction, criteria._2, criterias.search, criterias.request, criterias.response)
+          case "search" =>
+            new Criterias(criterias.group, criterias.environment, criterias.serviceAction, criterias.code, criteria._2, criterias.request, criterias.response)
+          case "request" =>
+            new Criterias(criterias.group, criterias.environment, criterias.serviceAction, criterias.code, criterias.search, criteria._2.toBoolean, criterias.response)
+          case "response" =>
+            new Criterias(criterias.group, criterias.environment, criterias.serviceAction, criterias.code, criterias.search, criterias.request, criteria._2.toBoolean)
+        }
+
+        members = members - username
+        members = members + ((username, (newCriterias, channel)))
+      }
     }
 
   }
 
   def notifyAll(kind: String, user: String, requestData: RequestData) {
+    var usernames = Set.empty[String]
+    members.foreach {
+      mem =>
+        usernames = usernames + mem._1
+    }
+    // Create the JSON that will be sent
     val msg = JsObject(
       Seq(
         "kind" -> JsString(kind),
         "user" -> JsString(user),
         "message" -> requestData.toSimpleJson,
         "members" -> JsArray(
-          members.toList.map(JsString)
+          usernames.toList.map(JsString)
         )
       )
     )
-    channel.push(msg)
+    // Iterate on each member of the room and check if their criteria match the incoming request
+    // If the request data match the criterias, the msg is sent through the channel of the correct client
+    members.foreach {
+      case (key, value) =>
+        if (key != "Robot" && requestData.checkCriterias(value._1)) value._2.push(msg)
+    }
   }
 
   def notifyAll(kind: String, user: String, text: String) {
+    var usernames = Set.empty[String]
+    members.foreach {
+      mem =>
+        usernames = usernames + mem._1
+    }
+
     val msg = JsObject(
       Seq(
         "kind" -> JsString(kind),
         "user" -> JsString(user),
         "message" -> JsString(text),
         "members" -> JsArray(
-          members.toList.map(JsString)
+          usernames.toList.map(JsString)
         )
       )
     )
-    channel.push(msg)
+    members.foreach { case (key, value) =>
+      if (key != "Robot") value._2.push(msg)
+    }
   }
 
 }
 
-case class Join(username: String)
+case class Join(username: String, criterias: Criterias)
 
 case class Quit(username: String)
 
@@ -179,3 +234,7 @@ case class NotifyJoin(username: String)
 case class Connected(enumerator: Enumerator[JsValue])
 
 case class CannotConnect(msg: String)
+
+case class ChangeCriterias(username: String, criteria: (String, String))
+
+case class Criterias(group: String, environment: String, serviceAction: String, code: String, search: String, request: Boolean, response: Boolean)

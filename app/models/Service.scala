@@ -1,18 +1,15 @@
 package models
 
-
-import scala.collection.mutable.Map
+import play.api.Play.current
+import play.api.cache.Cache
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.{Await, Future}
 import play.api.libs.json.Json
-import play.api.Logger
 import reactivemongo.bson.BSONBoolean
 import reactivemongo.bson.BSONString
-import scala.Some
 import reactivemongo.bson.BSONInteger
-import scala.concurrent.duration._
 import org.jboss.netty.handler.codec.http.HttpMethod
 
 case class Service(_id: Option[BSONObjectID],
@@ -51,6 +48,8 @@ object Service {
 
   implicit val serviceFormat = Json.format[Service]
   implicit val servicesFormat = Json.format[Services]
+
+  private val keyCacheRequest = "cacheServiceRequest-"
 
   implicit object ServicesBSONReader extends BSONDocumentReader[Services] {
     def read(doc: BSONDocument): Services = {
@@ -99,30 +98,6 @@ object Service {
   }
 
   /**
-   * Title of csvFile. The value is the order of title.
-   */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "description" -> 2, "typeRequest" -> 3, "httpMethod" -> 4, "localTarget" -> 5, "remoteTarget" -> 6, "timeoutms" -> 7, "recordContentData" -> 8, "recordData" -> 9, "useMockGroup" -> 10, "environmentName" -> 11, "mockGroupName" -> 12)
-
-  val csvKey = "service"
-
-  /**
-   * Csv format of one service.
-   * @param s service
-   * @return csv format of the service (String)
-   */
-  def csv(s: Service) = {
-    csvKey + ";" + s._id.get.stringify + ";" + s.description + ";" + s.typeRequest + ";" + s.httpMethod + ";" + s.localTarget + ";" + s.remoteTarget + ";" + s.timeoutms + ";" + s.recordContentData + ";" + s.recordData + ";" + s.useMockGroup + ";" + s.environmentName.get + ";" + s.mockGroupId + "\n"
-  }
-
-  /**
-   * Get All service, csv format.
-   * @return List of Services, csv format
-   */
-  def fetchCsv(): Future[List[String]] = {
-    findAll.map(services => services.map(service => csv(service)))
-  }
-
-  /**
    * Retrieve a Service.
    * @param environmentName Name of environement
    * @param serviceId ObjectID of service
@@ -130,21 +105,8 @@ object Service {
    */
   def findById(environmentName: String, serviceId: String): Future[Option[Service]] = {
     val query = BSONDocument("name" -> environmentName)
-    val projection = BSONDocument("name" -> 1, "services" -> BSONDocument(
+    val projection = BSONDocument("name" -> 1, "groups" -> 1, "services" -> BSONDocument(
       "$elemMatch" -> BSONDocument("_id" -> BSONObjectID(serviceId))))
-    Environment.collection.find(query, projection).cursor[Service].headOption
-  }
-
-  /**
-   * Retrieve a Soap or REST Service from localTarget, environmentName and httpMethod
-   * @param environmentName
-   * @param httpMethod HTTP method, POST by default
-   * @return
-   */
-  def findRestByMethodAndEnvironmentName(httpMethod: String, environmentName: String): Future[Option[Service]] = {
-    val query = BSONDocument("name" -> environmentName)
-    val projection = BSONDocument("name" -> 1, "services" -> BSONDocument(
-      "$elemMatch" -> BSONDocument("httpMethod" -> BSONString(httpMethod), "typeRequest" -> "REST")))
     Environment.collection.find(query, projection).cursor[Service].headOption
   }
 
@@ -155,12 +117,16 @@ object Service {
    * @param environmentName Name of environment
    * @return service
    */
-  def findByLocalTargetAndEnvironmentName(typeRequest: String, localTarget: String, environmentName: String, httpMethod: HttpMethod = HttpMethod.POST): Future[Option[Service]] = {
-    // TODO Use httpMethod and typeRequest
-    val query = BSONDocument("name" -> environmentName)
-    val projection = BSONDocument("name" -> 1, "services" -> BSONDocument(
-      "$elemMatch" -> BSONDocument("localTarget" -> BSONString(localTarget))))
-    Environment.collection.find(query, projection).cursor[Service].headOption
+  def findByLocalTargetAndEnvironmentName(typeRequest: String, localTarget: String, environmentName: String, httpMethod: HttpMethod): Future[Option[Service]] = {
+    Cache.getOrElse(keyCacheRequest + typeRequest + localTarget + environmentName + httpMethod.toString, 15) {
+      val query = BSONDocument("name" -> environmentName)
+      val projection = BSONDocument("name" -> 1, "groups" -> 1, "services" -> BSONDocument(
+        "$elemMatch" -> BSONDocument(
+          "localTarget" -> BSONString(localTarget),
+          "httpMethod" -> BSONString(httpMethod.toString),
+          "typeRequest" -> BSONString(typeRequest))))
+      Environment.collection.find(query, projection).cursor[Service].headOption
+    }
   }
 
   /**
@@ -212,93 +178,6 @@ object Service {
     val query = BSONDocument()
     Environment.collection.find(query).cursor[Services].collect[List]().map(l => l.flatMap(s => s.services))
   }
-
-  /**
-   * Return a list of Service which are linked to an environment which group is the given group
-   */
-  def list(group: String): List[(Service, Environment)] = {
-    ???
-    /*
-    DB.withConnection {
-      implicit connection =>
-        val services = SQL(
-          """
-          select * from service, environment, groups
-          where service.environment_id = environment.id
-          and environment.groupId = groups.id
-          and groups.name = {group}
-          order by environment.name asc, description asc
-          """).on('group -> group).as(Service.withEnvironment *)
-        services
-    }
-    */
-  }
-
-  /**
-   * Upload a csvLine => insert service & environment.
-   *
-   * @param csvLine line in csv file
-   * @return nothing
-   */
-  def upload(csvLine: String) = {
-    val dataCsv = csvLine.split(";")
-
-    if (dataCsv.size != csvTitle.size) {
-      Logger.error("Please check csvFile, " + csvTitle.size + " fields required")
-      throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
-    }
-
-    if (dataCsv(csvTitle.get("key").get) == csvKey) {
-      uploadService(dataCsv)
-    } else {
-      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
-    }
-  }
-
-  /**
-   * Check if service already exist (with localTarget and Environment). Insert or do nothing if exist.
-   *
-   * @param dataCsv line in csv file
-   * @return service (new or not)
-   */
-  private def uploadService(dataCsv: Array[String]) = {
-
-    val environmentName = dataCsv(csvTitle.get("environmentName").get)
-    val localTarget = dataCsv(csvTitle.get("localTarget").get)
-
-    val typeRequest = dataCsv(csvTitle.get("typeRequest").get)
-    val f = findByLocalTargetAndEnvironmentName(typeRequest, localTarget, environmentName)
-
-    val service = Await.result(f, 1.seconds)
-    if (service.get != null) {
-      // null comes from ServiceBSONReader
-      Logger.warn("Service " + environmentName + "/" + localTarget + " already exist")
-      throw new Exception("Warning : Service " + environmentName + "/" + localTarget + " already exist")
-    } else {
-      var mockGroupId: Option[String] = None
-      if (dataCsv(csvTitle.get("mockGroupName").get) != "None") {
-        val m = Await.result(MockGroup.findByName(dataCsv(csvTitle.get("mockGroupName").get)), 1.seconds)
-        if (m.isDefined) mockGroupId = Some(m.get._id.get.stringify)
-      }
-
-      val service = new Service(
-        Some(BSONObjectID.generate),
-        dataCsv(csvTitle.get("description").get).trim,
-        dataCsv(csvTitle.get("typeRequest").get).trim,
-        dataCsv(csvTitle.get("httpMethod").get).trim,
-        dataCsv(csvTitle.get("localTarget").get).trim,
-        dataCsv(csvTitle.get("remoteTarget").get).trim,
-        dataCsv(csvTitle.get("timeoutms").get).toInt,
-        dataCsv(csvTitle.get("recordContentData").get).trim == "true",
-        dataCsv(csvTitle.get("recordData").get).trim == "true",
-        dataCsv(csvTitle.get("useMockGroup").get).trim == "true",
-        mockGroupId,
-        Some(environmentName))
-      Service.insert(service)
-      Logger.info("Insert Service " + environmentName + "/" + localTarget)
-    }
-  }
-
 
   /**
    * Remove first / in localTarget.

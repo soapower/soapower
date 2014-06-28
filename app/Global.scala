@@ -1,4 +1,5 @@
-import models.{Robot, LiveRoom, Environment}
+import controllers.admin.ServiceActions
+import models.{RequestData, Robot, LiveRoom, Environment}
 import play.api._
 
 import scala.concurrent.duration._
@@ -15,9 +16,10 @@ object Global extends GlobalSettings {
     LiveRoom.init
 
     // initialDelay: Duration : 10 minutes
-    // frequency: Duration : 10 hours
-    Akka.system.scheduler.schedule(10 minutes, 5 hours) {
-      Environment.compileStats()
+    // frequency: Duration : 5 hours
+    Akka.system.scheduler.schedule(30 minutes, 5 hours) {
+      ServiceActions.regenerate()
+      RequestData.compileStats()
       Environment.purgeContentData()
       Environment.purgeAllData()
     }

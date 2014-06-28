@@ -1,6 +1,7 @@
 package models
 
 import com.ning.http.client.{AsyncHttpClient, FluentCaseInsensitiveStringsMap}
+import com.ning.http.client.providers.netty.NettyResponse
 import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -14,9 +15,7 @@ import play.api.http._
 import java.io.StringWriter
 import java.io.PrintWriter
 import play.api.Play.current
-import com.ning.http.client.Realm.AuthScheme
 import org.jboss.netty.handler.codec.http.HttpMethod
-import com.ning.http.client.providers.netty.NettyResponse
 
 object Client {
   private val DEFAULT_NO_SOAPACTION = "Soapower_NoSoapAction"
@@ -53,7 +52,9 @@ object Client {
   }
 }
 
-class Client(service: Service, sender: String, content: String, headers: Map[String, String], typeRequest: String, requestContentType: String) {
+class Client(pService: Service, environmentName: String, sender: String, content: String, headers: Map[String, String], typeRequest: String, requestContentType: String) {
+
+  val service = pService
 
   val requestData = {
     var serviceAction = ""
@@ -65,11 +66,9 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     }
 
     Logger.debug("service:" + service)
-
-    new RequestData(sender, serviceAction, service.environmentName.get, service._id.get, requestContentType)
+    new RequestData(sender, serviceAction, environmentName, service._id.get, requestContentType)
   }
 
-  val environment = Environment.findByName(service.environmentName.get)
   var response: ClientResponse = null
 
   private var futureResponse: Future[WSResponse] = null
@@ -80,18 +79,18 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
     requestData.timeInMillis = mock.timeoutms
     requestData.status = mock.httpStatus
 
-    requestData.requestHeaders = headers
-    requestData.response = checkNullOrEmpty(mock.response)
-    requestData.responseHeaders = UtilConvert.headersFromString(mock.httpHeaders)
+    requestData.requestHeaders = Some(headers)
+    requestData.response = Some(checkNullOrEmpty(mock.response))
+    requestData.responseHeaders = Some(UtilConvert.headersFromString(mock.httpHeaders))
     if (requestData.contentType == "None") {
-      val mockResponseType = requestData.responseHeaders.get("Content-Type")
+      val mockResponseType = requestData.responseHeaders.get.get("Content-Type")
       mockResponseType match {
         case Some(content) =>
-          requestData.contentType = requestData.responseHeaders.get("Content-Type").get
+          requestData.contentType = requestData.responseHeaders.get.get("Content-Type").get
         case _ =>
           requestData.contentType = "text/html"
       }
-      requestData.contentType = requestData.responseHeaders.get("Content-Type").get
+      requestData.contentType = requestData.responseHeaders.get.get("Content-Type").get
     }
     saveData(content)
     Logger.debug("End workWithMock")
@@ -194,7 +193,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       requestData.timeInMillis = response.responseTimeInMillis
       requestData.status = response.status
       Client.processQueue(requestData)
-      requestData.requestHeaders = headers
+      requestData.requestHeaders = Some(headers)
 
       if (requestData.contentType == "None") {
         // If the request content type is "None", the http method of the request was GET or DELETE,
@@ -206,10 +205,10 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
         }
       }
 
-      requestData.response = checkNullOrEmpty(response.body)
+      requestData.response = Some(checkNullOrEmpty(response.body))
       requestData.responseBytes = response.bodyBytes
 
-      requestData.responseHeaders = response.headers
+      requestData.responseHeaders = Some(response.headers)
 
       if (Logger.isDebugEnabled) {
         Logger.debug("Response in " + response.responseTimeInMillis + " ms")
@@ -238,17 +237,8 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
 
   private def saveData(content: String) = {
     try {
-      // asynchronously writes data to the DB
-      val writeStartTime = System.currentTimeMillis()
-      scala.concurrent.Future {
-        requestData.request = checkNullOrEmpty(content)
-        requestData.storeServiceActionAndStatusInCache()
-        RequestData.insert(requestData)
-        Robot.talk(requestData)
-      }.map {
-        result =>
-          Logger.debug("Request Data written to DB in " + (System.currentTimeMillis() - writeStartTime) + " ms")
-      }
+      requestData.request = Some(checkNullOrEmpty(content))
+      RequestData.insert(requestData, service)
     } catch {
       case e: Throwable => Logger.error("Error writing to DB", e)
     }
@@ -272,7 +262,7 @@ class Client(service: Service, sender: String, content: String, headers: Map[Str
       response.body = faultTextResponse("Server", exception.getMessage, stackTraceWriter.toString)
     }
 
-    requestData.response = response.body
+    requestData.response = Some(response.body)
     requestData.status = Status.INTERNAL_SERVER_ERROR
   }
 
@@ -308,7 +298,6 @@ class ClientResponse(wsResponse: WSResponse = null, val responseTimeInMillis: Lo
   val status: Int = if (wsResponse != null) wsResponse.status else Status.INTERNAL_SERVER_ERROR
 
   private val headersNing: Map[String, Seq[String]] = if (wsResponse != null) ningHeadersToMap(wsResponse.underlying[NettyResponse].getHeaders()) else Map()
-  //TO TEST : private val headersNing: Map[String, Seq[String]] = if (wsResponse != null) wsResponse.allHeaders else Map()
 
   var headers: Map[String, String] = Map()
 
@@ -321,6 +310,5 @@ class ClientResponse(wsResponse: WSResponse = null, val responseTimeInMillis: Lo
     TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
   }
 }
-
 
 

@@ -49,7 +49,7 @@ function MockGroupEditCtrl($scope, $routeParams, $location, MockGroup, GroupsSer
     var self = this;
 
     GroupsService.findAll().success(function (groups) {
-        $scope.allGroups = groups.values;
+        $scope.allGroups = groups;
     });
 
     MockGroup.get({mockgroupId: $routeParams.mockGroupId}, function (mockGroup) {
@@ -83,7 +83,7 @@ function MockGroupNewCtrl($scope, $location, $routeParams, MockGroup, GroupsServ
     $scope.title = "Insert new mockGroup";
 
     GroupsService.findAll().success(function (groups) {
-        $scope.allGroups = groups.values;
+        $scope.allGroups = groups;
     });
 
     $scope.mockGroup = new MockGroup();

@@ -1,60 +1,75 @@
 function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window, $filter, ngTableParams, UIService) {
     $scope.ctrlPath = "search";
-
     $scope.showTips = false;
     $scope.hostname = $location.host();
     $scope.port = $location.port();
-
     $scope.totalServerItems = 0;
+    $scope.waitForData = false;
 
     $scope.reloadTable = function () {
+
+        console.log("HOP");
+
         var groups = $routeParams.groups ? $routeParams.groups : 'all';
         var environment = $routeParams.environment ? $routeParams.environment : 'all';
         var serviceaction = $routeParams.serviceaction ? $routeParams.serviceaction : 'all';
         var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
         var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
         var code = $routeParams.code ? $routeParams.code : 'all';
-        var url = '/search/' + groups +
-            '/' + environment +
-            '/' + encodeURIComponent(serviceaction) +
-            '/' + mindate +
-            '/' + maxdate +
-            '/' + code +
-            '/listDatatable?' +
-            'iDisplayStart=' + 1 +
-            '&iDisplayLength=' + 10000 +
-            '&call=' + new Date();
+        var search = $routeParams.search ? $routeParams.search : '';
+        $scope.waitForData = true;
+        var request = "true";
+        var response = "true";
 
-        $http({
-            method: 'GET',
-            url: url,
-            cache: false
-        }).success(function (largeLoad) {
-            $scope.data = largeLoad.data;
-            $scope.tableParams = new ngTableParams({
-                page: 1,            // show first page
-                count: 10,          // count per page
-                sorting: {
-                    'startTime': 'desc'     // initial sorting
-                }
-            }, {
-                total: largeLoad.data.length, // length of data
-                getData: function ($defer, params) {
-                    var datafilter = $filter('customAndSearch');
-                    var requestsData = datafilter(largeLoad.data, $scope.tableFilter);
+        if ($routeParams.request === "false") {
+            request = "false";
+        }
+        if ($routeParams.response === "false") {
+            response = "false";
+        }
 
-                    var orderedData = params.sorting() ? $filter('orderBy')(requestsData, params.orderBy()) : requestsData;
-                    var res = orderedData.slice((params.page() - 1) * params.count(), params.page() * params.count());
-                    params.total(orderedData.length)
-                    $defer.resolve(res);
-                },
-                $scope: { $data: {} }
-            });
 
-            $scope.$watch("tableFilter", function () {
-                $scope.tableParams.reload()
-            });
+        $scope.waitForData = false;
+        $scope.tableParams = new ngTableParams({
+            page: 1,            // show first page
+            count: 10,          // count per page
+            sorting: {
+                'startTime': 'desc'     // initial sorting
+            }
+        }, {
+            total: 0,//largeLoad.data.length, // length of data
+            getData: function ($defer, params) {
+                var orderedData = params.sorting();
+                var sortKey = Object.keys(orderedData)[0];
+                var sortVal = orderedData[sortKey];
 
+                var url = '/search/' + groups +
+                    '/' + environment +
+                    '/' + encodeURIComponent(serviceaction) +
+                    '/' + mindate +
+                    '/' + maxdate +
+                    '/' + code +
+                    '/listDatatable?' +
+                    'sSearch=' + search +
+                    '&request=' + request +
+                    '&response=' + response +
+                    '&page=' + params.page() +
+                    '&pageSize=' + params.count() +
+                    '&sortKey=' + sortKey +
+                    '&sortVal=' + sortVal +
+                    '&call=' + new Date();
+
+                $http({
+                    method: 'GET',
+                    url: url,
+                    cache: false
+                }).success(function (newLoad) {
+                    $scope.totalSize = newLoad.totalDataSize;
+                    params.total(newLoad.totalDataSize);
+                    $defer.resolve(newLoad.data);
+                });
+
+            }
         });
     };
 
@@ -85,7 +100,8 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
 
     $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "SearchCtrl");
 
-    $scope.$on("ReloadPage", function (event) {
-        UIService.reloadPage($scope, true);
+    $scope.$on("ReloadPage", function (event, newGroups) {
+        if (newGroups) $scope.groups = newGroups;
+        UIService.reloadPage($scope, true, "search");
     });
 }

@@ -1,20 +1,22 @@
 import play.PlayImport.PlayKeys
 import play.PlayScala
-import play.Project._
 
 name         := "soapower"
 
-version      := "2.0.0"
+version      := "2.0.0-Beta2"
+
+lazy val root = (project in file(".")).enablePlugins(PlayScala,SbtWeb)
+
+scalaVersion := "2.11.1"
+
+resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
 libraryDependencies ++= Seq(
-    cache,
-    PlayKeys.ws,
-    "org.reactivemongo" %% "reactivemongo" % "0.10.0",
-    "org.reactivemongo" %% "play2-reactivemongo" % "0.10.2")
-
-
-lazy val root = (project in file(".")).addPlugins(PlayScala)
-
+    cache, 
+    ws,
+    "org.reactivemongo" %% "reactivemongo" % "0.11.0-SNAPSHOT",
+    "org.reactivemongo" %% "play2-reactivemongo" % "0.10.5.akka23-SNAPSHOT"
+)
 
 mappings in Universal <++= baseDirectory map { dir => (dir / "soapowerctl.sh").*** --- dir x relativeTo(dir) }
 
@@ -32,3 +34,4 @@ buildInfoKeys := Seq[BuildInfoKey](
 )
 
 buildInfoPackage := "soapower.build.info"
+

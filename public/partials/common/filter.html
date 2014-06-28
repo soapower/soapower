@@ -1,0 +1,66 @@
+<div>
+    <form name="form" role="form">
+        <div class="form-inline">
+            <div style="width:30%;" class="form-group">
+                <select ng-model="environment" ui-select2 class="form-control" style="display:block;" ng-change="changeEnvironment()">
+                    <option ng-repeat="e in environments" value="{{ e.name }}">{{ e.name }}</option>
+                </select>
+            </div>
+            <div ng-show="showserviceactions" style="width:30%;" class="form-group">
+                <select style="display:block;" ui-select2 data-placeholder="Pick a serviceaction"  ui-select2 class="form-control" ng-model="serviceaction" ng-change="changeServiceAction()">
+                    <option ng-repeat="sa in serviceactions" value="{{ sa }}">{{ sa }}</option>
+                </select>
+            </div>
+
+            <div ng-show="showstatus" style="width:30%;" class="form-group">
+                <select style="display:block;" ng-model="code" ui-select2 class="form-control" ng-change="changeStatus()">
+                    <option ng-repeat="c in codes" value="{{ c }}">{{ c }}</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-inline" ng-show="showresearch">
+            <div class="form-group">
+                <textarea ng-change="changeSearch()" class="form-control" ng-model="search" placeholder="Search in request / response"></textarea>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" ng-model="request" ng-change="changeRequest()">Request
+                </label>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" ng-model="response" ng-change="changeResponse()">Response
+                </label>
+            </div>
+        </div>
+
+        <div class="form-inline">
+            <div ng-show="showcalendars" class="form-group">
+                <label for="from"> From : </label>
+                <input ng-model="mindate" name="mindate" class="input-small" type="text" ng-click="showmindate = !showmindate"/>
+                <div ng-show="showmindate" >
+                    <datetimepicker ng-model="mindatecalendar" data-on-set-time="onMinTimeSet" starting-day="1" data-datetimepicker-config="{ minuteStep: 5 }"></datetimepicker>
+                </div>
+                <input class="input-small" type="hidden" id="from" ng-model="mindatecalendar" ng-click="showmindate = !showmindate"/>
+            </div>
+
+            <div ng-show="showcalendars" class="form-group">
+                <label for="To"> To : </label>
+                <input name="maxdate" ng-model="maxdate" class="input-small" type="text" ng-click="showmaxdate = !showmaxdate" />
+                <div ng-show="showmaxdate" >
+                    <datetimepicker ng-model="maxdatecalendar" data-on-set-time="onMaxTimeSet" starting-day="1" data-datetimepicker-config="{ minuteStep: 5 }"></datetimepicker>
+                </div>
+                <input class="input-small" type="hidden" id="to" ng-model="maxdate" ng-click="showmaxdate = !showmaxdate"/>
+            </div>
+            <div ng-show="showlive" class="form-group">
+                <label>
+                    <input type="checkbox" ng-model="live" ng-change="changeResponse()">Live stats
+                </label>
+            </div>
+            <div ng-show="showfilterbutton" class="form-group">
+                <button class="btn btn-primary" ng-click="changeCriteria()">Filter</button>
+            </div>
+        </div>
+    </form>
+</div>

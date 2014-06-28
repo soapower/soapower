@@ -10,12 +10,13 @@ function StatsCtrl($scope, $rootScope, $http, $location, $routeParams, $filter, 
     var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
     var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
     var code = $routeParams.code ? $routeParams.code : 'all';
+    var live = $routeParams.live ? $routeParams.live : 'false'
     var url = $scope.ctrlPath +
         '/' + groups +
         '/' + environment +
         '/' + mindate +
         '/' + maxdate +
-        '/' + code +
+        '/' + live +
         '/listDatatable?' +
         'sSearch=' +
         '&iDisplayStart=' + 0 +
@@ -25,7 +26,6 @@ function StatsCtrl($scope, $rootScope, $http, $location, $routeParams, $filter, 
     $http({ method: 'GET', url: url, cache: false })
         .success(function (dataJson) {
             $scope.data = dataJson.data;
-
             $scope.tableParams = new ngTableParams({
                 page: 1,            // show first page
                 count: 10,          // count per page
@@ -49,10 +49,15 @@ function StatsCtrl($scope, $rootScope, $http, $location, $routeParams, $filter, 
                 $scope.tableParams.reload()
             });
 
-        });
+        }).error(function (e) {
+                      console.log(e);
+                  });
 
 
-    $scope.$on("ReloadPage", function (event) {
-        UIService.reloadPage($scope, false);
+    $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "SearchCtrl");
+
+    $scope.$on("ReloadPage", function (event, newGroups) {
+        if(newGroups) $scope.groups = newGroups;
+        UIService.reloadPage($scope, false, "statistics");
     });
 }

@@ -1,15 +1,12 @@
 package models
 
-import java.util.{GregorianCalendar, Calendar, Date}
+import java.util.{TimeZone, GregorianCalendar, Calendar, Date}
 import play.api.Play.current
 import play.api.libs.json._
 import java.util.zip.{GZIPOutputStream, GZIPInputStream}
 import java.nio.charset.Charset
 
 import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
-import play.api.libs.json.JsString
-import scala.Some
-import play.api.libs.json.JsObject
 
 import scala.concurrent.duration._
 import play.api.Logger
@@ -18,39 +15,37 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.{Await, Future}
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
-import scala.Some
-import reactivemongo.core.commands.{LastError, RawCommand}
-import reactivemongo.api.collections.default.BSONCollection
-import org.joda.time.DateTime
-import scala.Some
-import play.api.libs.json.JsObject
-import reactivemongo.api.collections.default.BSONCollection
 import play.api.http.HeaderNames
+import play.cache.Cache
+import org.joda.time.DateTime
+import scala.collection.mutable.ListBuffer
 import reactivemongo.bson.BSONDateTime
 import reactivemongo.bson.BSONBoolean
-import reactivemongo.bson.BSONString
+import scala.util.Failure
 import scala.Some
+import reactivemongo.core.commands.RawCommand
 import reactivemongo.bson.BSONLong
 import reactivemongo.bson.BSONInteger
-import play.api.libs.json.JsObject
+import scala.util.Success
 import reactivemongo.api.collections.default.BSONCollection
-import play.cache.Cache
-import java.text.{SimpleDateFormat, DateFormat}
-import scala.util.{Try, Success, Failure}
+import reactivemongo.bson.BSONString
+import play.api.libs.json.JsObject
+import models.Stat.AnalysisEntity
 
 case class RequestData(_id: Option[BSONObjectID],
                        sender: String,
                        var serviceAction: String,
                        environmentName: String,
                        serviceId: BSONObjectID,
-                       var request: String,
-                       var requestHeaders: Map[String, String],
+                       var groupsName: Option[List[String]],
+                       var request: Option[String],
+                       var requestHeaders: Option[Map[String, String]],
                        var contentType: String,
                        var requestCall: Option[String],
                        startTime: DateTime,
-                       var response: String,
+                       var response: Option[String],
                        var responseOriginal: Option[String],
-                       var responseHeaders: Map[String, String],
+                       var responseHeaders: Option[Map[String, String]],
                        var timeInMillis: Long,
                        var status: Int,
                        var purged: Boolean,
@@ -58,28 +53,8 @@ case class RequestData(_id: Option[BSONObjectID],
 
   var responseBytes: Array[Byte] = null
 
-
-  def this(sender: String, serviceAction: String, environnmentName: String, serviceId: BSONObjectID, contentType: String) =
-    this(Some(BSONObjectID.generate), sender, serviceAction, environnmentName, serviceId, null, null, contentType, null, new DateTime(), null, None, null, -1, -1, false, false)
-
-  /**
-   * Add serviceAction in cache if neccessary.
-   */
-  def storeServiceActionAndStatusInCache() {
-    //TODO
-    /*
-    if (!RequestData.serviceActionOptions.exists(p => p._1 == serviceAction)) {
-      Logger.info("ServiceAction " + serviceAction + " not found in cache : add to cache")
-      val inCache = RequestData.serviceActionOptions ++ (List((serviceAction, serviceAction)))
-      Cache.set(RequestData.keyCacheServiceAction, inCache)
-    }
-    if (!RequestData.statusOptions.exists(p => p._1 == status)) {
-      Logger.info("Status " + serviceAction + " not found in cache : add to cache")
-      val inCache = RequestData.statusOptions ++ (List((status, status)))
-      Cache.set(RequestData.keyCacheStatusOptions, inCache)
-    }
-    */
-  }
+  def this(sender: String, serviceAction: String, environmentName: String, serviceId: BSONObjectID, contentType: String) =
+    this(Some(BSONObjectID.generate), sender, serviceAction, environmentName, serviceId, null, null, null, contentType, null, new DateTime(), null, None, null, -1, -1, false, false)
 
   def toSimpleJson: JsObject = {
     Json.obj(
@@ -88,12 +63,77 @@ case class RequestData(_id: Option[BSONObjectID],
       "contentType" -> contentType,
       "serviceId" -> serviceId,
       "environmentName" -> environmentName,
+      "groupsName" -> groupsName.get,
       "sender" -> sender,
       "serviceAction" -> serviceAction,
       "startTime" -> startTime.toString(),
       "timeInMillis" -> timeInMillis,
       "purged" -> purged
     )
+  }
+
+  /**
+   * Test if the requestData match the criterias given in parameter
+   * @param criterias
+   * @return
+   */
+  def checkCriterias(criterias: Criterias): Boolean = {
+    checkGroup(criterias.group) &&
+      checkEnv(criterias.environment) &&
+      checkServiceAction(criterias.serviceAction) &&
+      checkStatus(criterias.code) &&
+      checkSearch(criterias.request, criterias.response, criterias.search)
+  }
+
+  /**
+   * Check that the group of the requestData match the group in parameter
+   * @param group
+   */
+  private def checkGroup(group: String): Boolean = {
+    group == "all"
+  }
+
+  /**
+   * Check that the environment of the requestData match the environment in parameter
+   * @param environment
+   */
+  private def checkEnv(environment: String): Boolean = {
+    environment == "all" || environment == this.environmentName
+  }
+
+  /**
+   * Check that the serviceAction of the requestData match the serviceAction in parameter
+   * @param serviceAction
+   */
+  private def checkServiceAction(serviceAction: String): Boolean = {
+    serviceAction == "all" || serviceAction == this.serviceAction
+  }
+
+  /**
+   * Check that the status of the RequestData match the status in parameter
+   * @param status
+   */
+  private def checkStatus(status: String): Boolean = {
+    if (status.startsWith("NOT_")) {
+      val notCode = status.split("NOT_")(1)
+      this.status.toString != notCode
+    } else {
+      status == "all" || status == this.status.toString
+    }
+  }
+
+  /**
+   * Check that the request or the response of the RequestData match the search query in parameter
+   * @param searchRequest search in Request
+   * @param searchResponse search in Response
+   * @param search search in the string
+   */
+  private def checkSearch(searchRequest: Boolean, searchResponse: Boolean, search: String): Boolean = {
+    if (searchRequest && this.request.get.indexOf(search) > -1) return true
+    if (searchResponse && this.response.get.indexOf(search) > -1) return true
+    // if the two checkbox are unchecked, the search field is ignore
+    if (!searchRequest && !searchResponse) return true
+    false
   }
 }
 
@@ -113,15 +153,16 @@ object RequestData {
     }
   }
 
-  implicit object MapBSONReader extends BSONDocumentReader[Map[String, String]] {
-    def read(bson: BSONDocument): Map[String, String] = {
-      val elements = bson.elements.map {
-        tuple =>
-          tuple._1 -> tuple._2.toString
+  implicit def MapBSONReader[T](implicit reader: BSONReader[_ <: BSONValue, T]): BSONDocumentReader[Map[String, T]] =
+    new BSONDocumentReader[Map[String, T]] {
+      def read(doc: BSONDocument): Map[String, T] = {
+        doc.elements.collect {
+          case (key, value) => value.seeAsOpt[T](reader) map {
+            ov => (key, ov)
+          }
+        }.flatten.toMap
       }
-      elements.toMap
     }
-  }
 
   implicit object RequestDataBSONReader extends BSONDocumentReader[RequestData] {
     def read(doc: BSONDocument): RequestData = {
@@ -131,14 +172,15 @@ object RequestData {
         doc.getAs[String]("serviceAction").get,
         doc.getAs[String]("environmentName").get,
         doc.getAs[BSONObjectID]("serviceId").get,
-        doc.getAs[String]("request").get,
-        doc.getAs[Map[String, String]]("requestHeaders").get,
+        Some(doc.getAs[List[String]]("groupsName").toList.flatten),
+        doc.getAs[String]("request"),
+        doc.getAs[Map[String, String]]("requestHeaders"),
         doc.getAs[String]("contentType").get,
         doc.getAs[String]("requestCall"),
         new DateTime(doc.getAs[BSONDateTime]("startTime").get.value),
-        doc.getAs[String]("response").get,
+        doc.getAs[String]("response"),
         doc.getAs[String]("responseOriginal"),
-        doc.getAs[Map[String, String]]("responseHeaders").get,
+        doc.getAs[Map[String, String]]("responseHeaders"),
         doc.getAs[Long]("timeInMillis").get,
         doc.getAs[Int]("status").get,
         doc.getAs[Boolean]("purged").get,
@@ -156,14 +198,17 @@ object RequestData {
         "sender" -> BSONString(requestData.sender),
         "serviceAction" -> BSONString(requestData.serviceAction),
         "environmentName" -> BSONString(requestData.environmentName),
+        "groupsName" -> requestData.groupsName,
         "serviceId" -> requestData.serviceId,
-        "request" -> BSONString(requestData.request),
-        "requestHeaders" -> requestData.requestHeaders,
+        "request" -> requestData.request.get,
+        "requestHeaders" -> requestData.requestHeaders.get,
         "contentType" -> BSONString(requestData.contentType),
-        "requestCall" -> Option(requestData.requestCall),
+        "requestCall" -> {
+          if (requestData.requestCall != null) requestData.requestCall.get else ""
+        },
         "startTime" -> BSONDateTime(requestData.startTime.getMillis),
-        "response" -> BSONString(requestData.response),
-        "responseOriginal" -> Option(requestData.responseOriginal),
+        "response" -> requestData.response,
+        "responseOriginal" -> requestData.responseOriginal,
         "responseHeaders" -> requestData.responseHeaders,
         "timeInMillis" -> BSONLong(requestData.timeInMillis),
         "status" -> BSONInteger(requestData.status),
@@ -177,75 +222,51 @@ object RequestData {
   val keyCacheStatusOptions = "status-options"
   val keyCacheMinStartTime = "minStartTime"
 
-  /*implicit def rowToByteArray: Column[Array[Byte]] = Column.nonNull {
-    (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz) = meta
-      value match {
-        case data: Array[Byte] => Right(data)
-        case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Byte Array for column " + qualified))
-      }
-  }*/
-
   /**
-   * Anorm Byte conversion
+   * Retrieve all distinct serviceactions using name and groups
+   * @return a list of serviceAction's name and groups
    */
-  //def bytes(columnName: String): RowParser[Array[Byte]] = get[Array[Byte]](columnName)(implicitly[Column[Array[Byte]]])
+  def serviceActionOption: Future[List[(String, List[String])]] = {
+    val command =
+      BSONDocument(
+        "aggregate" -> collection.name, // we aggregate on collection
+        "pipeline" -> BSONArray(
+          BSONDocument(
+            "$group" -> BSONDocument(
+              "_id" -> BSONDocument("serviceAction" -> "$serviceAction", "groupsName" -> "$groupsName"),
+              "nbServiceAction" -> BSONDocument("$sum" -> 1)))
+        )
+      )
 
-  /**
-   * Title of csvFile. The value is the order of title.
-   */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "serviceAction" -> 2, "startTime" -> 3, "timeInMillis" -> 4, "environmentName" -> 5)
-
-  val csvKey = "requestDataStat"
-
-  //def fetchCsv(): List[String] = DB.withConnection {
-  def fetchCsv(): List[String] = {
-    //TODO
-    ???
-  }
-
-  /**
-   * Parse required parts of a RequestData from a ResultSet in order to replay the request
-   */
-  /* TODO
-  val forReplay = {
-    get[Pk[Long]]("request_data.id") ~
-      str("request_data.sender") ~
-      str("request_data.serviceAction") ~
-      long("request_data.environmentId") ~
-      long("request_data.serviceId") ~
-      bytes("request_data.request") ~
-      str("request_data.requestHeaders") ~
-      str("request_data.contentType") map {
-      case id ~ sender ~ serviceAction ~ environnmentId ~ serviceId ~ request ~ requestHeaders ~ contentType =>
-        val headers = UtilConvert.headersFromString(requestHeaders)
-        new RequestData(id, sender, serviceAction, environnmentId, serviceId, uncompressString(request), headers, contentType, null, null, null, null, -1, -1, false, false)
+    var listRes = ListBuffer.empty[(String, List[String])]
+    val query = ReactiveMongoPlugin.db.command(RawCommand(command))
+    query.map {
+      b =>
+        b.getAs[List[BSONValue]]("result").get.foreach {
+          // For each results
+          saOptions =>
+            saOptions.asInstanceOf[BSONDocument].elements.foreach {
+              idOption =>
+                if (idOption._1 == "_id") {
+                  // If the key is "_id", we retrieve the serviceAction's name and groups
+                  var serviceAction = ""
+                  var groups = ListBuffer.empty[String]
+                  idOption._2.asInstanceOf[BSONDocument].elements.foreach {
+                    s =>
+                      if (s._1 == "serviceAction") {
+                        serviceAction = s._2.asInstanceOf[BSONString].value
+                      } else {
+                        s._2.asInstanceOf[BSONArray].values.foreach(e => groups += e.asInstanceOf[BSONString].value.toString)
+                      }
+                  }
+                  listRes += ((serviceAction, groups.toList))
+                }
+            }
+        }
+        listRes.toList.sortBy(_._1)
     }
   }
 
-  val forRESTReplay = {
-    get[Pk[Long]]("request_data.id") ~
-      str("request_data.sender") ~
-      str("request_data.serviceAction") ~
-      long("request_data.environmentId") ~
-      long("request_data.serviceId") ~
-      bytes("request_data.request") ~
-      str("request_data.requestHeaders") ~
-      str("request_data.requestCall") map {
-      case id ~ sender ~ serviceAction ~ environnmentId ~ serviceId ~ request ~ requestHeaders ~ requestCall =>
-        val headers = UtilConvert.headersFromString(requestHeaders)
-        new RequestData(id, sender, serviceAction, environnmentId, serviceId, uncompressString(request), headers, null, requestCall, null, null, null, -1, -1, false, false)
-    }
-  }
-  */
-
-  /**
-   * Construct the Map[String, String] needed to fill a select options set.
-   */
-  def serviceActionOptions: Future[List[String]] = {
-    val command = RawCommand(BSONDocument("distinct" -> collection.name, "key" -> "serviceAction", "query" -> BSONDocument()))
-    ReactiveMongoPlugin.db.command(command).map(b => b.getAs[List[String]]("values").get)
-  }
 
   /**
    * Construct the Map[String, String] needed to fill a select options set.
@@ -257,149 +278,84 @@ object RequestData {
   }
 
   /**
-   * find Min Date.
+   * find the oldest requestData
    */
-  //def getMinStartTime: Option[Date] = DB.withConnection {
-  def getMinStartTime: Option[Date] = {
-    //TODO
-    ???
-    /*
-    implicit connection =>
-      Cache.getOrElse[Option[Date]](keyCacheMinStartTime) {
-        Logger.debug("MinStartTime not found in cache: loading from db")
-        SQL("select min(startTime) as startTimeMin from request_data").as(scalar[Option[Date]].single)
-      }
-    */
+  def getMinRequestData: Future[Option[RequestData]] = {
+    collection.find(BSONDocument()).sort(BSONDocument({
+      "startTime" -> 1
+    })).one[RequestData]
   }
 
   /**
    * Insert a new RequestData.
-   *
    * @param requestData the requestData
+   * @param service service used by this requestDate
    */
-  def insert(requestData: RequestData): Option[BSONObjectID] = {
+  def insert(requestData: RequestData, service: Service) = {
 
-    //TODO
-    /*
     var contentRequest: String = null
     var contentResponse: String = null
 
-    val f = Environment.findById(requestData.environmentId).map(e => e)
-    val environment = Await result(f, 1.seconds)
-
-    val service = Service.findById(requestData.serviceId).get
     val date = new Date()
     val gcal = new GregorianCalendar()
     gcal.setTime(date)
     gcal.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
 
-    if (!service.recordData || !environment.get.recordData) {
-      Logger.debug("Data not recording for this service or this environment")
-      return None
-    } else if (!service.recordContentData) {
-      val msg = "Content Data not recording for this service. See Admin."
-      requestContent = compressString(msg)
-      responseContent = compressString(msg)
-      Logger.debug(msg)
-    } else if (!environment.recordContentData) {
-      val msg = "Content Data not recording for this environment. See Admin."
-      requestContent = compressString(msg)
-      responseContent = compressString(msg)
-      Logger.debug(msg)
-    } else if (requestData.status != 200 || (
-      environment.hourRecordContentDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
-        environment.hourRecordContentDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
-      // Record Data if it is a soap fault (status != 200) or
-      // if we can record data with environment's configuration (hours of recording)
-      requestContent = compressString(requestData.request)
+    Environment.findByName(service.environmentName.get).map {
+      e => {
+        val environment = e.get
+        requestData.groupsName = Some(environment.groups)
+        Robot.talk(requestData)
 
-      def transferEncodingResponse = requestData.responseHeaders.filter {
-        _._1 == HeaderNames.CONTENT_ENCODING
+        if (!service.recordData || !environment.recordData) {
+          Logger.debug("Data not recording for this service or this environment")
+        } else {
+          var msg = ""
+          if (!service.recordContentData) {
+            msg = "Content Data not recording for this service. See Admin."
+          } else if (!environment.recordContentData) {
+            msg = "Content Data not recording for this environment. See Admin."
+          }
+
+          if (msg != "") {
+            requestData.request = Some(msg)
+            requestData.responseOriginal = Some(msg)
+            requestData.response = Some(msg)
+            Logger.debug(msg)
+          } else if (requestData.status != 200 || (
+            environment.hourRecordContentDataMin <= gcal.get(Calendar.HOUR_OF_DAY) &&
+              environment.hourRecordContentDataMax > gcal.get(Calendar.HOUR_OF_DAY))) {
+            // Record Data if it is a soap fault (status != 200) or
+            // if we can record data with environment's configuration (hours of recording)
+            def transferEncodingResponse = requestData.responseHeaders.get.filter {
+              _._1 == HeaderNames.CONTENT_ENCODING
+            }
+
+            transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
+              case Some("gzip") =>
+                Logger.debug("Response in gzip Format")
+                requestData.responseOriginal = Some(requestData.response.get)
+                requestData.response = Some(uncompressString(requestData.responseBytes))
+              case _ =>
+                Logger.debug("Response in plain Format")
+            }
+          } else {
+            val msg = "Content Data not recording. Record between " + environment.hourRecordContentDataMin + "h to " + environment.hourRecordContentDataMax + "h for this environment."
+            contentRequest = msg
+            contentResponse = msg
+            Logger.debug(msg)
+          }
+
+          val f = collection.insert(requestData)
+          f.onComplete {
+            case Failure(e) => throw e
+            case Success(lastError) => {
+              Logger.debug(s"Successfully inserted RequestData with LastError: $lastError")
+            }
+          }
+        }
       }
-
-      transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
-        case Some("gzip") =>
-          Logger.debug("Response in gzip Format")
-          contentResponse = "TODO response in gzip format" // TODO requestData.responseBytes
-        case _ =>
-          Logger.debug("Response in plain Format")
-          contentResponse = requestData.response
-      }
-    } else {
-      val msg = "Content Data not recording. Record between " + environment.get.hourRecordContentDataMin + "h to " + environment.get.hourRecordContentDataMax + "h for this environment."
-      contentRequest = msg
-      contentResponse = msg
-      Logger.debug(msg)
     }
-
-    requestData.request = contentRequest
-    requestData.response = contentResponse
-*/
-    def transferEncodingResponse = requestData.responseHeaders.filter {
-      _._1 == HeaderNames.CONTENT_ENCODING
-    }
-
-    transferEncodingResponse.get(HeaderNames.CONTENT_ENCODING) match {
-      case Some("gzip") =>
-        Logger.debug("Response in gzip Format")
-        requestData.responseOriginal = Some(requestData.response)
-        requestData.response = uncompressString(requestData.responseBytes)
-      case _ =>
-        Logger.debug("Response in plain Format")
-    }
-
-    val f = collection.insert(requestData)
-    f.onFailure {
-      case t => new Exception("An unexpected server error has occured: " + t.getMessage)
-    }
-    f.map {
-      lastError =>
-        Logger.debug(s"Successfully inserted RequestData with LastError: $lastError")
-    }
-    requestData._id
-  }
-
-  /**
-   * Insert a new RequestData.
-   */
-  def insertStats(environmentId: Long, serviceAction: String, startTime: Date, timeInMillis: Long) = {
-    /*
-    try {
-
-      DB.withConnection {
-        implicit connection =>
-
-          val purgedStats = SQL(
-            """
-            delete from request_data
-            where isStats = 'true'
-            and environmentId = {environmentId}
-            and startTime >= {startTime} and startTime <= {startTime}
-            and serviceAction = {serviceAction}
-            """
-          ).on(
-              'serviceAction -> serviceAction,
-              'environmentId -> environmentId,
-              'startTime -> startTime).executeUpdate()
-
-          Logger.debug("Purged " + purgedStats + " existing stats for:" + environmentId + " serviceAction: " + serviceAction + " and startTime:" + startTime)
-
-          SQL(
-            """
-            insert into request_data
-              (sender, serviceAction, environmentId, request, requestHeaders, startTime, response, responseHeaders, timeInMillis, status, isStats, isMock) values (
-              '', {serviceAction}, {environmentId}, '', '', {startTime}, '', '', {timeInMillis}, 200, 'true', 'false'
-            )
-            """).on(
-              'serviceAction -> serviceAction,
-              'environmentId -> environmentId,
-              'startTime -> startTime,
-              'timeInMillis -> timeInMillis).executeUpdate()
-      }
-    } catch {
-      case e: Exception => Logger.error("Error during insertion of RequestData Stats", e)
-    }
-    */
   }
 
   /**
@@ -455,13 +411,13 @@ object RequestData {
       case Failure(e) => throw e
 
       case Success(lastError) => {
-        if(lastError.updatedExisting) {
-         updatedElement = lastError.updated
-         Logger.debug(updatedElement + " RequestData of the environment " + environmentIn + " has been purged by "+user)
+        if (lastError.updatedExisting) {
+          updatedElement = lastError.updated
+          Logger.debug(updatedElement + " RequestData of the environment " + environmentIn + " has been purged by " + user)
         }
       }
     }
-    return updatedElement
+    updatedElement
   }
 
   /**
@@ -507,266 +463,558 @@ object RequestData {
     Cache.remove(keyCacheServiceAction)
     Cache.remove(keyCacheStatusOptions)
 
-    return removedElement
+    removedElement
   }
 
   /**
    * Return a page of RequestData
-   * @param groupName group name
-   * @param environmentIn name of environnement, "all" default
+   * @param groups groups name
+   * @param environment name of environnement, "all" default
    * @param serviceAction serviceAction, "all" default
    * @param minDate Min Date
    * @param maxDate Max Date
    * @param status Status
-   * @param offset offset in search
+   * @param page offset in search
    * @param pageSize size of line in one page
    * @return
    */
-  def list(groupName: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, offset: Int = 0, pageSize: Int = 10): Future[List[RequestData]] = {
+  def list(groups: String, environment: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, page: Int = 0,
+           pageSize: Int = 10, sortKey: String, sortVal: String, sSearch: String, request: Boolean, response: Boolean): Future[List[RequestData]] = {
 
-    val query = BSONDocument()
+    var order = 1
+    if (sortVal == "desc") order = -1
 
-    // TODO Group
-    /*val group = Group.options.find(t => t._2 == groupName)
+    val command =
+      BSONDocument(
+        "aggregate" -> collection.name, // we aggregate on collection
+        "pipeline" -> BSONArray(
+          BSONDocument(
+            "$match" -> getMatchQuery(groups, environment, serviceAction, minDate, maxDate, status, sSearch, request, response)
+          ), BSONDocument(
+            "$project" -> BSONDocument(
+              "sender" -> 1,
+              "serviceAction" -> 1,
+              "environmentName" -> 1,
+              "groupsName" -> 1,
+              "serviceId" -> 1,
+              "contentType" -> 1,
+              "startTime" -> 1,
+              "timeInMillis" -> 1,
+              "status" -> 1,
+              "purged" -> 1,
+              "isMock" -> 1
+            )
+          ), BSONDocument(
+            "$sort" -> BSONDocument(
+              sortKey -> order
+            )
+          ), BSONDocument(
+            "$skip" -> page * pageSize
+          ), BSONDocument(
+            "$limit" -> pageSize
+          )
+        )
+      )
 
-    if (group isDefined) query ++ ("groupdId" -> group.get._1)
-    */
+    var ret: List[RequestData] = null
 
-    // TODO Environment
-    /*if (environmentIn != "all" && Environment.optionsAll.exists(t => t._2 == environmentIn))
-      query ++ ("environmentId" -> Environment.optionsAll.find(t => t._2 == environmentIn).get._1)
-      */
+    ReactiveMongoPlugin.db.command(RawCommand(command)).map {
+      list => {
+        list.elements.foreach {
+          results => if (results._1 == "result") {
+            ret = results._2.asInstanceOf[BSONArray].as[List[RequestData]]
+          }
 
-    if (serviceAction != "all") query ++ ("serviceAction" -> serviceAction)
+        }
+        ret
+      }
+    }
 
-    // Convert dates... bad perf anorm ?
-    val g = new GregorianCalendar()
-    g.setTime(minDate)
-    val min = UtilDate.formatDate(g)
-    g.setTime(maxDate)
-    val max = UtilDate.formatDate(g)
-
-    query ++ ("startTime" -> BSONDocument("&gte" -> min, "&lte" -> max))
-
-    if (status != "all") query ++ ("status" -> status)
-
-    // TODO offset
-    // TODO pageSize
-
-    collection.
-      find(query).
-      sort(BSONDocument("startTime" -> -1)).
-      cursor[RequestData].
-      collect[List]()
   }
 
   /**
-   * Load reponse times for given parameters
+   * Return a page of RequestData
+   * @param groups groups name
+   * @param environment name of environnement, "all" default
+   * @param serviceAction serviceAction, "all" default
+   * @param minDate Min Date
+   * @param maxDate Max Date
+   * @param status Status
+   * @return BSONDocument of query
    */
-  def findResponseTimes(groupName: String, environmentIn: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, statsOnly: Boolean): List[(Long, String, Date, Long)] = {
-    ???
-    /*
-      var whereClause = "where startTime >= {minDate} and startTime <= {maxDate}"
-      whereClause += sqlAndStatus(status)
-      Logger.debug("DDDDD==>" + whereClause)
-      if (serviceAction != "all") whereClause += " and serviceAction = {serviceAction}"
-      whereClause += sqlAndEnvironnement(environmentIn)
+  def getMatchQuery(groups: String, environment: String, serviceAction: String, minDate: Date, maxDate: Date, status: String, sSearch: String, request: Boolean, response: Boolean): BSONDocument = {
 
-      val pair = sqlFromAndGroup(groupName, environmentIn)
-      val fromClause = " from request_data " + pair._1
-      whereClause += pair._2
+    var matchQuery = BSONDocument()
+    if (environment == "all") {
+      // We retrieve the environments of the groups in parameter
+      val environments = Environment.optionsInGroups(groups)
+      // We add the environments names to the query
+      matchQuery = matchQuery ++ ("environmentName" -> BSONDocument("$in" -> environments.map {
+        e => e._2
+      }.toArray))
+    } else {
+      matchQuery = matchQuery ++ ("environmentName" -> environment)
+    }
 
-      val params: Array[(Any, anorm.ParameterValue[_])] = Array(
-        'minDate -> minDate,
-        'maxDate -> maxDate,
-        'serviceAction -> serviceAction)
+    if (serviceAction != "all") {
+      matchQuery = matchQuery ++ ("serviceAction" -> serviceAction)
+    }
 
-      var sql = "select environmentId, serviceAction, startTime, timeInMillis " + fromClause + whereClause
+    matchQuery = matchQuery ++ ("startTime" -> BSONDocument(
+      "$gte" -> BSONDateTime(minDate.getTime),
+      "$lt" -> BSONDateTime(maxDate.getTime))
+      )
 
-      if (statsOnly) {
-        sql += " and isStats = 'true' "
+    if (status != "all") {
+      if (status.startsWith("NOT_")) {
+        val notCode = status.split("NOT_")(1)
+        matchQuery = matchQuery ++ ("status" -> BSONDocument("$ne" -> notCode.toInt))
       }
-      sql += " order by request_data.id asc"
-
-      Logger.debug("SQL (findResponseTimes, g:" + groupName + ") ====> " + sql)
-
-      DB.withConnection {
-        implicit connection =>
-        // explainPlan(sql, params: _*)
-          SQL(sql)
-            .on(params: _*)
-            .as(get[Long]("environmentId") ~ get[String]("serviceAction") ~ get[Date]("startTime") ~ get[Long]("timeInMillis") *)
-            .map(flatten)
-      }*/
-
-  }
-
-
-  def loadAvgResponseTimesByEnvirAndAction(groupName: String, environmentName: String, serviceAction: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): Long = {
-    ???
-    /*
-    var avg = -1.toLong
-    DB.withConnection {
-      implicit connection =>
-        var whereClause = " where startTime >= {minDate} and startTime <= {maxDate} "
-        if (!withStats) whereClause += " and isStats = 'false' "
-        whereClause += " and serviceAction = \"" + serviceAction + "\""
-
-        if (groupName != "all")
-          whereClause += "and request_data.id = environment.id and environment.groupId = " + Group.options.find(t => t._2 == groupName).get._1
-        else
-          whereClause += "and request_data.environmentId = environment.id "
-
-        whereClause += "and environment.name = \"" + environmentName + "\" "
-        val fromClause = " from request_data, environment, groups "
-
-        val sql = "select timeInMillis " + fromClause + whereClause + " order by timeInMillis asc"
-        Logger.debug("SQL (loadAvgResponseTimesByEnvirAndAction) ====> " + sql)
-        val responseTimes = SQL(sql)
-          .on(
-            'minDate -> minDate,
-            'maxDate -> maxDate)
-          .as(get[Long]("timeInMillis") *)
-          .toList
-        val times = responseTimes.slice(0, responseTimes.size * 9 / 10)
-        if (responseTimes.size != 0 && times.size != 0) {
-          avg = times.sum / times.size
-        }
+      else matchQuery = matchQuery ++ ("status" -> status.toInt)
     }
-    avg
-    */
-  }
 
-  def loadAvgResponseTimesBySpecificAction(groupName: String, serviceAction: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): Long = {
-    ???
-    /*
-    var avg = -1.toLong
-    DB.withConnection {
-      implicit connection =>
-        var whereClause = " where startTime >= {minDate} and startTime <= {maxDate} "
-        whereClause += sqlAndStatus(status)
-        if (!withStats) whereClause += " and isStats = 'false' "
-        Logger.debug("Load Stats with ServiceAction: " + serviceAction)
-        whereClause += " and serviceAction = \"" + serviceAction + "\""
-
-        if (groupName != "all")
-          whereClause += "and request_data.id = environment.id and environment.groupId = " + Group.options.find(t => t._2 == groupName).get._1
-        else
-          whereClause += "and request_data.environmentId = environment.id"
-
-        val fromClause = " from request_data, environment, groups "
-        val sql = "select timeInMillis " + fromClause + whereClause + " order by timeInMillis asc"
-        Logger.debug("SQL (loadAvgResponseTimesBySpecificAction) ====> " + sql)
-
-        val responseTimes = SQL(sql)
-          .on(
-            'minDate -> minDate,
-            'maxDate -> maxDate)
-          .as(get[Long]("timeInMillis") *)
-          .toList
-
-
-
-        val times = responseTimes.slice(0, responseTimes.size * 9 / 10)
-        if (responseTimes.size != 0 && times.size != 0) {
-          avg = times.sum / times.size;
-        }
+    if (sSearch != "") {
+      // We use regex research instead of MongoDb $text
+      if (request && response) matchQuery = matchQuery ++ ("$or" -> BSONArray(BSONDocument("request" -> BSONDocument("$regex" -> sSearch)), BSONDocument("response" -> BSONDocument("$regex" -> sSearch))))
+      else if (request) matchQuery = matchQuery ++ ("request" -> BSONDocument("$regex" -> sSearch))
+      else if (response) matchQuery = matchQuery ++ ("response" -> BSONDocument("$regex" -> sSearch))
     }
-    avg
-    */
+
+    matchQuery
   }
 
-  def loadAvgResponseTimesByAction(groupName: String, environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {
-    ???
-    /*DB.withConnection {
-  def loadAvgResponseTimesByAction(groupName: String, environmentName: String, status: String, minDate: Date, maxDate: Date, withStats: Boolean): List[(String, Long)] = {
-    DB.withConnection {
-      implicit connection =>
+  def getTotalSize(groups: String, environment: String, serviceAction: String, minDate: Date, maxDate: Date,
+                   status: String, sSearch: String, request: Boolean, response: Boolean): Future[Long] = {
 
-        var whereClause = " where startTime >= {minDate} and startTime <= {maxDate} "
-        whereClause += sqlAndStatus(status)
-        if (!withStats) whereClause += " and isStats = 'false' "
-
-        Logger.debug("Load Stats with env:" + environmentName)
-        whereClause += sqlAndEnvironnement(environmentName)
-
-        val pair = sqlFromAndGroup(groupName, environmentName)
-        val fromClause = " from request_data " + pair._1
-        whereClause += pair._2
-
-        val sql = "select serviceAction, timeInMillis " + fromClause + whereClause + " order by timeInMillis asc "
-
-        Logger.debug("SQL (loadAvgResponseTimesByAction) ====> " + sql)
-
-        val responseTimes = SQL(sql)
-          .on(
-            'minDate -> minDate,
-            'maxDate -> maxDate)
-          .as(get[String]("serviceAction") ~ get[Long]("timeInMillis") *)
-          .map(flatten)
-
-        val avgTimesByAction = responseTimes.groupBy(_._1).mapValues {
-          e =>
-            val times = e.map(_._2).toList
-            val ninePercentiles = times.slice(0, times.size * 9 / 10)
-            if (ninePercentiles.size > 0) {
-              ninePercentiles.sum / ninePercentiles.size
-            } else if (times.size == 1) {
-              times.head
-            } else {
-              -1
+    val command =
+      BSONDocument(
+        "aggregate" -> collection.name, // we aggregate on collection
+        "pipeline" -> BSONArray(
+          BSONDocument(
+            "$match" -> getMatchQuery(groups, environment, serviceAction, minDate, maxDate, status, sSearch, request, response)
+          ),
+          BSONDocument(
+            "$group" -> BSONDocument(
+              "_id" -> "singleton",
+              "total" -> BSONDocument(
+                "$sum" -> 1
+              )
+            )
+          )
+        )
+      )
+    ReactiveMongoPlugin.db.command(RawCommand(command)).map {
+      list =>
+        var result = 0L
+        list.elements.foreach {
+          results =>
+            if (results._1 == "result") {
+              results._2.asInstanceOf[BSONArray].values.foreach {
+                singleResult =>
+                  singleResult.asInstanceOf[BSONDocument].elements.foreach {
+                    total =>
+                      if (total._1 == "total") {
+                        result = total._2.asInstanceOf[BSONInteger].value.toLong
+                      }
+                  }
+              }
             }
         }
-        avgTimesByAction.toList.filterNot(_._2 == -1).sortBy(_._1)
-    }*/
+        result
+    }
+  }
+
+  /**
+   * Find the 90 percentiles response time for each day and for each serviceaction in the requestData collection
+   * @param groups
+   * @param environment
+   * @param serviceAction
+   * @param minDate
+   * @param maxDate
+   * @return
+   */
+  def findResponseTimes(groups: String, environment: String, serviceAction: String, minDate: Date, maxDate: Date): Future[List[AnalysisEntity]] = {
+    var matchQuery = BSONDocument()
+    if (groups != "all") {
+      matchQuery = matchQuery ++ ("groupsName" -> BSONDocument("$in" -> groups.split(',')))
+    }
+    if (environment != "all") {
+      matchQuery = matchQuery ++ ("environmentName" -> environment)
+    }
+
+    if (serviceAction != "all") {
+      matchQuery = matchQuery ++ ("serviceAction" -> serviceAction)
+    }
+
+    matchQuery = matchQuery ++ ("startTime" -> BSONDocument(
+      "$gte" -> BSONDateTime(minDate.getTime - 1000),
+      "$lt" -> BSONDateTime(maxDate.getTime))
+      )
+
+    val command =
+      BSONDocument(
+        "aggregate" -> collection.name, // we aggregate on collection
+        "pipeline" -> BSONArray(
+          BSONDocument(
+            "$match" -> matchQuery
+          ),
+          BSONDocument(
+            "$project" -> BSONDocument(
+              "groupsName" -> "$groupsName",
+              "environmentName" -> "$environmentName",
+              "serviceAction" -> "$serviceAction",
+              "year" -> BSONDocument(
+                "$year" -> BSONArray("$startTime")
+              ),
+              "month" -> BSONDocument(
+                "$month" -> BSONArray("$startTime")
+              ),
+              "days" -> BSONDocument(
+                "$dayOfMonth" -> BSONArray("$startTime")
+              ),
+              "timeInMillis" -> "$timeInMillis"
+            )
+          ),
+          BSONDocument(
+            "$sort" -> BSONDocument(
+              "groupsName" -> 1,
+              "environmentName" -> 1,
+              "serviceAction" -> 1,
+              "timeInMillis" -> 1
+            )
+          ),
+          BSONDocument(
+            "$group" -> BSONDocument(
+              "_id" -> BSONDocument(
+                "groupsName" -> "$groupsName",
+                "environmentName" -> "$environmentName",
+                "serviceAction" -> "$serviceAction",
+                "year" -> "$year",
+                "month" -> "$month",
+                "days" -> "$days"
+              ),
+              "avgs" -> BSONDocument(
+                "$push" -> "$timeInMillis"
+              )
+            )
+          ),
+          BSONDocument(
+            "$sort" -> BSONDocument(
+              "_id.groupsName" -> 1,
+              "_id.environmentName" -> 1,
+              "_id.serviceAction" -> 1,
+              "_id.year" -> 1,
+              "_id.month" -> 1,
+              "_id.days" -> 1
+            )
+          )
+        )
+      )
+
+    ReactiveMongoPlugin.db.command(RawCommand(command)).map {
+      list => {
+        var res = ListBuffer.empty[AnalysisEntity]
+        list.elements.foreach {
+          results => if (results._1 == "result") {
+            // The current Tuple will hold the data (serviceAction, groups) for the current document in the loop
+            var currentTuple = (List.empty[String], "", "")
+            // The previous tuple will hold the data (serviceAction, groups) for the n-1 document in the loop
+            var previousTuple = (List.empty[String], "", "")
+
+            var currentTupleDate = 0L
+            var datesAndAvgForSameTuple = ListBuffer.empty[(Long, Long)]
+            var first = true
+            var isDifferent = false
+
+            results._2.asInstanceOf[BSONArray].values.foreach {
+              singleElement =>
+                singleElement.asInstanceOf[BSONDocument].elements.foreach {
+                  key =>
+                    if (key._1 == "_id") {
+                      if (first) {
+                        // If this is the first element retrieved, the previous element is set to the current element
+                        previousTuple = (key._2.asInstanceOf[BSONDocument].get("groupsName").get.asInstanceOf[BSONArray].values.map(e => e.asInstanceOf[BSONString].value).toList,
+                          key._2.asInstanceOf[BSONDocument].get("environmentName").get.asInstanceOf[BSONString].value,
+                          key._2.asInstanceOf[BSONDocument].get("serviceAction").get.asInstanceOf[BSONString].value)
+                        first = false
+                      }
+
+                      // The current tuple is set to the groupsName and the serviceAction of the current document
+                      currentTuple = (key._2.asInstanceOf[BSONDocument].get("groupsName").get.asInstanceOf[BSONArray].values.map(e => e.asInstanceOf[BSONString].value).toList,
+                        key._2.asInstanceOf[BSONDocument].get("environmentName").get.asInstanceOf[BSONString].value,
+                        key._2.asInstanceOf[BSONDocument].get("serviceAction").get.asInstanceOf[BSONString].value)
+
+                      currentTupleDate = new GregorianCalendar(key._2.asInstanceOf[BSONDocument].get("year").get.asInstanceOf[BSONInteger].value,
+                        key._2.asInstanceOf[BSONDocument].get("month").get.asInstanceOf[BSONInteger].value - 1,
+                        key._2.asInstanceOf[BSONDocument].get("days").get.asInstanceOf[BSONInteger].value).getTime.getTime
+
+                      // We check if the current Tuple is equal to the previous tuple
+                      isDifferent = !currentTuple.equals(previousTuple)
+                    }
+                    if (key._1 == "avgs") {
+
+                      if (isDifferent) {
+                        // If the current tuple was different from the previous tuple, the previous tuple is saved in the result list
+                        res += new AnalysisEntity(previousTuple._1, previousTuple._2, previousTuple._3, datesAndAvgForSameTuple.toList)
+                        datesAndAvgForSameTuple = ListBuffer.empty[(Long, Long)]
+                      }
+
+                      // We retrieve the timeInMillis of each request data for the current document
+                      val avgs = key._2.asInstanceOf[BSONArray].values.map {
+                        avg => avg.asInstanceOf[BSONLong].value
+                      }.toList
+
+                      // We keep only 90 percentiles
+                      val ninePercentiles = avgs.slice(0, avgs.size * 9 / 10)
+                      val avg = {
+                        if (ninePercentiles.size > 0) {
+                          ninePercentiles.sum / ninePercentiles.size
+                        } else if (avgs.size == 1) {
+                          avgs.head
+                        } else {
+                          -1L
+                        }
+                      }
+                      // The date and the avg of the current element is save to the dateAndAvgForSameTuple list
+                      datesAndAvgForSameTuple += ((currentTupleDate, avg))
+
+                      // The previous tuple is set to the current tuple
+                      previousTuple = currentTuple
+                    }
+                }
+
+            }
+            // At the end of the loop the last tuple is add to the result list only if a result exists
+            if (!first) {
+              res += new AnalysisEntity(previousTuple._1, previousTuple._2, previousTuple._3, datesAndAvgForSameTuple.toList)
+            }
+          }
+        }
+        res.toList
+      }
+
+    }
   }
 
   /**
    * Find all day before today, for environment given and state = 200.
-   * @param environmentId environment id
+   * @param environmentName environment name
    * @return list of unique date
    */
-  def findDayNotCompileStats(environmentId: String): List[Date] = {
-    ???
-    /*
-    DB.withConnection {
-      implicit connection =>
+  def findDayNotCompileStats(environmentName: String, groups: List[String]): List[Date] = {
 
-        val gcal = new GregorianCalendar
-        val today = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
+    val gcal = new GregorianCalendar
+    TimeZone.setDefault(TimeZone.getTimeZone("GMT"))
+    val today = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
 
-        val startTimes = SQL(
-          """
-          select startTime from request_data
-          where environmentId={environmentId} and status=200 and isStats = 'false' and isMock = 'false' and startTime < {today}
-          """
-        ).on('environmentId -> environmentId, 'today -> today.getTime)
-          .as(get[Date]("startTime") *).toList
+    val query = BSONDocument("environmentName" -> environmentName,
+      "groupsName" -> groups,
+      "status" -> 200,
+      "isMock" -> false,
+      "startTime" -> BSONDocument("$lt" -> BSONDateTime(today.getTimeInMillis)))
 
-        val uniqueStartTimePerDay: Set[Date] = Set()
-        startTimes.foreach {
-          (t) =>
-            gcal.setTimeInMillis(t.getTime)
+    var uniqueStartTimePerDay: Set[Date] = Set()
+    val queryStartTimes = collection.find(query).cursor[RequestData].collect[List]().map {
+      listRequestData =>
+
+        listRequestData.map {
+          requestData =>
+            Logger.debug(requestData.serviceAction)
+            Logger.debug(requestData.environmentName)
+            gcal.setTimeInMillis(requestData.startTime.getMillis)
             val ccal = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
             uniqueStartTimePerDay += ccal.getTime
         }
         uniqueStartTimePerDay.toList
     }
-    */
+    Await.result(queryStartTimes, 1.second)
   }
 
-  def load(id: Long): RequestData = {
-    ???
-    /*DB.withConnection {
-      implicit connection =>
-        SQL("select id, sender, serviceAction, environmentId, serviceId, request, requestHeaders, contentType, requestCall from request_data where id= {id}")
-          .on('id -> id).as(RequestData.forReplay.single)
-    }*/
+  /**
+   * Retrieve a list of requestData grouped by serviceAction, environment, groups and day (year + day). The list will contain
+   * the avg responseTime of the day for this requestData, and the number of requestData.
+   * @return
+   */
+  def findStatsPerDay(groups: String, environmentName: String, minDate: Date, maxDate: Date, realTime: Boolean = false): Future[List[Stat]] = {
+    var finalGroupById = BSONDocument()
+    if (realTime) {
+      finalGroupById = BSONDocument(
+        "_id" -> BSONDocument(
+          "groups" -> "$groups",
+          "environmentName" -> "$environmentName",
+          "serviceAction" -> "$serviceAction"
+        )
+      )
+    } else {
+      finalGroupById = BSONDocument(
+        "_id" -> BSONDocument(
+          "groups" -> "$groups",
+          "environmentName" -> "$environmentName",
+          "serviceAction" -> "$serviceAction",
+          "year" -> "$year",
+          "month" -> "$month",
+          "days" -> "$days"
+        )
+      )
+    }
+
+    val finalGroupBy = finalGroupById ++(
+      "timeInMillis" -> BSONDocument(
+        "$push" -> "$timeInMillis"
+      ),
+      "nbRequest" -> BSONDocument(
+        "$sum" -> 1
+      )
+      )
+
+    var matchQuery = BSONDocument("startTime" -> BSONDocument(
+      "$gte" -> BSONDateTime(minDate.getTime),
+      "$lt" -> BSONDateTime(maxDate.getTime)),
+      "isMock" -> false,
+      "status" -> 200
+    )
+
+    if (groups != "all") {
+      matchQuery = matchQuery ++ ("groupsName" -> BSONDocument("$in" -> groups.split(',')))
+    }
+    if (environmentName != "all") {
+      matchQuery = matchQuery ++ ("environmentName" -> environmentName)
+    }
+
+    val command =
+      BSONDocument(
+        "aggregate" -> collection.name, // we aggregate on collection
+        "pipeline" -> BSONArray(
+          BSONDocument(
+            "$match" -> matchQuery
+          ),
+          BSONDocument(
+            "$project" -> BSONDocument(
+              "groups" -> "$groupsName",
+              "serviceAction" -> "$serviceAction",
+              "environmentName" -> "$environmentName",
+              "year" -> BSONDocument("$year" -> BSONArray("$startTime")),
+              "month" -> BSONDocument("$month" -> BSONArray("$startTime")),
+              "days" -> BSONDocument("$dayOfMonth" -> BSONArray("$startTime")),
+              "timeInMillis" -> "$timeInMillis"
+            )
+          ),
+          BSONDocument(
+            "$sort" -> BSONDocument(
+              "groups" -> 1,
+              "environmentName" -> 1,
+              "serviceAction" -> 1,
+              "timeInMillis" -> 1
+            )
+          ),
+          BSONDocument(
+            "$group" -> finalGroupBy
+          )
+        )
+      )
+
+    val query = ReactiveMongoPlugin.db.command(RawCommand(command))
+    query.map {
+      list =>
+        val listRes = ListBuffer.empty[Stat]
+        list.elements.foreach {
+          results =>
+            if (results._1 == "result") {
+              results._2.asInstanceOf[BSONArray].values.foreach {
+                e =>
+                  var groups = ListBuffer.empty[String]
+                  var environment = ""
+                  var sa = ""
+                  var year = 0
+                  var month = 0
+                  var days = 0
+                  var avgList = ListBuffer.empty[Long]
+                  var nbRequest = 0.toLong
+                  e.asInstanceOf[BSONDocument].elements.foreach {
+                    e2 =>
+                      if (e2._1 == "_id") {
+                        e2._2.asInstanceOf[BSONDocument].elements.foreach {
+                          test =>
+                            if (test._1 == "groups") {
+                              test._2.asInstanceOf[BSONArray].values.foreach {
+                                group =>
+                                  groups += group.asInstanceOf[BSONString].value
+                              }
+                            }
+                            else if (test._1 == "environmentName") {
+                              environment = test._2.asInstanceOf[BSONString].value
+                            }
+                            else if (test._1 == "serviceAction") {
+                              sa = test._2.asInstanceOf[BSONString].value
+                            }
+                            else if (test._1 == "year") {
+                              year = test._2.asInstanceOf[BSONInteger].value
+                            }
+                            else if (test._1 == "month") {
+                              month = test._2.asInstanceOf[BSONInteger].value
+                            }
+                            else if (test._1 == "days") {
+                              days = test._2.asInstanceOf[BSONInteger].value
+                            }
+                        }
+                      }
+                      else if (e2._1 == "timeInMillis") {
+                        e2._2.asInstanceOf[BSONArray].values.foreach {
+                          avg =>
+                            avgList += avg.asInstanceOf[BSONLong].value
+                        }
+                      }
+                      else if (e2._1 == "nbRequest") {
+                        nbRequest = e2._2.asInstanceOf[BSONInteger].value.toLong
+                      }
+                  }
+                  val date = new GregorianCalendar(year, month - 1, days).getTime
+                  val ninePercentiles = avgList.slice(0, avgList.size * 9 / 10)
+                  val avg = {
+                    if (ninePercentiles.size > 0) ninePercentiles.sum / ninePercentiles.size
+                    else if (avgList.size == 1) avgList.head
+                    else -1
+                  }
+                  val stat = new Stat(groups.toList, environment, sa, avg, nbRequest, (new DateTime(date)))
+                  listRes += stat
+              }
+            }
+        }
+        listRes.toList
+    }
+  }
+
+  /**
+   * Compile all requestData
+   */
+  def compileStats() {
+    // all requestDatas between the minimum requestData' startTime in DB and today will be compiled
+    TimeZone.setDefault(TimeZone.getTimeZone("GMT"))
+    val minDate = UtilDate.getDate("2014-05-05T00:00").getTime
+    val maxDate = UtilDate.getDate("today", UtilDate.v23h59min59s, true).getTime
+
+    // We retrieve the list of all statistics, using mongodb aggregation framework on requestData collection
+    val query = findStatsPerDay("all", "all", minDate, maxDate)
+    // create a calendar based on today
+    val gcal = new GregorianCalendar
+    val today = new GregorianCalendar(gcal.get(Calendar.YEAR), gcal.get(Calendar.MONTH), gcal.get(Calendar.DATE))
+    Logger.debug(today.getTime.toString)
+    query.map {
+      list =>
+        list.foreach {
+          stat =>
+            if (today.getTime.getTime == stat.atDate.getMillis) {
+              Logger.debug("Today stats, it will not be saved ")
+            } else {
+              Stat.insert(stat)
+            }
+        }
+    }
   }
 
   def loadRequest(id: String): Future[Option[BSONDocument]] = {
     val query = BSONDocument("_id" -> BSONObjectID(id))
-    val projection = BSONDocument("request" -> 1, "contentType" -> 1)
+    val projection = BSONDocument("request" -> 1, "contentType" -> 1, "environmentName" -> 1, "serviceId" -> 1, "sender" -> 1, "requestHeaders" -> 1, "requestCall" -> 1)
     collection.find(query, projection).cursor[BSONDocument].headOption
   }
 
@@ -774,140 +1022,6 @@ object RequestData {
     val query = BSONDocument("_id" -> BSONObjectID(id))
     val projection = BSONDocument("response" -> 1, "contentType" -> 1)
     collection.find(query, projection).cursor[BSONDocument].headOption
-  }
-
-  def loadForREST(id: Long): RequestData = {
-    ???
-    // TO KEEP ?
-
-    /*DB.withConnection {
-      implicit connection =>
-        SQL("select id, sender, serviceAction, environmentId, serviceId, request, requestHeaders, requestCall from request_data where id= {id}")
-          .on('id -> id).as(RequestData.forRESTReplay.single)
-    }*/
-  }
-
-
-  /* TO_DELETE
-  private def sqlAndStatus(statusIn : String) : String = {
-    var status = ""
-    if (statusIn != "all") {
-      if (statusIn.startsWith("NOT_")) {
-        status = " and status != " + statusIn.substring(4)
-      } else {
-        status = " and status = " + statusIn
-      }
-    }
-    status
-  }
-
-  private def sqlAndEnvironnement(environmentIn: String): String = {
-    var environment = ""
-
-    // search by name
-    if (environmentIn != "all" && Environment.optionsAll.exists(t => t._2 == environmentIn))
-      environment = " and request_data.environmentId = " + Environment.optionsAll.find(t => t._2 == environmentIn).get._1
-
-    // search by id
-    if (environment == "" && Environment.optionsAll.exists(t => t._1 == environmentIn))
-      environment = " and request_data.environmentId = " + Environment.optionsAll.find(t => t._1 == environmentIn).get._1
-
-    environment
-  }*/
-
-  /*private def sqlFromAndGroup(groupName: String, environmentIn: String): (String, String) = {
-    var group = ""
-    var from = ""
-
-    // search by name
-    if (environmentIn == "all" && groupName != "all" && Group.options.exists(t => t._2 == groupName)) {
-      group += " and request_data.environmentId = environment.id"
-      group += " and environment.groupId = " + Group.options.find(t => t._2 == groupName).get._1
-      from = ", environment "
-    }
-
-    (from, group)
-  }*/
-
-  // use by Json : from scala to json
-  /*implicit object RequestDataWrites extends Writes[RequestData] {
-
-    def writes(o: RequestData): JsValue = {
-      val id = if (o.id != null) o.id.toString else "-1"
-      JsObject(
-        List(
-          "id" -> JsString(id),
-          "purged" -> JsString(o.purged.toString),
-          "status" -> JsString(o.status.toString),
-          "env" -> JsString(Environment.optionsAll.find(t => t._1 == o.environmentId.toString).get._2),
-          "sender" -> JsString(o.sender),
-          "service" -> JsString(o.serviceId.toString),
-          "contentType" -> JsString(o.contentType),
-          "serviceAction" -> JsString(o.serviceAction),
-          "startTime" -> JsString(UtilDate.getDateFormatees(o.startTime)),
-          "time" -> JsString(o.timeInMillis.toString),
-          "isMock" -> JsString(o.isMock.toString)))
-    }
-  }
-  */
-
-  /*private def explainPlan(sql: String, params: (Any, anorm.ParameterValue[_])*)(implicit connection: Connection) {
-    val plan = SQL("explain plan for " + sql).on(params: _*).resultSet()
-    while (plan.next) {
-      Logger.debug(plan.getString(1))
-    }
-  }*/
-
-  /**
-   * Upload a csvLine => insert requestDataStat.
-   *
-   * @param csvLine line in csv file
-   * @return nothing
-   */
-  def upload(csvLine: String) = {
-    ???
-    /*
-    val dataCsv = csvLine.split(";")
-
-    if (dataCsv.size != csvTitle.size)
-      throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
-
-    if (dataCsv(csvTitle.get("key").get) != csvKey) {
-      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
-    } else {
-      val environmentName = dataCsv(csvTitle.get("environmentName").get).trim
-      val e = Environment.findByName(environmentName)
-
-      e.map {
-        environment =>
-          insertStats(environment.id, dataCsv(csvTitle.get("serviceAction").get).trim, UtilDate.parse(dataCsv(csvTitle.get("startTime").get).trim), dataCsv(csvTitle.get("timeInMillis").get).toLong)
-      }.getOrElse {
-        Logger.warn("Warning : Environment " + environmentName + " unknown")
-        throw new Exception("Warning : Environment " + environmentName + " already exist")
-      }
-    }
-    */
-  }
-
-  /**
-   * Compress a string with Gzip
-   *
-   * @param inputString String to compress
-   * @return compressed string
-   */
-  def compressString(inputString: String): Array[Byte] = {
-    try {
-      val os = new ByteArrayOutputStream(inputString.length())
-      val gos = new GZIPOutputStream(os)
-      gos.write(inputString.getBytes(Charset.forName("utf-8")))
-      gos.close()
-      val compressed = os.toByteArray()
-      os.close()
-      compressed
-    } catch {
-      case e: Exception => Logger.error("compressString : Error during compress string")
-        inputString.getBytes(Charset.forName("utf-8"))
-    }
   }
 
   /**

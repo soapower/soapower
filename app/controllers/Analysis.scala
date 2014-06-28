@@ -6,9 +6,13 @@ import play.api.libs.json._
 import models._
 import models.UtilDate._
 import java.util.Date
-
+import scala.concurrent.{ExecutionContext, Await}
+import ExecutionContext.Implicits.global
 import collection.mutable.Map
 import play.Logger
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import models.Stat.AnalysisEntity
 
 object Analysis extends Controller {
 
@@ -30,44 +34,38 @@ object Analysis extends Controller {
     )
   }
 
-  implicit object formatWrites extends Writes[Map[String, Entity]] {
-    def writes(data: Map[String, Entity]): JsValue = {
-
+  implicit object AnalysisEntityWrites extends Writes[List[AnalysisEntity]] {
+    def writes(data: List[AnalysisEntity]): JsValue = {
       var x = JsArray()
 
       data.foreach {
-        d =>
+        analysis =>
           x ++= Json.arr(
             Json.obj(
-              "key" -> d._1,
-              "values" -> d._2.tuples
+              "key" -> JsString(analysis.serviceAction + " [" + analysis.groups.mkString(", ") + "]"),
+              "values" -> analysis.dateAndAvg
             )
           )
-
       }
-      Logger.debug("x =>" + x)
       x
     }
   }
 
-  class Entity(soapAction: String, var tuples: List[(Long, Long)])
-
-  def load(groupName: String, environment: String, serviceAction: String, minDate: String, maxDate: String, status: String, statsOnly: String) = Action {
-    val responsesTimesByDate = RequestData.findResponseTimes(groupName, environment, serviceAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s).getTime, status, true)
-
-    val a: Map[String, Entity] = Map()
-
-    responsesTimesByDate.foreach {
-      r =>
-        if (a.contains(r._2)) {
-          (a.get(r._2).get).tuples ++= List((r._3.getTime, r._4))
-        } else {
-          (a.put(r._2, new Entity(r._2, List((r._3.getTime, r._4)))))
-        }
+  def load(groupName: String, environment: String, serviceAction: String, minDate: String, maxDate: String, live: Boolean) = Action.async {
+    if (!live) {
+      Stat.findResponseTimes(groupName, environment, serviceAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime).map {
+        list =>
+          Ok(Json.toJson(list))
+      }
+    } else {
+      RequestData.findResponseTimes(groupName, environment, serviceAction, getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime).map {
+        list =>
+          Ok(Json.toJson(list))
+      }
     }
-
-    Ok(Json.toJson(a)).as(JSON)
   }
 
+
 }
+
 

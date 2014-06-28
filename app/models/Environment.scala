@@ -70,29 +70,8 @@ object Environment {
   }
 
   private val keyCacheAllOptions = "environment-options"
+  private val keyCacheByName = "environment-name-"
   private val ENVIRONMENT_NAME_PATTERN = "[a-zA-Z0-9]{1,200}"
-
-  /**
-   * Title of csvFile. The value is the order of title.
-   */
-  val csvTitle = Map("key" -> 0, "id" -> 1, "name" -> 2, "groups" -> 3, "hourRecordContentDataMin" -> 4, "hourRecordContentDataMax" -> 5, "nbDayKeepContentData" -> 6, "nbDayKeepAllData" -> 7, "recordContentData" -> 8, "recordData" -> 9)
-
-  val csvKey = "environment"
-
-  /**
-   * Csv format.
-   */
-  def csv(e: Environment) = {
-    csvKey + ";" + e._id.get.stringify + ";" + e.name + ";" + e.groups.mkString("|") + ";" + e.hourRecordContentDataMin + ";" + e.hourRecordContentDataMax + ";" + e.nbDayKeepContentData + ";" + e.nbDayKeepAllData + ";" + e.recordContentData + ";" + e.recordData + "\n"
-  }
-
-  /**
-   * Get All environments, csv format.
-   * @return List of Environements, csv format
-   */
-  def fetchCsv(): Future[List[String]] = {
-    findAll.map(environment => environment.map(e => csv(e)))
-  }
 
   /**
    * Sort the given env option seq
@@ -148,8 +127,10 @@ object Environment {
    * Retrieve an Environment from name.
    */
   def findByName(name: String): Future[Option[Environment]] = {
-    val query = BSONDocument("name" -> name)
-    collection.find(query).one[Environment]
+    Cache.getOrElse(keyCacheByName + name) {
+      val query = BSONDocument("name" -> name)
+      collection.find(query).one[Environment]
+    }
   }
 
   /**
@@ -185,7 +166,6 @@ object Environment {
     }) {
       throw new Exception("Environment with name " + environment.name.trim + " already exist")
     }
-
     val selector = BSONDocument("_id" -> environment._id)
 
     val modifier = BSONDocument(
@@ -209,11 +189,13 @@ object Environment {
    * @param id Id of the environment to delete.
    */
   def delete(id: String) = {
-    val objectId = new BSONObjectID(id)
+    val objectId = BSONObjectID.apply(id)
+    clearCache()
     collection.remove(BSONDocument("_id" -> objectId))
   }
 
   def clearCache() {
+    this.options.map(e => Cache.remove(keyCacheByName + e._2))
     Cache.remove(keyCacheAllOptions)
   }
 
@@ -232,7 +214,9 @@ object Environment {
    * Return a list of all environments in some groups.
    */
   def findInGroups(groups: String): Future[List[Environment]] = {
-    if ("all".equals(groups)) return findAll
+    if ("all".equals(groups)) {
+      return findAll
+    }
     val find = BSONDocument("groups" -> BSONDocument("$in" -> groups.split(',')))
     collection.
       find(find).
@@ -270,31 +254,25 @@ object Environment {
   }
 
   /**
-   * Compile stats for each env / day
+   * Find an environment using his name and retrieve it if the groups in parameters match the environment groups
+   * @param name name of environment
+   * @param groups groups, separated by ',', example group1,group2...
+   * @return
    */
-  def compileStats() {
-    Logger.info("Compile Stats")
-    val gcal = new GregorianCalendar
+  def findByNameAndGroups(name: String, groups: String): Future[Option[Environment]] = {
+    val find = BSONDocument("name" -> name, "groups" -> BSONDocument("$in" -> groups.split(',')))
+    collection.find(find).one[Environment]
+  }
 
-    Environment.options.foreach {
-      (e) =>
-        Logger.debug("Compile Stats env:" + e._2)
-        val days = RequestData.findDayNotCompileStats(e._1)
-
-        days.foreach {
-          minDate =>
-            Logger.debug("Compile Stats minDate:" + minDate + " env:" + e._2)
-            gcal.setTimeInMillis(minDate.getTime + UtilDate.v1d)
-            val maxDate = gcal.getTime
-
-            val result = RequestData.loadAvgResponseTimesByAction("all", e._1, "200", minDate, maxDate, false)
-            result.foreach {
-              (r) =>
-                Logger.debug("call insertStats env:" + e._2 + " ServiceAction:" + r._1 + " timeAverage:" + r._2 + " date:" + minDate)
-                RequestData.insertStats(e._1.toLong, r._1, minDate, r._2)
-            }
-        }
+  /**
+   * Foreach environment, retrieve his name and his groups
+   * @return
+   */
+  def findNamesAndGroups(): List[(String, List[String])] = {
+    val query = collection.find(BSONDocument()).cursor[Environment].collect[List]().map {
+      list => list.map { envir => (envir.name, envir.groups)}
     }
+    Await.result(query, 1.second)
   }
 
   import ModePurge._
@@ -320,7 +298,6 @@ object Environment {
     Environment.findAll.map(environments => environments.map(
       env => {
         var nbDay = 100
-
         val maxDate = new GregorianCalendar
         if (mode == ModePurge.CONTENT)
           nbDay = env.nbDayKeepContentData
@@ -339,68 +316,4 @@ object Environment {
     Logger.info("Purging " + mode + " data: done (" + purgedRequests + " requests purged)")
   }
 
-
-  /**
-   * Upload a csvLine => insert environment.
-   *
-   * @param csvLine line in csv file
-   * @return nothing
-   */
-  def upload(csvLine: String) = {
-
-    val dataCsv = csvLine.split(";")
-
-    if (dataCsv.size != csvTitle.size) {
-      throw new Exception("Please check csvFile, " + csvTitle.size + " fields required")
-    }
-
-    if (dataCsv(csvTitle.get("key").get) == csvKey) {
-      uploadEnvironment(dataCsv)
-    } else {
-      Logger.info("Line does not match with " + csvKey + " of csvLine - ignored")
-    }
-  }
-
-  /**
-   * Check if environment already exist (with same name). Insert or do nothing if exist.
-   *
-   * @param dataCsv line in csv file
-   * @return environment (new or not)
-   */
-  private def uploadEnvironment(dataCsv: Array[String]) = {
-
-    val name = dataCsv(csvTitle.get("name").get)
-
-    Logger.debug("upload environment:" + name)
-
-    findByName(name).map {
-      environment => {
-        if (environment == None) {
-          Logger.debug("Insert new environment with name " + name)
-          val newEnvironment = new Environment(Some(BSONObjectID.generate),
-            dataCsv(csvTitle.get("name").get).trim,
-            dataCsv(csvTitle.get("groups").get).split('|').toList, // single quote of split is important
-            dataCsv(csvTitle.get("hourRecordContentDataMin").get).toInt,
-            dataCsv(csvTitle.get("hourRecordContentDataMax").get).toInt,
-            dataCsv(csvTitle.get("nbDayKeepContentData").get).toInt,
-            dataCsv(csvTitle.get("nbDayKeepAllData").get).toInt,
-            dataCsv(csvTitle.get("recordContentData").get).trim == "true",
-            dataCsv(csvTitle.get("recordData").get).trim == "true"
-          )
-          insert(newEnvironment).map {
-            lastError =>
-              if (lastError.ok) {
-                Logger.debug("OK Insert new environment with name " + name)
-              } else {
-                Logger.error("Detected error:%s".format(lastError))
-                throw new Exception("Error while inserting new group with name : " + name)
-              }
-          }
-        } else {
-          Logger.warn("Warning : Environment " + name + " already exist")
-          throw new Exception("Warning : Environment " + name + " already exist")
-        }
-      }
-    }
-  }
 }

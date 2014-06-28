@@ -5,14 +5,14 @@ import play.api.libs.json._
 import models._
 import models.UtilDate._
 import play.api.libs.iteratee.Enumerator
-import play.api.http.{ContentTypes, HeaderNames}
+import play.api.http.{HeaderNames}
 import scala.xml.PrettyPrinter
 import org.xml.sax.SAXParseException
 import java.net.URLDecoder
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{Await, Future, ExecutionContext}
 import ExecutionContext.Implicits.global
-import play.api.Logger
-import reactivemongo.bson.{BSONObjectID, BSONDocument}
+import reactivemongo.bson.BSONDocument
+import scala.concurrent.duration._
 
 case class Search(environmentId: Long)
 
@@ -20,14 +20,16 @@ object Search extends Controller {
 
   private val UTF8 = "UTF-8"
 
-  def listDatatable(group: String, environment: String, serviceAction: String, minDate: String, maxDate: String, status: String, sSearch: String, iDisplayStart: Int, iDisplayLength: Int) = Action.async {
-    val futureDataList = RequestData.list(group, environment, URLDecoder.decode(serviceAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (iDisplayStart - 1), iDisplayLength)
+  def listDatatable(groups: String, environment: String, serviceAction: String, minDate: String, maxDate: String, status: String, sSearch: String, page: Int, pageSize: Int, sortKey: String, sortVal: String, request: Boolean, response: Boolean) = Action.async {
+    val futureDataList = RequestData.list(groups, environment, URLDecoder.decode(serviceAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (page - 1), pageSize, sortKey, sortVal, sSearch, request, response)
     futureDataList.map {
       list =>
-        Ok(Json.toJson(Map("data" -> Json.toJson(list))))
+        val queryTotalSize = RequestData.getTotalSize(groups, environment, URLDecoder.decode(serviceAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, sSearch, request, response)
+        val totalSize = Await.result(queryTotalSize, 1.second)
+        Ok(Json.toJson(Map("data" -> Json.toJson(list),
+          "totalDataSize" -> Json.toJson(totalSize.asInstanceOf[Long]))))
     }
   }
-
 
   /**
    * Used to download or render the request
@@ -68,8 +70,7 @@ object Search extends Controller {
     var filename = ""
     if (isRequest) {
       filename = "request-" + id
-    }
-    else {
+    } else {
       filename = "response-" + id
     }
 
@@ -78,8 +79,9 @@ object Search extends Controller {
     future.map {
       tuple => tuple match {
         case Some(doc: BSONDocument) => {
-          val contentType = tuple.get.getAs[String]("contentType").get
-          val content = tuple.get.getAs[String](keyContent).get
+          val contentType = doc.getAs[String]("contentType").get
+          // doc.getAs[String]("response")
+          val content = doc.getAs[String](keyContent).get
 
           contentType match {
             case "application/xml" | "text/xml" => {
@@ -142,4 +144,3 @@ object Search extends Controller {
 
   }
 }
-

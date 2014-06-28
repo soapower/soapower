@@ -49,7 +49,7 @@ function EnvironmentEditCtrl($scope, $location, $routeParams, Environment, Group
     var self = this;
 
     GroupsService.findAll().success(function (groups) {
-        $scope.allGroups = groups.values;
+        $scope.allGroups = groups;
     });
 
     Environment.get({environmentId: $routeParams.environmentId}, function (environment) {
@@ -84,7 +84,7 @@ function EnvironmentNewCtrl($scope, $location, $routeParams, Environment, Groups
     $scope.groups = $routeParams.groups;
 
     GroupsService.findAll().success(function (groups) {
-        $scope.allGroups = groups.values;
+        $scope.allGroups = groups;
     });
 
     $scope.environment = new Environment();
