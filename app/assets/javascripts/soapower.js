@@ -28,7 +28,6 @@ spApp.config(function ($routeProvider) {
 
         .when('/monitor', { controller: MonitorCtrl, templateUrl: 'partials/admin/monitor/monitor.html' })
         .when('/loggers', { controller: LoggersCtrl, templateUrl: 'partials/admin/monitor/loggers.html'})
-        .when('/admin', { controller: AdminCtrl, templateUrl: 'partials/admin/admin.html' })
 
         .when('/services', { redirectTo: '/services/list/all'})
         .when('/services/new/:environmentName/:groups', {controller: ServiceNewCtrl, templateUrl: 'partials/admin/services/detail.html'})

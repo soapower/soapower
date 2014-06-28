@@ -678,7 +678,7 @@ object RequestData {
           BSONDocument(
             "$sort" -> BSONDocument(
               "groupsName" -> 1,
-              "environmentName" -> "$environmentName",
+              "environmentName" -> 1,
               "serviceAction" -> 1,
               "timeInMillis" -> 1
             )

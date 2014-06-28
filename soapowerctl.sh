@@ -129,7 +129,7 @@ start() {
         fi
     fi
 
-    CMD="${SOAPOWER_CURRENT}/bin/soapower -Dhttp.port=${SOAPOWER_HTTP_PORT} -J-server -Dconfig.file=conf/application.conf"
+    CMD="${SOAPOWER_CURRENT}/bin/soapower -Dhttp.port=${SOAPOWER_HTTP_PORT} -J-server -Dconfig.file=conf/application.conf -Dlogger.file=conf/prod-logger.xml"
 
     if [ "x${RUN}" = "xrun" ]; then
         echo "Running Soapower..."

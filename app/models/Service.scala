@@ -1,5 +1,7 @@
 package models
 
+import play.api.Play.current
+import play.api.cache.Cache
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -46,6 +48,8 @@ object Service {
 
   implicit val serviceFormat = Json.format[Service]
   implicit val servicesFormat = Json.format[Services]
+
+  private val keyCacheRequest = "cacheServiceRequest-"
 
   implicit object ServicesBSONReader extends BSONDocumentReader[Services] {
     def read(doc: BSONDocument): Services = {
@@ -107,33 +111,22 @@ object Service {
   }
 
   /**
-   * Retrieve a Soap or REST Service from localTarget, environmentName and httpMethod
-   * @param environmentName
-   * @param httpMethod HTTP method, POST by default
-   * @return
-   */
-  def findRestByMethodAndEnvironmentName(httpMethod: String, environmentName: String): Future[Option[Service]] = {
-    val query = BSONDocument("name" -> environmentName)
-    val projection = BSONDocument("name" -> 1, "groups" -> 1, "services" -> BSONDocument(
-      "$elemMatch" -> BSONDocument("httpMethod" -> BSONString(httpMethod), "typeRequest" -> "REST")))
-    Environment.collection.find(query, projection).cursor[Service].headOption
-  }
-
-  /**
    * Retrieve a Soap Service from localTarget / environmentName
    *
    * @param localTarget localTarget
    * @param environmentName Name of environment
    * @return service
    */
-  def findByLocalTargetAndEnvironmentName(typeRequest: String, localTarget: String, environmentName: String, httpMethod: HttpMethod = HttpMethod.POST): Future[Option[Service]] = {
-    val query = BSONDocument("name" -> environmentName)
-    val projection = BSONDocument("name" -> 1, "groups" -> 1, "services" -> BSONDocument(
-      "$elemMatch" -> BSONDocument(
-        "localTarget" -> BSONString(localTarget),
-        "httpMethod" -> BSONString(httpMethod.toString),
-        "typeRequest" -> BSONString(typeRequest))))
-    Environment.collection.find(query, projection).cursor[Service].headOption
+  def findByLocalTargetAndEnvironmentName(typeRequest: String, localTarget: String, environmentName: String, httpMethod: HttpMethod): Future[Option[Service]] = {
+    Cache.getOrElse(keyCacheRequest + typeRequest + localTarget + environmentName + httpMethod.toString, 15) {
+      val query = BSONDocument("name" -> environmentName)
+      val projection = BSONDocument("name" -> 1, "groups" -> 1, "services" -> BSONDocument(
+        "$elemMatch" -> BSONDocument(
+          "localTarget" -> BSONString(localTarget),
+          "httpMethod" -> BSONString(httpMethod.toString),
+          "typeRequest" -> BSONString(typeRequest))))
+      Environment.collection.find(query, projection).cursor[Service].headOption
+    }
   }
 
   /**

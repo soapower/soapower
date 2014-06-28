@@ -52,7 +52,7 @@ object Soap extends Controller {
       }
 
       // Search the corresponding service
-      val optionService = Await.result(Service.findByLocalTargetAndEnvironmentName(Service.SOAP, localTarget.get, environment), 2.seconds)
+      val optionService = Await.result(Service.findByLocalTargetAndEnvironmentName(Service.SOAP, localTarget.get, environment, HttpMethod.POST), 2.seconds)
       var service: Service = null.asInstanceOf[Service]
 
       // Now the service exists then we have to forward the request
@@ -133,7 +133,7 @@ object Soap extends Controller {
   }
 
   private def forwardRequest(environmentName: String, localTarget: String, sender: String, content: String, headers: Map[String, String], requestContentType: String): Future[SimpleResult] = {
-    val service = Service.findByLocalTargetAndEnvironmentName(Service.SOAP, localTarget, environmentName)
+    val service = Service.findByLocalTargetAndEnvironmentName(Service.SOAP, localTarget, environmentName, HttpMethod.POST)
 
     service.map(svc =>
       if (svc.isDefined && svc.get != null) {
