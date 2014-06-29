@@ -1,6 +1,6 @@
 function LiveCtrl($scope, $rootScope, $location, $window, $routeParams, UIService) {
     $scope.choiceNbResults = [ 10, 50, 100, 1000, 10000 ];
-    $scope.nbResults = 50
+    $scope.nbResults = 50;
 
     $scope.ctrlPath = "live";
     // Used to handle criterias when the user manually close the websocket
@@ -105,7 +105,7 @@ function LiveCtrl($scope, $rootScope, $location, $window, $routeParams, UIServic
     $scope.startWS();
 
     $scope.$on("ReloadPage", function (event, newGroups) {
-        if(newGroups) $scope.groups = newGroups;
+        if (newGroups) $scope.groups = newGroups;
         UIService.reloadPage($scope, true, "live");
     });
 }

@@ -1,5 +1,6 @@
 function AnalysisCtrl($scope, $rootScope, $routeParams, $http, UIService) {
     $scope.ctrlPath = "analysis";
+    $scope.waitForData = true;
 
     var groups = $routeParams.groups ? $routeParams.groups : 'all';
     var environment = $routeParams.environment ? $routeParams.environment : 'all';
@@ -20,12 +21,13 @@ function AnalysisCtrl($scope, $rootScope, $routeParams, $http, UIService) {
         url: url,
         cache: false
     }).success(function (largeLoad) {
-        testdata = largeLoad.map(function (series) {
+        var testdata = largeLoad.map(function (series) {
             series.values = series.values.map(function (d) {
                 return {x: d[0], y: d[1] }
             });
             return series;
         });
+        $scope.waitForData = false;
 
 
         var chart;

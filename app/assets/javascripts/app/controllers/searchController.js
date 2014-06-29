@@ -7,9 +7,6 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
     $scope.waitForData = false;
 
     $scope.reloadTable = function () {
-
-        console.log("HOP");
-
         var groups = $routeParams.groups ? $routeParams.groups : 'all';
         var environment = $routeParams.environment ? $routeParams.environment : 'all';
         var serviceaction = $routeParams.serviceaction ? $routeParams.serviceaction : 'all';
@@ -28,8 +25,6 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
             response = "false";
         }
 
-
-        $scope.waitForData = false;
         $scope.tableParams = new ngTableParams({
             page: 1,            // show first page
             count: 10,          // count per page
@@ -64,11 +59,11 @@ function SearchCtrl($scope, $rootScope, $http, $location, $routeParams, $window,
                     url: url,
                     cache: false
                 }).success(function (newLoad) {
+                    $scope.waitForData = false;
                     $scope.totalSize = newLoad.totalDataSize;
                     params.total(newLoad.totalDataSize);
                     $defer.resolve(newLoad.data);
                 });
-
             }
         });
     };

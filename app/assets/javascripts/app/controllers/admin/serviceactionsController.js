@@ -53,8 +53,8 @@ function ServiceActionsCtrl($scope, ServiceActionsService, ngTableParams, $filte
     $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "ServiceActionsCtrl");
 
     $scope.$on("ReloadPage", function (event, newGroups) {
-       if(newGroups) $scope.groups = newGroups;
-       UIService.reloadPage($scope, true, "serviceactions");
+        if (newGroups) $scope.groups = newGroups;
+        UIService.reloadPage($scope, true, "serviceactions");
     });
 
     $scope.load();
