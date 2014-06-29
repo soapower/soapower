@@ -74,7 +74,7 @@ object MockGroup {
       throw new Exception("MockGroup name invalid:" + mockGroup.name.trim)
     }
 
-    if (Await.result(findByName(mockGroup.name.trim).map(e => e), 1.seconds).isDefined) {
+    if (Await.result(findByName(mockGroup.name.trim).map(e => e), 5.seconds).isDefined) {
       throw new Exception("MockGroup with name " + mockGroup.name.trim + " already exist")
     }
 
@@ -91,7 +91,7 @@ object MockGroup {
     if (!mockGroup.name.trim.matches(MOCKGROUP_NAME_PATTERN)) {
       throw new Exception("MockGroup name invalid:" + mockGroup.name.trim)
     }
-    val existingGroup = Await.result(findByName(mockGroup.name.trim).map(e => e), 1.seconds)
+    val existingGroup = Await.result(findByName(mockGroup.name.trim).map(e => e), 5.seconds)
 
     if (existingGroup.isDefined && mockGroup._id.equals(existingGroup.get._id.get)) {
       throw new Exception("MockGroup with name " + mockGroup.name.trim + " already exist")

@@ -55,20 +55,19 @@ object Stats extends Controller {
    * @return
    */
   def listWithLiveCompile(groupNames: String, environmentName: String, minDateAsStr: String, maxDateAsStr: String) = {
-    val query = RequestData.findStatsPerDay(groupNames, environmentName, getDate(minDateAsStr).getTime, getDate(maxDateAsStr, v23h59min59s, true).getTime, true)
+    val futureStats = RequestData.findStatsPerDay(groupNames, environmentName, getDate(minDateAsStr).getTime, getDate(maxDateAsStr, v23h59min59s, true).getTime, true)
+    val futureServiceActions = ServiceAction.findAll
 
-    val serviceActions = Await.result(ServiceAction.findAll, 1.second).map {
-      sa =>
-        ((sa.name, sa.groups), sa.thresholdms)
-    }.toMap
-
-    query.map {
-      list =>
-        val newList = list.map {
-          stat =>
-            new PageStat(stat.groups, stat.environmentName, stat.serviceAction, stat.avgInMillis, serviceActions.apply((stat.serviceAction, stat.groups)))
-        }.toList
-        Ok(Json.toJson(Map("data" -> Json.toJson(newList))))
+    for {
+      query <- futureStats
+      serviceActionsResult <- futureServiceActions
+    } yield {
+      val serviceActions = serviceActionsResult.map { sa => ((sa.name, sa.groups), sa.thresholdms)}.toMap
+      val newList = query.map {
+        stat =>
+          new PageStat(stat.groups, stat.environmentName, stat.serviceAction, stat.avgInMillis, serviceActions.apply((stat.serviceAction, stat.groups)))
+      }.toList
+      Ok(Json.toJson(Map("data" -> Json.toJson(newList))))
     }
   }
 

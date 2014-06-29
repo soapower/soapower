@@ -67,7 +67,7 @@ object ServiceAction {
 
   def getThreshold(name: String, groups: List[String]) : Long = {
     val f = findByNameAndGroups(name, groups)
-    val s = Await.result(f, 1.seconds)
+    val s = Await.result(f, 2.seconds)
       if (s.isDefined) {
         s.get.thresholdms.toLong
       } else {

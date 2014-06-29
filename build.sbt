@@ -1,9 +1,8 @@
-import play.PlayImport.PlayKeys
 import play.PlayScala
 
 name         := "soapower"
 
-version      := "2.0.0-Beta3"
+version      := "2.0.0-RC1"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala,SbtWeb)
 

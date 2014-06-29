@@ -5,7 +5,7 @@ import play.api.cache.Cache
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 import play.api.libs.json.Json
 import reactivemongo.bson.BSONBoolean
 import reactivemongo.bson.BSONString

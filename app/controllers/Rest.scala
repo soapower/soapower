@@ -148,7 +148,7 @@ object Rest extends Controller {
           BadRequest(err)
         } else if (svc.get.useMockGroup && svc.get.mockGroupId.isDefined) {
           val fmock = Mock.findByMockGroupAndContent(BSONObjectID(svc.get.mockGroupId.get), requestContent)
-          val mock = Await.result(fmock, 1.second)
+          val mock = Await.result(fmock, 5.second)
           client.workWithMock(mock)
 
           val sr = new Results.Status(mock.httpStatus).chunked(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))

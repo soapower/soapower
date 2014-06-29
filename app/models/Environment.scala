@@ -231,7 +231,7 @@ object Environment {
   def options = {
     Cache.getOrElse(keyCacheAllOptions) {
       val f = findAll.map(environments => environments.map(e => (e._id.get.stringify, e.name)))
-      sortEnvs(Await result(f, 1.seconds))
+      sortEnvs(Await result(f, 5.seconds))
     }
   }
 
@@ -239,8 +239,12 @@ object Environment {
    * Construct the Map[String,String] needed to fill a select options set for selected groups.
    */
   def optionsInGroups(groups: String) = {
-    val f = findInGroups(groups).map(environments => environments.map(e => (e._id.get.stringify, e.name)))
-    sortEnvs(Await result(f, 1.seconds))
+    if ("all".equals(groups)) {
+      options
+    } else {
+      val f = findInGroups(groups).map(environments => environments.map(e => (e._id.get.stringify, e.name)))
+      sortEnvs(Await result(f, 5.seconds))
+    }
   }
 
   /**

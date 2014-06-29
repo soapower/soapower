@@ -827,7 +827,7 @@ object RequestData {
         }
         uniqueStartTimePerDay.toList
     }
-    Await.result(queryStartTimes, 1.second)
+    Await.result(queryStartTimes, 5.second)
   }
 
   /**

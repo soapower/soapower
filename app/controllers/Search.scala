@@ -22,13 +22,13 @@ object Search extends Controller {
 
   def listDatatable(groups: String, environment: String, serviceAction: String, minDate: String, maxDate: String, status: String, sSearch: String, page: Int, pageSize: Int, sortKey: String, sortVal: String, request: Boolean, response: Boolean) = Action.async {
     val futureDataList = RequestData.list(groups, environment, URLDecoder.decode(serviceAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, (page - 1), pageSize, sortKey, sortVal, sSearch, request, response)
-    futureDataList.map {
-      list =>
-        val queryTotalSize = RequestData.getTotalSize(groups, environment, URLDecoder.decode(serviceAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, sSearch, request, response)
-        val totalSize = Await.result(queryTotalSize, 1.second)
-        Ok(Json.toJson(Map("data" -> Json.toJson(list),
-          "totalDataSize" -> Json.toJson(totalSize.asInstanceOf[Long]))))
-    }
+    val futureTotalSize = RequestData.getTotalSize(groups, environment, URLDecoder.decode(serviceAction, UTF8), getDate(minDate).getTime, getDate(maxDate, v23h59min59s, true).getTime, status, sSearch, request, response)
+
+    for {
+      futureDataListResult <- futureDataList
+      futureTotalSizeResult <- futureTotalSize
+    } yield (Ok(Json.toJson(Map("data" -> Json.toJson(futureDataListResult),
+      "totalDataSize" -> Json.toJson(futureTotalSizeResult.asInstanceOf[Long])))))
   }
 
   /**
@@ -61,8 +61,7 @@ object Search extends Controller {
    * @param isRequest
    * @return
    */
-  //def downloadInCorrectFormat(str: String, id: String, format: String, asFile: Boolean, isRequest: Boolean) = {
-  def downloadInCorrectFormat(future: Future[Option[BSONDocument]], id: String, asFile: Boolean, isRequest: Boolean) = {
+   def downloadInCorrectFormat(future: Future[Option[BSONDocument]], id: String, asFile: Boolean, isRequest: Boolean) = {
 
     val keyContent = {
       if (isRequest) "request" else "response"
