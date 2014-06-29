@@ -17,7 +17,7 @@ object Global extends GlobalSettings {
 
     // initialDelay: Duration : 10 minutes
     // frequency: Duration : 5 hours
-    Akka.system.scheduler.schedule(1 minutes, 5 hours) {
+    Akka.system.scheduler.schedule(10 minutes, 5 hours) {
 
       Environment.ensureIndexes()
       ServiceAction.ensureIndexes()
