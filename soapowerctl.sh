@@ -86,8 +86,17 @@ configtest() {
         ERROR=1
     fi
 
+    IS_MONGO_LISTEN=`lsof -iTCP -sTCP:LISTEN | grep mongod`
+    if [ $? -ne 0 ]; then
+        echo "ERROR : please check if mongodb is running" ;
+        ERROR=1
+    else
+        echo "ok, mongodb is running" ;
+    fi
+
     return ${ERROR}
 }
+
 ########################################
 #          Run
 # Use start Method to start Soapower

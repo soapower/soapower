@@ -6,6 +6,7 @@ import play.api.cache._
 import java.util.{Calendar, GregorianCalendar}
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import play.api.libs.json._
+import reactivemongo.api.indexes.{IndexType, Index}
 import reactivemongo.bson._
 import scala.concurrent.{Await, Future}
 import play.modules.reactivemongo.json.BSONFormats._
@@ -36,6 +37,12 @@ object Environment {
    * Collection MongoDB
    */
   def collection: BSONCollection = ReactiveMongoPlugin.db.collection[BSONCollection]("environments")
+
+  def ensureIndexes() {
+    Logger.info("Collection environments, ensure index")
+    collection.indexesManager.ensure(Index(Seq("groups" -> IndexType.Ascending, "name" -> IndexType.Ascending)))
+    collection.indexesManager.ensure(Index(Seq("name" -> IndexType.Ascending)))
+  }
 
   implicit val environmentFormat = Json.format[Environment]
 

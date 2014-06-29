@@ -2,11 +2,14 @@ package models
 
 import java.util.{TimeZone, GregorianCalendar, Calendar, Date}
 import play.api.Play.current
+import play.api.cache.Cache
 import play.api.libs.json._
 import java.util.zip.{GZIPOutputStream, GZIPInputStream}
 import java.nio.charset.Charset
 
 import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
+
+import reactivemongo.api.indexes.{IndexType, Index}
 
 import scala.concurrent.duration._
 import play.api.Logger
@@ -16,7 +19,6 @@ import scala.concurrent.{Await, Future}
 import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
 import play.api.http.HeaderNames
-import play.cache.Cache
 import org.joda.time.DateTime
 import scala.collection.mutable.ListBuffer
 import reactivemongo.bson.BSONDateTime
@@ -140,6 +142,13 @@ case class RequestData(_id: Option[BSONObjectID],
 object RequestData {
 
   def collection: BSONCollection = ReactiveMongoPlugin.db.collection[BSONCollection]("requestData")
+
+  def ensureIndexes() {
+    Logger.info("Collection requestData, ensure index")
+    collection.indexesManager.ensure(Index(Seq("serviceAction" -> IndexType.Ascending, "groupsName" -> IndexType.Ascending)))
+    collection.indexesManager.ensure(Index(Seq("environmentName" -> IndexType.Ascending, "startTime" -> IndexType.Descending)))
+    collection.indexesManager.ensure(Index(Seq("status" -> IndexType.Ascending)))
+  }
 
   implicit val requestDataFormat = Json.format[RequestData]
 
@@ -272,18 +281,22 @@ object RequestData {
    * Construct the Map[String, String] needed to fill a select options set.
    */
   def statusOptions: Future[BSONDocument] = {
-    val command = RawCommand(BSONDocument("distinct" -> collection.name, "key" -> "status", "query" -> BSONDocument()))
-    // example of return {"values":[200],"stats":{"n":16,"nscanned":16,"nscannedObjects":16,"timems":0,"cursor":"BasicCursor"},"ok":1.0}
-    ReactiveMongoPlugin.db.command(command) // result is Future[BSONDocument]
+    Cache.getOrElse(keyCacheStatusOptions) {
+      val command = RawCommand(BSONDocument("distinct" -> collection.name, "key" -> "status", "query" -> BSONDocument()))
+      // example of return {"values":[200],"stats":{"n":16,"nscanned":16,"nscannedObjects":16,"timems":0,"cursor":"BasicCursor"},"ok":1.0}
+      ReactiveMongoPlugin.db.command(command) // result is Future[BSONDocument]
+    }
   }
 
   /**
    * find the oldest requestData
    */
   def getMinRequestData: Future[Option[RequestData]] = {
-    collection.find(BSONDocument()).sort(BSONDocument({
-      "startTime" -> 1
-    })).one[RequestData]
+    Cache.getOrElse(keyCacheMinStartTime) {
+      collection.find(BSONDocument()).sort(BSONDocument({
+        "startTime" -> 1
+      })).one[RequestData]
+    }
   }
 
   /**
@@ -356,6 +369,7 @@ object RequestData {
         }
       }
     }
+    Cache.remove(keyCacheStatusOptions)
   }
 
   /**
@@ -376,8 +390,7 @@ object RequestData {
           "startTime" -> BSONDocument(
             "$gte" -> BSONDateTime(minDateTime.getMillis),
             "$lt" -> BSONDateTime(maxDateTime.getMillis)),
-          "purged" -> false,
-          "isStats" -> null
+          "purged" -> false
         )
 
       case _ =>
@@ -386,8 +399,7 @@ object RequestData {
           "startTime" -> BSONDocument(
             "$gte" -> BSONDateTime(minDateTime.getMillis),
             "$lt" -> BSONDateTime(maxDateTime.getMillis)),
-          "purged" -> false,
-          "isStats" -> null
+          "purged" -> false
         )
     }
 
@@ -403,6 +415,7 @@ object RequestData {
 
     Cache.remove(keyCacheServiceAction)
     Cache.remove(keyCacheStatusOptions)
+    Cache.remove(keyCacheMinStartTime)
 
     var updatedElement = 0
     val futureUpdate = collection.update(selector, modifier, multi = true)
@@ -437,8 +450,7 @@ object RequestData {
         BSONDocument(
           "startTime" -> BSONDocument(
             "$gte" -> BSONDateTime(minDateTime.getMillis),
-            "$lt" -> BSONDateTime(maxDateTime.getMillis)),
-          "isStats" -> null
+            "$lt" -> BSONDateTime(maxDateTime.getMillis))
         )
 
       case _ =>
@@ -446,8 +458,7 @@ object RequestData {
           "environmentName" -> environmentIn,
           "startTime" -> BSONDocument(
             "$gte" -> BSONDateTime(minDateTime.getMillis),
-            "$lt" -> BSONDateTime(maxDateTime.getMillis)),
-          "isStats" -> null
+            "$lt" -> BSONDateTime(maxDateTime.getMillis))
         )
     }
     var removedElement = 0
@@ -462,6 +473,7 @@ object RequestData {
     }
     Cache.remove(keyCacheServiceAction)
     Cache.remove(keyCacheStatusOptions)
+    Cache.remove(keyCacheMinStartTime)
 
     removedElement
   }

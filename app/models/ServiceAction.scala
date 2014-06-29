@@ -4,6 +4,7 @@ import play.api.Play.current
 
 import play.modules.reactivemongo.ReactiveMongoPlugin
 import play.api.libs.json._
+import reactivemongo.api.indexes.{IndexType, Index}
 import reactivemongo.bson._
 import scala.concurrent.{Await, Future}
 import play.modules.reactivemongo.json.BSONFormats._
@@ -24,6 +25,12 @@ object ServiceAction {
    * Collection MongoDB
    */
   def collection: BSONCollection = ReactiveMongoPlugin.db.collection[BSONCollection]("serviceActions")
+
+  def ensureIndexes() {
+    Logger.info("Collection serviceActions, ensure index")
+    collection.indexesManager.ensure(Index(Seq("name" -> IndexType.Ascending)))
+    collection.indexesManager.ensure(Index(Seq("groups" -> IndexType.Ascending, "name" -> IndexType.Ascending)))
+  }
 
   implicit val serviceActionFormat = Json.format[ServiceAction]
 

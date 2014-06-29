@@ -11,7 +11,7 @@ function StatsCtrl($scope, $rootScope, $http, $location, $routeParams, $filter, 
     var mindate = $routeParams.mindate ? $routeParams.mindate : 'all';
     var maxdate = $routeParams.maxdate ? $routeParams.maxdate : 'all';
     //var code = $routeParams.code ? $routeParams.code : 'all';
-    var live = $routeParams.live ? $routeParams.live : 'false'
+    var live = $routeParams.live ? $routeParams.live : 'false';
     var url = $scope.ctrlPath +
         '/' + groups +
         '/' + environment +
@@ -54,7 +54,6 @@ function StatsCtrl($scope, $rootScope, $http, $location, $routeParams, $filter, 
         }).error(function (e) {
             console.log(e);
         });
-
 
     $rootScope.$broadcast("showGroupsFilter", $routeParams.groups, "SearchCtrl");
 
