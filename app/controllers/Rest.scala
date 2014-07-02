@@ -151,7 +151,7 @@ object Rest extends Controller {
           val mock = Await.result(fmock, 5.second)
           client.workWithMock(mock)
 
-          val sr = new Results.Status(mock.httpStatus).chunked(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
+          val sr = new Results.Status(mock.httpStatus).apply(mock.response.getBytes())
             .withHeaders("ProxyVia" -> "soapower")
             .withHeaders(UtilConvert.headersFromString(mock.httpHeaders).toArray: _*).as(client.requestData.contentType)
 
@@ -160,7 +160,7 @@ object Rest extends Controller {
         } else {
           client.sendRestRequestAndWaitForResponse(HttpMethod.valueOf(svc.get.httpMethod), remoteTargetWithCall, query)
           if (client.response.body == "") client.response.contentType = "text/xml"
-          new Results.Status(client.response.status).chunked(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
+          new Results.Status(client.response.status).apply(client.response.bodyBytes)
             .withHeaders("ProxyVia" -> "soapower").withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
         }
       } else {
