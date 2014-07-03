@@ -142,7 +142,7 @@ object Soap extends Controller {
           val fmock = Mock.findByMockGroupAndContent(BSONObjectID(svc.get.mockGroupId.get), content)
           val mock = Await.result(fmock, 1.second)
           client.workWithMock(mock)
-          val sr = new Results.Status(mock.httpStatus).apply(mock.response.getBytes())
+          val sr = new Results.Status(mock.httpStatus).stream(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
             .withHeaders("ProxyVia" -> "soapower")
             .withHeaders(UtilConvert.headersFromString(mock.httpHeaders).toArray: _*)
             .as(XML)
@@ -152,9 +152,9 @@ object Soap extends Controller {
         } else {
           client.sendSoapRequestAndWaitForResponse
           // forward the response to the client
-          new Results.Status(client.response.status).apply(client.response.bodyBytes)
+          new Results.Status(client.response.status).stream(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
             .withHeaders("ProxyVia" -> "soapower")
-            .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
+            .withHeaders(client.response.headers.toArray: _*).as(XML)
         }
       } else {
         val err = "environment " + environmentName + " with localTarget " + localTarget + " unknown"

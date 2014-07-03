@@ -151,17 +151,19 @@ object Rest extends Controller {
           val mock = Await.result(fmock, 5.second)
           client.workWithMock(mock)
 
-          val sr = new Results.Status(mock.httpStatus).apply(mock.response.getBytes())
+          val sr = new Results.Status(mock.httpStatus).stream(Enumerator(mock.response.getBytes()).andThen(Enumerator.eof[Array[Byte]]))
             .withHeaders("ProxyVia" -> "soapower")
-            .withHeaders(UtilConvert.headersFromString(mock.httpHeaders).toArray: _*).as(client.requestData.contentType)
+            .withHeaders(UtilConvert.headersFromString(mock.httpHeaders).toArray: _*)
+            .as(client.requestData.contentType)
 
           val timeoutFuture = play.api.libs.concurrent.Promise.timeout(sr, mock.timeoutms.milliseconds)
           Await.result(timeoutFuture, 10.second) // 10 seconds (10000 ms) is the maximum allowed.
         } else {
           client.sendRestRequestAndWaitForResponse(HttpMethod.valueOf(svc.get.httpMethod), remoteTargetWithCall, query)
           if (client.response.body == "") client.response.contentType = "text/xml"
-          new Results.Status(client.response.status).apply(client.response.bodyBytes)
-            .withHeaders("ProxyVia" -> "soapower").withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
+          new Results.Status(client.response.status).stream(Enumerator(client.response.bodyBytes).andThen(Enumerator.eof[Array[Byte]]))
+            .withHeaders("ProxyVia" -> "soapower")
+            .withHeaders(client.response.headers.toArray: _*).as(client.response.contentType)
         }
       } else {
         val err = "No REST service with the environment " + environmentName + " and the HTTP method " + httpMethodForLog + " matches the call " + call
