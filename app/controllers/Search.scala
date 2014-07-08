@@ -36,7 +36,6 @@ object Search extends Controller {
   /**
    * Used to download or render the request
    * @param id of the requestData to download
-   * @param asFile "true" or "false"
    * @return
    */
   def downloadRequest(id: String) = Action.async {

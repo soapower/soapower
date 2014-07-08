@@ -11,7 +11,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import models.Stat.{AnalysisEntity, PageStat}
 import org.joda.time.DateTime
 import play.modules.reactivemongo.json.BSONFormats._
-import scala.concurrent.Await
+import scala.concurrent.{Future, Await}
 import scala.concurrent.duration._
 
 
@@ -107,6 +107,14 @@ object Stats extends Controller {
         }
         Ok("<testsuites><testsuite>" + x + "</testsuite></testsuites>").as(XML)
     }
+  }
+
+  /**
+   * Launch stats computing
+   */
+  def compileStats() = Action {
+    RequestData.compileStats()
+    Ok("Stats computing has been launched")
   }
 
 }
