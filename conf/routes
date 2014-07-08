@@ -80,8 +80,10 @@ GET           /statsAsJunit/:group/:minDate/:maxDate                            
 GET           /stats/:groups/:environment/:minDate/:maxDate/:live/listDatatable                          controllers.Stats.listDataTable(groups, environment, minDate, maxDate, live:Boolean)
 
 # Download SOAP and Rest request and response
-GET           /download/request/:id/:asFile                                                              controllers.Search.downloadRequest(id:String, asFile: String)
-GET           /download/response/:id/:asFile                                                             controllers.Search.downloadResponse(id:String, asFile: String)
+GET           /download/request/:id                                                                      controllers.Search.downloadRequest(id:String)
+GET           /visualize/request/:id                                                                     controllers.Search.getRequest(id:String)
+GET           /visualize/response/:id                                                                    controllers.Search.getResponse(id:String)
+GET           /download/response/:id                                                                     controllers.Search.downloadResponse(id:String)
 
 # Monitoring
 GET           /monitor/logfile                                                                           controllers.admin.Monitor.logfile

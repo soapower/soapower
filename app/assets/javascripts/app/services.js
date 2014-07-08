@@ -371,6 +371,10 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
             if (string == "true") return true;
             else if (string == "false") return false;
             else return true;
+        },
+        // Check if str1 startsWith str2
+        startsWith: function(str1, str2) {
+           return (str1.match("^"+str2)==str2);
         }
     }
 });

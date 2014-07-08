@@ -2,7 +2,7 @@
 
 'use strict';
 
-var spApp = angular.module('spApp', [ 'ui.bootstrap', 'ngRoute', 'ngResource', 'ngTable', 'ui.bootstrap.datetimepicker', 'ui.select2']);
+var spApp = angular.module('spApp', [ 'ui.bootstrap', 'ngRoute', 'ngResource', 'ngTable', 'ui.bootstrap.datetimepicker', 'ui.select2', 'hljs']);
 
 spApp.config(function ($routeProvider) {
     $routeProvider
@@ -16,6 +16,9 @@ spApp.config(function ($routeProvider) {
         .when('/search', { redirectTo: '/search/all/all/all/yesterday/today/all'})
         .when('/search/:groups/:environment/:serviceaction/:mindate/:maxdate/:code', {
             controller: SearchCtrl, templateUrl: 'partials/search/search.html'
+        })
+        .when('/visualize/:requestorresponse/:id', {
+            controller: VisualizeCtrl, templateUrl: 'partials/search/requestorresponse.html'
         })
         .when('/analysis', {
             redirectTo: '/analysis/all/all/all/yesterday/today'

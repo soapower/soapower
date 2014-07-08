@@ -12,7 +12,9 @@ import java.net.URLDecoder
 import scala.concurrent.{Await, Future, ExecutionContext}
 import ExecutionContext.Implicits.global
 import reactivemongo.bson.BSONDocument
+import scala.util.parsing.json.JSONObject
 import scala.concurrent.duration._
+import com.fasterxml.jackson.core.JsonParseException
 
 case class Search(environmentId: Long)
 
@@ -37,31 +39,109 @@ object Search extends Controller {
    * @param asFile "true" or "false"
    * @return
    */
-  def downloadRequest(id: String, asFile: String) = Action.async {
+  def downloadRequest(id: String) = Action.async {
     val future = RequestData.loadRequest(id)
-    downloadInCorrectFormat(future, id, ("true".equals(asFile)), true)
+    downloadInCorrectFormat(future, id, true)
+  }
+
+  /**
+   * Get the requestData request content and send it to the client
+   * @param id
+   * @return
+   */
+  def getRequest(id: String) = Action.async {
+    RequestData.loadRequest(id).map {
+      tuple => tuple match {
+        case Some(doc: BSONDocument) => {
+          doc.getAs[String]("contentType").get match {
+            case "application/json" =>
+              var content = doc.getAs[String]("request").get
+              try {
+                val content = Json.parse(doc.getAs[String]("request").get)
+                Ok(Json.toJson(content));
+              }
+              catch {
+                case e: JsonParseException =>
+                  Ok(content)
+              }
+            case "application/xml" | "text/xml" => {
+              var content = doc.getAs[String]("request").get
+              try {
+                content = new PrettyPrinter(250, 4).format(scala.xml.XML.loadString(content))
+              } catch {
+                case e: SAXParseException =>
+
+              }
+              Ok(content)
+            }
+            case _ =>
+              Ok(doc.getAs[String]("request").get)
+          }
+        }
+        case None =>
+          NotFound("The request does not exist")
+      }
+    }
+  }
+
+  /**
+   * Get the response requestData and send it to the client
+   * @param id
+   * @return
+   */
+  def getResponse(id: String) = Action.async {
+    RequestData.loadResponse(id).map {
+      tuple => tuple match {
+        case Some(doc: BSONDocument) => {
+          doc.getAs[String]("contentType").get match {
+            case "application/json" =>
+              var content = doc.getAs[String]("response").get
+              try {
+                val content = Json.parse(doc.getAs[String]("response").get)
+                Ok(Json.toJson(content));
+              }
+              catch {
+                case e: JsonParseException =>
+                  Ok(content)
+              }
+            case "application/xml" | "text/xml" => {
+              var content = doc.getAs[String]("response").get
+              try {
+                content = new PrettyPrinter(250, 4).format(scala.xml.XML.loadString(content))
+              } catch {
+                case e: SAXParseException =>
+
+              }
+              Ok(content)
+            }
+            case _ =>
+              Ok(doc.getAs[String]("response").get)
+          }
+        }
+        case None =>
+          NotFound("The response does not exist")
+      }
+    }
   }
 
   /**
    * Used to download or render the response
    * @param id of the requestData to download
-   * @param asFile "true" or "false"
    * @return
    */
-  def downloadResponse(id: String, asFile: String) = Action.async {
+  def downloadResponse(id: String) = Action.async {
     val future = RequestData.loadResponse(id)
-    downloadInCorrectFormat(future, id, ("true".equals(asFile)), false)
+    downloadInCorrectFormat(future, id, false)
   }
 
 
   /**
    * Download the response / request in the correct format
    * @param future the request or response Content
-   * @param asFile
    * @param isRequest
    * @return
    */
-   def downloadInCorrectFormat(future: Future[Option[BSONDocument]], id: String, asFile: Boolean, isRequest: Boolean) = {
+  def downloadInCorrectFormat(future: Future[Option[BSONDocument]], id: String, isRequest: Boolean) = {
 
     val keyContent = {
       if (isRequest) "request" else "response"
@@ -95,12 +175,10 @@ object Search extends Controller {
               var result = Result(
                 header = ResponseHeader(play.api.http.Status.OK),
                 body = Enumerator(contentInCorrectFormat.getBytes))
-              if (asFile) {
+
                 result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
                 result.as(XML)
-              } else {
-                result.as(TEXT)
-              }
+
             }
 
             case "application/json" => {
@@ -116,22 +194,16 @@ object Search extends Controller {
               var result = Result(
                 header = ResponseHeader(play.api.http.Status.OK),
                 body = Enumerator(contentInCorrectFormat.getBytes))
-              if (asFile) {
                 result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
                 result.as(JSON)
-              } else {
-                result.as(TEXT)
-              }
             }
             case _ => {
               filename += ".txt"
               var result = Result(
                 header = ResponseHeader(play.api.http.Status.OK),
                 body = Enumerator(content.getBytes))
-              if (asFile) {
                 result = result.withHeaders((HeaderNames.CONTENT_DISPOSITION, "attachment; filename=" + filename))
-              }
-              result.as(TEXT)
+                result.as(TEXT)
             }
 
           }
