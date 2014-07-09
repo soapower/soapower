@@ -54,10 +54,9 @@ object Search extends Controller {
         case Some(doc: BSONDocument) => {
           doc.getAs[String]("contentType").get match {
             case "application/json" =>
-              var content = doc.getAs[String]("request").get
+              val content = doc.getAs[String]("request").get
               try {
-                val content = Json.parse(doc.getAs[String]("request").get)
-                Ok(Json.toJson(content));
+                Ok(Json.toJson(Json.parse(doc.getAs[String]("request").get)));
               }
               catch {
                 case e: JsonParseException =>
@@ -69,7 +68,6 @@ object Search extends Controller {
                 content = new PrettyPrinter(250, 4).format(scala.xml.XML.loadString(content))
               } catch {
                 case e: SAXParseException =>
-
               }
               Ok(content)
             }
