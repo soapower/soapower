@@ -94,6 +94,14 @@ POST          /gc!                                                              
 GET           /loggers                                                                                   controllers.admin.Monitor.loggers
 GET           /loggers/change/:loggerName/:newLevel                                                      controllers.admin.Monitor.changeLevel(loggerName: String, newLevel : String)
 
+# Send (user,password) to receive token
+POST          /login                                                                                     controllers.Application.login()
+# Invalidate token
+POST          /logout                                                                                    controllers.Application.logout()
+
+# Check if token is valid and get user id
+GET           /ping                                                                                      controllers.Application.ping()
+
 # Index utils
 GET           /index/buildinfo                                                                           controllers.Index.getBuildInfo
 

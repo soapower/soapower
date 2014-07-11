@@ -1,0 +1,7 @@
+<li class="dropdown">
+    <a class="dropdown-toggle" data-toggle="dropdown" ng-show="isLoggedIn">{{user.fullname}}<b class="caret"></b></a>
+    <ul class="dropdown-menu" ng-show="isLoggedIn">
+        <li><a ng-click="logout()"><i class="fa fa-power-off"></i> Logout</a></li>
+    </ul>
+    <a ng-hide="isLoggedIn" href="#/login">Login</a>
+</li>

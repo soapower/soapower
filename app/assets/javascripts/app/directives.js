@@ -517,3 +517,33 @@ spApp.directive('spFilter', function ($http, $filter) {
         replace: true
     }
 });
+
+spApp.directive('menuProfile', function () {
+    return {
+        restrict: 'A',
+        replace: true,
+        controller: function ($scope, $rootScope, $routeParams,$location, AuthenticationService) {
+            $scope.isLoggedIn = false;
+            $scope.$on("reloadAuthentication", function (event, action) {
+                console.log("menuProfile on reloadAuthentication" + event);
+                $scope.load();
+            });
+
+            $scope.logout = function () {
+                console.log("Logout from directive");
+                AuthenticationService.logout();
+                $scope.user = undefined;
+                $location.path("#/login");
+            };
+
+            $scope.load = function() {
+                AuthenticationService.isLoggedInPromise().then(function(currentUser) {
+                    $scope.isLoggedIn = (currentUser != false);
+                    $scope.user = currentUser;
+                });
+            };
+            $scope.load();
+        },
+        templateUrl: 'partials/common/menuProfile.html'
+    }
+});

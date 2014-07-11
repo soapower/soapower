@@ -1,4 +1,32 @@
 <section>
-    <h5>Soapower in few words...</h5>
-    <img src='/images/soapower/seqDiagram.png' display='float:right'>
+    <div class="col-md-8">
+        <h5>Soapower in few words...</h5>
+        <img src='/images/soapower/seqDiagram.png' display='float:right'>
+
+    </div>
+    <div class="col-md-4">
+
+        <div class="input-group">
+            <span class="input-group-addon"><i class="fa fa-user"></i></span>
+            <input type="text" class="form-control" name="username" placeholder="username"
+                   data-ng-model="credentials.username" required>
+        </div>
+        <span class="help-block"></span>
+
+        <div class="input-group">
+            <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+            <input type="password" class="form-control" name="password" placeholder="Password"
+                   data-ng-model="credentials.password" required>
+        </div>
+        <span class="help-block"></span>
+
+        <button data-ng-click="login(credentials)" class="btn btn-lg btn-primary btn-block">
+            Login
+        </button>
+        <button data-ng-click="register(credentials)" class="btn btn btn-block">
+            Register
+        </button>
+
+    </div>
 </section>
+
