@@ -238,7 +238,7 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
     return {
         reloadPage: function ($scope, showServiceactions, page) {
 
-            var environment = "all", serviceaction = "all", mindate = "yesterday", maxdate = "today", code = "all", live="false";
+            var environment = "all", serviceaction = "all", mindate = "yesterday", maxdate = "today", code = "all", live = "false";
 
             if ($scope.environment) environment = $scope.environment;
 
@@ -279,7 +279,7 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
                 $location.path(path)
             }
             else if (page == "statistics") {
-                path = path + "/" + environment + "/" + mindate+"/"+maxdate+"/"+live
+                path = path + "/" + environment + "/" + mindate + "/" + maxdate + "/" + live
                 console.log("UIService.reloadPage : Go to " + path);
                 $location.path(path)
             }
@@ -373,8 +373,8 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
             else return true;
         },
         // Check if str1 startsWith str2
-        startsWith: function(str1, str2) {
-           return (str1.match("^"+str2)==str2);
+        startsWith: function (str1, str2) {
+            return (str1.match("^" + str2) == str2);
         }
     }
 });
@@ -426,4 +426,69 @@ spApp.factory('ReplayService', function ($http, $rootScope, $location, Service) 
             )
         }
     }
+});
+
+
+/*********************************************************/
+/* Authentication services
+ /*********************************************************/
+
+spApp.factory('AuthenticationService', function ($http, $q, $rootScope, $timeout, $cookies) {
+    'use strict';
+    var currentUser = false;
+    return {
+        login: function (credentials) {
+            var deferred = $q.defer();
+            $http.post("/login", credentials)
+                .then(
+                function (response) { // success
+                    currentUser = response.data;
+                    console.log("Broadcast reloadAuthentication");
+                    $rootScope.$broadcast("reloadAuthentication", "login");
+                    deferred.resolve(true);
+                }, function (response) { // error
+                    console.log("AuthenticationService - Error Authentication : " + response);
+                    deferred.resolve(false);
+                }
+            );
+            return deferred.promise;
+        },
+        logout: function () {
+            $http.post("/logout").then(function () {
+                $cookies["XSRF-TOKEN"] = undefined;
+                console.log("Call reloadAuthentication from AuthenticationService.logout");
+                currentUser = false;
+                $rootScope.$broadcast("reloadAuthentication", "logout");
+            });
+        },
+        isLoggedInPromise: function () {
+            var deferred = $q.defer();
+            if (currentUser) {
+                console.log("isLoggedIn return true");
+                deferred.resolve(currentUser);
+            } else {
+                console.log("Etat du cookie : " + $cookies["XSRF-TOKEN"]);
+                if ($cookies["XSRF-TOKEN"]) {
+                    $http.get("/ping")
+                        .then(
+                        function (response) {
+                            // Token valid, fetch user data
+                            currentUser = response.data;
+                            deferred.resolve(currentUser);
+                        },
+                        function (response) {
+                            $cookies["XSRF-TOKEN"] = undefined;
+                            currentUser = false;
+                            deferred.resolve(false);
+                            $rootScope.$broadcast("reloadAuthentication", "logout");
+                            return $q.reject("Token invalid");
+                        }
+                    );
+                } else {
+                    deferred.resolve(false);
+                }
+            }
+            return deferred.promise;
+        }
+    };
 });
