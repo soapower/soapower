@@ -51,11 +51,11 @@ trait Application extends Controller with Security {
       Ok(views.html.index())
     }
   */
-  case class Login(email: String, password: String)
+  case class Login(username: String, password: String)
 
   val loginForm = Form(
     mapping(
-      "email" -> email,
+      "username" -> nonEmptyText,
       "password" -> nonEmptyText
     )(Login.apply)(Login.unapply)
   )
@@ -77,12 +77,14 @@ trait Application extends Controller with Security {
     loginForm.bind(request.body).fold(// Bind JSON body to form values
       formErrors => BadRequest(Json.obj("err" -> formErrors.errorsAsJson)),
       loginData => {
-        //User.findByEmailAndPassword(loginData.email, loginData.password) map { user =>
+        //User.findByUsernameAndPassword(loginData.username, loginData.password) map { user =>
         val token = java.util.UUID.randomUUID().toString
         val userId = "TODO"
+        val fullname = "FirstName LastName"
         Ok(Json.obj(
           "authToken" -> token,
-          "userId" -> userId
+          "userId" -> userId,
+          "fullname" -> fullname
         )).withToken(token -> userId)
         //} getOrElse NotFound(Json.obj("err" -> "User Not Found or Password Invalid"))
       }

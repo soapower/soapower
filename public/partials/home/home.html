@@ -4,8 +4,13 @@
         <img src='/images/soapower/seqDiagram.png' display='float:right'>
 
     </div>
-    <div class="col-md-4">
-
+    <div class="col-md-4" ng-show="user">
+        Logged as {{user.fullname}}
+        <button data-ng-click="logout()" class="btn btn-lg btn-block">
+            Logout
+        </button>
+    </div>
+    <div class="col-md-4" ng-hide="user">
         <div class="input-group">
             <span class="input-group-addon"><i class="fa fa-user"></i></span>
             <input type="text" class="form-control" name="username" placeholder="username"

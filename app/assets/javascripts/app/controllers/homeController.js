@@ -5,9 +5,9 @@ function HomeCtrl($scope, $http, $timeout, AuthenticationService) {
      * The server adds the XSRF-TOKEN cookie which is then picked up by Play.
      */
     $scope.login = function (credentials) {
-        if (AuthenticationService.login(credentials).then(function(isLogged) {
-            if (isLogged) {
-                $scope.user = AuthenticationService.getUser();
+        if (AuthenticationService.login(credentials).then(function (currentUser) {
+            if (currentUser) {
+                $scope.user = currentUser;
             } else {
                 $scope.error = "Please Check your login and password ";
                 console.log("Error with login");
@@ -47,10 +47,12 @@ function HomeCtrl($scope, $http, $timeout, AuthenticationService) {
         $scope.load();
     });
 
-    $scope.load = function() {
-        if (AuthenticationService.isLoggedInPromise().then(function(isLogged) {
-            if (isLogged) {
-                $scope.user = AuthenticationService.getUser();
+    $scope.user = false;
+    $scope.load = function () {
+        if (AuthenticationService.isLoggedInPromise().then(function (currentUser) {
+            if (currentUser) {
+                console.log("Home : currentUser:" + currentUser);
+                $scope.user = currentUser
             } else {
                 console.log("no logged user");
             }
