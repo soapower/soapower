@@ -1,53 +1,5 @@
 'use strict';
 
-spApp.directive('spCriterias', ['$filter', function ($filter) {
-    return {
-        restrict: 'E',
-        scope: {
-            serviceactions: '='
-        },
-        controller: function ($scope, $element, $attrs, $transclude, $location, $routeParams, EnvironmentsService, ServiceActionsService, CodesService, UIService) {
-            EnvironmentsService.findAllAndSelect($scope, $routeParams.environment, $routeParams.group, null, true);
-
-            CodesService.findAllAndSelect($scope, $routeParams);
-            $scope.ctrlPath = $scope.$parent.ctrlPath;
-
-            $scope.mindate = UIService.getInputCorrectDateFormat($routeParams.mindate);
-            $scope.maxdate = UIService.getInputCorrectDateFormat($routeParams.maxdate);
-
-            // Initialise the calendars to today's date
-            $scope.mindatecalendar = new Date();
-            $scope.maxdatecalendar = new Date();
-
-            $scope.showServiceactions = $attrs.serviceactions == "yes";
-
-            // Called when the mindate datetimepicker is set
-            $scope.onMinTimeSet = function (newDate, oldDate) {
-                $scope.showmindate = false;
-                $scope.mindate = $filter('date')(newDate, "yyyy-MM-dd HH:mm");
-            };
-            // Called when the maxdate datetimepicker is set
-            $scope.onMaxTimeSet = function (newDate, oldDate) {
-                $scope.showmaxdate = false;
-                $scope.maxdate = $filter('date')(newDate, "yyyy-MM-dd HH:mm");
-            };
-
-            $scope.changeCriteria = function () {
-                // Check that the date inputs format are correct and that the mindate is before the maxdate
-                if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
-                    UIService.reloadPage($scope, $scope.showServiceactions);
-                } else {
-                    // Else, mindate and maxdate are set to yesterday's and today's dates
-                    $scope.mindate = UIService.getInputCorrectDateFormat(UIService.getDay("yesterday"));
-                    $scope.maxdate = UIService.getInputCorrectDateFormat(UIService.getDay("today"));
-                }
-            };
-        },
-        templateUrl: 'partials/common/criterias.html',
-        replace: true
-    }
-}]);
-
 spApp.directive('spGroups', function () {
     return {
         restrict: 'E',
@@ -262,15 +214,14 @@ spApp.directive('spRequest', function () {
         restrict: 'E',
         replace: true,
         templateUrl: "partials/common/cellRequestTemplate.html",
-        controller: function($scope, $window) {
+        controller: function ($scope, $window) {
             $scope.dlRequest = function (asFile, row) {
                 if (row.purged == "true") {
                     $window.alert("Sorry, Request already purged...");
                 } else {
-                    if(asFile) {
+                    if (asFile) {
                         var url = "/download/request/" + row._id.$oid;
-                    }
-                    else {
+                    } else {
                         var url = "#/visualize/request/" + row._id.$oid;
                     }
                     $window.open(url);
@@ -285,15 +236,14 @@ spApp.directive('spResponse', function () {
         restrict: 'E',
         replace: true,
         templateUrl: "partials/common/cellResponseTemplate.html",
-        controller: function($scope, $window) {
+        controller: function ($scope, $window) {
             $scope.dlResponse = function (asFile, row) {
                 if (row.purged == "true") {
                     $window.alert("Sorry, Response already purged...");
                 } else {
-                    if(asFile) {
+                    if (asFile) {
                         var url = "/download/response/" + row._id.$oid;
-                    }
-                    else {
+                    } else {
                         var url = "#/visualize/response/" + row._id.$oid
                     }
                     $window.open(url);
@@ -320,7 +270,7 @@ spApp.directive('spShowresults', function () {
         replace: true,
         templateUrl: "partials/common/showResults.html",
         controller: function ($scope) {
-            $scope.choiceNbResults = [ 10, 50, 100, 1000, 10000 ];
+            $scope.choiceNbResults = [10, 50, 100, 1000, 10000];
             $scope.nbResults = 50
         }
     }
@@ -495,10 +445,12 @@ spApp.directive('spFilter', function ($http, $filter) {
                 };
 
                 $scope.changeCriteria = function () {
+                    alert("HOP2 : min:" + $scope.mindate + " max" + $scope.maxdate);
                     // Check that the date inputs format are correct and that the mindate is before the maxdate
                     if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
                         $scope.groups = $routeParams.groups;
-                        UIService.reloadPage($scope, $scope.showServiceactions, $scope.page);
+                        alert("HOP23");
+                        UIService.reloadPage($scope, $scope.showserviceactions, $scope.page);
                     } else {
                         // Else, mindate and maxdate are set to yesterday's and today's dates
                         $scope.mindate = UIService.getInputCorrectDateFormat(UIService.getDay("yesterday"));
@@ -507,7 +459,6 @@ spApp.directive('spFilter', function ($http, $filter) {
                 };
 
                 if ($scope.page == "search") {
-
                     $scope.showresearch = true;
                     $scope.request = $routeParams.request ? UIService.stringToBoolean($routeParams.request) : true;
                     $scope.response = $routeParams.response ? UIService.stringToBoolean($routeParams.response) : true;
@@ -518,24 +469,24 @@ spApp.directive('spFilter', function ($http, $filter) {
                         if ($scope.request == false && $scope.response == false) {
                             $scope.search = "";
                         }
-                    }
+                    };
 
                     // Called when the user check or uncheck the response checkbox
                     $scope.changeResponse = function () {
                         if ($scope.request == false && $scope.response == false) {
                             $scope.search = "";
                         }
-                    }
+                    };
                 }
                 else if ($scope.page == "statistics") {
                     $scope.showserviceactions = false;
-                    $scope.showlive = true
+                    $scope.showlive = true;
                     $scope.showstatus = false;
                     $scope.live = $routeParams.live ? UIService.stringToBoolean($routeParams.live) : false;
                 }
                 else if ($scope.page == "analysis") {
                     $scope.showserviceactions = false;
-                    $scope.showlive = true
+                    $scope.showlive = true;
                     $scope.showstatus = false;
                     $scope.showserviceactions = true;
                     $scope.live = $routeParams.live ? UIService.stringToBoolean($routeParams.live) : false;

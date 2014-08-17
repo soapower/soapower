@@ -6,9 +6,11 @@
 
 spApp.factory('Group', function ($resource) {
     return $resource('/groups/:groupId',
-        { groupId: '@_id.$oid'},
-        { update: {method: 'PUT'},
-            create: {method: 'POST'}}
+        {groupId: '@_id.$oid'},
+        {
+            update: {method: 'PUT'},
+            create: {method: 'POST'}
+        }
     );
 });
 
@@ -25,9 +27,11 @@ spApp.factory("GroupsService", function ($http) {
  ***************************************/
 spApp.factory('Environment', function ($resource) {
     return $resource('/environments/:environmentId',
-        { environmentId: '@_id.$oid'},
-        { update: {method: 'PUT'},
-            create: {method: 'POST'}}
+        {environmentId: '@_id.$oid'},
+        {
+            update: {method: 'PUT'},
+            create: {method: 'POST'}
+        }
     );
 });
 
@@ -74,9 +78,11 @@ spApp.factory("EnvironmentsService", function ($http) {
  ***************************************/
 spApp.factory('Service', function ($resource) {
     return $resource('/services/:environmentName/:serviceId',
-        { environmentName: '@environmentName', serviceId: '@_id.$oid'},
-        { update: {method: 'PUT'},
-            create: {method: 'POST'}}
+        {environmentName: '@environmentName', serviceId: '@_id.$oid'},
+        {
+            update: {method: 'PUT'},
+            create: {method: 'POST'}
+        }
     );
 });
 
@@ -95,9 +101,11 @@ spApp.factory("ServicesService", function ($http) {
 
 spApp.factory('MockGroup', function ($resource) {
     return $resource('/mockgroups/:mockgroupId',
-        { mockgroupId: '@_id.$oid'},
-        { update: {method: 'PUT'},
-            create: {method: 'POST'}}
+        {mockgroupId: '@_id.$oid'},
+        {
+            update: {method: 'PUT'},
+            create: {method: 'POST'}
+        }
     );
 });
 
@@ -115,9 +123,11 @@ spApp.factory("MockGroupsService", function ($http) {
  ***************************************/
 spApp.factory('Mock', function ($resource) {
     return $resource('/mocks/:mockGroupName/:mockId',
-        { mockGroupName: '@mockGroupName', mockId: '@_id.$oid'},
-        { update: {method: 'PUT'},
-            create: {method: 'POST'}}
+        {mockGroupName: '@mockGroupName', mockId: '@_id.$oid'},
+        {
+            update: {method: 'PUT'},
+            create: {method: 'POST'}
+        }
     );
 });
 
@@ -136,8 +146,8 @@ spApp.factory("MocksService", function ($http) {
 
 spApp.factory('ServiceAction', function ($resource) {
     return $resource('/serviceactions/:serviceActionId',
-        { serviceActionId: '@_id.$oid'},
-        { update: {method: 'PUT'}}
+        {serviceActionId: '@_id.$oid'},
+        {update: {method: 'PUT'}}
     );
 });
 
@@ -238,7 +248,7 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
     return {
         reloadPage: function ($scope, showServiceactions, page) {
 
-            var environment = "all", serviceaction = "all", mindate = "yesterday", maxdate = "today", code = "all", live="false";
+            var environment = "all", serviceaction = "all", mindate = "yesterday", maxdate = "today", code = "all", live = "false";
 
             if ($scope.environment) environment = $scope.environment;
 
@@ -263,7 +273,11 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
                 path = path + "/" + environment + "/" + serviceaction + "/" + mindate + "/" + maxdate + "/" + code;
                 // Add the search parameters to the query string
                 if ($scope.search) {
-                    var search = {'search': $scope.search, 'request': $scope.request.toString(), 'response': $scope.response.toString()}
+                    var search = {
+                        'search': $scope.search,
+                        'request': $scope.request.toString(),
+                        'response': $scope.response.toString()
+                    }
                     $location.path(path).search(search);
                 }
                 else $location.path(path)
@@ -279,7 +293,7 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
                 $location.path(path)
             }
             else if (page == "statistics") {
-                path = path + "/" + environment + "/" + mindate+"/"+maxdate+"/"+live
+                path = path + "/" + environment + "/" + mindate + "/" + maxdate + "/" + live
                 console.log("UIService.reloadPage : Go to " + path);
                 $location.path(path)
             }
@@ -314,8 +328,7 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
                 if (indate == "yesterday" || indate == "today") {
                     indate = this.getDay(indate);
                     return indate;
-                }
-                else {
+                } else {
                     var dateAndTime = indate.split(' ');
                     return dateAndTime[0] + "T" + dateAndTime[1];
                 }
@@ -333,7 +346,6 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
             } else {
                 dayInit = val;
             }
-
             return dayInit;
         },
         getDay: function (sDay) {
@@ -359,11 +371,15 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
             }
             return mDate.getFullYear() + "-" + month + "-" + day + "T" + time;
         },
+        // Return a date from a string like yyyy-mm-dd hh:mm
+        getDateFromCustom: function (inputDate) {
+            return new Date(inputDate.substr(0, 4), inputDate.substr(5, 2) - 1, inputDate.substr(8, 2), inputDate.substr(11, 2), inputDate.substr(14, 2), inputDate.substr(17, 2));
+        },
         checkDatesFormatAndCompare: function (mindate, maxdate) {
             if (mindate && maxdate) {
-                mindate = new Date(mindate);
-                maxdate = new Date(maxdate);
-
+                //new Date(year, month, day, hours, minutes, seconds, milliseconds);
+                mindate = this.getDateFromCustom(mindate);
+                maxdate = this.getDateFromCustom(maxdate);
                 return !!mindate.getTime() && !!maxdate.getTime() && mindate <= maxdate;
             }
         },
@@ -373,8 +389,8 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
             else return true;
         },
         // Check if str1 startsWith str2
-        startsWith: function(str1, str2) {
-           return (str1.match("^"+str2)==str2);
+        startsWith: function (str1, str2) {
+            return (str1.match("^" + str2) == str2);
         }
     }
 });
@@ -406,10 +422,11 @@ spApp.factory('ReplayService', function ($http, $rootScope, $location, Service) 
                         alert("Error with type Request : " + service.typeRequest)
                     }
                     // perform the request
-                    $http({ method: "POST",
+                    $http({
+                        method: "POST",
                         url: url,
                         data: data.data,
-                        headers: { "Content-Type": contentTypeForRequest }
+                        headers: {"Content-Type": contentTypeForRequest}
                     }).success(function () {
                         console.log("Success replay id" + id);
                         $rootScope.$broadcast('refreshSearchTable');
