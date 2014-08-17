@@ -1,0 +1,11 @@
+<div id="container" style="width: 100%; margin:auto">
+    <h1>{{requestOrResponse | capitalize}}</h1>
+    <div class="btn-group">
+        <button ng-click="getDownload()" class="btn btn-default"><i class="fa fa-download"></i> Download</button>
+        <button ng-click="getRaw()" class="btn btn-default"><i class="fa fa-eye"></i> Raw</button>
+        <button ng-show="requestOrResponse=='request'" ng-click="goOther('response')" class="btn btn-default"><i class="fa fa-undo"></i> View Response</button>
+        <button ng-show="requestOrResponse=='response'" ng-click="goOther('request')" class="btn btn-default"><i class="fa fa-undo"></i> View Request</button>
+    </div>
+    <div hljs source="data">
+    </div>
+</div>

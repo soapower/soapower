@@ -1,55 +1,37 @@
-function VisualizeCtrl($scope, $rootScope, $http, $location, $routeParams, $window, UIService, $filter) {
+function VisualizeCtrl($scope, $http, $location, $routeParams, $window, UIService) {
 
-    var requestOrResponse = $routeParams.requestorresponse;
+    $scope.requestOrResponse = $routeParams.requestorresponse;
 
-    if(requestOrResponse == "request") {
-        $http.get("/visualize/request/" + $routeParams.id)
-            .success(function(data, status, headers) {
-                $scope.displayInCorrectFormat(data, headers);
-            })
-            .error(function(data) {
-                $scope.data = "Empty content";
-            });
-        $scope.getRaw = function() {
-            var url = "/visualize/request/" + $routeParams.id;
-            $window.open(url)
-        };
-        $scope.getDownload = function() {
-            var url = "/download/request/" + $routeParams.id;
-            $window.open(url)
-        };
-    }
-    else if (requestOrResponse == "response") {
-        $http.get("/visualize/response/" + $routeParams.id)
-            .success(function(data, status, headers) {
-                $scope.displayInCorrectFormat(data, headers);
-            })
-            .error(function(data) {
-                $scope.data = "Empty content";
-            });
-        $scope.getRaw = function() {
-            var url = "/visualize/response/" + $routeParams.id;
-            $window.open(url)
-        };
-        $scope.getDownload = function() {
-            var url = "/download/response/" + $routeParams.id;
-            $window.open(url)
-        };
-    }
-    else {
-        $window.open("#/search");
-    }
+    $http.get("/visualize/" + $scope.requestOrResponse + "/" + $routeParams.id)
+        .success(function (data, status, headers) {
+            $scope.displayInCorrectFormat(data, headers);
+        })
+        .error(function (data) {
+            $scope.data = "Empty content";
+        });
 
+    $scope.getRaw = function () {
+        var url = "/visualize/" + $scope.requestOrResponse + "/" + $routeParams.id;
+        $window.open(url)
+    };
+
+    $scope.getDownload = function () {
+        var url = "/download/" + $scope.requestOrResponse + "/" + $routeParams.id;
+        $window.open(url)
+    };
+
+    $scope.goOther = function (goTorequestOrResponse) {
+        var url = "/visualize/" + goTorequestOrResponse + "/" + $routeParams.id;
+        $location.path(url);
+    };
 
     // Pretty print the data in the correct format
-    $scope.displayInCorrectFormat = function(data, headers) {
-        if(UIService.startsWith(headers("Content-Type"), "application/json")) {
+    $scope.displayInCorrectFormat = function (data, headers) {
+        if (UIService.startsWith(headers("Content-Type"), "application/json")) {
             $scope.data = angular.toJson(data, true);
-        }
-        else if (UIService.startsWith(headers("Content-Type"), "application/xml") || UIService.startsWith(headers("Content-Type"), "text/xml")) {
+        } else if (UIService.startsWith(headers("Content-Type"), "application/xml") || UIService.startsWith(headers("Content-Type"), "text/xml")) {
             $scope.data = data;
-        }
-        else {
+        } else {
             $scope.data = data
         }
     }

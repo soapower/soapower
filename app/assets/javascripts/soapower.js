@@ -18,7 +18,7 @@ spApp.config(function ($routeProvider) {
             controller: SearchCtrl, templateUrl: 'partials/search/search.html'
         })
         .when('/visualize/:requestorresponse/:id', {
-            controller: VisualizeCtrl, templateUrl: 'partials/search/requestorresponse.html'
+            controller: VisualizeCtrl, templateUrl: 'partials/visualize/view.html'
         })
         .when('/analysis', {
             redirectTo: '/analysis/all/all/all/yesterday/today'

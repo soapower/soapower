@@ -10,7 +10,6 @@ spApp.directive('spGroups', function () {
             $scope.showGroup = false;
             $scope.lastGroupSelected = [];
             $scope.$on("showGroupsFilter", function (event, groups, caller) {
-
                 console.log("caller " + caller + " showGroupsFilter with groups: " + groups);
                 $scope.showGroup = (groups != false);
                 if (groups && groups != false) {
