@@ -261,7 +261,22 @@ spApp.directive('spRequest', function () {
     return {
         restrict: 'E',
         replace: true,
-        templateUrl: "partials/common/cellRequestTemplate.html"
+        templateUrl: "partials/common/cellRequestTemplate.html",
+        controller: function($scope, $window) {
+            $scope.dlRequest = function (asFile, row) {
+                if (row.purged == "true") {
+                    $window.alert("Sorry, Request already purged...");
+                } else {
+                    if(asFile) {
+                        var url = "/download/request/" + row._id.$oid;
+                    }
+                    else {
+                        var url = "#/visualize/request/" + row._id.$oid;
+                    }
+                    $window.open(url);
+                }
+            };
+        }
     }
 });
 
@@ -269,7 +284,22 @@ spApp.directive('spResponse', function () {
     return {
         restrict: 'E',
         replace: true,
-        templateUrl: "partials/common/cellResponseTemplate.html"
+        templateUrl: "partials/common/cellResponseTemplate.html",
+        controller: function($scope, $window) {
+            $scope.dlResponse = function (asFile, row) {
+                if (row.purged == "true") {
+                    $window.alert("Sorry, Response already purged...");
+                } else {
+                    if(asFile) {
+                        var url = "/download/response/" + row._id.$oid;
+                    }
+                    else {
+                        var url = "#/visualize/response/" + row._id.$oid
+                    }
+                    $window.open(url);
+                }
+            };
+        }
     }
 });
 
