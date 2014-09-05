@@ -444,11 +444,9 @@ spApp.directive('spFilter', function ($http, $filter) {
                 };
 
                 $scope.changeCriteria = function () {
-                    alert("HOP2 : min:" + $scope.mindate + " max" + $scope.maxdate);
                     // Check that the date inputs format are correct and that the mindate is before the maxdate
                     if (UIService.checkDatesFormatAndCompare($scope.mindate, $scope.maxdate)) {
                         $scope.groups = $routeParams.groups;
-                        alert("HOP23");
                         UIService.reloadPage($scope, $scope.showserviceactions, $scope.page);
                     } else {
                         // Else, mindate and maxdate are set to yesterday's and today's dates
