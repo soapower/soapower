@@ -6,6 +6,26 @@
         <button ng-show="requestOrResponse=='request'" ng-click="goOther('response')" class="btn btn-default"><i class="fa fa-undo"></i> View Response</button>
         <button ng-show="requestOrResponse=='response'" ng-click="goOther('request')" class="btn btn-default"><i class="fa fa-undo"></i> View Request</button>
     </div>
-    <div hljs source="data">
+
+    <div>
+        <h2>Details</h2>
+        <div>Environment :  <a href="/#/services/list/{{environment}}/all">{{environment}}</a></div>
+        <div>Service : <a href="/#/services/edit/{{environment}}/{{serviceId}}/all">view configuration</a></div>
+        <div>Sender : {{sender}}</div>
+    </div>
+    <div ng-show="requestOrResponse=='response'" >
+        <h2>Details of response</h2>
+        <div>Response Time in ms : {{timeInMillis}}</div>
+        <div>HTTP Status : <span class="ngCellText label label-unknown label-{{status}}">{{status}}</span></div>
+        <div>Is Purged : {{purged}}</div>
+        <div>Reponse is a soapower mock : {{isMock}}</div>
+    </div>
+
+
+    <h2>Headers</h2>
+    <div hljs source="headers">
+    </div>
+    <h2>Body</h2>
+    <div hljs source="content">
     </div>
 </div>

@@ -1024,6 +1024,12 @@ object RequestData {
     }
   }
 
+  def loadDetails(id: String): Future[Option[BSONDocument]] = {
+    val query = BSONDocument("_id" -> BSONObjectID(id))
+    val projection = BSONDocument("environmentName" -> 1, "serviceId" -> 1, "sender" -> 1, "timeInMillis" ->1, "status" -> 1, "purged" -> 1, "isMock" -> 1, "startTime" -> 1)
+    collection.find(query, projection).cursor[BSONDocument].headOption
+  }
+
   def loadRequest(id: String): Future[Option[BSONDocument]] = {
     val query = BSONDocument("_id" -> BSONObjectID(id))
     val projection = BSONDocument("request" -> 1, "contentType" -> 1, "environmentName" -> 1, "serviceId" -> 1, "sender" -> 1, "requestHeaders" -> 1, "requestCall" -> 1)
@@ -1032,7 +1038,7 @@ object RequestData {
 
   def loadResponse(id: String): Future[Option[BSONDocument]] = {
     val query = BSONDocument("_id" -> BSONObjectID(id))
-    val projection = BSONDocument("response" -> 1, "contentType" -> 1)
+    val projection = BSONDocument("response" -> 1, "contentType" -> 1, "responseHeaders" -> 1)
     collection.find(query, projection).cursor[BSONDocument].headOption
   }
 

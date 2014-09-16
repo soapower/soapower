@@ -11,7 +11,7 @@ import org.xml.sax.SAXParseException
 import java.net.URLDecoder
 import scala.concurrent.{Await, Future, ExecutionContext}
 import ExecutionContext.Implicits.global
-import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.{BSONObjectID, BSONString, BSONDocumentWriter, BSONDocument}
 import scala.util.parsing.json.JSONObject
 import scala.concurrent.duration._
 import com.fasterxml.jackson.core.JsonParseException
@@ -42,6 +42,67 @@ object Search extends Controller {
     val future = RequestData.loadRequest(id)
     downloadInCorrectFormat(future, id, true)
   }
+
+  /**
+   * Get the headers request content and send it to the client
+   * @param id
+   * @return
+   */
+  def getRequestHeaders(id: String) = Action.async {
+    import RequestData.MapBSONReader
+    RequestData.loadRequest(id).map {
+      tuple => tuple match {
+        case Some(doc: BSONDocument) => {
+          Ok(UtilConvert.headersToString(doc.getAs[Map[String, String]]("requestHeaders").get))
+        }
+        case None =>
+          NotFound("Request not found")
+      }
+    }
+  }
+
+  /**
+   * Get the headers response content and send it to the client
+   * @param id
+   * @return
+   */
+  def getResponseHeaders(id: String) = Action.async {
+    import RequestData.MapBSONReader
+    RequestData.loadResponse(id).map {
+      tuple => tuple match {
+        case Some(doc: BSONDocument) => {
+          Ok(UtilConvert.headersToString(doc.getAs[Map[String, String]]("responseHeaders").get))
+        }
+        case None =>
+          NotFound("Response not found")
+      }
+    }
+  }
+
+  /**
+   * Get the headers response content and send it to the client
+   * @param id
+   * @return
+   */
+  def getDetails(id: String) = Action.async {
+    RequestData.loadDetails(id).map {
+      tuple => tuple match {
+        case Some(doc: BSONDocument) => {
+          Ok(Json.toJson(Map("timeInMillis" -> doc.getAs[Long]("timeInMillis").getOrElse("-").toString,
+            "status" -> doc.getAs[Int]("status").getOrElse("-").toString,
+            "purged" -> doc.getAs[Boolean]("purged").getOrElse("-").toString,
+            "isMock" -> doc.getAs[Boolean]("isMock").getOrElse("-").toString,
+            "sender" -> doc.getAs[String]("sender").getOrElse("-").toString,
+            "environmentName" -> doc.getAs[String]("environmentName").getOrElse("-").toString,
+            "serviceId" -> doc.getAs[BSONObjectID]("serviceId").get.stringify.toString)))
+        }
+        case None =>
+          NotFound("Response not found")
+      }
+    }
+  }
+
+
 
   /**
    * Get the requestData request content and send it to the client
