@@ -41,8 +41,10 @@ object Client {
     val soapActionHeader = headers.get("SOAPAction")
     soapActionHeader match {
       case Some(soapAction) =>
-        // drop apostrophes if present
-        if (soapAction.startsWith("\"") && soapAction.endsWith("\"")) {
+        if (soapAction.trim.isEmpty || soapAction.drop(1).dropRight(1).trim.isEmpty) {
+          DEFAULT_NO_SOAPACTION
+        } else if (soapAction.startsWith("\"") && soapAction.endsWith("\"")) {
+          // drop apostrophes if present
           soapAction.drop(1).dropRight(1)
         } else {
           soapAction
