@@ -33,7 +33,7 @@ function VisualizeCtrl($scope, $http, $location, $routeParams, $window, UIServic
         });
 
     $scope.getRaw = function () {
-        var url = "/visualize/" + $scope.requestOrResponse + "/" + $routeParams.id;
+        var url = "/visualize/content/" + $scope.requestOrResponse + "/" + $routeParams.id;
         $window.open(url)
     };
 
