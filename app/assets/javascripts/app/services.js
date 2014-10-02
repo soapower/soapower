@@ -398,7 +398,7 @@ spApp.factory("UIService", function ($location, $filter, $routeParams, $rootScop
 spApp.factory('ReplayService', function ($http, $rootScope, $location, Service) {
     return {
         beforeReplay: function (id) {
-            var url = "/download/request/" + id + "/false";
+            var url = "/download/request/" + id;
             return $http.get(url);
         },
         replay: function (id, environmentName, serviceId, contentType, data) {

@@ -82,12 +82,12 @@ GET           /statscomputing                                                   
 
 # Download SOAP and Rest request and response
 GET           /download/request/:id                                                                      controllers.Search.downloadRequest(id:String)
+GET           /download/response/:id                                                                     controllers.Search.downloadResponse(id:String)
 GET           /visualize/headers/response/:id                                                            controllers.Search.getResponseHeaders(id:String)
 GET           /visualize/headers/request/:id                                                             controllers.Search.getRequestHeaders(id:String)
 GET           /visualize/content/request/:id                                                             controllers.Search.getRequest(id:String)
 GET           /visualize/content/response/:id                                                            controllers.Search.getResponse(id:String)
 GET           /visualize/details/:id                                                                     controllers.Search.getDetails(id:String)
-GET           /download/response/:id                                                                     controllers.Search.downloadResponse(id:String)
 
 # Monitoring
 GET           /monitor/logfile                                                                           controllers.admin.Monitor.logfile

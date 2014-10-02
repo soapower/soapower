@@ -87,7 +87,7 @@ function LiveCtrl($scope, $rootScope, $location, $window, $routeParams, UIServic
         if (row.purged == "true") {
             $window.alert("Sorry, Request already purged...");
         } else {
-            var url = "/download/request/" + row._id.$oid + "/" + asFile;
+            var url = "/download/request/" + row._id.$oid;
             $window.open(url);
         }
     };
@@ -96,7 +96,7 @@ function LiveCtrl($scope, $rootScope, $location, $window, $routeParams, UIServic
         if (row.purged == "true") {
             $window.alert("Sorry, Response already purged...");
         } else {
-            var url = "/download/response/" + row._id.$oid + "/" + asFile;
+            var url = "/download/response/" + row._id.$oid;
             $window.open(url);
         }
     };
